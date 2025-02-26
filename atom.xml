@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-02-26T09:59:23.150Z</updated>
+  <updated>2025-02-26T10:11:33.402Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -21,17 +21,12 @@
     <link href="https://keychankc.github.io/2025/02/26/nn-digital-recognition/"/>
     <id>https://keychankc.github.io/2025/02/26/nn-digital-recognition/</id>
     <published>2025-02-26T06:03:25.000Z</published>
-    <updated>2025-02-26T09:59:23.150Z</updated>
+    <updated>2025-02-26T10:11:33.402Z</updated>
     
     
-    <summary type="html">&lt;p&gt;本文主要是讲如何使用 PyTorch 实现手写数字识别，包括MNIST
-数据集加载处理、神经网络模型定义、训练并评估模型。&lt;/p&gt;
-&lt;h2 id=&quot;环境&quot;&gt;环境&lt;/h2&gt;
-&lt;p&gt;mac: 15.2 python: 3.12.4 pytorch: 2.5.1 matplotlib: 3.8.4 numpy:
-1.26.4 ## 1. Mnist数据集
-Mnist数据集是美国国家标准与技术研究院收集的关于手写数字扫描图像及其对应识别数字的数据集。该数据集分为两部分：
-第一部分包含60000幅28x28大小的灰度图及对应识别数字，用作训练数据，这些图像扫描自250个人的手写样本。
-第二部分包含10000幅28x28大小的灰度图及对应识别数字，用作测试数据，为了保证测试结果，这些图像来自另外一批人。</summary>
+    <summary type="html">&lt;p&gt;本文主要是讲如何使用 PyTorch 实现手写数字识别，包括MNIST 数据集加载处理、神经网络模型定义、训练并评估模型。&lt;/p&gt;
+&lt;h2 id=&quot;环境&quot;&gt;&lt;a href=&quot;#环境&quot; class=&quot;headerlink&quot; title=&quot;环境&quot;&gt;&lt;/a&gt;环境&lt;/h2&gt;&lt;p&gt;mac: 15.2&lt;br&gt;python: 3.12.4&lt;br&gt;pytorch: 2.5.1&lt;br&gt;matplotlib: 3.8.4&lt;br&gt;numpy: 1.26.4&lt;/p&gt;
+&lt;h2 id=&quot;1-Mnist数据集&quot;&gt;&lt;a href=&quot;#1-Mnist数据集&quot; class=&quot;headerlink&quot; title=&quot;1.  Mnist数据集&quot;&gt;&lt;/a&gt;1.  Mnist数据集&lt;/h2&gt;&lt;p&gt;Mnist数据集是美国国家标准与技术研究院收集的关于手写数字扫描图像及其对应识别数字的数据集。该数据集分为两部分：&lt;br&gt;第一部分包含60000幅28x28大小的灰度图及对应识别数字，用作训练数据，这些图像扫描自250个人的手写样本。&lt;br&gt;第二部分包含10000幅28x28大小的灰度图及对应识别数字，用作测试数据，为了保证测试结果，这些图像来自另外一批人。&lt;/p&gt;</summary>
     
     
     
