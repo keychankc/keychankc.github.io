@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-02-25T09:46:52.125Z</updated>
+  <updated>2025-02-27T02:24:18.035Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -17,29 +17,30 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>Hello World</title>
-    <link href="https://keychankc.github.io/2025/02/25/hello-world/"/>
-    <id>https://keychankc.github.io/2025/02/25/hello-world/</id>
-    <published>2025-02-25T07:47:57.641Z</published>
-    <updated>2025-02-25T09:46:52.125Z</updated>
+    <title>利用神经网络实现手写字体识别</title>
+    <link href="https://keychankc.github.io/2025/02/26/nn-digital-recognition/"/>
+    <id>https://keychankc.github.io/2025/02/26/nn-digital-recognition/</id>
+    <published>2025-02-26T06:03:25.000Z</published>
+    <updated>2025-02-27T02:24:18.035Z</updated>
     
     
-      
-      
-        
-        
-    <summary type="html">&lt;p&gt;Welcome to &lt;a href=&quot;https://hexo.io/&quot;&gt;Hexo&lt;/a&gt;! This is your very first post. Check &lt;a href=&quot;https://hexo.io/docs/&quot;&gt;documentation&lt;/a&gt;</summary>
-        
-      
+    <summary type="html">&lt;p&gt;本文主要是讲如何使用 PyTorch 实现手写数字识别，包括MNIST数据集加载处理、神经网络模型定义、训练并评估模型。&lt;/p&gt;
+&lt;h2 id=&quot;1-Mnist数据集&quot;&gt;&lt;a href=&quot;#1-Mnist数据集&quot; class=&quot;headerlink&quot; title=&quot;1.  Mnist数据集&quot;&gt;&lt;/a&gt;1.  Mnist数据集&lt;/h2&gt;&lt;p&gt;Mnist数据集是美国国家标准与技术研究院收集的关于手写数字扫描图像及其对应识别数字的数据集。该数据集分为两部分：&lt;br&gt;第一部分包含60000幅28x28大小的灰度图及对应识别数字，用作训练数据，这些图像扫描自250个人的手写样本。&lt;br&gt;第二部分包含10000幅28x28大小的灰度图及对应识别数字，用作测试数据，为了保证测试结果，这些图像来自另外一批人。&lt;/p&gt;</summary>
     
     
     
-    <category term="tech" scheme="https://keychankc.github.io/categories/tech/"/>
-    
-    <category term="blogging" scheme="https://keychankc.github.io/categories/tech/blogging/"/>
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
-    <category term="hexo" scheme="https://keychankc.github.io/tags/hexo/"/>
+    <category term="神经网络" scheme="https://keychankc.github.io/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
+    
+    <category term="全连接层" scheme="https://keychankc.github.io/tags/%E5%85%A8%E8%BF%9E%E6%8E%A5%E5%B1%82/"/>
+    
+    <category term="Python" scheme="https://keychankc.github.io/tags/Python/"/>
+    
+    <category term="PyTorch" scheme="https://keychankc.github.io/tags/PyTorch/"/>
+    
+    <category term="模型训练" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83/"/>
     
   </entry>
   
