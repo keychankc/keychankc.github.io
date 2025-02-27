@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-02-27T05:52:57.698Z</updated>
+  <updated>2025-02-27T05:57:29.655Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="https://keychankc.github.io/2025/02/27/nn_weather_forecast/"/>
     <id>https://keychankc.github.io/2025/02/27/nn_weather_forecast/</id>
     <published>2025-02-26T16:00:00.000Z</published>
-    <updated>2025-02-27T05:52:57.698Z</updated>
+    <updated>2025-02-27T05:57:29.655Z</updated>
     
     
     <summary type="html">&lt;p&gt;回归任务：通过输入一些样本数据或者特征，经过N层神经网络，输出一个预测值。&lt;/p&gt;
