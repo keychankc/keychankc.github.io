@@ -1,3 +1,7 @@
+.nav-link {
+  border-bottom: 0px !important;
+  text-decoration: none;
+}
 body {
   margin-top: 2rem;
 }

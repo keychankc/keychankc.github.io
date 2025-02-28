@@ -1,3 +1,7 @@
+.nav-link {
+  border-bottom: 0px !important;
+  text-decoration: none;
+}
 :root {
   --body-bg-color: #eee;
   --content-bg-color: #fff;
@@ -1456,7 +1460,7 @@ pre code {
     vertical-align: middle;
   }
   .links-of-author a::before {
-    background: #22ff63;
+    background: #03a609;
     display: inline-block;
     margin-right: 3px;
     transform: translateY(-2px);
