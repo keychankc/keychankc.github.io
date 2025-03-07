@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-03-07T08:55:02.130Z</updated>
+  <updated>2025-03-07T09:19:35.320Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="https://keychankc.github.io/2025/03/07/cnn-identify-flowers/"/>
     <id>https://keychankc.github.io/2025/03/07/cnn-identify-flowers/</id>
     <published>2025-03-07T07:16:35.000Z</published>
-    <updated>2025-03-07T08:55:02.130Z</updated>
+    <updated>2025-03-07T09:19:35.320Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-迁移学习&quot;&gt;&lt;a href=&quot;#1-迁移学习&quot; class=&quot;headerlink&quot; title=&quot;1. 迁移学习&quot;&gt;&lt;/a&gt;1. 迁移学习&lt;/h2&gt;&lt;p&gt;用&lt;strong&gt;CNN&lt;/strong&gt;做图像识别是不是每次都意味着要自己定义模型，确定好 &lt;strong&gt;卷积层&lt;/strong&gt;、&lt;strong&gt;池化层&lt;/strong&gt; 和 &lt;strong&gt;全连接层&lt;/strong&gt;，然后从0开始训练？不同类型的图像数据集会不会有通用的特征？如果训练样本比较少怎么办？（例如本次花卉识别训练图片只有六千多张）是不是可以有那种已经训练好的模型，拿过来稍微改改就可以用的？&lt;/p&gt;
@@ -42,15 +42,15 @@
     <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
-    <category term="卷积神经网络" scheme="https://keychankc.github.io/tags/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
-    
-    <category term="模型训练" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83/"/>
+    <category term="Python" scheme="https://keychankc.github.io/tags/Python/"/>
     
     <category term="PyTorch" scheme="https://keychankc.github.io/tags/PyTorch/"/>
     
-    <category term="matplotlib" scheme="https://keychankc.github.io/tags/matplotlib/"/>
+    <category term="模型训练" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83/"/>
     
-    <category term="Python" scheme="https://keychankc.github.io/tags/Python/"/>
+    <category term="卷积神经网络" scheme="https://keychankc.github.io/tags/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
+    
+    <category term="matplotlib" scheme="https://keychankc.github.io/tags/matplotlib/"/>
     
     <category term="迁移学习" scheme="https://keychankc.github.io/tags/%E8%BF%81%E7%A7%BB%E5%AD%A6%E4%B9%A0/"/>
     
@@ -73,13 +73,13 @@
     <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
-    <category term="卷积神经网络" scheme="https://keychankc.github.io/tags/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
-    
-    <category term="模型训练" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83/"/>
+    <category term="Python" scheme="https://keychankc.github.io/tags/Python/"/>
     
     <category term="PyTorch" scheme="https://keychankc.github.io/tags/PyTorch/"/>
     
-    <category term="Python" scheme="https://keychankc.github.io/tags/Python/"/>
+    <category term="模型训练" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83/"/>
+    
+    <category term="卷积神经网络" scheme="https://keychankc.github.io/tags/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
     
     <category term="卷积层" scheme="https://keychankc.github.io/tags/%E5%8D%B7%E7%A7%AF%E5%B1%82/"/>
     
@@ -101,17 +101,17 @@
     <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
-    <category term="模型训练" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83/"/>
+    <category term="Python" scheme="https://keychankc.github.io/tags/Python/"/>
     
     <category term="PyTorch" scheme="https://keychankc.github.io/tags/PyTorch/"/>
     
-    <category term="matplotlib" scheme="https://keychankc.github.io/tags/matplotlib/"/>
-    
-    <category term="Python" scheme="https://keychankc.github.io/tags/Python/"/>
+    <category term="模型训练" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83/"/>
     
     <category term="神经网络" scheme="https://keychankc.github.io/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
     
     <category term="全连接层" scheme="https://keychankc.github.io/tags/%E5%85%A8%E8%BF%9E%E6%8E%A5%E5%B1%82/"/>
+    
+    <category term="matplotlib" scheme="https://keychankc.github.io/tags/matplotlib/"/>
     
   </entry>
   
@@ -131,11 +131,11 @@
     <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
-    <category term="模型训练" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83/"/>
+    <category term="Python" scheme="https://keychankc.github.io/tags/Python/"/>
     
     <category term="PyTorch" scheme="https://keychankc.github.io/tags/PyTorch/"/>
     
-    <category term="Python" scheme="https://keychankc.github.io/tags/Python/"/>
+    <category term="模型训练" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83/"/>
     
     <category term="神经网络" scheme="https://keychankc.github.io/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
     
