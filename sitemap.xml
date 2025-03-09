@@ -2,6 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://keychankc.github.io/think/index.html</loc>
+    
+    <lastmod>2025-03-09</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://keychankc.github.io/2025/02/26/nn-digital-recognition/</loc>
     
     <lastmod>2025-03-09</lastmod>
@@ -23,15 +32,6 @@
     <loc>https://keychankc.github.io/2025/03/07/cnn-identify-flowers/</loc>
     
     <lastmod>2025-03-07</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>https://keychankc.github.io/think/index.html</loc>
-    
-    <lastmod>2025-03-05</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
