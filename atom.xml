@@ -61,7 +61,7 @@
     <link href="https://keychankc.github.io/2025/03/02/cnn-digital-recognition/"/>
     <id>https://keychankc.github.io/2025/03/02/cnn-digital-recognition/</id>
     <published>2025-03-01T16:00:00.000Z</published>
-    <updated>2025-03-03T13:51:44.536Z</updated>
+    <updated>2025-03-09T02:41:43.391Z</updated>
     
     
     <summary type="html">&lt;p&gt;前文 &lt;a href=&quot;https://keychankc.github.io/2025/02/26/nn-digital-recognition/&quot;&gt;&lt;strong&gt;利用神经网络实现手写字体识别&lt;/strong&gt;&lt;/a&gt; 的模型结构是基于神经网络的全连接层， 其中每一层的神经元都会与前一层的所有神经元相连接，这种结构更适合于结构化数据或一维数据。而像手写字体识别之类的图像结构数据，使用卷积神经网络会更合适一点，一方面通过卷积层可以提取局部特征，另一方面经过池化层还能减少参数量，提高处理效率。&lt;/p&gt;
@@ -107,11 +107,11 @@
     
     <category term="模型训练" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83/"/>
     
+    <category term="matplotlib" scheme="https://keychankc.github.io/tags/matplotlib/"/>
+    
     <category term="神经网络" scheme="https://keychankc.github.io/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
     
     <category term="全连接层" scheme="https://keychankc.github.io/tags/%E5%85%A8%E8%BF%9E%E6%8E%A5%E5%B1%82/"/>
-    
-    <category term="matplotlib" scheme="https://keychankc.github.io/tags/matplotlib/"/>
     
   </entry>
   
@@ -120,7 +120,7 @@
     <link href="https://keychankc.github.io/2025/02/26/nn-digital-recognition/"/>
     <id>https://keychankc.github.io/2025/02/26/nn-digital-recognition/</id>
     <published>2025-02-26T06:03:25.000Z</published>
-    <updated>2025-02-27T05:53:15.982Z</updated>
+    <updated>2025-03-09T02:43:09.663Z</updated>
     
     
     <summary type="html">&lt;p&gt;本文主要是讲如何使用 PyTorch 实现手写数字识别，包括MNIST数据集加载处理、神经网络模型定义、训练并评估模型。&lt;/p&gt;
