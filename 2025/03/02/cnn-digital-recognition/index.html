@@ -29,7 +29,7 @@
 <meta property="og:description" content="前文 利用神经网络实现手写字体识别 的模型结构是基于神经网络的全连接层， 其中每一层的神经元都会与前一层的所有神经元相连接，这种结构更适合于结构化数据或一维数据。而像手写字体识别之类的图像结构数据，使用卷积神经网络会更合适一点，一方面通过卷积层可以提取局部特征，另一方面经过池化层还能减少参数量，提高处理效率。 1. 卷积神经网络卷积神经网络（Convolutional Neural Network">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-03-01T16:00:00.000Z">
-<meta property="article:modified_time" content="2025-03-09T02:41:43.391Z">
+<meta property="article:modified_time" content="2025-03-11T14:32:40.130Z">
 <meta property="article:author" content="KeyChan">
 <meta property="article:tag" content="Python">
 <meta property="article:tag" content="PyTorch">
@@ -342,10 +342,10 @@
 <h3 id="1-构造函数"><a href="#1-构造函数" class="headerlink" title="1.构造函数"></a>1.构造函数</h3><p>构造函数会初始化神经网络的各个层，模型中定义了三个卷积层和一个全连接层：</p>
 <h4 id="卷积层conv1"><a href="#卷积层conv1" class="headerlink" title="卷积层conv1"></a>卷积层conv1</h4><p><strong>nn.Conv2d</strong>：这是一个二维卷积层，用来提取输入图像的局部特征</p>
 <ul>
-<li>in_channels&#x3D;1：输入图像的通道数，MNIST 图像是单通道（灰度图），所以是 1</li>
-<li>out_channels&#x3D;16：卷积层输出的特征图的通道数，设置为16，意味着该层将学习16个不同的特征</li>
-<li>kernel_size&#x3D;5：卷积核的大小为5x5</li>
-<li>padding&#x3D;2：在图像边缘添加2个像素的零填充，目的是让输出图像的大小与输入相对称</li>
+<li><code>in_channels=1</code>：输入图像的通道数，MNIST 图像是单通道（灰度图），所以是 1</li>
+<li><code>out_channels=16</code>：卷积层输出的特征图的通道数，设置为16，意味着该层将学习16个不同的特征</li>
+<li><code>kernel_size=5</code>：卷积核的大小为5x5</li>
+<li><code>padding=2</code>：在图像边缘添加2个像素的零填充，目的是让输出图像的大小与输入相对称</li>
 </ul>
 <p><strong>nn.ReLU()</strong>：这是一个激活函数层，使用 ReLU（Rectified Linear Unit）激活函数来对卷积结果进行非线性映射。ReLU 会将所有负值置为零</p>
 <p><strong>nn.MaxPool2d</strong>：池化层，进行下采样（降维）操作。kernel_size&#x3D;2：池化窗口大小是2x2，表示每个2x2的区域都会被池化成一个最大值（最大池化）。池化操作可以降低计算量并提取最重要的特征</p>
@@ -363,44 +363,44 @@
 <li>因为MNIST数据集有10个数字类别（0-9），输出特征的数量是 10</li>
 </ul>
 <h3 id="2-前向传播"><a href="#2-前向传播" class="headerlink" title="2.前向传播"></a>2.前向传播</h3><p>数据从输入到输出的流动过程，依次通过三个卷积层和一个全连接层</p>
-<ol>
-<li>x &#x3D; self.conv1(x)：输入数据首先通过 conv1 层，输出经过 ReLU 激活和池化后的特征</li>
-<li>x &#x3D; self.conv2(x)：接着通过 conv2 层，继续提取特征</li>
-<li>x &#x3D; self.conv3(x)：然后经过 conv3 层，进一步提取深层特征</li>
-<li>x &#x3D; x.view(x.size(0), -1)：这里将卷积层输出的特征图展平（flatten）为一维向量，将(64, 7, 7)特征图转化为64 * 7 * 7 &#x3D; 3136个特征。x.size(0) 是批次大小（batch_size），-1 代表根据批次大小自动计算展平后的大小</li>
-<li>output &#x3D; self.out(x)：将展平后的向量通过全连接层，输出 10 个分类结果</li>
-</ol>
+<ul>
+<li><code>x = self.conv1(x)</code>：输入数据首先通过 conv1 层，输出经过 ReLU 激活和池化后的特征</li>
+<li><code>x = self.conv2(x)</code>：接着通过 conv2 层，继续提取特征</li>
+<li><code>x = self.conv3(x)</code>：然后经过 conv3 层，进一步提取深层特征</li>
+<li><code>x = x.view(x.size(0), -1)</code>：这里将卷积层输出的特征图展平（flatten）为一维向量，将(64, 7, 7)特征图转化为64 * 7 * 7 &#x3D; 3136个特征。x.size(0) 是批次大小（batch_size），-1 代表根据批次大小自动计算展平后的大小</li>
+<li><code>output = self.out(x)</code>：将展平后的向量通过全连接层，输出 10 个分类结果</li>
+</ul>
 <h2 id="4-模型训练和验证"><a href="#4-模型训练和验证" class="headerlink" title="4. 模型训练和验证"></a>4. 模型训练和验证</h2><h3 id="1-计算准确率"><a href="#1-计算准确率" class="headerlink" title="1. 计算准确率"></a>1. 计算准确率</h3><p>返回预测正确的样本数和总样本数</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">accuracy</span>(<span class="params">predictions, labels</span>):  </span><br><span class="line">    pred = torch.<span class="built_in">max</span>(predictions.data, <span class="number">1</span>)[<span class="number">1</span>]  </span><br><span class="line">    rights = pred.eq(labels.data.view_as(pred)).<span class="built_in">sum</span>()  </span><br><span class="line">    <span class="keyword">return</span> rights, <span class="built_in">len</span>(labels)</span><br></pre></td></tr></table></figure>
 <p>实现：</p>
 <ul>
-<li>torch.max(predictions.data, 1)[1]：返回每个样本在所有类别中最大概率的类别（即预测的类别）。torch.max 返回两个值，第一个是最大值，第二个是最大值对应的索引（即预测类别）</li>
-<li>pred.eq(labels.data.view_as(pred))：eq 函数用于判断预测值和真实标签是否相等。如果相等返回 True，否则返回 False</li>
-<li>sum()：统计预测正确的样本数</li>
+<li><code>torch.max(predictions.data, 1)[1]</code>：返回每个样本在所有类别中最大概率的类别（即预测的类别）。torch.max 返回两个值，第一个是最大值，第二个是最大值对应的索引（即预测类别）</li>
+<li><code>pred.eq(labels.data.view_as(pred))</code>：eq 函数用于判断预测值和真实标签是否相等。如果相等返回 True，否则返回 False</li>
+<li><code>sum()</code>：统计预测正确的样本数</li>
 </ul>
 <h3 id="2-训练验证模型"><a href="#2-训练验证模型" class="headerlink" title="2. 训练验证模型"></a>2. 训练验证模型</h3><p>训练模型的主函数，进行<strong>模型训练</strong>和<strong>评估</strong></p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">train</span>(<span class="params">model, train_loader, test_loader, num_epochs</span>):  </span><br><span class="line">    <span class="keyword">for</span> epoch <span class="keyword">in</span> <span class="built_in">range</span>(num_epochs):  </span><br><span class="line">        <span class="comment"># 当前epoch的训练结果</span></span><br><span class="line">        train_rights = []  </span><br><span class="line">        <span class="comment"># 针对容器中的每一批进行循环  </span></span><br><span class="line">        <span class="keyword">for</span> batch_idx, (data, target) <span class="keyword">in</span> <span class="built_in">enumerate</span>(train_loader):</span><br><span class="line">            model.train()  </span><br><span class="line">            output = model(data)  </span><br><span class="line">            loss = criterion(output, target)  </span><br><span class="line">            optimizer.zero_grad()  </span><br><span class="line">            loss.backward()  </span><br><span class="line">            optimizer.step()  </span><br><span class="line">            right = accuracy(output, target)  </span><br><span class="line">            train_rights.append(right)  </span><br><span class="line">		</span><br><span class="line">            <span class="comment"># 每100个批次输出一次训练进度和损失</span></span><br><span class="line">            <span class="keyword">if</span> batch_idx % <span class="number">100</span> == <span class="number">0</span>:  </span><br><span class="line">  </span><br><span class="line">                model.<span class="built_in">eval</span>()  </span><br><span class="line">                val_rights = []  </span><br><span class="line">  </span><br><span class="line">                <span class="comment"># 迭代测试集中的每个批次</span></span><br><span class="line">                <span class="keyword">for</span> (data, target) <span class="keyword">in</span> test_loader:  </span><br><span class="line">                    output = model(data)  </span><br><span class="line">                    right = accuracy(output, target)  </span><br><span class="line">                    val_rights.append(right)  </span><br><span class="line">  </span><br><span class="line">                <span class="comment"># 准确率计算  </span></span><br><span class="line">                train_r = (<span class="built_in">sum</span>([tup[<span class="number">0</span>] <span class="keyword">for</span> tup <span class="keyword">in</span> train_rights]), <span class="built_in">sum</span>([tup[<span class="number">1</span>] <span class="keyword">for</span> tup <span class="keyword">in</span> train_rights]))  </span><br><span class="line">                val_r = (<span class="built_in">sum</span>([tup[<span class="number">0</span>] <span class="keyword">for</span> tup <span class="keyword">in</span> val_rights]), <span class="built_in">sum</span>([tup[<span class="number">1</span>] <span class="keyword">for</span> tup <span class="keyword">in</span> val_rights]))  </span><br><span class="line">  </span><br><span class="line">                <span class="comment"># 训练进度  </span></span><br><span class="line">                train_percent = <span class="number">100</span> * batch_idx / <span class="built_in">len</span>(train_loader)  </span><br><span class="line">                <span class="comment"># 训练集准确率  </span></span><br><span class="line">                train_set_accurate = <span class="number">100</span> * train_r[<span class="number">0</span>].numpy() / train_r[<span class="number">1</span>]  </span><br><span class="line">                <span class="comment"># 测试集正确率  </span></span><br><span class="line">                test_set_accurate = <span class="number">100</span> * val_r[<span class="number">0</span>].numpy() / val_r[<span class="number">1</span>]  </span><br><span class="line">  </span><br><span class="line">                <span class="built_in">print</span>(<span class="string">f&quot;&quot;&quot;当前epoch:<span class="subst">&#123;epoch+<span class="number">1</span>&#125;</span> 训练进度:<span class="subst">&#123;train_percent:<span class="number">.0</span>f&#125;</span>% 损失:<span class="subst">&#123;loss.data:<span class="number">.6</span>f&#125;</span> 训练集准确率: <span class="subst">&#123;train_set_accurate:<span class="number">.2</span>f&#125;</span>% 测试集正确率: <span class="subst">&#123;test_set_accurate:<span class="number">.2</span>f&#125;</span>% &quot;&quot;&quot;</span>)</span><br></pre></td></tr></table></figure>
 
 <p>每个 epoch 中会执行以下步骤，每次迭代叫做一个epoch：</p>
 <h4 id="训练"><a href="#训练" class="headerlink" title="训练"></a>训练</h4><ul>
-<li><strong>for batch_idx, (data, target) in enumerate(train_loader):</strong>：对于训练数据集（通过 train_loader 加载），每次获取一个批次的输入数据 data 和目标标签 target</li>
-<li><strong>model.train()</strong>：将模型设置为训练模式（启用 dropout 和 batch normalization 等层）</li>
-<li><strong>output &#x3D; model(data)</strong>：通过模型对输入 data 进行前向传播，得到输出 output</li>
-<li><strong>loss &#x3D; criterion(output, target)</strong>：计算预测值 output 与真实标签 target 之间的损失（如交叉熵损失）</li>
-<li><strong>optimizer.zero_grad()</strong>：在每个步骤之前清空梯度，以避免梯度累积</li>
-<li><strong>loss.backward()</strong>：做反向传播，计算损失的梯度</li>
-<li><strong>optimizer.step()</strong>：更新模型的参数（使用梯度下降或其他优化算法）</li>
+<li><code>for batch_idx, (data, target) in enumerate(train_loader):</code>：对于训练数据集（通过 train_loader 加载），每次获取一个批次的输入数据 data 和目标标签 target</li>
+<li><code>model.train()</code>：将模型设置为训练模式（启用 dropout 和 batch normalization 等层）</li>
+<li><code>output = model(data)</code>：通过模型对输入 data 进行前向传播，得到输出 output</li>
+<li><code>loss = criterion(output, target)</code>：计算预测值 output 与真实标签 target 之间的损失（如交叉熵损失）</li>
+<li><code>optimizer.zero_grad()</code>：在每个步骤之前清空梯度，以避免梯度累积</li>
+<li><code>loss.backward()</code>：做反向传播，计算损失的梯度</li>
+<li><code>optimizer.step()</code>：更新模型的参数（使用梯度下降或其他优化算法）</li>
 </ul>
 <h4 id="准确率计算"><a href="#准确率计算" class="headerlink" title="准确率计算"></a>准确率计算</h4><ul>
-<li><strong>right &#x3D; accuracy(output, target)</strong>：通过 accuracy 函数计算当前批次的正确预测数量</li>
-<li>train_rights.append(right)：将当前批次的正确预测数目添加到 train_rights 列表中</li>
+<li><code>right = accuracy(output, target)</code>：通过 accuracy 函数计算当前批次的正确预测数量</li>
+<li><code>train_rights.append(right)</code>：将当前批次的正确预测数目添加到 train_rights 列表中</li>
 </ul>
 <h4 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h4><ul>
-<li><strong>model.eval()</strong>：将模型设置为评估模式（禁用 dropout 和 batch normalization）</li>
-<li><strong>val_rights &#x3D; []</strong>：初始化 val_rights 列表来存储验证集的准确率</li>
-<li><strong>output &#x3D; model(data)</strong>：计算模型对测试集的预测</li>
-<li><strong>right &#x3D; accuracy(output, target)</strong>：计算当前批次的正确预测数</li>
-<li>val_rights.append(right)：将当前批次的预测结果添加到 val_rights</li>
+<li><code>model.eval()</code>：将模型设置为评估模式（禁用 dropout 和 batch normalization）</li>
+<li><code>val_rights = []</code>：初始化 val_rights 列表来存储验证集的准确率</li>
+<li><code>output = model(data)</code>：计算模型对测试集的预测</li>
+<li><code>right = accuracy(output, target)</code>：计算当前批次的正确预测数</li>
+<li><code>val_rights.append(right)</code>：将当前批次的预测结果添加到 val_rights</li>
 </ul>
 <h4 id="输出"><a href="#输出" class="headerlink" title="输出"></a>输出</h4><p>三次epoch输出，测试集正确率相比单纯利用神经网络构建的97%要高一点。</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">当前epoch:1 训练进度:0% 损失:2.298599 训练集准确率: 14.06% 测试集正确率: 10.32% </span><br><span class="line">当前epoch:1 训练进度:11% 损失:0.243815 训练集准确率: 78.31% 测试集正确率: 93.28% </span><br><span class="line">当前epoch:1 训练进度:21% 损失:0.137110 训练集准确率: 86.57% 测试集正确率: 96.24% </span><br><span class="line">当前epoch:1 训练进度:32% 损失:0.146362 训练集准确率: 89.68% 测试集正确率: 96.94% </span><br><span class="line">当前epoch:1 训练进度:43% 损失:0.161816 训练集准确率: 91.50% 测试集正确率: 97.73% </span><br><span class="line">当前epoch:1 训练进度:53% 损失:0.059365 训练集准确率: 92.69% 测试集正确率: 97.47% </span><br><span class="line">当前epoch:1 训练进度:64% 损失:0.114041 训练集准确率: 93.52% 测试集正确率: 98.34% </span><br><span class="line">当前epoch:1 训练进度:75% 损失:0.100607 训练集准确率: 94.16% 测试集正确率: 98.22% </span><br><span class="line">当前epoch:1 训练进度:85% 损失:0.006606 训练集准确率: 94.65% 测试集正确率: 98.47% </span><br><span class="line">当前epoch:1 训练进度:96% 损失:0.043186 训练集准确率: 95.04% 测试集正确率: 98.83% </span><br><span class="line">当前epoch:2 训练进度:0% 损失:0.003247 训练集准确率: 100.00% 测试集正确率: 98.75% </span><br><span class="line">当前epoch:2 训练进度:11% 损失:0.077238 训练集准确率: 98.47% 测试集正确率: 98.81% </span><br><span class="line">当前epoch:2 训练进度:21% 损失:0.032691 训练集准确率: 98.39% 测试集正确率: 98.75% </span><br><span class="line">当前epoch:2 训练进度:32% 损失:0.019059 训练集准确率: 98.47% 测试集正确率: 98.61% </span><br><span class="line">当前epoch:2 训练进度:43% 损失:0.172091 训练集准确率: 98.46% 测试集正确率: 98.73% </span><br><span class="line">当前epoch:2 训练进度:53% 损失:0.023476 训练集准确率: 98.50% 测试集正确率: 98.76% </span><br><span class="line">当前epoch:2 训练进度:64% 损失:0.013946 训练集准确率: 98.53% 测试集正确率: 98.97% </span><br><span class="line">当前epoch:2 训练进度:75% 损失:0.011354 训练集准确率: 98.57% 测试集正确率: 98.91% </span><br><span class="line">当前epoch:2 训练进度:85% 损失:0.024460 训练集准确率: 98.60% 测试集正确率: 98.98% </span><br><span class="line">当前epoch:2 训练进度:96% 损失:0.021631 训练集准确率: 98.63% 测试集正确率: 98.97% </span><br><span class="line">当前epoch:3 训练进度:0% 损失:0.055015 训练集准确率: 96.88% 测试集正确率: 98.94% </span><br><span class="line">当前epoch:3 训练进度:11% 损失:0.060590 训练集准确率: 99.12% 测试集正确率: 99.07% </span><br><span class="line">当前epoch:3 训练进度:21% 损失:0.066504 训练集准确率: 99.04% 测试集正确率: 98.85% </span><br><span class="line">当前epoch:3 训练进度:32% 损失:0.004511 训练集准确率: 99.03% 测试集正确率: 98.95% </span><br><span class="line">当前epoch:3 训练进度:43% 损失:0.019243 训练集准确率: 99.00% 测试集正确率: 99.17% </span><br><span class="line">当前epoch:3 训练进度:53% 损失:0.037509 训练集准确率: 99.01% 测试集正确率: 99.08% </span><br><span class="line">当前epoch:3 训练进度:64% 损失:0.004599 训练集准确率: 99.03% 测试集正确率: 98.95% </span><br><span class="line">当前epoch:3 训练进度:75% 损失:0.089442 训练集准确率: 99.01% 测试集正确率: 99.12% </span><br><span class="line">当前epoch:3 训练进度:85% 损失:0.018963 训练集准确率: 99.04% 测试集正确率: 98.58% </span><br><span class="line">当前epoch:3 训练进度:96% 损失:0.000661 训练集准确率: 99.04% 测试集正确率: 99.12% </span><br></pre></td></tr></table></figure>
