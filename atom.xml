@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-03-07T09:19:35.320Z</updated>
+  <updated>2025-03-14T08:35:40.706Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -15,6 +15,48 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>基于循环神经网络的文本分类实践</title>
+    <link href="https://keychankc.github.io/2025/03/12/rnn-classification-text/"/>
+    <id>https://keychankc.github.io/2025/03/12/rnn-classification-text/</id>
+    <published>2025-03-12T08:32:25.000Z</published>
+    <updated>2025-03-14T08:35:40.706Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-循环神经网络-RNN&quot;&gt;&lt;a href=&quot;#1-循环神经网络-RNN&quot; class=&quot;headerlink&quot; title=&quot;1. 循环神经网络(RNN)&quot;&gt;&lt;/a&gt;1. 循环神经网络(RNN)&lt;/h2&gt;&lt;p&gt;RNN有&lt;strong&gt;隐藏状态（hidden state）&lt;/strong&gt;，可以保留和传递之前时刻的信息，也就是有记忆功能，从而可实现&lt;strong&gt;时间依赖性&lt;/strong&gt;的数据处理，比较适用于处理序列数据（如时间序列、文本、语音等）。&lt;/p&gt;
+&lt;p&gt;通俗一点就像是人在读一句话：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;读到 “我” → 记住&lt;/li&gt;
+&lt;li&gt;读到 “今天” → 结合前面的信息&lt;/li&gt;
+&lt;li&gt;读到 “很” → 继续理解上下文&lt;/li&gt;
+&lt;li&gt;读到 “开心” → 知道整体含义”我今天很开心“&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&quot;1-RNN结构&quot;&gt;&lt;a href=&quot;#1-RNN结构&quot; class=&quot;headerlink&quot; title=&quot;1.RNN结构&quot;&gt;&lt;/a&gt;1.RNN结构&lt;/h3&gt;&lt;p&gt;RNN 通过&lt;strong&gt;隐藏状态(Hidden State)&lt;/strong&gt; 存储历史信息，并通过时间步(Time Step)进行递归计算&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;输入层&lt;/strong&gt;：接收当前时间步的输入 $x_t$&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;隐藏层&lt;/strong&gt;：包含一个循环连接，用于存储历史信息：$h_t &amp;#x3D; f(W_h h_{t-1} + W_x x_t + b)$&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;输出层&lt;/strong&gt;：根据隐藏状态计算输出 $y_t$&lt;/li&gt;
+&lt;/ul&gt;</summary>
+    
+    
+    
+    
+    <category term="Python" scheme="https://keychankc.github.io/tags/Python/"/>
+    
+    <category term="PyTorch" scheme="https://keychankc.github.io/tags/PyTorch/"/>
+    
+    <category term="模型训练" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83/"/>
+    
+    <category term="卷积神经网络" scheme="https://keychankc.github.io/tags/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
+    
+    <category term="循环神经网络" scheme="https://keychankc.github.io/tags/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
+    
+    <category term="TensorBoard" scheme="https://keychankc.github.io/tags/TensorBoard/"/>
+    
+    <category term="LSTM" scheme="https://keychankc.github.io/tags/LSTM/"/>
+    
+  </entry>
   
   <entry>
     <title>基于迁移学习(ResNet-18)的花卉识别</title>
@@ -101,6 +143,10 @@
     <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
+    <category term="神经网络" scheme="https://keychankc.github.io/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
+    
+    <category term="全连接层" scheme="https://keychankc.github.io/tags/%E5%85%A8%E8%BF%9E%E6%8E%A5%E5%B1%82/"/>
+    
     <category term="Python" scheme="https://keychankc.github.io/tags/Python/"/>
     
     <category term="PyTorch" scheme="https://keychankc.github.io/tags/PyTorch/"/>
@@ -108,10 +154,6 @@
     <category term="模型训练" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83/"/>
     
     <category term="matplotlib" scheme="https://keychankc.github.io/tags/matplotlib/"/>
-    
-    <category term="神经网络" scheme="https://keychankc.github.io/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
-    
-    <category term="全连接层" scheme="https://keychankc.github.io/tags/%E5%85%A8%E8%BF%9E%E6%8E%A5%E5%B1%82/"/>
     
   </entry>
   
@@ -131,15 +173,15 @@
     <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
+    <category term="神经网络" scheme="https://keychankc.github.io/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
+    
+    <category term="全连接层" scheme="https://keychankc.github.io/tags/%E5%85%A8%E8%BF%9E%E6%8E%A5%E5%B1%82/"/>
+    
     <category term="Python" scheme="https://keychankc.github.io/tags/Python/"/>
     
     <category term="PyTorch" scheme="https://keychankc.github.io/tags/PyTorch/"/>
     
     <category term="模型训练" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83/"/>
-    
-    <category term="神经网络" scheme="https://keychankc.github.io/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
-    
-    <category term="全连接层" scheme="https://keychankc.github.io/tags/%E5%85%A8%E8%BF%9E%E6%8E%A5%E5%B1%82/"/>
     
   </entry>
   
