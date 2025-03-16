@@ -271,7 +271,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="1-循环神经网络-RNN"><a href="#1-循环神经网络-RNN" class="headerlink" title="1. 循环神经网络(RNN)"></a>1. 循环神经网络(RNN)</h2><p>RNN有<strong>隐藏状态（hidden state）</strong>，可以保留和传递之前时刻的信息，也就是有记忆功能，从而可实现<strong>时间依赖性</strong>的数据处理，比较适用于处理序列数据（如时间序列、文本、语音等）。<br>通俗一点就像是人在读一句话：</p>
+          <h2 id="1-循环神经网络-RNN"><a href="#1-循环神经网络-RNN" class="headerlink" title="1.循环神经网络(RNN)"></a>1.循环神经网络(RNN)</h2><p>RNN有<strong>隐藏状态（hidden state）</strong>，可以保留和传递之前时刻的信息，也就是有记忆功能，从而可实现<strong>时间依赖性</strong>的数据处理，比较适用于处理序列数据（如时间序列、文本、语音等）。<br>通俗一点就像是人在读一句话：</p>
 <ul>
 <li>读到 “我” → 记住</li>
 <li>读到 “今天” → 结合前面的信息</li>
@@ -385,7 +385,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="1-迁移学习"><a href="#1-迁移学习" class="headerlink" title="1. 迁移学习"></a>1. 迁移学习</h2><p>用<strong>CNN</strong>做图像识别是不是每次都意味着要自己定义模型，确定好 <strong>卷积层</strong>、<strong>池化层</strong> 和 <strong>全连接层</strong>，然后从0开始训练？不同类型的图像数据集会不会有通用的特征？如果训练样本比较少怎么办？（例如本次花卉识别训练图片只有六千多张）是不是可以有那种已经训练好的模型，拿过来稍微改改就可以用的？</p>
+          <h2 id="1-迁移学习"><a href="#1-迁移学习" class="headerlink" title="1.迁移学习"></a>1.迁移学习</h2><p>用<strong>CNN</strong>做图像识别是不是每次都意味着要自己定义模型，确定好 <strong>卷积层</strong>、<strong>池化层</strong> 和 <strong>全连接层</strong>，然后从0开始训练？不同类型的图像数据集会不会有通用的特征？如果训练样本比较少怎么办？（例如本次花卉识别训练图片只有六千多张）是不是可以有那种已经训练好的模型，拿过来稍微改改就可以用的？</p>
 <p><strong>迁移学习（Transfer Learning）</strong> 就是这种可以将已有模型的知识迁移到新任务的学习方法，有以下特点</p>
 <ul>
 <li>适合数据量比较少的任务，有预训练知识无需从头训练深度神经网络</li>
@@ -499,8 +499,8 @@
     
     <div class="post-body" itemprop="articleBody">
           <p>前文 <a href="https://keychankc.github.io/2025/02/26/nn-digital-recognition/"><strong>利用神经网络实现手写字体识别</strong></a> 的模型结构是基于神经网络的全连接层， 其中每一层的神经元都会与前一层的所有神经元相连接，这种结构更适合于结构化数据或一维数据。而像手写字体识别之类的图像结构数据，使用卷积神经网络会更合适一点，一方面通过卷积层可以提取局部特征，另一方面经过池化层还能减少参数量，提高处理效率。</p>
-<h2 id="1-卷积神经网络"><a href="#1-卷积神经网络" class="headerlink" title="1. 卷积神经网络"></a>1. 卷积神经网络</h2><p>卷积神经网络（Convolutional Neural Network，简称CNN）是一种特别适合处理图像、视频、语音、文本等数据的神经网络结构，它通过模仿生物视觉系统的工作原理，利用 <strong>卷积层</strong>、<strong>池化层</strong> 和 <strong>全连接层</strong> 来提取数据中的空间特征，并通过训练优化参数，广泛应用在计算机视觉任务中。</p>
-<h3 id="1-基本原理"><a href="#1-基本原理" class="headerlink" title="1. 基本原理"></a>1. 基本原理</h3><p>CNN的核心思想是“卷积”操作。简单来说，卷积是用一个小的矩阵（称为<strong>卷积核</strong>）在输入图像上滑动，通过和图像的局部区域进行逐点相乘并求和，提取出图像的局部特征。卷积操作通常会在多个卷积层次上进行，从而能够识别图像中的简单特征（如边缘、纹理）和复杂特征（如物体、面部等）。</p>
+<h2 id="1-卷积神经网络"><a href="#1-卷积神经网络" class="headerlink" title="1.卷积神经网络"></a>1.卷积神经网络</h2><p>卷积神经网络（Convolutional Neural Network，简称CNN）是一种特别适合处理图像、视频、语音、文本等数据的神经网络结构，它通过模仿生物视觉系统的工作原理，利用 <strong>卷积层</strong>、<strong>池化层</strong> 和 <strong>全连接层</strong> 来提取数据中的空间特征，并通过训练优化参数，广泛应用在计算机视觉任务中。</p>
+<h3 id="1-基本原理"><a href="#1-基本原理" class="headerlink" title="1.基本原理"></a>1.基本原理</h3><p>CNN的核心思想是“卷积”操作。简单来说，卷积是用一个小的矩阵（称为<strong>卷积核</strong>）在输入图像上滑动，通过和图像的局部区域进行逐点相乘并求和，提取出图像的局部特征。卷积操作通常会在多个卷积层次上进行，从而能够识别图像中的简单特征（如边缘、纹理）和复杂特征（如物体、面部等）。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2025/03/02/cnn-digital-recognition/#more" rel="contents">
@@ -603,7 +603,7 @@
     
     <div class="post-body" itemprop="articleBody">
           <p>回归任务：通过输入一些样本数据或者特征，经过N层神经网络，输出一个预测值。</p>
-<h2 id="1-气温数据处理"><a href="#1-气温数据处理" class="headerlink" title="1.  气温数据处理"></a>1.  气温数据处理</h2><h3 id="1-数据加载"><a href="#1-数据加载" class="headerlink" title="1. 数据加载"></a>1. 数据加载</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">load_csv</span>():  </span><br><span class="line">    path = Path(<span class="string">&quot;data&quot;</span>)  </span><br><span class="line">    filename = <span class="string">&quot;temps.csv&quot;</span>  </span><br><span class="line">    <span class="keyword">return</span> pd.read_csv(path / filename)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;shape:<span class="subst">&#123;features.shape&#125;</span>\n columns:<span class="subst">&#123;features.columns&#125;</span>&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(features[:<span class="number">5</span>]) <span class="comment"># 打印前5条数据</span></span><br></pre></td></tr></table></figure>
+<h2 id="1-气温数据处理"><a href="#1-气温数据处理" class="headerlink" title="1.气温数据处理"></a>1.气温数据处理</h2><h3 id="1-数据加载"><a href="#1-数据加载" class="headerlink" title="1.数据加载"></a>1.数据加载</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">load_csv</span>():  </span><br><span class="line">    path = Path(<span class="string">&quot;data&quot;</span>)  </span><br><span class="line">    filename = <span class="string">&quot;temps.csv&quot;</span>  </span><br><span class="line">    <span class="keyword">return</span> pd.read_csv(path / filename)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;shape:<span class="subst">&#123;features.shape&#125;</span>\n columns:<span class="subst">&#123;features.columns&#125;</span>&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(features[:<span class="number">5</span>]) <span class="comment"># 打印前5条数据</span></span><br></pre></td></tr></table></figure>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2025/02/28/nn-weather-forecast/#more" rel="contents">
@@ -706,7 +706,7 @@
     
     <div class="post-body" itemprop="articleBody">
           <p>本文主要是讲如何使用 PyTorch 实现手写数字识别，包括MNIST数据集加载处理、神经网络模型定义、训练并评估模型。</p>
-<h2 id="1-Mnist数据集"><a href="#1-Mnist数据集" class="headerlink" title="1.  Mnist数据集"></a>1.  Mnist数据集</h2><p>Mnist数据集是美国国家标准与技术研究院收集的关于手写数字扫描图像及其对应识别数字的数据集。该数据集分为两部分：<br>第一部分包含60000幅28x28大小的灰度图及对应识别数字，用作训练数据，这些图像扫描自250个人的手写样本。<br>第二部分包含10000幅28x28大小的灰度图及对应识别数字，用作测试数据，为了保证测试结果，这些图像来自另外一批人。</p>
+<h2 id="1-Mnist数据集"><a href="#1-Mnist数据集" class="headerlink" title="1.Mnist数据集"></a>1.Mnist数据集</h2><p>Mnist数据集是美国国家标准与技术研究院收集的关于手写数字扫描图像及其对应识别数字的数据集。该数据集分为两部分：<br>第一部分包含60000幅28x28大小的灰度图及对应识别数字，用作训练数据，这些图像扫描自250个人的手写样本。<br>第二部分包含10000幅28x28大小的灰度图及对应识别数字，用作测试数据，为了保证测试结果，这些图像来自另外一批人。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2025/02/26/nn-digital-recognition/#more" rel="contents">

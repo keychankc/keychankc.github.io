@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-03-15T05:59:19.153Z</updated>
+  <updated>2025-03-16T13:51:33.587Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -21,10 +21,10 @@
     <link href="https://keychankc.github.io/2025/03/14/rnn-classification-text/"/>
     <id>https://keychankc.github.io/2025/03/14/rnn-classification-text/</id>
     <published>2025-03-14T08:32:25.000Z</published>
-    <updated>2025-03-15T05:59:19.153Z</updated>
+    <updated>2025-03-16T13:51:33.587Z</updated>
     
     
-    <summary type="html">&lt;h2 id=&quot;1-循环神经网络-RNN&quot;&gt;&lt;a href=&quot;#1-循环神经网络-RNN&quot; class=&quot;headerlink&quot; title=&quot;1. 循环神经网络(RNN)&quot;&gt;&lt;/a&gt;1. 循环神经网络(RNN)&lt;/h2&gt;&lt;p&gt;RNN有&lt;strong&gt;隐藏状态（hidden state）&lt;/strong&gt;，可以保留和传递之前时刻的信息，也就是有记忆功能，从而可实现&lt;strong&gt;时间依赖性&lt;/strong&gt;的数据处理，比较适用于处理序列数据（如时间序列、文本、语音等）。&lt;br&gt;通俗一点就像是人在读一句话：&lt;/p&gt;
+    <summary type="html">&lt;h2 id=&quot;1-循环神经网络-RNN&quot;&gt;&lt;a href=&quot;#1-循环神经网络-RNN&quot; class=&quot;headerlink&quot; title=&quot;1.循环神经网络(RNN)&quot;&gt;&lt;/a&gt;1.循环神经网络(RNN)&lt;/h2&gt;&lt;p&gt;RNN有&lt;strong&gt;隐藏状态（hidden state）&lt;/strong&gt;，可以保留和传递之前时刻的信息，也就是有记忆功能，从而可实现&lt;strong&gt;时间依赖性&lt;/strong&gt;的数据处理，比较适用于处理序列数据（如时间序列、文本、语音等）。&lt;br&gt;通俗一点就像是人在读一句话：&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;读到 “我” → 记住&lt;/li&gt;
 &lt;li&gt;读到 “今天” → 结合前面的信息&lt;/li&gt;
@@ -64,10 +64,10 @@
     <link href="https://keychankc.github.io/2025/03/07/cnn-identify-flowers/"/>
     <id>https://keychankc.github.io/2025/03/07/cnn-identify-flowers/</id>
     <published>2025-03-07T07:16:35.000Z</published>
-    <updated>2025-03-07T09:19:35.320Z</updated>
+    <updated>2025-03-16T13:54:51.137Z</updated>
     
     
-    <summary type="html">&lt;h2 id=&quot;1-迁移学习&quot;&gt;&lt;a href=&quot;#1-迁移学习&quot; class=&quot;headerlink&quot; title=&quot;1. 迁移学习&quot;&gt;&lt;/a&gt;1. 迁移学习&lt;/h2&gt;&lt;p&gt;用&lt;strong&gt;CNN&lt;/strong&gt;做图像识别是不是每次都意味着要自己定义模型，确定好 &lt;strong&gt;卷积层&lt;/strong&gt;、&lt;strong&gt;池化层&lt;/strong&gt; 和 &lt;strong&gt;全连接层&lt;/strong&gt;，然后从0开始训练？不同类型的图像数据集会不会有通用的特征？如果训练样本比较少怎么办？（例如本次花卉识别训练图片只有六千多张）是不是可以有那种已经训练好的模型，拿过来稍微改改就可以用的？&lt;/p&gt;
+    <summary type="html">&lt;h2 id=&quot;1-迁移学习&quot;&gt;&lt;a href=&quot;#1-迁移学习&quot; class=&quot;headerlink&quot; title=&quot;1.迁移学习&quot;&gt;&lt;/a&gt;1.迁移学习&lt;/h2&gt;&lt;p&gt;用&lt;strong&gt;CNN&lt;/strong&gt;做图像识别是不是每次都意味着要自己定义模型，确定好 &lt;strong&gt;卷积层&lt;/strong&gt;、&lt;strong&gt;池化层&lt;/strong&gt; 和 &lt;strong&gt;全连接层&lt;/strong&gt;，然后从0开始训练？不同类型的图像数据集会不会有通用的特征？如果训练样本比较少怎么办？（例如本次花卉识别训练图片只有六千多张）是不是可以有那种已经训练好的模型，拿过来稍微改改就可以用的？&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;迁移学习（Transfer Learning）&lt;/strong&gt; 就是这种可以将已有模型的知识迁移到新任务的学习方法，有以下特点&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;适合数据量比较少的任务，有预训练知识无需从头训练深度神经网络&lt;/li&gt;
@@ -104,12 +104,12 @@
     <link href="https://keychankc.github.io/2025/03/02/cnn-digital-recognition/"/>
     <id>https://keychankc.github.io/2025/03/02/cnn-digital-recognition/</id>
     <published>2025-03-01T16:00:00.000Z</published>
-    <updated>2025-03-11T14:32:40.130Z</updated>
+    <updated>2025-03-16T13:55:37.916Z</updated>
     
     
     <summary type="html">&lt;p&gt;前文 &lt;a href=&quot;https://keychankc.github.io/2025/02/26/nn-digital-recognition/&quot;&gt;&lt;strong&gt;利用神经网络实现手写字体识别&lt;/strong&gt;&lt;/a&gt; 的模型结构是基于神经网络的全连接层， 其中每一层的神经元都会与前一层的所有神经元相连接，这种结构更适合于结构化数据或一维数据。而像手写字体识别之类的图像结构数据，使用卷积神经网络会更合适一点，一方面通过卷积层可以提取局部特征，另一方面经过池化层还能减少参数量，提高处理效率。&lt;/p&gt;
-&lt;h2 id=&quot;1-卷积神经网络&quot;&gt;&lt;a href=&quot;#1-卷积神经网络&quot; class=&quot;headerlink&quot; title=&quot;1. 卷积神经网络&quot;&gt;&lt;/a&gt;1. 卷积神经网络&lt;/h2&gt;&lt;p&gt;卷积神经网络（Convolutional Neural Network，简称CNN）是一种特别适合处理图像、视频、语音、文本等数据的神经网络结构，它通过模仿生物视觉系统的工作原理，利用 &lt;strong&gt;卷积层&lt;/strong&gt;、&lt;strong&gt;池化层&lt;/strong&gt; 和 &lt;strong&gt;全连接层&lt;/strong&gt; 来提取数据中的空间特征，并通过训练优化参数，广泛应用在计算机视觉任务中。&lt;/p&gt;
-&lt;h3 id=&quot;1-基本原理&quot;&gt;&lt;a href=&quot;#1-基本原理&quot; class=&quot;headerlink&quot; title=&quot;1. 基本原理&quot;&gt;&lt;/a&gt;1. 基本原理&lt;/h3&gt;&lt;p&gt;CNN的核心思想是“卷积”操作。简单来说，卷积是用一个小的矩阵（称为&lt;strong&gt;卷积核&lt;/strong&gt;）在输入图像上滑动，通过和图像的局部区域进行逐点相乘并求和，提取出图像的局部特征。卷积操作通常会在多个卷积层次上进行，从而能够识别图像中的简单特征（如边缘、纹理）和复杂特征（如物体、面部等）。&lt;/p&gt;</summary>
+&lt;h2 id=&quot;1-卷积神经网络&quot;&gt;&lt;a href=&quot;#1-卷积神经网络&quot; class=&quot;headerlink&quot; title=&quot;1.卷积神经网络&quot;&gt;&lt;/a&gt;1.卷积神经网络&lt;/h2&gt;&lt;p&gt;卷积神经网络（Convolutional Neural Network，简称CNN）是一种特别适合处理图像、视频、语音、文本等数据的神经网络结构，它通过模仿生物视觉系统的工作原理，利用 &lt;strong&gt;卷积层&lt;/strong&gt;、&lt;strong&gt;池化层&lt;/strong&gt; 和 &lt;strong&gt;全连接层&lt;/strong&gt; 来提取数据中的空间特征，并通过训练优化参数，广泛应用在计算机视觉任务中。&lt;/p&gt;
+&lt;h3 id=&quot;1-基本原理&quot;&gt;&lt;a href=&quot;#1-基本原理&quot; class=&quot;headerlink&quot; title=&quot;1.基本原理&quot;&gt;&lt;/a&gt;1.基本原理&lt;/h3&gt;&lt;p&gt;CNN的核心思想是“卷积”操作。简单来说，卷积是用一个小的矩阵（称为&lt;strong&gt;卷积核&lt;/strong&gt;）在输入图像上滑动，通过和图像的局部区域进行逐点相乘并求和，提取出图像的局部特征。卷积操作通常会在多个卷积层次上进行，从而能够识别图像中的简单特征（如边缘、纹理）和复杂特征（如物体、面部等）。&lt;/p&gt;</summary>
     
     
     
@@ -133,11 +133,11 @@
     <link href="https://keychankc.github.io/2025/02/28/nn-weather-forecast/"/>
     <id>https://keychankc.github.io/2025/02/28/nn-weather-forecast/</id>
     <published>2025-02-27T16:00:00.000Z</published>
-    <updated>2025-03-15T08:04:11.770Z</updated>
+    <updated>2025-03-16T13:52:40.188Z</updated>
     
     
     <summary type="html">&lt;p&gt;回归任务：通过输入一些样本数据或者特征，经过N层神经网络，输出一个预测值。&lt;/p&gt;
-&lt;h2 id=&quot;1-气温数据处理&quot;&gt;&lt;a href=&quot;#1-气温数据处理&quot; class=&quot;headerlink&quot; title=&quot;1.  气温数据处理&quot;&gt;&lt;/a&gt;1.  气温数据处理&lt;/h2&gt;&lt;h3 id=&quot;1-数据加载&quot;&gt;&lt;a href=&quot;#1-数据加载&quot; class=&quot;headerlink&quot; title=&quot;1. 数据加载&quot;&gt;&lt;/a&gt;1. 数据加载&lt;/h3&gt;&lt;figure class=&quot;highlight python&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;title function_&quot;&gt;load_csv&lt;/span&gt;():  &lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    path = Path(&lt;span class=&quot;string&quot;&gt;&amp;quot;data&amp;quot;&lt;/span&gt;)  &lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    filename = &lt;span class=&quot;string&quot;&gt;&amp;quot;temps.csv&amp;quot;&lt;/span&gt;  &lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    &lt;span class=&quot;keyword&quot;&gt;return&lt;/span&gt; pd.read_csv(path / filename)&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;built_in&quot;&gt;print&lt;/span&gt;(&lt;span class=&quot;string&quot;&gt;f&amp;quot;shape:&lt;span class=&quot;subst&quot;&gt;&amp;#123;features.shape&amp;#125;&lt;/span&gt;&#92;n columns:&lt;span class=&quot;subst&quot;&gt;&amp;#123;features.columns&amp;#125;&lt;/span&gt;&amp;quot;&lt;/span&gt;)&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;built_in&quot;&gt;print&lt;/span&gt;(features[:&lt;span class=&quot;number&quot;&gt;5&lt;/span&gt;]) &lt;span class=&quot;comment&quot;&gt;# 打印前5条数据&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;</summary>
+&lt;h2 id=&quot;1-气温数据处理&quot;&gt;&lt;a href=&quot;#1-气温数据处理&quot; class=&quot;headerlink&quot; title=&quot;1.气温数据处理&quot;&gt;&lt;/a&gt;1.气温数据处理&lt;/h2&gt;&lt;h3 id=&quot;1-数据加载&quot;&gt;&lt;a href=&quot;#1-数据加载&quot; class=&quot;headerlink&quot; title=&quot;1.数据加载&quot;&gt;&lt;/a&gt;1.数据加载&lt;/h3&gt;&lt;figure class=&quot;highlight python&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;title function_&quot;&gt;load_csv&lt;/span&gt;():  &lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    path = Path(&lt;span class=&quot;string&quot;&gt;&amp;quot;data&amp;quot;&lt;/span&gt;)  &lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    filename = &lt;span class=&quot;string&quot;&gt;&amp;quot;temps.csv&amp;quot;&lt;/span&gt;  &lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    &lt;span class=&quot;keyword&quot;&gt;return&lt;/span&gt; pd.read_csv(path / filename)&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;built_in&quot;&gt;print&lt;/span&gt;(&lt;span class=&quot;string&quot;&gt;f&amp;quot;shape:&lt;span class=&quot;subst&quot;&gt;&amp;#123;features.shape&amp;#125;&lt;/span&gt;&#92;n columns:&lt;span class=&quot;subst&quot;&gt;&amp;#123;features.columns&amp;#125;&lt;/span&gt;&amp;quot;&lt;/span&gt;)&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;built_in&quot;&gt;print&lt;/span&gt;(features[:&lt;span class=&quot;number&quot;&gt;5&lt;/span&gt;]) &lt;span class=&quot;comment&quot;&gt;# 打印前5条数据&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;</summary>
     
     
     
@@ -150,11 +150,11 @@
     
     <category term="模型训练" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83/"/>
     
-    <category term="matplotlib" scheme="https://keychankc.github.io/tags/matplotlib/"/>
-    
     <category term="神经网络" scheme="https://keychankc.github.io/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
     
     <category term="全连接层" scheme="https://keychankc.github.io/tags/%E5%85%A8%E8%BF%9E%E6%8E%A5%E5%B1%82/"/>
+    
+    <category term="matplotlib" scheme="https://keychankc.github.io/tags/matplotlib/"/>
     
   </entry>
   
@@ -163,11 +163,11 @@
     <link href="https://keychankc.github.io/2025/02/26/nn-digital-recognition/"/>
     <id>https://keychankc.github.io/2025/02/26/nn-digital-recognition/</id>
     <published>2025-02-26T06:03:25.000Z</published>
-    <updated>2025-03-15T08:03:13.319Z</updated>
+    <updated>2025-03-16T13:54:02.641Z</updated>
     
     
     <summary type="html">&lt;p&gt;本文主要是讲如何使用 PyTorch 实现手写数字识别，包括MNIST数据集加载处理、神经网络模型定义、训练并评估模型。&lt;/p&gt;
-&lt;h2 id=&quot;1-Mnist数据集&quot;&gt;&lt;a href=&quot;#1-Mnist数据集&quot; class=&quot;headerlink&quot; title=&quot;1.  Mnist数据集&quot;&gt;&lt;/a&gt;1.  Mnist数据集&lt;/h2&gt;&lt;p&gt;Mnist数据集是美国国家标准与技术研究院收集的关于手写数字扫描图像及其对应识别数字的数据集。该数据集分为两部分：&lt;br&gt;第一部分包含60000幅28x28大小的灰度图及对应识别数字，用作训练数据，这些图像扫描自250个人的手写样本。&lt;br&gt;第二部分包含10000幅28x28大小的灰度图及对应识别数字，用作测试数据，为了保证测试结果，这些图像来自另外一批人。&lt;/p&gt;</summary>
+&lt;h2 id=&quot;1-Mnist数据集&quot;&gt;&lt;a href=&quot;#1-Mnist数据集&quot; class=&quot;headerlink&quot; title=&quot;1.Mnist数据集&quot;&gt;&lt;/a&gt;1.Mnist数据集&lt;/h2&gt;&lt;p&gt;Mnist数据集是美国国家标准与技术研究院收集的关于手写数字扫描图像及其对应识别数字的数据集。该数据集分为两部分：&lt;br&gt;第一部分包含60000幅28x28大小的灰度图及对应识别数字，用作训练数据，这些图像扫描自250个人的手写样本。&lt;br&gt;第二部分包含10000幅28x28大小的灰度图及对应识别数字，用作测试数据，为了保证测试结果，这些图像来自另外一批人。&lt;/p&gt;</summary>
     
     
     
