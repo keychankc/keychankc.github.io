@@ -533,6 +533,9 @@
 <li>背景建模（Background Subtraction）：检测哪些像素在变动，适用于监控场景</li>
 </ul>
 </li>
+</ol>
+<span id="more"></span>
+<ol start="4">
 <li>视频处理<ul>
 <li>视频稳定（去除视频抖动，让画面更流畅）</li>
 <li>背景去除（提取前景人物，换掉背景，比如绿幕抠像）</li>

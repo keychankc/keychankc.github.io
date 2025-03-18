@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-03-18T08:35:28.898Z</updated>
+  <updated>2025-03-18T08:36:43.649Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -21,16 +21,31 @@
     <link href="https://keychankc.github.io/2025/03/18/opencv-credit-card-ocr/"/>
     <id>https://keychankc.github.io/2025/03/18/opencv-credit-card-ocr/</id>
     <published>2025-03-18T08:23:32.000Z</published>
-    <updated>2025-03-18T08:35:28.898Z</updated>
+    <updated>2025-03-18T08:36:43.649Z</updated>
     
     
-      
-      
-        
-        
-    <summary type="html">&lt;h2 id=&quot;1-OpenCV概述&quot;&gt;&lt;a href=&quot;#1-OpenCV概述&quot; class=&quot;headerlink&quot; title=&quot;1.OpenCV概述&quot;&gt;&lt;/a&gt;1.OpenCV概述&lt;/h2&gt;&lt;p&gt;OpenCV（Open Source Computer Vision</summary>
-        
-      
+    <summary type="html">&lt;h2 id=&quot;1-OpenCV概述&quot;&gt;&lt;a href=&quot;#1-OpenCV概述&quot; class=&quot;headerlink&quot; title=&quot;1.OpenCV概述&quot;&gt;&lt;/a&gt;1.OpenCV概述&lt;/h2&gt;&lt;p&gt;OpenCV（Open Source Computer Vision Library）是一个开源的计算机视觉和图像处理库，主要用于 &lt;strong&gt;图像处理、视频分析、机器视觉、深度学习&lt;/strong&gt; 等领域。它最初由 Intel 研发，现在由 &lt;strong&gt;OpenCV 组织&lt;/strong&gt; 维护，并支持 C++、Python、Java 等多种语言。擅长领域有：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;图像处理&lt;ul&gt;
+&lt;li&gt;去噪：去掉照片上的噪点，让图像更清晰&lt;/li&gt;
+&lt;li&gt;平滑 &amp;amp; 锐化：模糊处理（比如美颜相机的磨皮）、增强边缘（让模糊的字变得更清楚）&lt;/li&gt;
+&lt;li&gt;颜色调整：可以把彩色图转换成黑白图（灰度化），或者增强对比度&lt;/li&gt;
+&lt;li&gt;图像分割：把图片中的不同区域分开，比如把人的头像从背景中抠出来（绿幕抠像）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;物体检测与识别&lt;ul&gt;
+&lt;li&gt;人脸检测：找到照片或视频里的人脸，并画出边框（Haar 级联分类器、DNN）&lt;/li&gt;
+&lt;li&gt;车牌识别：用于交通监控，自动读取车牌号码&lt;/li&gt;
+&lt;li&gt;目标检测：找出图片中的特定物体，比如识别商店里的商品、扫描条形码等&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt; 运动跟踪&lt;ul&gt;
+&lt;li&gt;光流法（Optical Flow）：计算物体在连续帧中的运动轨迹&lt;/li&gt;
+&lt;li&gt;目标跟踪算法（KCF, CSRT, Meanshift 等）：给定一个目标，让电脑自动跟踪它&lt;/li&gt;
+&lt;li&gt;背景建模（Background Subtraction）：检测哪些像素在变动，适用于监控场景&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;</summary>
     
     
     
