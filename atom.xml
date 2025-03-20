@@ -69,7 +69,7 @@
     <link href="https://keychankc.github.io/2025/03/14/rnn-classification-text/"/>
     <id>https://keychankc.github.io/2025/03/14/rnn-classification-text/</id>
     <published>2025-03-14T08:32:25.000Z</published>
-    <updated>2025-03-16T13:51:33.587Z</updated>
+    <updated>2025-03-20T05:41:30.087Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-循环神经网络-RNN&quot;&gt;&lt;a href=&quot;#1-循环神经网络-RNN&quot; class=&quot;headerlink&quot; title=&quot;1.循环神经网络(RNN)&quot;&gt;&lt;/a&gt;1.循环神经网络(RNN)&lt;/h2&gt;&lt;p&gt;RNN有&lt;strong&gt;隐藏状态（hidden state）&lt;/strong&gt;，可以保留和传递之前时刻的信息，也就是有记忆功能，从而可实现&lt;strong&gt;时间依赖性&lt;/strong&gt;的数据处理，比较适用于处理序列数据（如时间序列、文本、语音等）。&lt;br&gt;通俗一点就像是人在读一句话：&lt;/p&gt;
