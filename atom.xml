@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-03-24T03:42:22.573Z</updated>
+  <updated>2025-03-24T05:07:41.717Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="https://keychankc.github.io/2025/03/24/image-stitching/"/>
     <id>https://keychankc.github.io/2025/03/24/image-stitching/</id>
     <published>2025-03-24T02:29:12.000Z</published>
-    <updated>2025-03-24T03:42:22.573Z</updated>
+    <updated>2025-03-24T05:07:41.717Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-实现流程&quot;&gt;&lt;a href=&quot;#1-实现流程&quot; class=&quot;headerlink&quot; title=&quot;1.实现流程&quot;&gt;&lt;/a&gt;1.实现流程&lt;/h2&gt;&lt;p&gt;通过提取图像中的特征点并匹配这些特征点来找到图像间的对应关系，再通过透视变换（Homography）将两幅图像拼接成一幅完整的图像，大致流程：&lt;/p&gt;
