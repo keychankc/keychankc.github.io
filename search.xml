@@ -282,7 +282,7 @@
       </tags>
   </entry>
   <entry>
-    <title>OpenCV--全景图像拼接</title>
+    <title>OpenCV之全景图像拼接</title>
     <url>/2025/03/24/image-stitching/</url>
     <content><![CDATA[<h2 id="1-实现流程"><a href="#1-实现流程" class="headerlink" title="1.实现流程"></a>1.实现流程</h2><p>通过提取图像中的特征点并匹配这些特征点来找到图像间的对应关系，再通过透视变换（Homography）将两幅图像拼接成一幅完整的图像，大致流程：</p>
 <ol>
@@ -665,7 +665,7 @@
       </tags>
   </entry>
   <entry>
-    <title>OpenCV--信用卡卡号识别</title>
+    <title>OpenCV之信用卡卡号识别</title>
     <url>/2025/03/18/opencv-credit-card-ocr/</url>
     <content><![CDATA[<h2 id="1-OpenCV概述"><a href="#1-OpenCV概述" class="headerlink" title="1.OpenCV概述"></a>1.OpenCV概述</h2><p>OpenCV（Open Source Computer Vision Library）是一个开源的计算机视觉和图像处理库，主要用于 <strong>图像处理、视频分析、机器视觉、深度学习</strong> 等领域。它最初由 Intel 研发，现在由 <strong>OpenCV 组织</strong> 维护，并支持 C++、Python、Java 等多种语言。擅长领域有：</p>
 <ol>

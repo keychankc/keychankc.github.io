@@ -23,7 +23,7 @@
 
     <meta name="description" content="1.实现流程通过提取图像中的特征点并匹配这些特征点来找到图像间的对应关系，再通过透视变换（Homography）将两幅图像拼接成一幅完整的图像，大致流程：  特征点检测与描述 使用 SIFT 算法检测两张图像中的关键点，并计算特征描述子（局部特征向量）   特征匹配 采用 KNN 近邻匹配（k&#x3D;2）找到两张图像间的最佳匹配点对 使用 比值测试（ratio test） 过滤掉低质量的匹配点">
 <meta property="og:type" content="article">
-<meta property="og:title" content="OpenCV--全景图像拼接">
+<meta property="og:title" content="OpenCV之全景图像拼接">
 <meta property="og:url" content="https://keychankc.github.io/2025/03/24/image-stitching/index.html">
 <meta property="og:site_name" content="KeyChan&#39;s blog">
 <meta property="og:description" content="1.实现流程通过提取图像中的特征点并匹配这些特征点来找到图像间的对应关系，再通过透视变换（Homography）将两幅图像拼接成一幅完整的图像，大致流程：  特征点检测与描述 使用 SIFT 算法检测两张图像中的关键点，并计算特征描述子（局部特征向量）   特征匹配 采用 KNN 近邻匹配（k&#x3D;2）找到两张图像间的最佳匹配点对 使用 比值测试（ratio test） 过滤掉低质量的匹配点">
@@ -34,7 +34,7 @@
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-31-40.jpg">
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-31-56.jpg">
 <meta property="article:published_time" content="2025-03-24T02:29:12.000Z">
-<meta property="article:modified_time" content="2025-03-24T05:07:41.717Z">
+<meta property="article:modified_time" content="2025-03-24T05:15:37.642Z">
 <meta property="article:author" content="KeyChan">
 <meta property="article:tag" content="图像处理">
 <meta property="article:tag" content="计算机视觉">
@@ -46,10 +46,10 @@
 <link rel="canonical" href="https://keychankc.github.io/2025/03/24/image-stitching/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/2025/03/24/image-stitching/","path":"2025/03/24/image-stitching/","title":"OpenCV--全景图像拼接"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/2025/03/24/image-stitching/","path":"2025/03/24/image-stitching/","title":"OpenCV之全景图像拼接"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>OpenCV--全景图像拼接 | KeyChan's blog</title>
+<title>OpenCV之全景图像拼接 | KeyChan's blog</title>
   
 
 
@@ -229,12 +229,12 @@
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="OpenCV--全景图像拼接 | KeyChan's blog">
+      <meta itemprop="name" content="OpenCV之全景图像拼接 | KeyChan's blog">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          OpenCV--全景图像拼接
+          OpenCV之全景图像拼接
         </h1>
 
         <div class="post-meta-container">
@@ -464,7 +464,7 @@
   </li>
   <li class="post-copyright-link">
       <strong>本文链接：</strong>
-      <a href="https://keychankc.github.io/2025/03/24/image-stitching/" title="OpenCV--全景图像拼接">https://keychankc.github.io/2025/03/24/image-stitching/</a>
+      <a href="https://keychankc.github.io/2025/03/24/image-stitching/" title="OpenCV之全景图像拼接">https://keychankc.github.io/2025/03/24/image-stitching/</a>
   </li>
   <li class="post-copyright-license">
       <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -499,8 +499,8 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2025/03/18/opencv-credit-card-ocr/" rel="prev" title="OpenCV--信用卡卡号识别">
-                  <i class="fa fa-angle-left"></i> OpenCV--信用卡卡号识别
+                <a href="/2025/03/18/opencv-credit-card-ocr/" rel="prev" title="OpenCV之信用卡卡号识别">
+                  <i class="fa fa-angle-left"></i> OpenCV之信用卡卡号识别
                 </a>
             </div>
             <div class="post-nav-item">
