@@ -282,161 +282,6 @@
       </tags>
   </entry>
   <entry>
-    <title>OpenCV之全景图像拼接</title>
-    <url>/2025/03/24/image-stitching/</url>
-    <content><![CDATA[<h2 id="1-实现流程"><a href="#1-实现流程" class="headerlink" title="1.实现流程"></a>1.实现流程</h2><p>通过提取图像中的特征点并匹配这些特征点来找到图像间的对应关系，再通过透视变换（Homography）将两幅图像拼接成一幅完整的图像，大致流程：</p>
-<ol>
-<li>特征点检测与描述<ul>
-<li>使用 <strong>SIFT</strong> 算法检测两张图像中的关键点，并计算特征描述子（局部特征向量）</li>
-</ul>
-</li>
-<li>特征匹配<ul>
-<li>采用 <strong>KNN 近邻匹配</strong>（k&#x3D;2）找到两张图像间的最佳匹配点对</li>
-<li>使用 <strong>比值测试（ratio test）</strong> 过滤掉低质量的匹配点，减少误匹配</li>
-</ul>
-</li>
-<li>单应性矩阵计算<ul>
-<li>通过 <strong>RANSAC 算法</strong> 计算 <strong>单应性矩阵 (Homography, H)</strong>，剔除误匹配点</li>
-<li>单应性矩阵用于 <strong>透视变换</strong>，使一张图像对齐另一张图像</li>
-</ul>
-</li>
-<li>图像变换与拼接<ul>
-<li>利用 cv2.warpPerspective() <strong>对图像A进行透视变换</strong>，使其尽可能与图像B对齐</li>
-<li>将<strong>图像B放入最终结果中</strong>，合成拼接图像</li>
-</ul>
-</li>
-<li>可视化匹配结果<ul>
-<li>在两张图像上绘制匹配点连线，帮助观察特征匹配的效果</li>
-</ul>
-</li>
-</ol>
-<h2 id="2-相关算法"><a href="#2-相关算法" class="headerlink" title="2.相关算法"></a>2.相关算法</h2><h3 id="1-SIFT（尺度不变特征变换）"><a href="#1-SIFT（尺度不变特征变换）" class="headerlink" title="1.SIFT（尺度不变特征变换）"></a>1.SIFT（尺度不变特征变换）</h3><p>SIFT (<strong>Scale-Invariant Feature Transform</strong>) 是一种 <strong>关键点检测和描述算法</strong>，能够在 <strong>不同尺度、旋转、光照变化</strong> 下仍然保持稳定的特征匹配。</p>
-<span id="more"></span>
-<p><strong>主要步骤</strong>：</p>
-<ol>
-<li><strong>尺度空间构造</strong>：<ul>
-<li>采用 <strong>高斯模糊（Gaussian Blur）</strong> 生成不同尺度的图像（高斯金字塔）</li>
-<li>计算 <strong>DoG（Difference of Gaussian, 差分高斯）</strong> 以找到特征点</li>
-</ul>
-</li>
-<li><strong>关键点检测与精细定位</strong>：<ul>
-<li>通过 <strong>极值检测</strong> 在不同尺度下找到潜在特征点</li>
-<li>过滤掉低对比度点和边缘响应点，提高鲁棒性</li>
-</ul>
-</li>
-<li><strong>方向分配</strong>：<ul>
-<li>计算特征点周围的 <strong>梯度方向直方图</strong>，分配主要方向，使其具备<strong>旋转不变性</strong></li>
-</ul>
-</li>
-<li><strong>特征描述</strong>：<ul>
-<li>计算每个关键点周围的 <strong>梯度直方图</strong>，形成 <strong>128 维特征向量</strong>（局部描述子）</li>
-<li>这些特征向量用于匹配不同图像中的关键点</li>
-</ul>
-</li>
-</ol>
-<p><strong>特点</strong>：</p>
-<ul>
-<li><strong>尺度、旋转、光照不变性</strong>：可用于不同大小、旋转角度和亮度变化的图像匹配</li>
-<li><strong>抗噪性强</strong>：在复杂背景下仍能准确提取关键点</li>
-<li><strong>计算复杂度高</strong>：比其他方法（如 ORB）慢，但匹配效果更稳定</li>
-</ul>
-<h3 id="2-KNN-近邻匹配"><a href="#2-KNN-近邻匹配" class="headerlink" title="2.KNN 近邻匹配"></a>2.KNN 近邻匹配</h3><p>KNN (<strong>K-Nearest Neighbors</strong>) 是一种用于 <strong>特征点匹配</strong> 的方法，它基于<strong>欧几里得距离</strong>计算两个图像之间的相似特征点</p>
-<p><strong>工作原理</strong>：</p>
-<ol>
-<li><strong>计算欧几里得距离</strong>：<ul>
-<li>计算图像A中的每个特征点与图像B中所有特征点的<strong>欧几里得距离</strong>，找到最相似的 K 个点（通常 K&#x3D;2）</li>
-</ul>
-</li>
-<li><strong>比值测试（Ratio Test）</strong>：<ul>
-<li>计算最近邻 D1 和次近邻 D2 之间的距离比 D1&#x2F;D2</li>
-<li>如果 D1&#x2F;D2 &lt; 设定阈值（通常 0.75），则认为匹配有效，否则丢弃该匹配点</li>
-<li>这样可以过滤掉误匹配点，提高匹配精度</li>
-</ul>
-</li>
-</ol>
-<p><strong>特点</strong>：</p>
-<ul>
-<li><strong>简单高效</strong>：直接基于欧几里得距离计算匹配点</li>
-<li><strong>容易受噪声干扰</strong>：误匹配点较多，因此需要 <strong>比值测试</strong> 或 <strong>RANSAC</strong> 进行筛选</li>
-</ul>
-<h3 id="3-RANSAC（随机抽样一致性算法）"><a href="#3-RANSAC（随机抽样一致性算法）" class="headerlink" title="3.RANSAC（随机抽样一致性算法）"></a>3.RANSAC（随机抽样一致性算法）</h3><p>RANSAC (<strong>RANdom SAmple Consensus, 随机抽样一致算法</strong>) 是一种 <strong>鲁棒的误匹配去除方法</strong>，用于筛选正确的匹配点，提高拼接精度</p>
-<p><strong>工作原理</strong>：</p>
-<ol>
-<li><strong>随机采样</strong>：<ul>
-<li>在匹配点集中 <strong>随机选取 4 对匹配点</strong>，计算一个变换模型（如单应性矩阵 H）。</li>
-</ul>
-</li>
-<li><strong>计算内点数</strong>：<ul>
-<li>通过该变换模型，将所有匹配点进行投影，并计算它们与目标点的误差。</li>
-<li>误差小于阈值（如 4 像素）的点称为 <strong>内点（Inliers）</strong>。</li>
-</ul>
-</li>
-<li><strong>重复迭代</strong>：<ul>
-<li>反复进行 <strong>随机抽样+计算内点数</strong> 的过程，找到拥有最多内点的模型。</li>
-<li>最终使用这些内点 <strong>重新计算一个更精确的变换矩阵</strong>。</li>
-</ul>
-</li>
-</ol>
-<p><strong>特点</strong>：</p>
-<ul>
-<li><strong>能够过滤掉错误匹配点</strong>，提高拼接的精度。</li>
-<li><strong>适用于特征匹配、物体识别、立体视觉</strong>等任务。</li>
-<li><strong>计算复杂度较高</strong>，但效果很好。</li>
-</ul>
-<h3 id="4-透视变换（Homography）"><a href="#4-透视变换（Homography）" class="headerlink" title="4.透视变换（Homography）"></a>4.透视变换（Homography）</h3><p>透视变换 (<strong>Homography Transformation</strong>) 主要用于<strong>将一张图像变换到与另一张图像对齐的视角</strong>，从而实现图像拼接。</p>
-<p><strong>数学模型</strong>：<br>透视变换矩阵 H 是一个 <strong>3×3 矩阵</strong>，用于描述两张图像之间的映射关系：</p>
-<p>$\begin{bmatrix} x{\prime} \ y{\prime} \ w{\prime} \end{bmatrix} &#x3D; H \cdot \begin{bmatrix} x \ y \ 1 \end{bmatrix}$</p>
-<p>其中：</p>
-<ul>
-<li>$(x, y)$是原始图像中的坐标。</li>
-<li>$(x{\prime}, y{\prime})$ 是变换后图像的坐标。</li>
-<li>cv2.findHomography() 通过匹配点计算 H，并用 cv2.warpPerspective() 对图像进行变换。</li>
-</ul>
-<p><strong>特点</strong>：</p>
-<ul>
-<li><strong>适用于拼接、增强现实（AR）、目标跟踪</strong> 等任务。</li>
-<li>需要 <strong>至少 4 对匹配点</strong> 才能计算出 H 矩阵。</li>
-<li>如果匹配点不够准确，会导致变换失败。</li>
-</ul>
-<h2 id="3-实现过程"><a href="#3-实现过程" class="headerlink" title="3.实现过程"></a>3.实现过程</h2><h3 id="1-获取特征点"><a href="#1-获取特征点" class="headerlink" title="1.获取特征点"></a>1.获取特征点</h3><p>检测图像中的特征点并计算这些特征点的描述子，使用 <strong>SIFT</strong> 算法来实现</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_detect_describe</span>(<span class="params">image</span>):  </span><br><span class="line">    <span class="comment"># 创建SIFT特征检测器  </span></span><br><span class="line">    descriptor = cv2.SIFT_create()  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 寻找图像中的特征点，计算这些关键点的特征描述子，用于后续的匹配</span></span><br><span class="line">    <span class="comment"># kps 包含图像中所有关键点的信息（例如位置、尺度等）</span></span><br><span class="line">    <span class="comment"># features 每个关键点的描述子，它用于描述关键点的外观特征</span></span><br><span class="line">    (kps, features) = descriptor.detectAndCompute(image, <span class="literal">None</span>)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 关键点的坐标（x, y）</span></span><br><span class="line">    num_kps = np.float32([kp.pt <span class="keyword">for</span> kp <span class="keyword">in</span> kps])  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 关键点的坐标，关键点的描述子，关键点对象  </span></span><br><span class="line">    <span class="keyword">return</span> num_kps, features, kps  </span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h3 id="2-匹配特征点"><a href="#2-匹配特征点" class="headerlink" title="2.匹配特征点"></a>2.匹配特征点</h3><p>用于匹配两幅图像的特征点，使用暴力匹配器（BFMatcher）和 k 最近邻（KNN）算法来找到两幅图像之间的特征点对应关系</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_match_key_points</span>(<span class="params">kpsA, kpsB, featuresA, featuresB, ratio, reprojThresh</span>):  </span><br><span class="line">    <span class="comment"># 创建暴力匹配器，基于欧几里得距离来进行特征点匹配</span></span><br><span class="line">    matcher = cv2.BFMatcher()  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 为每个特征点找到两个最接近的匹配点（最近邻和次最近邻） </span></span><br><span class="line">    raw_matches = matcher.knnMatch(featuresA, featuresB, <span class="number">2</span>)  </span><br><span class="line">  </span><br><span class="line">    matches = []  </span><br><span class="line">    <span class="keyword">for</span> m <span class="keyword">in</span> raw_matches:  </span><br><span class="line">        <span class="comment"># 检查最近的匹配点与次近的匹配点的距离比是否满足ratio阈值</span></span><br><span class="line">        <span class="comment"># 如果是，则认为这两个特征点匹配成功</span></span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(m) == <span class="number">2</span> <span class="keyword">and</span> m[<span class="number">0</span>].distance &lt; m[<span class="number">1</span>].distance * ratio:  </span><br><span class="line">            <span class="comment"># 存储两个点在featuresA, featuresB中的索引值  </span></span><br><span class="line">            matches.append((m[<span class="number">0</span>].trainIdx, m[<span class="number">0</span>].queryIdx))  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 当筛选后的匹配对大于4时，计算视角变换矩阵  </span></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(matches) &gt; <span class="number">4</span>:  </span><br><span class="line">        <span class="comment"># 获取匹配对的点坐标  </span></span><br><span class="line">        pts_a = np.float32([kpsA[i] <span class="keyword">for</span> (_, i) <span class="keyword">in</span> matches])  </span><br><span class="line">        pts_b = np.float32([kpsB[i] <span class="keyword">for</span> (i, _) <span class="keyword">in</span> matches])  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 通过RANSAC筛选出更准确的匹配点对，减少误匹配的影响  </span></span><br><span class="line">        (H, status) = cv2.findHomography(pts_a, pts_b, cv2.RANSAC, reprojThresh) </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 返回结果  </span></span><br><span class="line">        <span class="keyword">return</span> matches, H, status  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 如果匹配对小于4时，返回None  </span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">None</span>  </span><br></pre></td></tr></table></figure>
-
-<h3 id="3-图像拼接"><a href="#3-图像拼接" class="headerlink" title="3.图像拼接"></a>3.图像拼接</h3><p>这里将两张图片横向拼接，并在匹配点之间绘制红色直线，帮助可视化匹配效果  </p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_draw_matches</span>(<span class="params">imageA, imageB, kpsA, kpsB, matches, status</span>):  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 初始化可视化图片，将A、B图左右连接到一起  </span></span><br><span class="line">    (hA, wA) = imageA.shape[:<span class="number">2</span>]  </span><br><span class="line">    (hB, wB) = imageB.shape[:<span class="number">2</span>]  </span><br><span class="line">    vis = np.zeros((<span class="built_in">max</span>(hA, hB), wA + wB, <span class="number">3</span>), dtype=<span class="string">&quot;uint8&quot;</span>)  </span><br><span class="line">    vis[<span class="number">0</span>:hA, <span class="number">0</span>:wA] = imageA  </span><br><span class="line">    vis[<span class="number">0</span>:hB, wA:] = imageB  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 联合遍历，画出匹配对  </span></span><br><span class="line">    <span class="keyword">for</span> ((trainIdx, queryIdx), s) <span class="keyword">in</span> <span class="built_in">zip</span>(matches, status):  </span><br><span class="line">        <span class="comment"># 当点对匹配成功时，画到可视化图上  </span></span><br><span class="line">        <span class="keyword">if</span> s == <span class="number">1</span>:  </span><br><span class="line">            pt_a = (<span class="built_in">int</span>(kpsA[queryIdx].pt[<span class="number">0</span>]), <span class="built_in">int</span>(kpsA[queryIdx].pt[<span class="number">1</span>]))  </span><br><span class="line">            pt_b = (<span class="built_in">int</span>(kpsB[trainIdx].pt[<span class="number">0</span>]) + wA, <span class="built_in">int</span>(kpsB[trainIdx].pt[<span class="number">1</span>]))</span><br><span class="line">            <span class="comment"># 在两幅图像之间的匹配特征点之间绘制红色线段，便于查看哪些点在两幅图像中是匹配的  </span></span><br><span class="line">            cv2.line(vis, pt_a, pt_b, (<span class="number">0</span>, <span class="number">0</span>, <span class="number">255</span>), <span class="number">1</span>)  </span><br><span class="line">    <span class="keyword">return</span> vis  </span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<h3 id="4-调用"><a href="#4-调用" class="headerlink" title="4.调用"></a>4.调用</h3><p>原图<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-38-47.jpg"><br>最终效果<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-32-12.jpg"></p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">stitch</span>(<span class="params">imageB, imageA, ratio=<span class="number">0.75</span>, reprojThresh=<span class="number">4.0</span></span>):  </span><br><span class="line">    <span class="comment"># 提取SIFT特征：对两张图像分别检测特征点和计算描述子  </span></span><br><span class="line">    (num_kpsA, featuresA, kpsA) = _detect_describe(imageA)  </span><br><span class="line">    (num_kpsB, featuresB, kpsB) = _detect_describe(imageB)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 找到匹配点对，并计算 单应性矩阵 H    </span></span><br><span class="line">    m = _match_key_points(num_kpsA, num_kpsB, featuresA, featuresB, ratio, reprojThresh)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 如果返回结果为空，没有匹配成功的特征点，退出算法  </span></span><br><span class="line">    <span class="keyword">if</span> m <span class="keyword">is</span> <span class="literal">None</span>:  </span><br><span class="line">        <span class="keyword">return</span> <span class="literal">None</span>  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># H是3x3视角变换矩阵  </span></span><br><span class="line">    (matches, H, status) = m  </span><br><span class="line">    <span class="comment"># 透视变换，使两张图像对齐</span></span><br><span class="line">    result = cv2.warpPerspective(imageA, H, (imageA.shape[<span class="number">1</span>] + imageB.shape[<span class="number">1</span>], imageA.shape[<span class="number">0</span>])) </span><br><span class="line">    utils.cv_show(<span class="string">&#x27;result imageA&#x27;</span>, result) <span class="comment"># 如下图</span></span><br><span class="line">    <span class="comment"># 将图片B传入result图片最左端，最终形成一张拼接后的大图</span></span><br><span class="line">    result[<span class="number">0</span>:imageB.shape[<span class="number">0</span>], <span class="number">0</span>:imageB.shape[<span class="number">1</span>]] = imageB  </span><br><span class="line">    utils.cv_show(<span class="string">&#x27;result imageB&#x27;</span>, result) <span class="comment"># 如下图</span></span><br><span class="line">    <span class="comment"># 生成匹配图片  </span></span><br><span class="line">    vis = _draw_matches(imageA, imageB, kpsA, kpsB, matches, status)  </span><br><span class="line">    utils.cv_show(<span class="string">&#x27;draw matches&#x27;</span>, vis)  <span class="comment"># 如下图</span></span><br><span class="line">    <span class="keyword">return</span> result</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-31-22.jpg"></p>
-<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-31-40.jpg"></p>
-<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-31-56.jpg"></p>
-<h2 id="4-总结"><a href="#4-总结" class="headerlink" title="4.总结"></a>4.总结</h2><p>关键步骤包括：</p>
-<ol>
-<li>检测并描述图像中的特征点    </li>
-<li>匹配特征点并计算单应性矩阵</li>
-<li>通过透视变换将图像对齐，并拼接成一张新图像</li>
-</ol>
-<h2 id="5-备注"><a href="#5-备注" class="headerlink" title="5.备注"></a>5.备注</h2><p>环境：</p>
-<ul>
-<li>mac: 15.2</li>
-<li>python: 3.12.4</li>
-<li>numpy: 1.26.4</li>
-<li>opencv-python: 4.11.0.86<br>资源和代码：<br>  <a href="https://github.com/keychankc/dl_code_for_blog/tree/main/007_image_stitching">https://github.com/keychankc/dl_code_for_blog/tree/main/007_image_stitching</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>深度学习</category>
-        <category>OpenCV</category>
-      </categories>
-      <tags>
-        <tag>图像处理</tag>
-        <tag>计算机视觉</tag>
-        <tag>图像识别</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>利用神经网络实现手写字体识别</title>
     <url>/2025/02/26/nn-digital-recognition/</url>
     <content><![CDATA[<p>本文主要是讲如何使用 PyTorch 实现手写数字识别，包括MNIST数据集加载处理、神经网络模型定义、训练并评估模型。</p>
@@ -665,105 +510,149 @@
       </tags>
   </entry>
   <entry>
-    <title>OpenCV之信用卡卡号识别</title>
-    <url>/2025/03/18/opencv-credit-card-ocr/</url>
-    <content><![CDATA[<h2 id="1-OpenCV概述"><a href="#1-OpenCV概述" class="headerlink" title="1.OpenCV概述"></a>1.OpenCV概述</h2><p>OpenCV（Open Source Computer Vision Library）是一个开源的计算机视觉和图像处理库，主要用于 <strong>图像处理、视频分析、机器视觉、深度学习</strong> 等领域。它最初由 Intel 研发，现在由 <strong>OpenCV 组织</strong> 维护，并支持 C++、Python、Java 等多种语言。擅长领域有：</p>
+    <title>OpenCV之全景图像拼接</title>
+    <url>/2025/03/24/opencv-image-stitching/</url>
+    <content><![CDATA[<h2 id="1-实现流程"><a href="#1-实现流程" class="headerlink" title="1.实现流程"></a>1.实现流程</h2><p>通过提取图像中的特征点并匹配这些特征点来找到图像间的对应关系，再通过透视变换（Homography）将两幅图像拼接成一幅完整的图像，大致流程：</p>
 <ol>
-<li>图像处理<ul>
-<li>去噪：去掉照片上的噪点，让图像更清晰</li>
-<li>平滑 &amp; 锐化：模糊处理（比如美颜相机的磨皮）、增强边缘（让模糊的字变得更清楚）</li>
-<li>颜色调整：可以把彩色图转换成黑白图（灰度化），或者增强对比度</li>
-<li>图像分割：把图片中的不同区域分开，比如把人的头像从背景中抠出来（绿幕抠像）</li>
+<li>特征点检测与描述<ul>
+<li>使用 <strong>SIFT</strong> 算法检测两张图像中的关键点，并计算特征描述子（局部特征向量）</li>
 </ul>
 </li>
-<li>物体检测与识别<ul>
-<li>人脸检测：找到照片或视频里的人脸，并画出边框（Haar 级联分类器、DNN）</li>
-<li>车牌识别：用于交通监控，自动读取车牌号码</li>
-<li>目标检测：找出图片中的特定物体，比如识别商店里的商品、扫描条形码等</li>
+<li>特征匹配<ul>
+<li>采用 <strong>KNN 近邻匹配</strong>（k&#x3D;2）找到两张图像间的最佳匹配点对</li>
+<li>使用 <strong>比值测试（ratio test）</strong> 过滤掉低质量的匹配点，减少误匹配</li>
 </ul>
 </li>
-<li> 运动跟踪<ul>
-<li>光流法（Optical Flow）：计算物体在连续帧中的运动轨迹</li>
-<li>目标跟踪算法（KCF, CSRT, Meanshift 等）：给定一个目标，让电脑自动跟踪它</li>
-<li>背景建模（Background Subtraction）：检测哪些像素在变动，适用于监控场景</li>
+<li>单应性矩阵计算<ul>
+<li>通过 <strong>RANSAC 算法</strong> 计算 <strong>单应性矩阵 (Homography, H)</strong>，剔除误匹配点</li>
+<li>单应性矩阵用于 <strong>透视变换</strong>，使一张图像对齐另一张图像</li>
+</ul>
+</li>
+<li>图像变换与拼接<ul>
+<li>利用 cv2.warpPerspective() <strong>对图像A进行透视变换</strong>，使其尽可能与图像B对齐</li>
+<li>将<strong>图像B放入最终结果中</strong>，合成拼接图像</li>
+</ul>
+</li>
+<li>可视化匹配结果<ul>
+<li>在两张图像上绘制匹配点连线，帮助观察特征匹配的效果</li>
 </ul>
 </li>
 </ol>
+<h2 id="2-相关算法"><a href="#2-相关算法" class="headerlink" title="2.相关算法"></a>2.相关算法</h2><h3 id="1-SIFT（尺度不变特征变换）"><a href="#1-SIFT（尺度不变特征变换）" class="headerlink" title="1.SIFT（尺度不变特征变换）"></a>1.SIFT（尺度不变特征变换）</h3><p>SIFT (<strong>Scale-Invariant Feature Transform</strong>) 是一种 <strong>关键点检测和描述算法</strong>，能够在 <strong>不同尺度、旋转、光照变化</strong> 下仍然保持稳定的特征匹配。</p>
 <span id="more"></span>
-<ol start="4">
-<li>视频处理<ul>
-<li>视频稳定（去除视频抖动，让画面更流畅）</li>
-<li>背景去除（提取前景人物，换掉背景，比如绿幕抠像）</li>
-<li>帧间差分（检测视频中的移动物体，比如监控摄像头检测入侵者）</li>
-</ul>
-</li>
-<li>深度学习<ul>
-<li>人脸识别（Face Recognition） → 结合 DNN 深度神经网络，实现人脸对比、身份认证</li>
-<li>目标检测（Object Detection） → YOLO、SSD、Faster R-CNN 等深度学习模型</li>
-<li>图像分割（Image Segmentation） → 让计算机分割出物体的精确轮廓，而不仅仅是画个边框</li>
-</ul>
-</li>
-</ol>
-<h2 id="2-概述"><a href="#2-概述" class="headerlink" title="2.概述"></a>2.概述</h2><h3 id="1-目标"><a href="#1-目标" class="headerlink" title="1.目标"></a>1.目标</h3><p>识别信用卡数字，在控制台输出，同时在信用卡上标注出来。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250318132220.png"></p>
-<h3 id="2-流程"><a href="#2-流程" class="headerlink" title="2.流程"></a>2.流程</h3><p>先解析模板数字，获取数字以及对应的数字轮廓特征，再解析信用卡指定位置数字轮廓特征，与模板数字做匹配，获取对应识别结果并标注出来。</p>
-<h3 id="3-参数设置"><a href="#3-参数设置" class="headerlink" title="3.参数设置"></a>3.参数设置</h3><p>对应信用卡图片路径和模板图片路径配置参数<br><code>--image imgs/credit_card_02.png --template ocr_a_reference.png</code></p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 设置参数  </span></span><br><span class="line">ap = argparse.ArgumentParser()  </span><br><span class="line">ap.add_argument(<span class="string">&quot;-i&quot;</span>, <span class="string">&quot;--image&quot;</span>, required=<span class="literal">True</span>, <span class="built_in">help</span>=<span class="string">&quot;path to input image&quot;</span>)  </span><br><span class="line">ap.add_argument(<span class="string">&quot;-t&quot;</span>, <span class="string">&quot;--template&quot;</span>, required=<span class="literal">True</span>, <span class="built_in">help</span>=<span class="string">&quot;path to template OCR-A image&quot;</span>)  </span><br><span class="line">args = <span class="built_in">vars</span>(ap.parse_args())</span><br></pre></td></tr></table></figure>
-<h2 id="2-数字模板处理"><a href="#2-数字模板处理" class="headerlink" title="2.数字模板处理"></a>2.数字模板处理</h2><p>解析图像模板，提取 数字字符的轮廓，并将其存储为模板数据，方便后续匹配识别</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 绘图展示(任意按键消失)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">cv_show</span>(<span class="params">name, _img</span>):  </span><br><span class="line">    cv2.imshow(name, _img)  </span><br><span class="line">    cv2.waitKey(<span class="number">0</span>)  </span><br><span class="line">    cv2.destroyAllWindows()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">sort_contours</span>(<span class="params">contours, method=<span class="string">&quot;left-to-right&quot;</span></span>):  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 1️⃣ 确定排序方式，默认升序，从左到右从上到下</span></span><br><span class="line">    reverse = <span class="literal">False</span>  </span><br><span class="line">    i = <span class="number">0</span>  </span><br><span class="line">    <span class="keyword">if</span> method == <span class="string">&quot;right-to-left&quot;</span> <span class="keyword">or</span> method == <span class="string">&quot;bottom-to-top&quot;</span>:  </span><br><span class="line">        reverse = <span class="literal">True</span>  </span><br><span class="line">    <span class="keyword">if</span> method == <span class="string">&quot;top-to-bottom&quot;</span> <span class="keyword">or</span> method == <span class="string">&quot;bottom-to-top&quot;</span>:  </span><br><span class="line">        i = <span class="number">1</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 2️⃣ 计算轮廓的外接矩形，bounding_boxes轮廓位置大小</span></span><br><span class="line">    bounding_boxes = [cv2.boundingRect(c) <span class="keyword">for</span> c <span class="keyword">in</span> contours]</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 3️⃣ 按指定方向排序，将轮廓和对应的边界框绑定在一起</span></span><br><span class="line">    (_contours, bounding_boxes) = <span class="built_in">zip</span>(*<span class="built_in">sorted</span>(<span class="built_in">zip</span>(contours, bounding_boxes), key=<span class="keyword">lambda</span> b: b[<span class="number">1</span>][i], reverse=reverse))  </span><br><span class="line">    <span class="keyword">return</span> _contours, bounding_boxes</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">resize</span>(<span class="params">image, width=<span class="literal">None</span>, height=<span class="literal">None</span>, inter=cv2.INTER_AREA</span>): </span><br><span class="line">    <span class="string">&quot;&quot;&quot;  </span></span><br><span class="line"><span class="string">    按比例缩放图片，支持指定宽度或高度 进行等比例缩放，避免图片失真  </span></span><br><span class="line"><span class="string">    :param image: 输入图像（numpy 数组）  </span></span><br><span class="line"><span class="string">    :param width: 目标 宽度，如果设为 None，则按 高度等比例缩放  </span></span><br><span class="line"><span class="string">    :param height: 目标 高度，如果设为 None，则按 宽度等比例缩放  </span></span><br><span class="line"><span class="string">    :param inter: 插值方法，默认使用 cv2.INTER_AREA（适用于缩小图片）  </span></span><br><span class="line"><span class="string">    :return: 图像（numpy 数组）  </span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment"># 1️⃣ 获取图像的原始宽高</span></span><br><span class="line">    dim = <span class="literal">None</span>  </span><br><span class="line">    (h, w) = image.shape[:<span class="number">2</span>]</span><br><span class="line">    <span class="comment"># 2️⃣ 如果width和height 都为空，返回原图</span></span><br><span class="line">    <span class="keyword">if</span> width <span class="keyword">is</span> <span class="literal">None</span> <span class="keyword">and</span> height <span class="keyword">is</span> <span class="literal">None</span>:  </span><br><span class="line">        <span class="keyword">return</span> image</span><br><span class="line">    <span class="comment"># 3️⃣ 计算新的尺寸</span></span><br><span class="line">    <span class="keyword">if</span> width <span class="keyword">is</span> <span class="literal">None</span>:  </span><br><span class="line">        r = height / <span class="built_in">float</span>(h)  </span><br><span class="line">        dim = (<span class="built_in">int</span>(w * r), height)  </span><br><span class="line">    <span class="keyword">else</span>:  </span><br><span class="line">        r = width / <span class="built_in">float</span>(w)  </span><br><span class="line">        dim = (width, <span class="built_in">int</span>(h * r))</span><br><span class="line">    <span class="comment"># 4️⃣ 执行缩放</span></span><br><span class="line">    resized = cv2.resize(image, dim, interpolation=inter)  </span><br><span class="line">    <span class="keyword">return</span> resized</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">template_parsing</span>(<span class="params">_template_img</span>):  </span><br><span class="line">    <span class="comment"># 1️⃣ 颜色转换：灰度化，将原始图片转换为灰度图像（去掉颜色信息）</span></span><br><span class="line">    <span class="comment"># 作用：减少计算量，提高后续处理速度</span></span><br><span class="line">    ref = cv2.cvtColor(_template_img, cv2.COLOR_BGR2GRAY)  </span><br><span class="line">    cv_show(<span class="string">&#x27;COLOR_BGR2GRAY&#x27;</span>, ref)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 2️⃣ 二值化处理，像素值≤10变为白色（255），像素值&gt;10变为黑色（0）</span></span><br><span class="line">    <span class="comment"># 作用：突出白色数字/字符，便于后续轮廓检测</span></span><br><span class="line">    ref = cv2.threshold(ref, <span class="number">10</span>, <span class="number">255</span>, cv2.THRESH_BINARY_INV)[<span class="number">1</span>]  </span><br><span class="line">    cv_show(<span class="string">&#x27;THRESH_BINARY_INV&#x27;</span>, ref)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 3️⃣ 轮廓检测，提取二值图中的轮廓</span></span><br><span class="line">    <span class="comment"># RETR_EXTERNAL 只提取外部轮廓，避免嵌套干扰</span></span><br><span class="line">    <span class="comment"># CHAIN_APPROX_SIMPLE 只存储必要的边界点，提高计算效率</span></span><br><span class="line">    ref_contours, _ = cv2.findContours(ref.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  </span><br><span class="line">    <span class="comment"># 在原图上绘制轮廓红色，线宽1px</span></span><br><span class="line">    <span class="comment"># ref_contours:轮廓列表  -1:绘制所有轮廓  (0, 0, 255):红色   1:轮廓的线宽  </span></span><br><span class="line">    cv2.drawContours(_template_img, ref_contours, -<span class="number">1</span>, (<span class="number">0</span>, <span class="number">0</span>, <span class="number">255</span>), <span class="number">1</span>)  </span><br><span class="line">    cv_show(<span class="string">&#x27;drawContours&#x27;</span>, _template_img)  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 4️⃣ 轮廓排序</span></span><br><span class="line">    <span class="comment"># 作用：按从左到右的顺序排列轮廓，确保数字顺序正确</span></span><br><span class="line">    ref_contours = utils.sort_contours(ref_contours, method=<span class="string">&quot;left-to-right&quot;</span>)[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 5️⃣ 提取单个数字区域</span></span><br><span class="line">    _digits_dict = &#123;&#125;  </span><br><span class="line">    <span class="keyword">for</span> (i, c) <span class="keyword">in</span> <span class="built_in">enumerate</span>(ref_contours):  </span><br><span class="line">        (x, y, w, h) = cv2.boundingRect(c)  <span class="comment"># 获取最小外接矩形 </span></span><br><span class="line">        roi = ref[y:y + h, x:x + w]  <span class="comment"># 截取对应区域，提取数字</span></span><br><span class="line">        roi = cv2.resize(roi, (<span class="number">57</span>, <span class="number">88</span>))  <span class="comment"># 归一化尺寸，保证所有数字大小一致</span></span><br><span class="line">        _digits_dict[i] = roi  <span class="comment"># 以索引i作为key，以数字模板roi作为value </span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 6️⃣ 显示提取出的数字</span></span><br><span class="line">    <span class="keyword">for</span> key, value <span class="keyword">in</span> _digits_dict.items():  </span><br><span class="line">        cv_show(<span class="string">f&quot;Digit <span class="subst">&#123;key&#125;</span>&quot;</span>, value)  <span class="comment"># value是0~255的二维像素矩阵</span></span><br><span class="line">        </span><br><span class="line">    <span class="keyword">return</span> _digits_dict  <span class="comment"># 用于后续模板匹配</span></span><br></pre></td></tr></table></figure>
-
-<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250318141853.png"></p>
-<h2 id="3-信用卡解析"><a href="#3-信用卡解析" class="headerlink" title="3.信用卡解析"></a>3.信用卡解析</h2><p>解析信用卡图像，提取卡号区域，并返回卡号的位置信息</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">credit_card_parsing</span>(<span class="params">_card_img</span>):  </span><br><span class="line">    <span class="comment"># 1️⃣ 将图像转换为灰度图,减少计算复杂度</span></span><br><span class="line">    gray = cv2.cvtColor(_card_img, cv2.COLOR_BGR2GRAY)  </span><br><span class="line">    cv_show(<span class="string">&#x27;gray&#x27;</span>, gray)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 创建了一个宽度为9，高度为3的矩形结构元素，适用于细长的信用卡号</span></span><br><span class="line">    rect_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (<span class="number">9</span>, <span class="number">3</span>))  </span><br><span class="line">    <span class="comment"># 2️⃣ 进行顶帽变换（Top-Hat）（先腐蚀再膨胀），增强比背景亮的细小区域</span></span><br><span class="line">    tophat = cv2.morphologyEx(gray, cv2.MORPH_TOPHAT, rect_kernel)  </span><br><span class="line">    cv_show(<span class="string">&#x27;tophat&#x27;</span>, tophat)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 3️⃣ 计算水平梯度（Sobel 算子），检测水平方向的变化，适用于信用卡号的横向排列</span></span><br><span class="line">    grad_x = cv2.Sobel(tophat, ddepth=cv2.CV_32F, dx=<span class="number">1</span>, dy=<span class="number">0</span>, ksize=-<span class="number">1</span>)  </span><br><span class="line">    grad_x = np.absolute(grad_x)  <span class="comment"># 取绝对值  </span></span><br><span class="line">    (minVal, maxVal) = (np.<span class="built_in">min</span>(grad_x), np.<span class="built_in">max</span>(grad_x))  <span class="comment"># gradX的最大和最小值  </span></span><br><span class="line">    grad_x = (<span class="number">255</span> * ((grad_x - minVal) / (maxVal - minVal)))  <span class="comment"># 将梯度值转换为图像像素值（0 表示黑色，255 表示白色）  </span></span><br><span class="line">    grad_x = grad_x.astype(<span class="string">&quot;uint8&quot;</span>)  <span class="comment"># 类型转8位无符号整型，[0, 255]  </span></span><br><span class="line">    cv_show(<span class="string">&#x27;gradX1&#x27;</span>, grad_x)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 4️⃣ 通过闭操作（先膨胀，再腐蚀）将数字连在一起，减少破碎字符</span></span><br><span class="line">    grad_x = cv2.morphologyEx(grad_x, cv2.MORPH_CLOSE, rect_kernel)  </span><br><span class="line">    cv_show(<span class="string">&#x27;gradX2&#x27;</span>, grad_x)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 5️⃣ 将图像转换为二值图像（即只有黑白两种像素值），大于阈值的像素设置为 255（白色），小于或等于阈值的像素设置为 0（黑色）  </span></span><br><span class="line">    thresh = cv2.threshold(grad_x, <span class="number">0</span>, <span class="number">255</span>, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[<span class="number">1</span>]  </span><br><span class="line">    cv_show(<span class="string">&#x27;thresh1&#x27;</span>, thresh)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 6️⃣ 再次闭操作 使用更大的核（5x5）进行闭操作，填补字符内部的小孔洞，确保字符区域完整  </span></span><br><span class="line">    sq_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (<span class="number">5</span>, <span class="number">5</span>))  </span><br><span class="line">    thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, sq_kernel)  </span><br><span class="line">    cv_show(<span class="string">&#x27;thresh2&#x27;</span>, thresh)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 7️⃣ 计算轮廓：找到所有白色区域的轮廓  </span></span><br><span class="line">    thresh_contours, _ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  </span><br><span class="line">    cur_img = _card_img.copy()  </span><br><span class="line">    cv2.drawContours(cur_img, thresh_contours, -<span class="number">1</span>, (<span class="number">0</span>, <span class="number">0</span>, <span class="number">255</span>), <span class="number">1</span>)  </span><br><span class="line">    cv_show(<span class="string">&#x27;img&#x27;</span>, cur_img)  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 8️⃣ 过滤&amp;选择可能的卡号区域</span></span><br><span class="line">    _locations = []  </span><br><span class="line">    <span class="keyword">for</span> (i, c) <span class="keyword">in</span> <span class="built_in">enumerate</span>(thresh_contours):  </span><br><span class="line">        (x, y, w, h) = cv2.boundingRect(c)  </span><br><span class="line">        ar = w / <span class="built_in">float</span>(h)  <span class="comment"># 宽高比</span></span><br><span class="line">        <span class="comment"># 选择合适的区域，根据实际任务来，这里的基本都是四个数字一组  </span></span><br><span class="line">        <span class="keyword">if</span> <span class="number">2.5</span> &lt; ar &lt; <span class="number">4.0</span>:  </span><br><span class="line">            <span class="keyword">if</span> (<span class="number">40</span> &lt; w &lt; <span class="number">55</span>) <span class="keyword">and</span> (<span class="number">10</span> &lt; h &lt; <span class="number">20</span>):  <span class="comment"># 宽 高</span></span><br><span class="line">                _locations.append((x, y, w, h))  </span><br><span class="line">    <span class="comment"># 将符合的轮廓从左到右排序  </span></span><br><span class="line">    <span class="keyword">return</span> gray, <span class="built_in">sorted</span>(_locations, key=<span class="keyword">lambda</span> x1: x1[<span class="number">0</span>])  </span><br><span class="line">    <span class="comment"># [(34, 111, 47, 14), (95, 111, 48, 14), (157, 111, 47, 14), (219, 111, 48, 14)]</span></span><br></pre></td></tr></table></figure>
-
-<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250318150422.png"></p>
-<h2 id="4-卡号分割与识别"><a href="#4-卡号分割与识别" class="headerlink" title="4.卡号分割与识别"></a>4.卡号分割与识别</h2><p>流程：</p>
+<p><strong>主要步骤</strong>：</p>
 <ol>
-<li>遍历卡号区域，对每个区域进行预处理</li>
-<li>提取数字轮廓，逐个数字进行匹配</li>
-<li>使用模板匹配识别每个数字，并标注到原图上</li>
+<li><strong>尺度空间构造</strong>：<ul>
+<li>采用 <strong>高斯模糊（Gaussian Blur）</strong> 生成不同尺度的图像（高斯金字塔）</li>
+<li>计算 <strong>DoG（Difference of Gaussian, 差分高斯）</strong> 以找到特征点</li>
+</ul>
+</li>
+<li><strong>关键点检测与精细定位</strong>：<ul>
+<li>通过 <strong>极值检测</strong> 在不同尺度下找到潜在特征点</li>
+<li>过滤掉低对比度点和边缘响应点，提高鲁棒性</li>
+</ul>
+</li>
+<li><strong>方向分配</strong>：<ul>
+<li>计算特征点周围的 <strong>梯度方向直方图</strong>，分配主要方向，使其具备<strong>旋转不变性</strong></li>
+</ul>
+</li>
+<li><strong>特征描述</strong>：<ul>
+<li>计算每个关键点周围的 <strong>梯度直方图</strong>，形成 <strong>128 维特征向量</strong>（局部描述子）</li>
+<li>这些特征向量用于匹配不同图像中的关键点</li>
+</ul>
+</li>
 </ol>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">detect_parsing_digits</span>(<span class="params">_locations, _gray_img, _card_img, _digits_dict</span>):  </span><br><span class="line">    _output = []  <span class="comment"># 存储完整卡号的识别结果</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;  </span></span><br><span class="line"><span class="string">    :param _locations: 信用卡号的坐标列表，格式为[(x, y, w, h), ...]  </span></span><br><span class="line"><span class="string">    :param _gray_img: 处理后的灰度图  </span></span><br><span class="line"><span class="string">    :param _card_img: 原始信用卡彩色图，用于绘制识别结果  </span></span><br><span class="line"><span class="string">    :param _digits_dict: 数字模板字典 &#123;0:模板0,1:模板1, ...,9:模板9&#125;，用于模板匹配 </span></span><br><span class="line"><span class="string">    :return: 识别到的数字  </span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment"># 1️⃣ 遍历每个卡号区域</span></span><br><span class="line">    <span class="keyword">for</span> (i, (gX, gY, gW, gH)) <span class="keyword">in</span> <span class="built_in">enumerate</span>(_locations):  </span><br><span class="line">        group_out_put = []  <span class="comment"># 存储当前4位数字的识别结果</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 2️⃣ 提取卡号区域</span></span><br><span class="line">        group = _gray_img[gY - <span class="number">5</span>:gY + gH + <span class="number">5</span>, gX - <span class="number">5</span>:gX + gW + <span class="number">5</span>]  </span><br><span class="line">        cv_show(<span class="string">&#x27;group1&#x27;</span>, group)  </span><br><span class="line"></span><br><span class="line">        <span class="comment"># 3️⃣ 二值化处理，将卡号部分变白，背景变黑，提高对比度</span></span><br><span class="line">        group = cv2.threshold(group, <span class="number">0</span>, <span class="number">255</span>, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[<span class="number">1</span>] </span><br><span class="line">        cv_show(<span class="string">&#x27;group2&#x27;</span>, group)</span><br><span class="line">         </span><br><span class="line">        <span class="comment"># 4️⃣ 提取每个数字轮廓，确保从左到右排序</span></span><br><span class="line">        digit_contours, _ = cv2.findContours(group.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  </span><br><span class="line">        digit_contours = utils.sort_contours(digit_contours, method=<span class="string">&quot;left-to-right&quot;</span>)[<span class="number">0</span>]  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 5️⃣ 遍历每个数字轮廓  </span></span><br><span class="line">        <span class="keyword">for</span> c <span class="keyword">in</span> digit_contours:  </span><br><span class="line">            <span class="comment"># 裁剪出当前数字roi</span></span><br><span class="line">            (x, y, w, h) = cv2.boundingRect(c)  </span><br><span class="line">            roi = group[y:y + h, x:x + w] </span><br><span class="line">            <span class="comment"># 调整大小 (57, 88)，以匹配模板字典中的尺寸</span></span><br><span class="line">            roi = cv2.resize(roi, (<span class="number">57</span>, <span class="number">88</span>))  </span><br><span class="line">            cv_show(<span class="string">&#x27;roi&#x27;</span>, roi)  </span><br><span class="line">  </span><br><span class="line">            <span class="comment"># 6️⃣ 计算每个数字的匹配得分</span></span><br><span class="line">            scores = []  </span><br><span class="line">            <span class="comment"># 在模板中计算每一个得分  </span></span><br><span class="line">            <span class="keyword">for</span> (digit, digitROI) <span class="keyword">in</span> _digits_dict.items():  </span><br><span class="line">                <span class="comment"># 计算ROI与每个模板的匹配程度</span></span><br><span class="line">                result = cv2.matchTemplate(roi, digitROI, cv2.TM_CCOEFF)</span><br><span class="line">                <span class="comment"># 提取最佳匹配分数</span></span><br><span class="line">                (_, score, _, _) = cv2.minMaxLoc(result)  </span><br><span class="line">                scores.append(score)  </span><br><span class="line">                </span><br><span class="line">            <span class="comment"># 7️⃣ 选择最佳匹配的数字  </span></span><br><span class="line">            group_out_put.append(<span class="built_in">str</span>(np.argmax(scores)))</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 8️⃣ 在原图上绘制识别结果 </span></span><br><span class="line">        cv2.rectangle(_card_img, (gX - <span class="number">5</span>, gY - <span class="number">5</span>), (gX + gW + <span class="number">5</span>, gY + gH + <span class="number">5</span>), (<span class="number">0</span>, <span class="number">0</span>, <span class="number">255</span>), <span class="number">1</span>)  </span><br><span class="line">        cv2.putText(_card_img, <span class="string">&quot;&quot;</span>.join(group_out_put), (gX, gY - <span class="number">15</span>), cv2.FONT_HERSHEY_SIMPLEX, <span class="number">0.65</span>, (<span class="number">0</span>, <span class="number">0</span>, <span class="number">255</span>), <span class="number">2</span>)  </span><br><span class="line"></span><br><span class="line">        <span class="comment"># 9️⃣ 组合最终的信用卡号码</span></span><br><span class="line">        _output.extend(group_out_put)  </span><br><span class="line">    <span class="keyword">return</span> _output</span><br></pre></td></tr></table></figure>
+<p><strong>特点</strong>：</p>
+<ul>
+<li><strong>尺度、旋转、光照不变性</strong>：可用于不同大小、旋转角度和亮度变化的图像匹配</li>
+<li><strong>抗噪性强</strong>：在复杂背景下仍能准确提取关键点</li>
+<li><strong>计算复杂度高</strong>：比其他方法（如 ORB）慢，但匹配效果更稳定</li>
+</ul>
+<h3 id="2-KNN-近邻匹配"><a href="#2-KNN-近邻匹配" class="headerlink" title="2.KNN 近邻匹配"></a>2.KNN 近邻匹配</h3><p>KNN (<strong>K-Nearest Neighbors</strong>) 是一种用于 <strong>特征点匹配</strong> 的方法，它基于<strong>欧几里得距离</strong>计算两个图像之间的相似特征点</p>
+<p><strong>工作原理</strong>：</p>
+<ol>
+<li><strong>计算欧几里得距离</strong>：<ul>
+<li>计算图像A中的每个特征点与图像B中所有特征点的<strong>欧几里得距离</strong>，找到最相似的 K 个点（通常 K&#x3D;2）</li>
+</ul>
+</li>
+<li><strong>比值测试（Ratio Test）</strong>：<ul>
+<li>计算最近邻 D1 和次近邻 D2 之间的距离比 D1&#x2F;D2</li>
+<li>如果 D1&#x2F;D2 &lt; 设定阈值（通常 0.75），则认为匹配有效，否则丢弃该匹配点</li>
+<li>这样可以过滤掉误匹配点，提高匹配精度</li>
+</ul>
+</li>
+</ol>
+<p><strong>特点</strong>：</p>
+<ul>
+<li><strong>简单高效</strong>：直接基于欧几里得距离计算匹配点</li>
+<li><strong>容易受噪声干扰</strong>：误匹配点较多，因此需要 <strong>比值测试</strong> 或 <strong>RANSAC</strong> 进行筛选</li>
+</ul>
+<h3 id="3-RANSAC（随机抽样一致性算法）"><a href="#3-RANSAC（随机抽样一致性算法）" class="headerlink" title="3.RANSAC（随机抽样一致性算法）"></a>3.RANSAC（随机抽样一致性算法）</h3><p>RANSAC (<strong>RANdom SAmple Consensus, 随机抽样一致算法</strong>) 是一种 <strong>鲁棒的误匹配去除方法</strong>，用于筛选正确的匹配点，提高拼接精度</p>
+<p><strong>工作原理</strong>：</p>
+<ol>
+<li><strong>随机采样</strong>：<ul>
+<li>在匹配点集中 <strong>随机选取 4 对匹配点</strong>，计算一个变换模型（如单应性矩阵 H）。</li>
+</ul>
+</li>
+<li><strong>计算内点数</strong>：<ul>
+<li>通过该变换模型，将所有匹配点进行投影，并计算它们与目标点的误差。</li>
+<li>误差小于阈值（如 4 像素）的点称为 <strong>内点（Inliers）</strong>。</li>
+</ul>
+</li>
+<li><strong>重复迭代</strong>：<ul>
+<li>反复进行 <strong>随机抽样+计算内点数</strong> 的过程，找到拥有最多内点的模型。</li>
+<li>最终使用这些内点 <strong>重新计算一个更精确的变换矩阵</strong>。</li>
+</ul>
+</li>
+</ol>
+<p><strong>特点</strong>：</p>
+<ul>
+<li><strong>能够过滤掉错误匹配点</strong>，提高拼接的精度。</li>
+<li><strong>适用于特征匹配、物体识别、立体视觉</strong>等任务。</li>
+<li><strong>计算复杂度较高</strong>，但效果很好。</li>
+</ul>
+<h3 id="4-透视变换（Homography）"><a href="#4-透视变换（Homography）" class="headerlink" title="4.透视变换（Homography）"></a>4.透视变换（Homography）</h3><p>透视变换 (<strong>Homography Transformation</strong>) 主要用于<strong>将一张图像变换到与另一张图像对齐的视角</strong>，从而实现图像拼接。</p>
+<p><strong>数学模型</strong>：<br>透视变换矩阵 H 是一个 <strong>3×3 矩阵</strong>，用于描述两张图像之间的映射关系：</p>
+<p>$\begin{bmatrix} x{\prime} \ y{\prime} \ w{\prime} \end{bmatrix} &#x3D; H \cdot \begin{bmatrix} x \ y \ 1 \end{bmatrix}$</p>
+<p>其中：</p>
+<ul>
+<li>$(x, y)$是原始图像中的坐标。</li>
+<li>$(x{\prime}, y{\prime})$ 是变换后图像的坐标。</li>
+<li>cv2.findHomography() 通过匹配点计算 H，并用 cv2.warpPerspective() 对图像进行变换。</li>
+</ul>
+<p><strong>特点</strong>：</p>
+<ul>
+<li><strong>适用于拼接、增强现实（AR）、目标跟踪</strong> 等任务。</li>
+<li>需要 <strong>至少 4 对匹配点</strong> 才能计算出 H 矩阵。</li>
+<li>如果匹配点不够准确，会导致变换失败。</li>
+</ul>
+<h2 id="3-实现过程"><a href="#3-实现过程" class="headerlink" title="3.实现过程"></a>3.实现过程</h2><h3 id="1-获取特征点"><a href="#1-获取特征点" class="headerlink" title="1.获取特征点"></a>1.获取特征点</h3><p>检测图像中的特征点并计算这些特征点的描述子，使用 <strong>SIFT</strong> 算法来实现</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_detect_describe</span>(<span class="params">image</span>):  </span><br><span class="line">    <span class="comment"># 创建SIFT特征检测器  </span></span><br><span class="line">    descriptor = cv2.SIFT_create()  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 寻找图像中的特征点，计算这些关键点的特征描述子，用于后续的匹配</span></span><br><span class="line">    <span class="comment"># kps 包含图像中所有关键点的信息（例如位置、尺度等）</span></span><br><span class="line">    <span class="comment"># features 每个关键点的描述子，它用于描述关键点的外观特征</span></span><br><span class="line">    (kps, features) = descriptor.detectAndCompute(image, <span class="literal">None</span>)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 关键点的坐标（x, y）</span></span><br><span class="line">    num_kps = np.float32([kp.pt <span class="keyword">for</span> kp <span class="keyword">in</span> kps])  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 关键点的坐标，关键点的描述子，关键点对象  </span></span><br><span class="line">    <span class="keyword">return</span> num_kps, features, kps  </span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250318154002.png"></p>
-<h2 id="5-整合调用"><a href="#5-整合调用" class="headerlink" title="5.整合调用"></a>5.整合调用</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:  </span><br><span class="line">    image_path = args[<span class="string">&quot;image&quot;</span>]  </span><br><span class="line">    template_path = args[<span class="string">&quot;template&quot;</span>]  </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;image:<span class="subst">&#123;image_path&#125;</span>,template:<span class="subst">&#123;template_path&#125;</span>&quot;</span>)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 模板图片  </span></span><br><span class="line">    template_img = cv2.imread(template_path)  </span><br><span class="line">    cv_show(<span class="string">&#x27;template_img&#x27;</span>, template_img)  </span><br><span class="line">    digits_dict = template_parsing(template_img)  <span class="comment"># 每一个数字对应每一个模板  </span></span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 信用卡图片  </span></span><br><span class="line">    card_img = cv2.imread(image_path)  </span><br><span class="line">    card_img = utils.resize(card_img, width=<span class="number">300</span>)  </span><br><span class="line">    cv_show(<span class="string">&#x27;card_img&#x27;</span>, card_img)  </span><br><span class="line">    gray_img, locations = credit_card_parsing(card_img)  <span class="comment"># 灰度图 轮廓 从左到右排序 </span></span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 检测解析 数字  </span></span><br><span class="line">    output = detect_parsing_digits(locations, gray_img, card_img, digits_dict)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 打印结果  </span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Credit Card #: &#123;&#125;&quot;</span>.<span class="built_in">format</span>(<span class="string">&quot;&quot;</span>.join(output)))  </span><br><span class="line">    <span class="comment"># Credit Card #: 4020340002345678</span></span><br><span class="line">    cv2.imshow(<span class="string">&quot;Image&quot;</span>, card_img)  </span><br><span class="line">    cv2.waitKey(<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
-<h2 id="6-总结"><a href="#6-总结" class="headerlink" title="6.总结"></a>6.总结</h2><ol>
-<li>模板处理要点<ul>
-<li>转换为灰度图 ➝ cv2.cvtColor</li>
-<li>二值化 ➝ cv2.threshold</li>
-<li>轮廓检测 ➝ cv2.findContours</li>
-<li>提取单个数字并归一化 ➝ cv2.boundingRect + cv2.resize</li>
-</ul>
-</li>
-<li>信用卡号区域检测要点<ul>
-<li>转换为灰度图 ➝ cv2.cvtColor</li>
-<li>顶帽变换（增强数字区域）➝ cv2.morphologyEx</li>
-<li>Sobel 梯度计算（检测横向边缘）➝ cv2.Sobel</li>
-<li>闭操作（膨胀+腐蚀）（让数字连接在一起）➝ cv2.morphologyEx</li>
-<li>二值化 ➝ cv2.threshold</li>
-<li>轮廓检测（定位可能的卡号区域）➝ cv2.findContours</li>
-<li>过滤候选区域（宽高比筛选）➝ sorted</li>
-</ul>
-</li>
-<li>数字识别要点<ul>
-<li>遍历卡号区域，提取感兴趣区域</li>
-<li>二值化（提高对比度）</li>
-<li>轮廓检测（提取单个数字）</li>
-<li>逐个数字与模板匹配 ➝ cv2.matchTemplate</li>
-<li>输出最佳匹配的数字</li>
-</ul>
-</li>
+<h3 id="2-匹配特征点"><a href="#2-匹配特征点" class="headerlink" title="2.匹配特征点"></a>2.匹配特征点</h3><p>用于匹配两幅图像的特征点，使用暴力匹配器（BFMatcher）和 k 最近邻（KNN）算法来找到两幅图像之间的特征点对应关系</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_match_key_points</span>(<span class="params">kpsA, kpsB, featuresA, featuresB, ratio, reprojThresh</span>):  </span><br><span class="line">    <span class="comment"># 创建暴力匹配器，基于欧几里得距离来进行特征点匹配</span></span><br><span class="line">    matcher = cv2.BFMatcher()  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 为每个特征点找到两个最接近的匹配点（最近邻和次最近邻） </span></span><br><span class="line">    raw_matches = matcher.knnMatch(featuresA, featuresB, <span class="number">2</span>)  </span><br><span class="line">  </span><br><span class="line">    matches = []  </span><br><span class="line">    <span class="keyword">for</span> m <span class="keyword">in</span> raw_matches:  </span><br><span class="line">        <span class="comment"># 检查最近的匹配点与次近的匹配点的距离比是否满足ratio阈值</span></span><br><span class="line">        <span class="comment"># 如果是，则认为这两个特征点匹配成功</span></span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(m) == <span class="number">2</span> <span class="keyword">and</span> m[<span class="number">0</span>].distance &lt; m[<span class="number">1</span>].distance * ratio:  </span><br><span class="line">            <span class="comment"># 存储两个点在featuresA, featuresB中的索引值  </span></span><br><span class="line">            matches.append((m[<span class="number">0</span>].trainIdx, m[<span class="number">0</span>].queryIdx))  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 当筛选后的匹配对大于4时，计算视角变换矩阵  </span></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(matches) &gt; <span class="number">4</span>:  </span><br><span class="line">        <span class="comment"># 获取匹配对的点坐标  </span></span><br><span class="line">        pts_a = np.float32([kpsA[i] <span class="keyword">for</span> (_, i) <span class="keyword">in</span> matches])  </span><br><span class="line">        pts_b = np.float32([kpsB[i] <span class="keyword">for</span> (i, _) <span class="keyword">in</span> matches])  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 通过RANSAC筛选出更准确的匹配点对，减少误匹配的影响  </span></span><br><span class="line">        (H, status) = cv2.findHomography(pts_a, pts_b, cv2.RANSAC, reprojThresh) </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 返回结果  </span></span><br><span class="line">        <span class="keyword">return</span> matches, H, status  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 如果匹配对小于4时，返回None  </span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">None</span>  </span><br></pre></td></tr></table></figure>
+
+<h3 id="3-图像拼接"><a href="#3-图像拼接" class="headerlink" title="3.图像拼接"></a>3.图像拼接</h3><p>这里将两张图片横向拼接，并在匹配点之间绘制红色直线，帮助可视化匹配效果  </p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_draw_matches</span>(<span class="params">imageA, imageB, kpsA, kpsB, matches, status</span>):  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 初始化可视化图片，将A、B图左右连接到一起  </span></span><br><span class="line">    (hA, wA) = imageA.shape[:<span class="number">2</span>]  </span><br><span class="line">    (hB, wB) = imageB.shape[:<span class="number">2</span>]  </span><br><span class="line">    vis = np.zeros((<span class="built_in">max</span>(hA, hB), wA + wB, <span class="number">3</span>), dtype=<span class="string">&quot;uint8&quot;</span>)  </span><br><span class="line">    vis[<span class="number">0</span>:hA, <span class="number">0</span>:wA] = imageA  </span><br><span class="line">    vis[<span class="number">0</span>:hB, wA:] = imageB  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 联合遍历，画出匹配对  </span></span><br><span class="line">    <span class="keyword">for</span> ((trainIdx, queryIdx), s) <span class="keyword">in</span> <span class="built_in">zip</span>(matches, status):  </span><br><span class="line">        <span class="comment"># 当点对匹配成功时，画到可视化图上  </span></span><br><span class="line">        <span class="keyword">if</span> s == <span class="number">1</span>:  </span><br><span class="line">            pt_a = (<span class="built_in">int</span>(kpsA[queryIdx].pt[<span class="number">0</span>]), <span class="built_in">int</span>(kpsA[queryIdx].pt[<span class="number">1</span>]))  </span><br><span class="line">            pt_b = (<span class="built_in">int</span>(kpsB[trainIdx].pt[<span class="number">0</span>]) + wA, <span class="built_in">int</span>(kpsB[trainIdx].pt[<span class="number">1</span>]))</span><br><span class="line">            <span class="comment"># 在两幅图像之间的匹配特征点之间绘制红色线段，便于查看哪些点在两幅图像中是匹配的  </span></span><br><span class="line">            cv2.line(vis, pt_a, pt_b, (<span class="number">0</span>, <span class="number">0</span>, <span class="number">255</span>), <span class="number">1</span>)  </span><br><span class="line">    <span class="keyword">return</span> vis  </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="4-调用"><a href="#4-调用" class="headerlink" title="4.调用"></a>4.调用</h3><p>原图<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-38-47.jpg"><br>最终效果<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-32-12.jpg"></p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">stitch</span>(<span class="params">imageB, imageA, ratio=<span class="number">0.75</span>, reprojThresh=<span class="number">4.0</span></span>):  </span><br><span class="line">    <span class="comment"># 提取SIFT特征：对两张图像分别检测特征点和计算描述子  </span></span><br><span class="line">    (num_kpsA, featuresA, kpsA) = _detect_describe(imageA)  </span><br><span class="line">    (num_kpsB, featuresB, kpsB) = _detect_describe(imageB)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 找到匹配点对，并计算 单应性矩阵 H    </span></span><br><span class="line">    m = _match_key_points(num_kpsA, num_kpsB, featuresA, featuresB, ratio, reprojThresh)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 如果返回结果为空，没有匹配成功的特征点，退出算法  </span></span><br><span class="line">    <span class="keyword">if</span> m <span class="keyword">is</span> <span class="literal">None</span>:  </span><br><span class="line">        <span class="keyword">return</span> <span class="literal">None</span>  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># H是3x3视角变换矩阵  </span></span><br><span class="line">    (matches, H, status) = m  </span><br><span class="line">    <span class="comment"># 透视变换，使两张图像对齐</span></span><br><span class="line">    result = cv2.warpPerspective(imageA, H, (imageA.shape[<span class="number">1</span>] + imageB.shape[<span class="number">1</span>], imageA.shape[<span class="number">0</span>])) </span><br><span class="line">    utils.cv_show(<span class="string">&#x27;result imageA&#x27;</span>, result) <span class="comment"># 如下图</span></span><br><span class="line">    <span class="comment"># 将图片B传入result图片最左端，最终形成一张拼接后的大图</span></span><br><span class="line">    result[<span class="number">0</span>:imageB.shape[<span class="number">0</span>], <span class="number">0</span>:imageB.shape[<span class="number">1</span>]] = imageB  </span><br><span class="line">    utils.cv_show(<span class="string">&#x27;result imageB&#x27;</span>, result) <span class="comment"># 如下图</span></span><br><span class="line">    <span class="comment"># 生成匹配图片  </span></span><br><span class="line">    vis = _draw_matches(imageA, imageB, kpsA, kpsB, matches, status)  </span><br><span class="line">    utils.cv_show(<span class="string">&#x27;draw matches&#x27;</span>, vis)  <span class="comment"># 如下图</span></span><br><span class="line">    <span class="keyword">return</span> result</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-31-22.jpg"></p>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-31-40.jpg"></p>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-31-56.jpg"></p>
+<h2 id="4-总结"><a href="#4-总结" class="headerlink" title="4.总结"></a>4.总结</h2><p>关键步骤包括：</p>
+<ol>
+<li>检测并描述图像中的特征点    </li>
+<li>匹配特征点并计算单应性矩阵</li>
+<li>通过透视变换将图像对齐，并拼接成一张新图像</li>
 </ol>
-<h2 id="7-备注"><a href="#7-备注" class="headerlink" title="7.备注"></a>7.备注</h2><p>环境：</p>
+<h2 id="5-备注"><a href="#5-备注" class="headerlink" title="5.备注"></a>5.备注</h2><p>环境：</p>
 <ul>
 <li>mac: 15.2</li>
 <li>python: 3.12.4</li>
-<li>pytorch: 2.5.1</li>
 <li>numpy: 1.26.4</li>
-<li>opencv-python: 4.11.0.86</li>
+<li>opencv-python: 4.11.0.86<br>资源和代码：<br>  <a href="https://github.com/keychankc/dl_code_for_blog/tree/main/007_image_stitching">https://github.com/keychankc/dl_code_for_blog/tree/main/007_image_stitching</a></li>
 </ul>
-<p>资源和代码：<br>	<a href="https://github.com/keychankc/dl_code_for_blog/tree/main/006_opencv_credit_card_ocr">https://github.com/keychankc/dl_code_for_blog/tree/main/006_opencv_credit_card_ocr</a></p>
 ]]></content>
       <categories>
         <category>深度学习</category>
@@ -773,7 +662,6 @@
         <tag>图像处理</tag>
         <tag>计算机视觉</tag>
         <tag>图像识别</tag>
-        <tag>目标检测</tag>
       </tags>
   </entry>
   <entry>
@@ -1118,6 +1006,118 @@
         <tag>循环神经网络</tag>
         <tag>TensorBoard</tag>
         <tag>LSTM</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>OpenCV之信用卡卡号识别</title>
+    <url>/2025/03/18/opencv-credit-card-ocr/</url>
+    <content><![CDATA[<h2 id="1-OpenCV概述"><a href="#1-OpenCV概述" class="headerlink" title="1.OpenCV概述"></a>1.OpenCV概述</h2><p>OpenCV（Open Source Computer Vision Library）是一个开源的计算机视觉和图像处理库，主要用于 <strong>图像处理、视频分析、机器视觉、深度学习</strong> 等领域。它最初由 Intel 研发，现在由 <strong>OpenCV 组织</strong> 维护，并支持 C++、Python、Java 等多种语言。擅长领域有：</p>
+<ol>
+<li>图像处理<ul>
+<li>去噪：去掉照片上的噪点，让图像更清晰</li>
+<li>平滑 &amp; 锐化：模糊处理（比如美颜相机的磨皮）、增强边缘（让模糊的字变得更清楚）</li>
+<li>颜色调整：可以把彩色图转换成黑白图（灰度化），或者增强对比度</li>
+<li>图像分割：把图片中的不同区域分开，比如把人的头像从背景中抠出来（绿幕抠像）</li>
+</ul>
+</li>
+<li>物体检测与识别<ul>
+<li>人脸检测：找到照片或视频里的人脸，并画出边框（Haar 级联分类器、DNN）</li>
+<li>车牌识别：用于交通监控，自动读取车牌号码</li>
+<li>目标检测：找出图片中的特定物体，比如识别商店里的商品、扫描条形码等</li>
+</ul>
+</li>
+<li> 运动跟踪<ul>
+<li>光流法（Optical Flow）：计算物体在连续帧中的运动轨迹</li>
+<li>目标跟踪算法（KCF, CSRT, Meanshift 等）：给定一个目标，让电脑自动跟踪它</li>
+<li>背景建模（Background Subtraction）：检测哪些像素在变动，适用于监控场景</li>
+</ul>
+</li>
+</ol>
+<span id="more"></span>
+<ol start="4">
+<li>视频处理<ul>
+<li>视频稳定（去除视频抖动，让画面更流畅）</li>
+<li>背景去除（提取前景人物，换掉背景，比如绿幕抠像）</li>
+<li>帧间差分（检测视频中的移动物体，比如监控摄像头检测入侵者）</li>
+</ul>
+</li>
+<li>深度学习<ul>
+<li>人脸识别（Face Recognition） → 结合 DNN 深度神经网络，实现人脸对比、身份认证</li>
+<li>目标检测（Object Detection） → YOLO、SSD、Faster R-CNN 等深度学习模型</li>
+<li>图像分割（Image Segmentation） → 让计算机分割出物体的精确轮廓，而不仅仅是画个边框</li>
+</ul>
+</li>
+</ol>
+<h2 id="2-概述"><a href="#2-概述" class="headerlink" title="2.概述"></a>2.概述</h2><h3 id="1-目标"><a href="#1-目标" class="headerlink" title="1.目标"></a>1.目标</h3><p>识别信用卡数字，在控制台输出，同时在信用卡上标注出来。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250318132220.png"></p>
+<h3 id="2-流程"><a href="#2-流程" class="headerlink" title="2.流程"></a>2.流程</h3><p>先解析模板数字，获取数字以及对应的数字轮廓特征，再解析信用卡指定位置数字轮廓特征，与模板数字做匹配，获取对应识别结果并标注出来。</p>
+<h3 id="3-参数设置"><a href="#3-参数设置" class="headerlink" title="3.参数设置"></a>3.参数设置</h3><p>对应信用卡图片路径和模板图片路径配置参数<br><code>--image imgs/credit_card_02.png --template ocr_a_reference.png</code></p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 设置参数  </span></span><br><span class="line">ap = argparse.ArgumentParser()  </span><br><span class="line">ap.add_argument(<span class="string">&quot;-i&quot;</span>, <span class="string">&quot;--image&quot;</span>, required=<span class="literal">True</span>, <span class="built_in">help</span>=<span class="string">&quot;path to input image&quot;</span>)  </span><br><span class="line">ap.add_argument(<span class="string">&quot;-t&quot;</span>, <span class="string">&quot;--template&quot;</span>, required=<span class="literal">True</span>, <span class="built_in">help</span>=<span class="string">&quot;path to template OCR-A image&quot;</span>)  </span><br><span class="line">args = <span class="built_in">vars</span>(ap.parse_args())</span><br></pre></td></tr></table></figure>
+<h2 id="2-数字模板处理"><a href="#2-数字模板处理" class="headerlink" title="2.数字模板处理"></a>2.数字模板处理</h2><p>解析图像模板，提取 数字字符的轮廓，并将其存储为模板数据，方便后续匹配识别</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 绘图展示(任意按键消失)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">cv_show</span>(<span class="params">name, _img</span>):  </span><br><span class="line">    cv2.imshow(name, _img)  </span><br><span class="line">    cv2.waitKey(<span class="number">0</span>)  </span><br><span class="line">    cv2.destroyAllWindows()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">sort_contours</span>(<span class="params">contours, method=<span class="string">&quot;left-to-right&quot;</span></span>):  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 1️⃣ 确定排序方式，默认升序，从左到右从上到下</span></span><br><span class="line">    reverse = <span class="literal">False</span>  </span><br><span class="line">    i = <span class="number">0</span>  </span><br><span class="line">    <span class="keyword">if</span> method == <span class="string">&quot;right-to-left&quot;</span> <span class="keyword">or</span> method == <span class="string">&quot;bottom-to-top&quot;</span>:  </span><br><span class="line">        reverse = <span class="literal">True</span>  </span><br><span class="line">    <span class="keyword">if</span> method == <span class="string">&quot;top-to-bottom&quot;</span> <span class="keyword">or</span> method == <span class="string">&quot;bottom-to-top&quot;</span>:  </span><br><span class="line">        i = <span class="number">1</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 2️⃣ 计算轮廓的外接矩形，bounding_boxes轮廓位置大小</span></span><br><span class="line">    bounding_boxes = [cv2.boundingRect(c) <span class="keyword">for</span> c <span class="keyword">in</span> contours]</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 3️⃣ 按指定方向排序，将轮廓和对应的边界框绑定在一起</span></span><br><span class="line">    (_contours, bounding_boxes) = <span class="built_in">zip</span>(*<span class="built_in">sorted</span>(<span class="built_in">zip</span>(contours, bounding_boxes), key=<span class="keyword">lambda</span> b: b[<span class="number">1</span>][i], reverse=reverse))  </span><br><span class="line">    <span class="keyword">return</span> _contours, bounding_boxes</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">resize</span>(<span class="params">image, width=<span class="literal">None</span>, height=<span class="literal">None</span>, inter=cv2.INTER_AREA</span>): </span><br><span class="line">    <span class="string">&quot;&quot;&quot;  </span></span><br><span class="line"><span class="string">    按比例缩放图片，支持指定宽度或高度 进行等比例缩放，避免图片失真  </span></span><br><span class="line"><span class="string">    :param image: 输入图像（numpy 数组）  </span></span><br><span class="line"><span class="string">    :param width: 目标 宽度，如果设为 None，则按 高度等比例缩放  </span></span><br><span class="line"><span class="string">    :param height: 目标 高度，如果设为 None，则按 宽度等比例缩放  </span></span><br><span class="line"><span class="string">    :param inter: 插值方法，默认使用 cv2.INTER_AREA（适用于缩小图片）  </span></span><br><span class="line"><span class="string">    :return: 图像（numpy 数组）  </span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment"># 1️⃣ 获取图像的原始宽高</span></span><br><span class="line">    dim = <span class="literal">None</span>  </span><br><span class="line">    (h, w) = image.shape[:<span class="number">2</span>]</span><br><span class="line">    <span class="comment"># 2️⃣ 如果width和height 都为空，返回原图</span></span><br><span class="line">    <span class="keyword">if</span> width <span class="keyword">is</span> <span class="literal">None</span> <span class="keyword">and</span> height <span class="keyword">is</span> <span class="literal">None</span>:  </span><br><span class="line">        <span class="keyword">return</span> image</span><br><span class="line">    <span class="comment"># 3️⃣ 计算新的尺寸</span></span><br><span class="line">    <span class="keyword">if</span> width <span class="keyword">is</span> <span class="literal">None</span>:  </span><br><span class="line">        r = height / <span class="built_in">float</span>(h)  </span><br><span class="line">        dim = (<span class="built_in">int</span>(w * r), height)  </span><br><span class="line">    <span class="keyword">else</span>:  </span><br><span class="line">        r = width / <span class="built_in">float</span>(w)  </span><br><span class="line">        dim = (width, <span class="built_in">int</span>(h * r))</span><br><span class="line">    <span class="comment"># 4️⃣ 执行缩放</span></span><br><span class="line">    resized = cv2.resize(image, dim, interpolation=inter)  </span><br><span class="line">    <span class="keyword">return</span> resized</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">template_parsing</span>(<span class="params">_template_img</span>):  </span><br><span class="line">    <span class="comment"># 1️⃣ 颜色转换：灰度化，将原始图片转换为灰度图像（去掉颜色信息）</span></span><br><span class="line">    <span class="comment"># 作用：减少计算量，提高后续处理速度</span></span><br><span class="line">    ref = cv2.cvtColor(_template_img, cv2.COLOR_BGR2GRAY)  </span><br><span class="line">    cv_show(<span class="string">&#x27;COLOR_BGR2GRAY&#x27;</span>, ref)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 2️⃣ 二值化处理，像素值≤10变为白色（255），像素值&gt;10变为黑色（0）</span></span><br><span class="line">    <span class="comment"># 作用：突出白色数字/字符，便于后续轮廓检测</span></span><br><span class="line">    ref = cv2.threshold(ref, <span class="number">10</span>, <span class="number">255</span>, cv2.THRESH_BINARY_INV)[<span class="number">1</span>]  </span><br><span class="line">    cv_show(<span class="string">&#x27;THRESH_BINARY_INV&#x27;</span>, ref)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 3️⃣ 轮廓检测，提取二值图中的轮廓</span></span><br><span class="line">    <span class="comment"># RETR_EXTERNAL 只提取外部轮廓，避免嵌套干扰</span></span><br><span class="line">    <span class="comment"># CHAIN_APPROX_SIMPLE 只存储必要的边界点，提高计算效率</span></span><br><span class="line">    ref_contours, _ = cv2.findContours(ref.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  </span><br><span class="line">    <span class="comment"># 在原图上绘制轮廓红色，线宽1px</span></span><br><span class="line">    <span class="comment"># ref_contours:轮廓列表  -1:绘制所有轮廓  (0, 0, 255):红色   1:轮廓的线宽  </span></span><br><span class="line">    cv2.drawContours(_template_img, ref_contours, -<span class="number">1</span>, (<span class="number">0</span>, <span class="number">0</span>, <span class="number">255</span>), <span class="number">1</span>)  </span><br><span class="line">    cv_show(<span class="string">&#x27;drawContours&#x27;</span>, _template_img)  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 4️⃣ 轮廓排序</span></span><br><span class="line">    <span class="comment"># 作用：按从左到右的顺序排列轮廓，确保数字顺序正确</span></span><br><span class="line">    ref_contours = utils.sort_contours(ref_contours, method=<span class="string">&quot;left-to-right&quot;</span>)[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 5️⃣ 提取单个数字区域</span></span><br><span class="line">    _digits_dict = &#123;&#125;  </span><br><span class="line">    <span class="keyword">for</span> (i, c) <span class="keyword">in</span> <span class="built_in">enumerate</span>(ref_contours):  </span><br><span class="line">        (x, y, w, h) = cv2.boundingRect(c)  <span class="comment"># 获取最小外接矩形 </span></span><br><span class="line">        roi = ref[y:y + h, x:x + w]  <span class="comment"># 截取对应区域，提取数字</span></span><br><span class="line">        roi = cv2.resize(roi, (<span class="number">57</span>, <span class="number">88</span>))  <span class="comment"># 归一化尺寸，保证所有数字大小一致</span></span><br><span class="line">        _digits_dict[i] = roi  <span class="comment"># 以索引i作为key，以数字模板roi作为value </span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 6️⃣ 显示提取出的数字</span></span><br><span class="line">    <span class="keyword">for</span> key, value <span class="keyword">in</span> _digits_dict.items():  </span><br><span class="line">        cv_show(<span class="string">f&quot;Digit <span class="subst">&#123;key&#125;</span>&quot;</span>, value)  <span class="comment"># value是0~255的二维像素矩阵</span></span><br><span class="line">        </span><br><span class="line">    <span class="keyword">return</span> _digits_dict  <span class="comment"># 用于后续模板匹配</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250318141853.png"></p>
+<h2 id="3-信用卡解析"><a href="#3-信用卡解析" class="headerlink" title="3.信用卡解析"></a>3.信用卡解析</h2><p>解析信用卡图像，提取卡号区域，并返回卡号的位置信息</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">credit_card_parsing</span>(<span class="params">_card_img</span>):  </span><br><span class="line">    <span class="comment"># 1️⃣ 将图像转换为灰度图,减少计算复杂度</span></span><br><span class="line">    gray = cv2.cvtColor(_card_img, cv2.COLOR_BGR2GRAY)  </span><br><span class="line">    cv_show(<span class="string">&#x27;gray&#x27;</span>, gray)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 创建了一个宽度为9，高度为3的矩形结构元素，适用于细长的信用卡号</span></span><br><span class="line">    rect_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (<span class="number">9</span>, <span class="number">3</span>))  </span><br><span class="line">    <span class="comment"># 2️⃣ 进行顶帽变换（Top-Hat）（先腐蚀再膨胀），增强比背景亮的细小区域</span></span><br><span class="line">    tophat = cv2.morphologyEx(gray, cv2.MORPH_TOPHAT, rect_kernel)  </span><br><span class="line">    cv_show(<span class="string">&#x27;tophat&#x27;</span>, tophat)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 3️⃣ 计算水平梯度（Sobel 算子），检测水平方向的变化，适用于信用卡号的横向排列</span></span><br><span class="line">    grad_x = cv2.Sobel(tophat, ddepth=cv2.CV_32F, dx=<span class="number">1</span>, dy=<span class="number">0</span>, ksize=-<span class="number">1</span>)  </span><br><span class="line">    grad_x = np.absolute(grad_x)  <span class="comment"># 取绝对值  </span></span><br><span class="line">    (minVal, maxVal) = (np.<span class="built_in">min</span>(grad_x), np.<span class="built_in">max</span>(grad_x))  <span class="comment"># gradX的最大和最小值  </span></span><br><span class="line">    grad_x = (<span class="number">255</span> * ((grad_x - minVal) / (maxVal - minVal)))  <span class="comment"># 将梯度值转换为图像像素值（0 表示黑色，255 表示白色）  </span></span><br><span class="line">    grad_x = grad_x.astype(<span class="string">&quot;uint8&quot;</span>)  <span class="comment"># 类型转8位无符号整型，[0, 255]  </span></span><br><span class="line">    cv_show(<span class="string">&#x27;gradX1&#x27;</span>, grad_x)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 4️⃣ 通过闭操作（先膨胀，再腐蚀）将数字连在一起，减少破碎字符</span></span><br><span class="line">    grad_x = cv2.morphologyEx(grad_x, cv2.MORPH_CLOSE, rect_kernel)  </span><br><span class="line">    cv_show(<span class="string">&#x27;gradX2&#x27;</span>, grad_x)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 5️⃣ 将图像转换为二值图像（即只有黑白两种像素值），大于阈值的像素设置为 255（白色），小于或等于阈值的像素设置为 0（黑色）  </span></span><br><span class="line">    thresh = cv2.threshold(grad_x, <span class="number">0</span>, <span class="number">255</span>, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[<span class="number">1</span>]  </span><br><span class="line">    cv_show(<span class="string">&#x27;thresh1&#x27;</span>, thresh)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 6️⃣ 再次闭操作 使用更大的核（5x5）进行闭操作，填补字符内部的小孔洞，确保字符区域完整  </span></span><br><span class="line">    sq_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (<span class="number">5</span>, <span class="number">5</span>))  </span><br><span class="line">    thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, sq_kernel)  </span><br><span class="line">    cv_show(<span class="string">&#x27;thresh2&#x27;</span>, thresh)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 7️⃣ 计算轮廓：找到所有白色区域的轮廓  </span></span><br><span class="line">    thresh_contours, _ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  </span><br><span class="line">    cur_img = _card_img.copy()  </span><br><span class="line">    cv2.drawContours(cur_img, thresh_contours, -<span class="number">1</span>, (<span class="number">0</span>, <span class="number">0</span>, <span class="number">255</span>), <span class="number">1</span>)  </span><br><span class="line">    cv_show(<span class="string">&#x27;img&#x27;</span>, cur_img)  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 8️⃣ 过滤&amp;选择可能的卡号区域</span></span><br><span class="line">    _locations = []  </span><br><span class="line">    <span class="keyword">for</span> (i, c) <span class="keyword">in</span> <span class="built_in">enumerate</span>(thresh_contours):  </span><br><span class="line">        (x, y, w, h) = cv2.boundingRect(c)  </span><br><span class="line">        ar = w / <span class="built_in">float</span>(h)  <span class="comment"># 宽高比</span></span><br><span class="line">        <span class="comment"># 选择合适的区域，根据实际任务来，这里的基本都是四个数字一组  </span></span><br><span class="line">        <span class="keyword">if</span> <span class="number">2.5</span> &lt; ar &lt; <span class="number">4.0</span>:  </span><br><span class="line">            <span class="keyword">if</span> (<span class="number">40</span> &lt; w &lt; <span class="number">55</span>) <span class="keyword">and</span> (<span class="number">10</span> &lt; h &lt; <span class="number">20</span>):  <span class="comment"># 宽 高</span></span><br><span class="line">                _locations.append((x, y, w, h))  </span><br><span class="line">    <span class="comment"># 将符合的轮廓从左到右排序  </span></span><br><span class="line">    <span class="keyword">return</span> gray, <span class="built_in">sorted</span>(_locations, key=<span class="keyword">lambda</span> x1: x1[<span class="number">0</span>])  </span><br><span class="line">    <span class="comment"># [(34, 111, 47, 14), (95, 111, 48, 14), (157, 111, 47, 14), (219, 111, 48, 14)]</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250318150422.png"></p>
+<h2 id="4-卡号分割与识别"><a href="#4-卡号分割与识别" class="headerlink" title="4.卡号分割与识别"></a>4.卡号分割与识别</h2><p>流程：</p>
+<ol>
+<li>遍历卡号区域，对每个区域进行预处理</li>
+<li>提取数字轮廓，逐个数字进行匹配</li>
+<li>使用模板匹配识别每个数字，并标注到原图上</li>
+</ol>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">detect_parsing_digits</span>(<span class="params">_locations, _gray_img, _card_img, _digits_dict</span>):  </span><br><span class="line">    _output = []  <span class="comment"># 存储完整卡号的识别结果</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;  </span></span><br><span class="line"><span class="string">    :param _locations: 信用卡号的坐标列表，格式为[(x, y, w, h), ...]  </span></span><br><span class="line"><span class="string">    :param _gray_img: 处理后的灰度图  </span></span><br><span class="line"><span class="string">    :param _card_img: 原始信用卡彩色图，用于绘制识别结果  </span></span><br><span class="line"><span class="string">    :param _digits_dict: 数字模板字典 &#123;0:模板0,1:模板1, ...,9:模板9&#125;，用于模板匹配 </span></span><br><span class="line"><span class="string">    :return: 识别到的数字  </span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment"># 1️⃣ 遍历每个卡号区域</span></span><br><span class="line">    <span class="keyword">for</span> (i, (gX, gY, gW, gH)) <span class="keyword">in</span> <span class="built_in">enumerate</span>(_locations):  </span><br><span class="line">        group_out_put = []  <span class="comment"># 存储当前4位数字的识别结果</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 2️⃣ 提取卡号区域</span></span><br><span class="line">        group = _gray_img[gY - <span class="number">5</span>:gY + gH + <span class="number">5</span>, gX - <span class="number">5</span>:gX + gW + <span class="number">5</span>]  </span><br><span class="line">        cv_show(<span class="string">&#x27;group1&#x27;</span>, group)  </span><br><span class="line"></span><br><span class="line">        <span class="comment"># 3️⃣ 二值化处理，将卡号部分变白，背景变黑，提高对比度</span></span><br><span class="line">        group = cv2.threshold(group, <span class="number">0</span>, <span class="number">255</span>, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[<span class="number">1</span>] </span><br><span class="line">        cv_show(<span class="string">&#x27;group2&#x27;</span>, group)</span><br><span class="line">         </span><br><span class="line">        <span class="comment"># 4️⃣ 提取每个数字轮廓，确保从左到右排序</span></span><br><span class="line">        digit_contours, _ = cv2.findContours(group.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  </span><br><span class="line">        digit_contours = utils.sort_contours(digit_contours, method=<span class="string">&quot;left-to-right&quot;</span>)[<span class="number">0</span>]  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 5️⃣ 遍历每个数字轮廓  </span></span><br><span class="line">        <span class="keyword">for</span> c <span class="keyword">in</span> digit_contours:  </span><br><span class="line">            <span class="comment"># 裁剪出当前数字roi</span></span><br><span class="line">            (x, y, w, h) = cv2.boundingRect(c)  </span><br><span class="line">            roi = group[y:y + h, x:x + w] </span><br><span class="line">            <span class="comment"># 调整大小 (57, 88)，以匹配模板字典中的尺寸</span></span><br><span class="line">            roi = cv2.resize(roi, (<span class="number">57</span>, <span class="number">88</span>))  </span><br><span class="line">            cv_show(<span class="string">&#x27;roi&#x27;</span>, roi)  </span><br><span class="line">  </span><br><span class="line">            <span class="comment"># 6️⃣ 计算每个数字的匹配得分</span></span><br><span class="line">            scores = []  </span><br><span class="line">            <span class="comment"># 在模板中计算每一个得分  </span></span><br><span class="line">            <span class="keyword">for</span> (digit, digitROI) <span class="keyword">in</span> _digits_dict.items():  </span><br><span class="line">                <span class="comment"># 计算ROI与每个模板的匹配程度</span></span><br><span class="line">                result = cv2.matchTemplate(roi, digitROI, cv2.TM_CCOEFF)</span><br><span class="line">                <span class="comment"># 提取最佳匹配分数</span></span><br><span class="line">                (_, score, _, _) = cv2.minMaxLoc(result)  </span><br><span class="line">                scores.append(score)  </span><br><span class="line">                </span><br><span class="line">            <span class="comment"># 7️⃣ 选择最佳匹配的数字  </span></span><br><span class="line">            group_out_put.append(<span class="built_in">str</span>(np.argmax(scores)))</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 8️⃣ 在原图上绘制识别结果 </span></span><br><span class="line">        cv2.rectangle(_card_img, (gX - <span class="number">5</span>, gY - <span class="number">5</span>), (gX + gW + <span class="number">5</span>, gY + gH + <span class="number">5</span>), (<span class="number">0</span>, <span class="number">0</span>, <span class="number">255</span>), <span class="number">1</span>)  </span><br><span class="line">        cv2.putText(_card_img, <span class="string">&quot;&quot;</span>.join(group_out_put), (gX, gY - <span class="number">15</span>), cv2.FONT_HERSHEY_SIMPLEX, <span class="number">0.65</span>, (<span class="number">0</span>, <span class="number">0</span>, <span class="number">255</span>), <span class="number">2</span>)  </span><br><span class="line"></span><br><span class="line">        <span class="comment"># 9️⃣ 组合最终的信用卡号码</span></span><br><span class="line">        _output.extend(group_out_put)  </span><br><span class="line">    <span class="keyword">return</span> _output</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250318154002.png"></p>
+<h2 id="5-整合调用"><a href="#5-整合调用" class="headerlink" title="5.整合调用"></a>5.整合调用</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:  </span><br><span class="line">    image_path = args[<span class="string">&quot;image&quot;</span>]  </span><br><span class="line">    template_path = args[<span class="string">&quot;template&quot;</span>]  </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;image:<span class="subst">&#123;image_path&#125;</span>,template:<span class="subst">&#123;template_path&#125;</span>&quot;</span>)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 模板图片  </span></span><br><span class="line">    template_img = cv2.imread(template_path)  </span><br><span class="line">    cv_show(<span class="string">&#x27;template_img&#x27;</span>, template_img)  </span><br><span class="line">    digits_dict = template_parsing(template_img)  <span class="comment"># 每一个数字对应每一个模板  </span></span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 信用卡图片  </span></span><br><span class="line">    card_img = cv2.imread(image_path)  </span><br><span class="line">    card_img = utils.resize(card_img, width=<span class="number">300</span>)  </span><br><span class="line">    cv_show(<span class="string">&#x27;card_img&#x27;</span>, card_img)  </span><br><span class="line">    gray_img, locations = credit_card_parsing(card_img)  <span class="comment"># 灰度图 轮廓 从左到右排序 </span></span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 检测解析 数字  </span></span><br><span class="line">    output = detect_parsing_digits(locations, gray_img, card_img, digits_dict)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 打印结果  </span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Credit Card #: &#123;&#125;&quot;</span>.<span class="built_in">format</span>(<span class="string">&quot;&quot;</span>.join(output)))  </span><br><span class="line">    <span class="comment"># Credit Card #: 4020340002345678</span></span><br><span class="line">    cv2.imshow(<span class="string">&quot;Image&quot;</span>, card_img)  </span><br><span class="line">    cv2.waitKey(<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="6-总结"><a href="#6-总结" class="headerlink" title="6.总结"></a>6.总结</h2><ol>
+<li>模板处理要点<ul>
+<li>转换为灰度图 ➝ cv2.cvtColor</li>
+<li>二值化 ➝ cv2.threshold</li>
+<li>轮廓检测 ➝ cv2.findContours</li>
+<li>提取单个数字并归一化 ➝ cv2.boundingRect + cv2.resize</li>
+</ul>
+</li>
+<li>信用卡号区域检测要点<ul>
+<li>转换为灰度图 ➝ cv2.cvtColor</li>
+<li>顶帽变换（增强数字区域）➝ cv2.morphologyEx</li>
+<li>Sobel 梯度计算（检测横向边缘）➝ cv2.Sobel</li>
+<li>闭操作（膨胀+腐蚀）（让数字连接在一起）➝ cv2.morphologyEx</li>
+<li>二值化 ➝ cv2.threshold</li>
+<li>轮廓检测（定位可能的卡号区域）➝ cv2.findContours</li>
+<li>过滤候选区域（宽高比筛选）➝ sorted</li>
+</ul>
+</li>
+<li>数字识别要点<ul>
+<li>遍历卡号区域，提取感兴趣区域</li>
+<li>二值化（提高对比度）</li>
+<li>轮廓检测（提取单个数字）</li>
+<li>逐个数字与模板匹配 ➝ cv2.matchTemplate</li>
+<li>输出最佳匹配的数字</li>
+</ul>
+</li>
+</ol>
+<h2 id="7-备注"><a href="#7-备注" class="headerlink" title="7.备注"></a>7.备注</h2><p>环境：</p>
+<ul>
+<li>mac: 15.2</li>
+<li>python: 3.12.4</li>
+<li>pytorch: 2.5.1</li>
+<li>numpy: 1.26.4</li>
+<li>opencv-python: 4.11.0.86</li>
+</ul>
+<p>资源和代码：<br>	<a href="https://github.com/keychankc/dl_code_for_blog/tree/main/006_opencv_credit_card_ocr">https://github.com/keychankc/dl_code_for_blog/tree/main/006_opencv_credit_card_ocr</a></p>
+]]></content>
+      <categories>
+        <category>深度学习</category>
+        <category>OpenCV</category>
+      </categories>
+      <tags>
+        <tag>图像处理</tag>
+        <tag>计算机视觉</tag>
+        <tag>图像识别</tag>
+        <tag>目标检测</tag>
       </tags>
   </entry>
 </search>
