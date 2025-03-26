@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-03-24T05:15:37.642Z</updated>
+  <updated>2025-03-26T08:59:57.336Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -18,10 +18,10 @@
   
   <entry>
     <title>OpenCV之全景图像拼接</title>
-    <link href="https://keychankc.github.io/2025/03/24/opencv-image-stitching/"/>
-    <id>https://keychankc.github.io/2025/03/24/opencv-image-stitching/</id>
+    <link href="https://keychankc.github.io/2025/03/24/007-opencv-image-stitching/"/>
+    <id>https://keychankc.github.io/2025/03/24/007-opencv-image-stitching/</id>
     <published>2025-03-24T02:29:12.000Z</published>
-    <updated>2025-03-24T05:15:37.642Z</updated>
+    <updated>2025-03-26T08:59:57.336Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-实现流程&quot;&gt;&lt;a href=&quot;#1-实现流程&quot; class=&quot;headerlink&quot; title=&quot;1.实现流程&quot;&gt;&lt;/a&gt;1.实现流程&lt;/h2&gt;&lt;p&gt;通过提取图像中的特征点并匹配这些特征点来找到图像间的对应关系，再通过透视变换（Homography）将两幅图像拼接成一幅完整的图像，大致流程：&lt;/p&gt;
@@ -69,8 +69,8 @@
   
   <entry>
     <title>OpenCV之信用卡卡号识别</title>
-    <link href="https://keychankc.github.io/2025/03/18/opencv-credit-card-ocr/"/>
-    <id>https://keychankc.github.io/2025/03/18/opencv-credit-card-ocr/</id>
+    <link href="https://keychankc.github.io/2025/03/18/006-opencv-credit-card-ocr/"/>
+    <id>https://keychankc.github.io/2025/03/18/006-opencv-credit-card-ocr/</id>
     <published>2025-03-18T08:23:32.000Z</published>
     <updated>2025-03-24T05:15:45.673Z</updated>
     
@@ -117,10 +117,10 @@
   
   <entry>
     <title>基于循环神经网络的文本分类实践</title>
-    <link href="https://keychankc.github.io/2025/03/14/rnn-classification-text/"/>
-    <id>https://keychankc.github.io/2025/03/14/rnn-classification-text/</id>
+    <link href="https://keychankc.github.io/2025/03/14/005-rnn-classification-text/"/>
+    <id>https://keychankc.github.io/2025/03/14/005-rnn-classification-text/</id>
     <published>2025-03-14T08:32:25.000Z</published>
-    <updated>2025-03-20T05:41:30.087Z</updated>
+    <updated>2025-03-26T08:59:07.124Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-循环神经网络-RNN&quot;&gt;&lt;a href=&quot;#1-循环神经网络-RNN&quot; class=&quot;headerlink&quot; title=&quot;1.循环神经网络(RNN)&quot;&gt;&lt;/a&gt;1.循环神经网络(RNN)&lt;/h2&gt;&lt;p&gt;RNN有&lt;strong&gt;隐藏状态（hidden state）&lt;/strong&gt;，可以保留和传递之前时刻的信息，也就是有记忆功能，从而可实现&lt;strong&gt;时间依赖性&lt;/strong&gt;的数据处理，比较适用于处理序列数据（如时间序列、文本、语音等）。&lt;br&gt;通俗一点就像是人在读一句话：&lt;/p&gt;
@@ -160,10 +160,10 @@
   
   <entry>
     <title>基于迁移学习(ResNet-18)的花卉识别</title>
-    <link href="https://keychankc.github.io/2025/03/07/cnn-identify-flowers/"/>
-    <id>https://keychankc.github.io/2025/03/07/cnn-identify-flowers/</id>
+    <link href="https://keychankc.github.io/2025/03/07/004-cnn-identify-flowers/"/>
+    <id>https://keychankc.github.io/2025/03/07/004-cnn-identify-flowers/</id>
     <published>2025-03-07T07:16:35.000Z</published>
-    <updated>2025-03-16T13:54:51.137Z</updated>
+    <updated>2025-03-26T08:58:23.653Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-迁移学习&quot;&gt;&lt;a href=&quot;#1-迁移学习&quot; class=&quot;headerlink&quot; title=&quot;1.迁移学习&quot;&gt;&lt;/a&gt;1.迁移学习&lt;/h2&gt;&lt;p&gt;用&lt;strong&gt;CNN&lt;/strong&gt;做图像识别是不是每次都意味着要自己定义模型，确定好 &lt;strong&gt;卷积层&lt;/strong&gt;、&lt;strong&gt;池化层&lt;/strong&gt; 和 &lt;strong&gt;全连接层&lt;/strong&gt;，然后从0开始训练？不同类型的图像数据集会不会有通用的特征？如果训练样本比较少怎么办？（例如本次花卉识别训练图片只有六千多张）是不是可以有那种已经训练好的模型，拿过来稍微改改就可以用的？&lt;/p&gt;
@@ -190,9 +190,9 @@
     
     <category term="模型训练" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83/"/>
     
-    <category term="卷积神经网络" scheme="https://keychankc.github.io/tags/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
-    
     <category term="matplotlib" scheme="https://keychankc.github.io/tags/matplotlib/"/>
+    
+    <category term="卷积神经网络" scheme="https://keychankc.github.io/tags/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
     
     <category term="迁移学习" scheme="https://keychankc.github.io/tags/%E8%BF%81%E7%A7%BB%E5%AD%A6%E4%B9%A0/"/>
     
@@ -200,10 +200,10 @@
   
   <entry>
     <title>利用卷积神经网络实现手写字体识别</title>
-    <link href="https://keychankc.github.io/2025/03/02/cnn-digital-recognition/"/>
-    <id>https://keychankc.github.io/2025/03/02/cnn-digital-recognition/</id>
+    <link href="https://keychankc.github.io/2025/03/02/003-cnn-digital-recognition/"/>
+    <id>https://keychankc.github.io/2025/03/02/003-cnn-digital-recognition/</id>
     <published>2025-03-01T16:00:00.000Z</published>
-    <updated>2025-03-16T13:55:37.916Z</updated>
+    <updated>2025-03-26T08:57:41.680Z</updated>
     
     
     <summary type="html">&lt;p&gt;前文 &lt;a href=&quot;https://keychankc.github.io/2025/02/26/nn-digital-recognition/&quot;&gt;&lt;strong&gt;利用神经网络实现手写字体识别&lt;/strong&gt;&lt;/a&gt; 的模型结构是基于神经网络的全连接层， 其中每一层的神经元都会与前一层的所有神经元相连接，这种结构更适合于结构化数据或一维数据。而像手写字体识别之类的图像结构数据，使用卷积神经网络会更合适一点，一方面通过卷积层可以提取局部特征，另一方面经过池化层还能减少参数量，提高处理效率。&lt;/p&gt;
@@ -229,10 +229,10 @@
   
   <entry>
     <title>基于回归任务的气温预测</title>
-    <link href="https://keychankc.github.io/2025/02/28/nn-weather-forecast/"/>
-    <id>https://keychankc.github.io/2025/02/28/nn-weather-forecast/</id>
+    <link href="https://keychankc.github.io/2025/02/28/002-nn-weather-forecast/"/>
+    <id>https://keychankc.github.io/2025/02/28/002-nn-weather-forecast/</id>
     <published>2025-02-27T16:00:00.000Z</published>
-    <updated>2025-03-16T13:52:40.188Z</updated>
+    <updated>2025-03-26T08:57:19.217Z</updated>
     
     
     <summary type="html">&lt;p&gt;回归任务：通过输入一些样本数据或者特征，经过N层神经网络，输出一个预测值。&lt;/p&gt;
@@ -243,6 +243,10 @@
     <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
+    <category term="神经网络" scheme="https://keychankc.github.io/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
+    
+    <category term="全连接层" scheme="https://keychankc.github.io/tags/%E5%85%A8%E8%BF%9E%E6%8E%A5%E5%B1%82/"/>
+    
     <category term="Python" scheme="https://keychankc.github.io/tags/Python/"/>
     
     <category term="PyTorch" scheme="https://keychankc.github.io/tags/PyTorch/"/>
@@ -251,18 +255,14 @@
     
     <category term="matplotlib" scheme="https://keychankc.github.io/tags/matplotlib/"/>
     
-    <category term="神经网络" scheme="https://keychankc.github.io/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
-    
-    <category term="全连接层" scheme="https://keychankc.github.io/tags/%E5%85%A8%E8%BF%9E%E6%8E%A5%E5%B1%82/"/>
-    
   </entry>
   
   <entry>
     <title>利用神经网络实现手写字体识别</title>
-    <link href="https://keychankc.github.io/2025/02/26/nn-digital-recognition/"/>
-    <id>https://keychankc.github.io/2025/02/26/nn-digital-recognition/</id>
+    <link href="https://keychankc.github.io/2025/02/26/001-nn-digital-recognition/"/>
+    <id>https://keychankc.github.io/2025/02/26/001-nn-digital-recognition/</id>
     <published>2025-02-26T06:03:25.000Z</published>
-    <updated>2025-03-16T13:54:02.641Z</updated>
+    <updated>2025-03-26T08:56:33.639Z</updated>
     
     
     <summary type="html">&lt;p&gt;本文主要是讲如何使用 PyTorch 实现手写数字识别，包括MNIST数据集加载处理、神经网络模型定义、训练并评估模型。&lt;/p&gt;
@@ -273,15 +273,15 @@
     <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
+    <category term="神经网络" scheme="https://keychankc.github.io/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
+    
+    <category term="全连接层" scheme="https://keychankc.github.io/tags/%E5%85%A8%E8%BF%9E%E6%8E%A5%E5%B1%82/"/>
+    
     <category term="Python" scheme="https://keychankc.github.io/tags/Python/"/>
     
     <category term="PyTorch" scheme="https://keychankc.github.io/tags/PyTorch/"/>
     
     <category term="模型训练" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83/"/>
-    
-    <category term="神经网络" scheme="https://keychankc.github.io/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
-    
-    <category term="全连接层" scheme="https://keychankc.github.io/tags/%E5%85%A8%E8%BF%9E%E6%8E%A5%E5%B1%82/"/>
     
   </entry>
   

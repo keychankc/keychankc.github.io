@@ -1,289 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>利用卷积神经网络实现手写字体识别</title>
-    <url>/2025/03/02/cnn-digital-recognition/</url>
-    <content><![CDATA[<p>前文 <a href="https://keychankc.github.io/2025/02/26/nn-digital-recognition/"><strong>利用神经网络实现手写字体识别</strong></a> 的模型结构是基于神经网络的全连接层， 其中每一层的神经元都会与前一层的所有神经元相连接，这种结构更适合于结构化数据或一维数据。而像手写字体识别之类的图像结构数据，使用卷积神经网络会更合适一点，一方面通过卷积层可以提取局部特征，另一方面经过池化层还能减少参数量，提高处理效率。</p>
-<h2 id="1-卷积神经网络"><a href="#1-卷积神经网络" class="headerlink" title="1.卷积神经网络"></a>1.卷积神经网络</h2><p>卷积神经网络（Convolutional Neural Network，简称CNN）是一种特别适合处理图像、视频、语音、文本等数据的神经网络结构，它通过模仿生物视觉系统的工作原理，利用 <strong>卷积层</strong>、<strong>池化层</strong> 和 <strong>全连接层</strong> 来提取数据中的空间特征，并通过训练优化参数，广泛应用在计算机视觉任务中。</p>
-<h3 id="1-基本原理"><a href="#1-基本原理" class="headerlink" title="1.基本原理"></a>1.基本原理</h3><p>CNN的核心思想是“卷积”操作。简单来说，卷积是用一个小的矩阵（称为<strong>卷积核</strong>）在输入图像上滑动，通过和图像的局部区域进行逐点相乘并求和，提取出图像的局部特征。卷积操作通常会在多个卷积层次上进行，从而能够识别图像中的简单特征（如边缘、纹理）和复杂特征（如物体、面部等）。</p>
-<span id="more"></span>
-<h3 id="2-基本结构"><a href="#2-基本结构" class="headerlink" title="2.基本结构"></a>2.基本结构</h3><ol>
-<li><strong>卷积层（Convolutional Layer）</strong><ul>
-<li>CNN核心部分，通过卷积核在输入数据（如图像）上滑动，逐步提取边缘、纹理、角点等局部特征</li>
-<li>卷积层会将输入数据映射到多个特征图（Feature Maps），每个卷积核生成一个特征图，即输出的通道数等于卷积核的数量</li>
-</ul>
-</li>
-<li><strong>池化层（Pooling Layer）</strong><ul>
-<li>用于 <strong>下采样</strong>，减少特征图的尺寸，从而减少计算量、提高模型的计算效率，并防止过拟合。常用的池化方法包括 <strong>最大池化</strong>（Max Pooling）和 <strong>平均池化</strong>（Average Pooling）</li>
-</ul>
-</li>
-<li><strong>全连接层（Fully Connected Layer）</strong><ul>
-<li>在CNN的最后通常会通过一个或多个全连接层将提取到的特征转换为最终的输出。例如，图像分类的类别概率</li>
-<li>前提取到的特征进行 <strong>非线性变换</strong>，生成模型的最终输出</li>
-</ul>
-</li>
-<li><strong>激活函数</strong><ul>
-<li>卷积层和全连接层的输出通常会通过 <strong>激活函数</strong>（如 ReLU、Sigmoid 或 Tanh）进行非线性变换，以帮助模型学习复杂的特征</li>
-</ul>
-</li>
-</ol>
-<h3 id="3-特点"><a href="#3-特点" class="headerlink" title="3.特点"></a>3.特点</h3><ol>
-<li><strong>局部连接</strong>：每个卷积核只与输入数据的一个小区域进行连接（局部感受野），这样可以有效地捕捉数据的局部特征（如图像中的边缘、角点、纹理等）</li>
-<li><strong>共享权重</strong>：同一个卷积核在所有输入区域使用相同的权重参数，这大大减少了参数的数量，提高了计算效率</li>
-<li><strong>层次化特征提取</strong>：CNN 可以通过多层卷积操作逐层提取数据的特征，从低级特征（如边缘）到高级特征（如物体的形状、纹理等）。这种层次化的特征提取方式能够捕捉复杂的模式。</li>
-<li><strong>平移不变性</strong>：CNN 通过卷积操作具备一定的 <strong>平移不变性</strong>，即如果图像中的物体发生平移，卷积层仍能有效地识别物体。这是因为卷积核在图像中滑动，每个区域的特征都有相同的权重。</li>
-<li><strong>高效的参数共享</strong>：由于卷积核共享权重，CNN 的参数数量远低于传统的全连接神经网络。这样使得 CNN 更适合处理大型图像数据集，且训练时所需的计算和内存资源较少。</li>
-</ol>
-<h2 id="2-数据集处理"><a href="#2-数据集处理" class="headerlink" title="2.数据集处理"></a>2.数据集处理</h2><p>加载 <strong>MNIST 数据集</strong>，并对数据进行预处理。</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> torchvision <span class="keyword">import</span> datasets, transforms</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">load_dataset</span>():  </span><br><span class="line">    train_ds = datasets.MNIST(root=<span class="string">&#x27;./data&#x27;</span>,  </span><br><span class="line">                              train=<span class="literal">True</span>,  </span><br><span class="line">                              transform=transforms.ToTensor(),  </span><br><span class="line">                              download=<span class="literal">True</span>)  </span><br><span class="line">  </span><br><span class="line">    test_ds = datasets.MNIST(root=<span class="string">&#x27;./data&#x27;</span>,  </span><br><span class="line">                             train=<span class="literal">False</span>,  </span><br><span class="line">                             transform=transforms.ToTensor())  </span><br><span class="line">    <span class="keyword">return</span> train_ds, test_ds</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">load_loader</span>(<span class="params">train_ds, test_ds</span>):  </span><br><span class="line">    train_dl = torch.utils.data.DataLoader(dataset=train_ds,  </span><br><span class="line">                                           batch_size=batch_size,  </span><br><span class="line">                                           shuffle=<span class="literal">True</span>)  </span><br><span class="line">    test_dl = torch.utils.data.DataLoader(dataset=test_ds,  </span><br><span class="line">                                          batch_size=batch_size,  </span><br><span class="line">                                          shuffle=<span class="literal">True</span>)  </span><br><span class="line">    <span class="keyword">return</span> train_dl, test_dl</span><br></pre></td></tr></table></figure>
-
-<h3 id="1-加载数据"><a href="#1-加载数据" class="headerlink" title="1.加载数据"></a>1.加载数据</h3><p>从 <code>torchvision</code>的datasets中导入自带的MNIST数据集并保存在<code>root</code>路径下，<code>train=True</code>，表示加载的是训练集（train&#x3D;False 则表示加载测试集）。</p>
-<p>datasets除了包含MNIST数据集，还有：<br>	• <strong>图像分类</strong>：CIFAR-10、ImageNet等<br>	• <strong>目标检测与分割</strong>：COCO、PASCAL VOC、Cityscapes等<br>	• <strong>人脸识别</strong>：LFW（Labeled Faces in the Wild）<br>	• <strong>支持学习与小样本学习</strong>：Omniglot</p>
-<p>这些数据集大大方便了研究人员、开发者进行计算机视觉任务的训练和测试。随着计算机视觉的发展，datasets模块也在不断更新扩展中</p>
-<p>数据加载器（DataLoader）为了高效批量加载数据。batch_size为每个批次的数据量，shuffle表示是否打乱数据</p>
-<h3 id="2-预处理"><a href="#2-预处理" class="headerlink" title="2.预处理"></a>2.预处理</h3><p><code>transforms.ToTensor()</code> 会将加载的图像数据转换为 <strong>张量（Tensor）</strong>，并将像素值从 [0, 255] 范围缩放到 [0, 1] 范围。此转换是为了方便后续神经网络训练。</p>
-<h2 id="3-模型定义"><a href="#3-模型定义" class="headerlink" title="3.模型定义"></a>3.模型定义</h2><p><code>Mnist_CNN</code>模型中，包括两部分构造函数和前向传播，前向传播函数会在模型训练的时候自动调用</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Mnist_CNN</span>(nn.Module):  </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):  </span><br><span class="line">        <span class="built_in">super</span>(Mnist_CNN, <span class="variable language_">self</span>).__init__()  </span><br><span class="line">        </span><br><span class="line">        <span class="variable language_">self</span>.conv1 = nn.Sequential(         <span class="comment"># 输入大小 (1, 28, 28)        </span></span><br><span class="line">	        nn.Conv2d(in_channels=<span class="number">1</span>, out_channels=<span class="number">16</span>, kernel_size=<span class="number">5</span>, stride=<span class="number">1</span>, padding=<span class="number">2</span>),  </span><br><span class="line">            nn.ReLU(),                      <span class="comment"># relu层  </span></span><br><span class="line">            nn.MaxPool2d(kernel_size=<span class="number">2</span>),    <span class="comment"># 进行池化操作</span></span><br><span class="line">        )                                   <span class="comment"># 输出(16, 14, 14)</span></span><br><span class="line">        </span><br><span class="line">        <span class="variable language_">self</span>.conv2 = nn.Sequential(</span><br><span class="line">            nn.Conv2d(<span class="number">16</span>, <span class="number">32</span>, <span class="number">5</span>, <span class="number">1</span>, <span class="number">2</span>),     <span class="comment"># 输出 (32, 14, 14)     </span></span><br><span class="line">            nn.ReLU(),                      <span class="comment"># relu层  </span></span><br><span class="line">            nn.MaxPool2d(<span class="number">2</span>),                <span class="comment"># 进行池化操作</span></span><br><span class="line">		)                                   <span class="comment"># 输出 (32, 7, 7)    </span></span><br><span class="line">        </span><br><span class="line">        <span class="variable language_">self</span>.conv3 = nn.Sequential(  </span><br><span class="line">            nn.Conv2d(<span class="number">32</span>, <span class="number">64</span>, <span class="number">5</span>, <span class="number">1</span>, <span class="number">2</span>),  </span><br><span class="line">            nn.ReLU(),                         </span><br><span class="line">	    )                                   <span class="comment"># 输出 (64, 7, 7)</span></span><br><span class="line">	      </span><br><span class="line">        <span class="variable language_">self</span>.out = nn.Linear(<span class="number">64</span> * <span class="number">7</span> * <span class="number">7</span>, <span class="number">10</span>)<span class="comment"># 全连接层得到的结果  </span></span><br><span class="line">  </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):  </span><br><span class="line">        x = <span class="variable language_">self</span>.conv1(x)  </span><br><span class="line">        x = <span class="variable language_">self</span>.conv2(x)  </span><br><span class="line">        x = <span class="variable language_">self</span>.conv3(x)  </span><br><span class="line">        x = x.view(x.size(<span class="number">0</span>), -<span class="number">1</span>)           <span class="comment"># flatten操作 (batch_size, 32 * 7 * 7)  </span></span><br><span class="line">        output = <span class="variable language_">self</span>.out(x)  </span><br><span class="line">        <span class="keyword">return</span> output</span><br></pre></td></tr></table></figure>
-<h3 id="1-构造函数"><a href="#1-构造函数" class="headerlink" title="1.构造函数"></a>1.构造函数</h3><p>构造函数会初始化神经网络的各个层，模型中定义了三个卷积层和一个全连接层：</p>
-<h4 id="卷积层conv1"><a href="#卷积层conv1" class="headerlink" title="卷积层conv1"></a>卷积层conv1</h4><p><strong>nn.Conv2d</strong>：这是一个二维卷积层，用来提取输入图像的局部特征</p>
-<ul>
-<li><code>in_channels=1</code>：输入图像的通道数，MNIST 图像是单通道（灰度图），所以是 1</li>
-<li><code>out_channels=16</code>：卷积层输出的特征图的通道数，设置为16，意味着该层将学习16个不同的特征</li>
-<li><code>kernel_size=5</code>：卷积核的大小为5x5</li>
-<li><code>padding=2</code>：在图像边缘添加2个像素的零填充，目的是让输出图像的大小与输入相对称</li>
-</ul>
-<p><strong>nn.ReLU()</strong>：这是一个激活函数层，使用 ReLU（Rectified Linear Unit）激活函数来对卷积结果进行非线性映射。ReLU 会将所有负值置为零</p>
-<p><strong>nn.MaxPool2d</strong>：池化层，进行下采样（降维）操作。kernel_size&#x3D;2：池化窗口大小是2x2，表示每个2x2的区域都会被池化成一个最大值（最大池化）。池化操作可以降低计算量并提取最重要的特征</p>
-<p>输出尺寸：原始输入图像的尺寸是 (28, 28)，经过卷积后，尺寸为 (28, 28)，再加上池化操作，最终输出为 (16, 14, 14)，也就是16个14x14的特征图。</p>
-<h4 id="卷积层conv2"><a href="#卷积层conv2" class="headerlink" title="卷积层conv2"></a>卷积层conv2</h4><p>作用类似conv1，只是输入和输出的通道数发生了变化：</p>
-<ul>
-<li>输入通道是16（来自上一层 conv1 的输出），输出通道是32</li>
-<li>卷积核大小、步长和填充方式保持不变</li>
-</ul>
-<p>输出尺寸：经过卷积和池化后，输出特征图的尺寸是 (32, 7, 7)，即32个7x7的特征图。</p>
-<h4 id="卷积层conv3"><a href="#卷积层conv3" class="headerlink" title="卷积层conv3"></a>卷积层conv3</h4><p>作用同conv1和conv1，输入通道是32，输出通道是64，卷积核大小、步长和填充方式保持不变。<br>输出尺寸：经过这一层后，输出的特征图尺寸是 (64, 7, 7)，即64个7x7的特征图。</p>
-<h4 id="全连接层out"><a href="#全连接层out" class="headerlink" title="全连接层out"></a>全连接层out</h4><p>做一个10分类的操作，将卷积层提取的特征映射到最终的分类结果</p>
-<ul>
-<li>因为conv3输出的特征图的尺寸是 (64, 7, 7)，输入特征的数量是 64 * 7 * 7 &#x3D; 3136</li>
-<li>因为MNIST数据集有10个数字类别（0-9），输出特征的数量是 10</li>
-</ul>
-<h3 id="2-前向传播"><a href="#2-前向传播" class="headerlink" title="2.前向传播"></a>2.前向传播</h3><p>数据从输入到输出的流动过程，依次通过三个卷积层和一个全连接层</p>
-<ul>
-<li><code>x = self.conv1(x)</code>：输入数据首先通过 conv1 层，输出经过 ReLU 激活和池化后的特征</li>
-<li><code>x = self.conv2(x)</code>：接着通过 conv2 层，继续提取特征</li>
-<li><code>x = self.conv3(x)</code>：然后经过 conv3 层，进一步提取深层特征</li>
-<li><code>x = x.view(x.size(0), -1)</code>：这里将卷积层输出的特征图展平（flatten）为一维向量，将(64, 7, 7)特征图转化为64 * 7 * 7 &#x3D; 3136个特征。x.size(0) 是批次大小（batch_size），-1 代表根据批次大小自动计算展平后的大小</li>
-<li><code>output = self.out(x)</code>：将展平后的向量通过全连接层，输出 10 个分类结果</li>
-</ul>
-<h2 id="4-模型训练和验证"><a href="#4-模型训练和验证" class="headerlink" title="4.模型训练和验证"></a>4.模型训练和验证</h2><h3 id="1-计算准确率"><a href="#1-计算准确率" class="headerlink" title="1.计算准确率"></a>1.计算准确率</h3><p>返回预测正确的样本数和总样本数</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">accuracy</span>(<span class="params">predictions, labels</span>):  </span><br><span class="line">    pred = torch.<span class="built_in">max</span>(predictions.data, <span class="number">1</span>)[<span class="number">1</span>]  </span><br><span class="line">    rights = pred.eq(labels.data.view_as(pred)).<span class="built_in">sum</span>()  </span><br><span class="line">    <span class="keyword">return</span> rights, <span class="built_in">len</span>(labels)</span><br></pre></td></tr></table></figure>
-<p>实现：</p>
-<ul>
-<li><code>torch.max(predictions.data, 1)[1]</code>：返回每个样本在所有类别中最大概率的类别（即预测的类别）。torch.max 返回两个值，第一个是最大值，第二个是最大值对应的索引（即预测类别）</li>
-<li><code>pred.eq(labels.data.view_as(pred))</code>：eq 函数用于判断预测值和真实标签是否相等。如果相等返回 True，否则返回 False</li>
-<li><code>sum()</code>：统计预测正确的样本数</li>
-</ul>
-<h3 id="2-训练验证模型"><a href="#2-训练验证模型" class="headerlink" title="2.训练验证模型"></a>2.训练验证模型</h3><p>训练模型的主函数，进行<strong>模型训练</strong>和<strong>评估</strong></p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">train</span>(<span class="params">model, train_loader, test_loader, num_epochs</span>):  </span><br><span class="line">    <span class="keyword">for</span> epoch <span class="keyword">in</span> <span class="built_in">range</span>(num_epochs):  </span><br><span class="line">        <span class="comment"># 当前epoch的训练结果</span></span><br><span class="line">        train_rights = []  </span><br><span class="line">        <span class="comment"># 针对容器中的每一批进行循环  </span></span><br><span class="line">        <span class="keyword">for</span> batch_idx, (data, target) <span class="keyword">in</span> <span class="built_in">enumerate</span>(train_loader):</span><br><span class="line">            model.train()  </span><br><span class="line">            output = model(data)  </span><br><span class="line">            loss = criterion(output, target)  </span><br><span class="line">            optimizer.zero_grad()  </span><br><span class="line">            loss.backward()  </span><br><span class="line">            optimizer.step()  </span><br><span class="line">            right = accuracy(output, target)  </span><br><span class="line">            train_rights.append(right)  </span><br><span class="line">		</span><br><span class="line">            <span class="comment"># 每100个批次输出一次训练进度和损失</span></span><br><span class="line">            <span class="keyword">if</span> batch_idx % <span class="number">100</span> == <span class="number">0</span>:  </span><br><span class="line">  </span><br><span class="line">                model.<span class="built_in">eval</span>()  </span><br><span class="line">                val_rights = []  </span><br><span class="line">  </span><br><span class="line">                <span class="comment"># 迭代测试集中的每个批次</span></span><br><span class="line">                <span class="keyword">for</span> (data, target) <span class="keyword">in</span> test_loader:  </span><br><span class="line">                    output = model(data)  </span><br><span class="line">                    right = accuracy(output, target)  </span><br><span class="line">                    val_rights.append(right)  </span><br><span class="line">  </span><br><span class="line">                <span class="comment"># 准确率计算  </span></span><br><span class="line">                train_r = (<span class="built_in">sum</span>([tup[<span class="number">0</span>] <span class="keyword">for</span> tup <span class="keyword">in</span> train_rights]), <span class="built_in">sum</span>([tup[<span class="number">1</span>] <span class="keyword">for</span> tup <span class="keyword">in</span> train_rights]))  </span><br><span class="line">                val_r = (<span class="built_in">sum</span>([tup[<span class="number">0</span>] <span class="keyword">for</span> tup <span class="keyword">in</span> val_rights]), <span class="built_in">sum</span>([tup[<span class="number">1</span>] <span class="keyword">for</span> tup <span class="keyword">in</span> val_rights]))  </span><br><span class="line">  </span><br><span class="line">                <span class="comment"># 训练进度  </span></span><br><span class="line">                train_percent = <span class="number">100</span> * batch_idx / <span class="built_in">len</span>(train_loader)  </span><br><span class="line">                <span class="comment"># 训练集准确率  </span></span><br><span class="line">                train_set_accurate = <span class="number">100</span> * train_r[<span class="number">0</span>].numpy() / train_r[<span class="number">1</span>]  </span><br><span class="line">                <span class="comment"># 测试集正确率  </span></span><br><span class="line">                test_set_accurate = <span class="number">100</span> * val_r[<span class="number">0</span>].numpy() / val_r[<span class="number">1</span>]  </span><br><span class="line">  </span><br><span class="line">                <span class="built_in">print</span>(<span class="string">f&quot;&quot;&quot;当前epoch:<span class="subst">&#123;epoch+<span class="number">1</span>&#125;</span> 训练进度:<span class="subst">&#123;train_percent:<span class="number">.0</span>f&#125;</span>% 损失:<span class="subst">&#123;loss.data:<span class="number">.6</span>f&#125;</span> 训练集准确率: <span class="subst">&#123;train_set_accurate:<span class="number">.2</span>f&#125;</span>% 测试集正确率: <span class="subst">&#123;test_set_accurate:<span class="number">.2</span>f&#125;</span>% &quot;&quot;&quot;</span>)</span><br></pre></td></tr></table></figure>
-
-<p>每个 epoch 中会执行以下步骤，每次迭代叫做一个epoch：</p>
-<h4 id="训练"><a href="#训练" class="headerlink" title="训练"></a>训练</h4><ul>
-<li><code>for batch_idx, (data, target) in enumerate(train_loader):</code>：对于训练数据集（通过 train_loader 加载），每次获取一个批次的输入数据 data 和目标标签 target</li>
-<li><code>model.train()</code>：将模型设置为训练模式（启用 dropout 和 batch normalization 等层）</li>
-<li><code>output = model(data)</code>：通过模型对输入 data 进行前向传播，得到输出 output</li>
-<li><code>loss = criterion(output, target)</code>：计算预测值 output 与真实标签 target 之间的损失（如交叉熵损失）</li>
-<li><code>optimizer.zero_grad()</code>：在每个步骤之前清空梯度，以避免梯度累积</li>
-<li><code>loss.backward()</code>：做反向传播，计算损失的梯度</li>
-<li><code>optimizer.step()</code>：更新模型的参数（使用梯度下降或其他优化算法）</li>
-</ul>
-<h4 id="准确率计算"><a href="#准确率计算" class="headerlink" title="准确率计算"></a>准确率计算</h4><ul>
-<li><code>right = accuracy(output, target)</code>：通过 accuracy 函数计算当前批次的正确预测数量</li>
-<li><code>train_rights.append(right)</code>：将当前批次的正确预测数目添加到 train_rights 列表中</li>
-</ul>
-<h4 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h4><ul>
-<li><code>model.eval()</code>：将模型设置为评估模式（禁用 dropout 和 batch normalization）</li>
-<li><code>val_rights = []</code>：初始化 val_rights 列表来存储验证集的准确率</li>
-<li><code>output = model(data)</code>：计算模型对测试集的预测</li>
-<li><code>right = accuracy(output, target)</code>：计算当前批次的正确预测数</li>
-<li><code>val_rights.append(right)</code>：将当前批次的预测结果添加到 val_rights</li>
-</ul>
-<h4 id="输出"><a href="#输出" class="headerlink" title="输出"></a>输出</h4><p>三次epoch输出，测试集正确率相比单纯利用神经网络构建的97%要高一点。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">当前epoch:1 训练进度:0% 损失:2.298599 训练集准确率: 14.06% 测试集正确率: 10.32% </span><br><span class="line">当前epoch:1 训练进度:11% 损失:0.243815 训练集准确率: 78.31% 测试集正确率: 93.28% </span><br><span class="line">当前epoch:1 训练进度:21% 损失:0.137110 训练集准确率: 86.57% 测试集正确率: 96.24% </span><br><span class="line">当前epoch:1 训练进度:32% 损失:0.146362 训练集准确率: 89.68% 测试集正确率: 96.94% </span><br><span class="line">当前epoch:1 训练进度:43% 损失:0.161816 训练集准确率: 91.50% 测试集正确率: 97.73% </span><br><span class="line">当前epoch:1 训练进度:53% 损失:0.059365 训练集准确率: 92.69% 测试集正确率: 97.47% </span><br><span class="line">当前epoch:1 训练进度:64% 损失:0.114041 训练集准确率: 93.52% 测试集正确率: 98.34% </span><br><span class="line">当前epoch:1 训练进度:75% 损失:0.100607 训练集准确率: 94.16% 测试集正确率: 98.22% </span><br><span class="line">当前epoch:1 训练进度:85% 损失:0.006606 训练集准确率: 94.65% 测试集正确率: 98.47% </span><br><span class="line">当前epoch:1 训练进度:96% 损失:0.043186 训练集准确率: 95.04% 测试集正确率: 98.83% </span><br><span class="line">当前epoch:2 训练进度:0% 损失:0.003247 训练集准确率: 100.00% 测试集正确率: 98.75% </span><br><span class="line">当前epoch:2 训练进度:11% 损失:0.077238 训练集准确率: 98.47% 测试集正确率: 98.81% </span><br><span class="line">当前epoch:2 训练进度:21% 损失:0.032691 训练集准确率: 98.39% 测试集正确率: 98.75% </span><br><span class="line">当前epoch:2 训练进度:32% 损失:0.019059 训练集准确率: 98.47% 测试集正确率: 98.61% </span><br><span class="line">当前epoch:2 训练进度:43% 损失:0.172091 训练集准确率: 98.46% 测试集正确率: 98.73% </span><br><span class="line">当前epoch:2 训练进度:53% 损失:0.023476 训练集准确率: 98.50% 测试集正确率: 98.76% </span><br><span class="line">当前epoch:2 训练进度:64% 损失:0.013946 训练集准确率: 98.53% 测试集正确率: 98.97% </span><br><span class="line">当前epoch:2 训练进度:75% 损失:0.011354 训练集准确率: 98.57% 测试集正确率: 98.91% </span><br><span class="line">当前epoch:2 训练进度:85% 损失:0.024460 训练集准确率: 98.60% 测试集正确率: 98.98% </span><br><span class="line">当前epoch:2 训练进度:96% 损失:0.021631 训练集准确率: 98.63% 测试集正确率: 98.97% </span><br><span class="line">当前epoch:3 训练进度:0% 损失:0.055015 训练集准确率: 96.88% 测试集正确率: 98.94% </span><br><span class="line">当前epoch:3 训练进度:11% 损失:0.060590 训练集准确率: 99.12% 测试集正确率: 99.07% </span><br><span class="line">当前epoch:3 训练进度:21% 损失:0.066504 训练集准确率: 99.04% 测试集正确率: 98.85% </span><br><span class="line">当前epoch:3 训练进度:32% 损失:0.004511 训练集准确率: 99.03% 测试集正确率: 98.95% </span><br><span class="line">当前epoch:3 训练进度:43% 损失:0.019243 训练集准确率: 99.00% 测试集正确率: 99.17% </span><br><span class="line">当前epoch:3 训练进度:53% 损失:0.037509 训练集准确率: 99.01% 测试集正确率: 99.08% </span><br><span class="line">当前epoch:3 训练进度:64% 损失:0.004599 训练集准确率: 99.03% 测试集正确率: 98.95% </span><br><span class="line">当前epoch:3 训练进度:75% 损失:0.089442 训练集准确率: 99.01% 测试集正确率: 99.12% </span><br><span class="line">当前epoch:3 训练进度:85% 损失:0.018963 训练集准确率: 99.04% 测试集正确率: 98.58% </span><br><span class="line">当前epoch:3 训练进度:96% 损失:0.000661 训练集准确率: 99.04% 测试集正确率: 99.12% </span><br></pre></td></tr></table></figure>
-<h3 id="3-调用"><a href="#3-调用" class="headerlink" title="3.调用"></a>3.调用</h3><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">input_size = <span class="number">28</span>  <span class="comment"># 图像的总尺寸28*28  </span></span><br><span class="line">num_epochs = <span class="number">3</span>   <span class="comment"># 训练的总循环周期  </span></span><br><span class="line">batch_size = <span class="number">64</span>  <span class="comment"># 一个批次的大小，64张图片  </span></span><br><span class="line">  </span><br><span class="line"><span class="comment"># 训练集 测试机  </span></span><br><span class="line">train_dataset, test_dataset = load_dataset()  </span><br><span class="line">train_loader, test_loader = load_loader(train_dataset, test_dataset)  </span><br><span class="line">  </span><br><span class="line"><span class="comment"># 模型  </span></span><br><span class="line">model = Mnist_CNN()  </span><br><span class="line"><span class="comment"># 损失函数  </span></span><br><span class="line">criterion = nn.CrossEntropyLoss()  </span><br><span class="line"><span class="comment"># 优化器  </span></span><br><span class="line">optimizer = optim.Adam(model.parameters(), lr=<span class="number">0.001</span>) </span><br><span class="line"><span class="comment"># 训练  </span></span><br><span class="line">train(model, train_loader, test_loader, num_epochs)</span><br></pre></td></tr></table></figure>
-
-<h4 id="损失函数"><a href="#损失函数" class="headerlink" title="损失函数"></a>损失函数</h4><p>CrossEntropyLoss是PyTorch 中一个常用的损失函数，专门用于 <strong>分类任务</strong>，尤其是多类别分类。它结合了 <strong>Softmax</strong> 函数和 <strong>负对数似然损失</strong>（Negative Log-Likelihood Loss），用于处理分类任务中 <strong>概率输出</strong> 的问题。<br>适用范围：真实标签应该是一个 <strong>整数</strong>，表示每个样本的真实类别索引（而不是 one-hot 编码）</p>
-<h4 id="优化器"><a href="#优化器" class="headerlink" title="优化器"></a>优化器</h4><p><strong>Adam</strong> 是一种常用的优化算法，全名为 <strong>Adaptive Moment Estimation</strong>，它结合了 <strong>Momentum</strong> 和 <strong>RMSprop</strong> 的优点，能够自动调整学习率来提高训练效果，Adam 优化器会通过计算一阶矩（梯度的均值）和二阶矩（梯度的平方均值）来动态调整每个参数的学习率，从而提高训练的效率和稳定性。<br>适用范围：一种自适应优化算法，非常适用于大多数任务，尤其是当模型参数多，训练过程复杂的时候。</p>
-<h2 id="5-总结"><a href="#5-总结" class="headerlink" title="5.总结"></a>5.总结</h2><p>本文主要讲通过使用卷积神经网络来实现手写数字识别，相较于神经网络使用卷积神经网络更适合处理图像、视频、语音、文本等的数据，正确率也相对高一点。</p>
-<h2 id="6-备注"><a href="#6-备注" class="headerlink" title="6.备注"></a>6.备注</h2><p>环境：</p>
-<ul>
-<li>mac: 15.2</li>
-<li>python: 3.12.4</li>
-<li>pytorch: 2.5.1</li>
-</ul>
-<p>完整代码：<br>	<a href="https://github.com/keychankc/dl_code_for_blog/tree/main/cnn_digital_recognition">https://github.com/keychankc/dl_code_for_blog/tree/main/cnn_digital_recognition</a></p>
-]]></content>
-      <categories>
-        <category>深度学习</category>
-      </categories>
-      <tags>
-        <tag>Python</tag>
-        <tag>PyTorch</tag>
-        <tag>模型训练</tag>
-        <tag>卷积神经网络</tag>
-        <tag>卷积层</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>基于迁移学习(ResNet-18)的花卉识别</title>
-    <url>/2025/03/07/cnn-identify-flowers/</url>
-    <content><![CDATA[<h2 id="1-迁移学习"><a href="#1-迁移学习" class="headerlink" title="1.迁移学习"></a>1.迁移学习</h2><p>用<strong>CNN</strong>做图像识别是不是每次都意味着要自己定义模型，确定好 <strong>卷积层</strong>、<strong>池化层</strong> 和 <strong>全连接层</strong>，然后从0开始训练？不同类型的图像数据集会不会有通用的特征？如果训练样本比较少怎么办？（例如本次花卉识别训练图片只有六千多张）是不是可以有那种已经训练好的模型，拿过来稍微改改就可以用的？</p>
-<p><strong>迁移学习（Transfer Learning）</strong> 就是这种可以将已有模型的知识迁移到新任务的学习方法，有以下特点</p>
-<ul>
-<li>适合数据量比较少的任务，有预训练知识无需从头训练深度神经网络</li>
-<li>更快的训练速度和更少的资源消耗</li>
-<li>避免过拟合效果更好，预训练的模型已经在大数据集上学到了<strong>通用特征</strong>（如边缘、形状、颜色）</li>
-</ul>
-<p>迁移学习常见的使用方式：</p>
-<ol>
-<li>冻结预训练模型的大部分参数，仅训练全连接层（FC 层）,优点是训练快，适合小数据集，缺点是预训练模型的特征可能不完全适用于新任务</li>
-<li>解冻部分或全部预训练层，使其适应新任务，优点是特征提取灵活，能学到更多任务相关的特征，缺点是训练时间长，需要手动调节学习率</li>
-</ol>
-<span id="more"></span>
-
-<h2 id="2-数据处理"><a href="#2-数据处理" class="headerlink" title="2.数据处理"></a>2.数据处理</h2><h3 id="1-数据结构"><a href="#1-数据结构" class="headerlink" title="1.数据结构"></a>1.数据结构</h3><p>训练集和验证集都是图片，每一个类型的花放在一个文件夹中，文件夹的名称可以通过<code>cat_to_name.json</code>文件匹配对应的花名称。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250306163312.png" alt="训练集和验证集结构" width="300"></p>
-<h3 id="2-数据加载与预处理"><a href="#2-数据加载与预处理" class="headerlink" title="2.数据加载与预处理"></a>2.数据加载与预处理</h3><p>由于本次任务训练集数据比较少，为了提高模型的泛化能力和训练效果，需要在做数据预处理的时候做下增强操作。<br>预处理：</p>
-<ul>
-<li><strong>transforms.Resize([96, 96])</strong>：将图片缩放到 96x96 的大小，统一输入尺寸，保证模型输入一致</li>
-<li><strong>transforms.ToTensor()</strong>：将图像从 PIL 图像或 NumPy 数组转换为 PyTorch 的 Tensor 格式<br>增强：</li>
-<li><strong>transforms.RandomRotation(45)</strong>：对图像进行随机旋转，角度范围是 -45 到 45 度之间。目的是增加模型对旋转变化的鲁棒性</li>
-<li><strong>transforms.CenterCrop(64)</strong>：从图像中心裁剪出 64x64 的区域。减少输入图像的多余部分，增强模型对图像的中心部分的学习</li>
-<li><strong>transforms.RandomHorizontalFlip(p&#x3D;0.5)</strong>：有 50% 的概率对图像进行水平翻转，能提高模型对图像左右方向不对称的适应能力</li>
-<li><strong>transforms.RandomVerticalFlip(p&#x3D;0.5)</strong>：有 50% 的概率对图像进行垂直翻转，进一步增强模型对图像的多样化学习</li>
-<li><strong>transforms.ColorJitter(brightness&#x3D;0.2, contrast&#x3D;0.1, saturation&#x3D;0.1, hue&#x3D;0.1)</strong>：对图像的亮度、对比度、饱和度和色调进行随机调整，增强模型对不同光照条件和颜色变化的鲁棒性</li>
-<li><strong>transforms.RandomGrayscale(p&#x3D;0.025)</strong>：有 2.5% 的概率将图像转为灰度图，这样模型能学到更多的图像特征，而不仅仅依赖颜色信息</li>
-<li><strong>transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])</strong>：标准化图像数据，使用 ImageNet 数据集的均值和标准差。标准化可以加速模型训练并提高收敛速度</li>
-</ul>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 数据预处理和增强</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">data_transforms</span>():  </span><br><span class="line">    <span class="keyword">return</span> &#123;  </span><br><span class="line">        <span class="string">&#x27;train&#x27;</span>:  </span><br><span class="line">            transforms.Compose([  </span><br><span class="line">                transforms.Resize([<span class="number">96</span>, <span class="number">96</span>]),  <span class="comment"># 转化成96*96大小的图像数据  </span></span><br><span class="line">                transforms.RandomRotation(<span class="number">45</span>),  <span class="comment"># 数据增强，-45到45度之间随机旋转  </span></span><br><span class="line">                transforms.CenterCrop(<span class="number">64</span>),  <span class="comment"># 数据增强，从中心开始裁剪为64*64  </span></span><br><span class="line">                transforms.RandomHorizontalFlip(p=<span class="number">0.5</span>),  <span class="comment"># 数据增强，选择一个概率概率随机水平翻转  </span></span><br><span class="line">                transforms.RandomVerticalFlip(p=<span class="number">0.5</span>),  <span class="comment"># 数据增强，选择一个概率概率随机水平翻转  </span></span><br><span class="line">                <span class="comment"># 数据增强，亮度，对比度，饱和度，色相调整  </span></span><br><span class="line">                transforms.ColorJitter(brightness=<span class="number">0.2</span>, contrast=<span class="number">0.1</span>, saturation=<span class="number">0.1</span>, hue=<span class="number">0.1</span>),  </span><br><span class="line">                transforms.RandomGrayscale(p=<span class="number">0.025</span>),  <span class="comment"># 数据增强，灰度调整  </span></span><br><span class="line">                transforms.ToTensor(),  <span class="comment"># 转化为tensor结构  </span></span><br><span class="line">                <span class="comment"># ImageNet提供的均值，标准差  </span></span><br><span class="line">                transforms.Normalize([<span class="number">0.485</span>, <span class="number">0.456</span>, <span class="number">0.406</span>], [<span class="number">0.229</span>, <span class="number">0.224</span>, <span class="number">0.225</span>])  </span><br><span class="line">            ]),  </span><br><span class="line">        <span class="string">&#x27;valid&#x27;</span>:  </span><br><span class="line">            transforms.Compose([  </span><br><span class="line">                transforms.Resize([<span class="number">64</span>, <span class="number">64</span>]),  </span><br><span class="line">                transforms.ToTensor(),  </span><br><span class="line">                <span class="comment"># ImageNet提供的均值，标准差  </span></span><br><span class="line">                transforms.Normalize([<span class="number">0.485</span>, <span class="number">0.456</span>, <span class="number">0.406</span>], [<span class="number">0.229</span>, <span class="number">0.224</span>, <span class="number">0.225</span>])  </span><br><span class="line">            ]),  </span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 数据加载</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">load_data_loader</span>():  </span><br><span class="line">    batch_size = <span class="number">128</span>  </span><br><span class="line">    image_datasets = &#123;x: datasets.ImageFolder(os.path.join(Path(<span class="string">&quot;./data/&quot;</span>), x), data_transforms()[x]) <span class="keyword">for</span> x <span class="keyword">in</span>  </span><br><span class="line">                      [<span class="string">&#x27;train&#x27;</span>, <span class="string">&#x27;valid&#x27;</span>]&#125;  </span><br><span class="line">    dataloaders = &#123;x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size, shuffle=<span class="literal">True</span>) <span class="keyword">for</span> x <span class="keyword">in</span>  </span><br><span class="line">                   [<span class="string">&#x27;train&#x27;</span>, <span class="string">&#x27;valid&#x27;</span>]&#125;  </span><br><span class="line">    <span class="keyword">return</span> dataloaders[<span class="string">&#x27;train&#x27;</span>], dataloaders[<span class="string">&#x27;valid&#x27;</span>]</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 训练数据 验证数据  </span></span><br><span class="line">train_dl, valid_dl = load_data_loader()</span><br></pre></td></tr></table></figure>
-
-<h3 id="3-绘制部分预处理数据"><a href="#3-绘制部分预处理数据" class="headerlink" title="3.绘制部分预处理数据"></a>3.绘制部分预处理数据</h3><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 反标准化（恢复原始图像）  </span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">denormalize</span>(<span class="params">image</span>):  </span><br><span class="line">    mean = np.array([<span class="number">0.485</span>, <span class="number">0.456</span>, <span class="number">0.406</span>])  </span><br><span class="line">    std = np.array([<span class="number">0.229</span>, <span class="number">0.224</span>, <span class="number">0.225</span>])  </span><br><span class="line">    image = image.numpy().transpose((<span class="number">1</span>, <span class="number">2</span>, <span class="number">0</span>))  <span class="comment"># 转换为 HWC 格式  </span></span><br><span class="line">    image = std * image + mean  <span class="comment"># 反标准化  </span></span><br><span class="line">    image = np.clip(image, <span class="number">0</span>, <span class="number">1</span>)  <span class="comment"># 限制在 [0,1] 之间  </span></span><br><span class="line">    <span class="keyword">return</span> image</span><br><span class="line"></span><br><span class="line"><span class="comment"># 绘制部分预处理后的数据</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">draw_dl_8img</span>(<span class="params">data_loader</span>):  </span><br><span class="line">    images, labels = <span class="built_in">next</span>(<span class="built_in">iter</span>(data_loader))  </span><br><span class="line">    fig, axes = plt.subplots(<span class="number">2</span>, <span class="number">4</span>, figsize=(<span class="number">12</span>, <span class="number">6</span>))  <span class="comment"># 创建 2x4 的子图网格  </span></span><br><span class="line">    axes = axes.flatten()  </span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">8</span>):  </span><br><span class="line">        img = denormalize(images[i])  <span class="comment"># 反标准化  </span></span><br><span class="line">        axes[i].imshow(img)  <span class="comment"># 显示图片  </span></span><br><span class="line">        axes[i].axis(<span class="string">&quot;off&quot;</span>)  <span class="comment"># 关闭坐标轴  </span></span><br><span class="line">        axes[i].set_title(<span class="string">f&quot;Label: <span class="subst">&#123;labels[i].item()&#125;</span>&quot;</span>)  <span class="comment"># 显示标签  </span></span><br><span class="line">    plt.tight_layout()  </span><br><span class="line">    plt.show()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">draw_dl_8img(train_dl)</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250306171732.png"></p>
-<h2 id="3-模型配置"><a href="#3-模型配置" class="headerlink" title="3.模型配置"></a>3.模型配置</h2><h3 id="1-ResNet-18"><a href="#1-ResNet-18" class="headerlink" title="1.ResNet-18"></a>1.ResNet-18</h3><p><strong>ResNet-18</strong>可以用在别的任务上是因为它在 <strong>ImageNet</strong> 这样的超大规模数据集上训练过，学习到了通用的特征。<br>在深度学习模型训练中前几层通常学习 <strong>通用的低级特征</strong>（比如边缘、纹理、形状等），而后几层学习 <strong>高级的特定特征</strong>（比如猫的耳朵、人脸的结构）。前几层的特征对不同任务是通用的，因此可以在其他数据集上直接使用，只需调整最后几层（或者不调整）就能适应新的任务。</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">BasicBlock</span>(nn.Module):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;ResNet 的基本残差块（适用于 ResNet-18 和 ResNet-34）&quot;&quot;&quot;</span></span><br><span class="line">    expansion = <span class="number">1</span>  <span class="comment"># 该块不会改变通道数</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, in_channels, out_channels, stride=<span class="number">1</span>, downsample=<span class="literal">None</span></span>):</span><br><span class="line">        <span class="built_in">super</span>(BasicBlock, <span class="variable language_">self</span>).__init__()</span><br><span class="line">        <span class="variable language_">self</span>.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=<span class="number">3</span>, stride=stride, padding=<span class="number">1</span>, bias=<span class="literal">False</span>)</span><br><span class="line">        <span class="variable language_">self</span>.bn1 = nn.BatchNorm2d(out_channels)</span><br><span class="line">        <span class="variable language_">self</span>.relu = nn.ReLU(inplace=<span class="literal">True</span>)</span><br><span class="line">        <span class="variable language_">self</span>.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=<span class="number">3</span>, stride=<span class="number">1</span>, padding=<span class="number">1</span>, bias=<span class="literal">False</span>)</span><br><span class="line">        <span class="variable language_">self</span>.bn2 = nn.BatchNorm2d(out_channels)</span><br><span class="line">        <span class="variable language_">self</span>.downsample = downsample  <span class="comment"># 是否使用 1×1 卷积调整通道数和尺寸</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        identity = x</span><br><span class="line">        <span class="keyword">if</span> <span class="variable language_">self</span>.downsample <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">            identity = <span class="variable language_">self</span>.downsample(x)</span><br><span class="line">        out = <span class="variable language_">self</span>.conv1(x)</span><br><span class="line">        out = <span class="variable language_">self</span>.bn1(out)</span><br><span class="line">        out = <span class="variable language_">self</span>.relu(out)</span><br><span class="line">        out = <span class="variable language_">self</span>.conv2(out)</span><br><span class="line">        out = <span class="variable language_">self</span>.bn2(out)</span><br><span class="line">        out += identity  <span class="comment"># 残差连接</span></span><br><span class="line">        out = <span class="variable language_">self</span>.relu(out)</span><br><span class="line">        <span class="keyword">return</span> out</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ResNet</span>(nn.Module):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;ResNet-18 模型&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, num_classes=<span class="number">1000</span></span>):</span><br><span class="line">        <span class="built_in">super</span>(ResNet, <span class="variable language_">self</span>).__init__()</span><br><span class="line">        <span class="variable language_">self</span>.conv1 = nn.Conv2d(<span class="number">3</span>, <span class="number">64</span>, kernel_size=<span class="number">7</span>, stride=<span class="number">2</span>, padding=<span class="number">3</span>, bias=<span class="literal">False</span>)</span><br><span class="line">        <span class="variable language_">self</span>.bn1 = nn.BatchNorm2d(<span class="number">64</span>)</span><br><span class="line">        <span class="variable language_">self</span>.relu = nn.ReLU(inplace=<span class="literal">True</span>)</span><br><span class="line">        <span class="variable language_">self</span>.maxpool = nn.MaxPool2d(kernel_size=<span class="number">3</span>, stride=<span class="number">2</span>, padding=<span class="number">1</span>)</span><br><span class="line">        <span class="comment"># ResNet 的四个层，每个包含 2 个 BasicBlock</span></span><br><span class="line">        <span class="variable language_">self</span>.layer1 = <span class="variable language_">self</span>._make_layer(<span class="number">64</span>, <span class="number">64</span>, <span class="number">2</span>, stride=<span class="number">1</span>)</span><br><span class="line">        <span class="variable language_">self</span>.layer2 = <span class="variable language_">self</span>._make_layer(<span class="number">64</span>, <span class="number">128</span>, <span class="number">2</span>, stride=<span class="number">2</span>)</span><br><span class="line">        <span class="variable language_">self</span>.layer3 = <span class="variable language_">self</span>._make_layer(<span class="number">128</span>, <span class="number">256</span>, <span class="number">2</span>, stride=<span class="number">2</span>)</span><br><span class="line">        <span class="variable language_">self</span>.layer4 = <span class="variable language_">self</span>._make_layer(<span class="number">256</span>, <span class="number">512</span>, <span class="number">2</span>, stride=<span class="number">2</span>)</span><br><span class="line">        <span class="variable language_">self</span>.avgpool = nn.AdaptiveAvgPool2d((<span class="number">1</span>, <span class="number">1</span>))</span><br><span class="line">        <span class="variable language_">self</span>.fc = nn.Linear(<span class="number">512</span>, num_classes)  <span class="comment"># 最终的全连接层</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">_make_layer</span>(<span class="params">self, in_channels, out_channels, blocks, stride</span>):</span><br><span class="line"></span><br><span class="line">        <span class="string">&quot;&quot;&quot;构建一个 ResNet 层&quot;&quot;&quot;</span></span><br><span class="line">        downsample = <span class="literal">None</span></span><br><span class="line">        <span class="keyword">if</span> stride != <span class="number">1</span> <span class="keyword">or</span> in_channels != out_channels:</span><br><span class="line">            downsample = nn.Sequential(</span><br><span class="line">                nn.Conv2d(in_channels, out_channels, kernel_size=<span class="number">1</span>, stride=stride, bias=<span class="literal">False</span>),</span><br><span class="line">                nn.BatchNorm2d(out_channels),</span><br><span class="line">            )</span><br><span class="line">        layers = []</span><br><span class="line">        layers.append(BasicBlock(in_channels, out_channels, stride, downsample))</span><br><span class="line">        <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, blocks):</span><br><span class="line">            layers.append(BasicBlock(out_channels, out_channels))</span><br><span class="line">        <span class="keyword">return</span> nn.Sequential(*layers)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        x = <span class="variable language_">self</span>.conv1(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.bn1(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.relu(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.maxpool(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.layer1(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.layer2(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.layer3(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.layer4(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.avgpool(x)</span><br><span class="line">        x = torch.flatten(x, <span class="number">1</span>)</span><br><span class="line">        x = <span class="variable language_">self</span>.fc(x)</span><br><span class="line">        <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
-<p>上面是ResNet-18 模型的结构，了解即可。因为ResNet-18 已经被 <strong>PyTorch 的 torchvision.models</strong> 模块包含并预定义了，我们无需手动定义整个模型结构，可直接使用它。</p>
-<h3 id="2-自定义ResNet-18"><a href="#2-自定义ResNet-18" class="headerlink" title="2.自定义ResNet-18"></a>2.自定义ResNet-18</h3><p>初始化一个预训练的 ResNet-18 模型，并修改它用于新的分类任务</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">init_model</span>(<span class="params">num_classes</span>):  </span><br><span class="line">    <span class="comment"># torch自带的18层训练好的模型  </span></span><br><span class="line">    model_ft = models.resnet18(weights=<span class="string">&quot;DEFAULT&quot;</span>)  </span><br><span class="line">    <span class="keyword">for</span> param <span class="keyword">in</span> model_ft.parameters():  </span><br><span class="line">        param.requires_grad = <span class="literal">False</span>  <span class="comment"># 冻结参数，使其在训练过程中 不会被优化  </span></span><br><span class="line">    model_ft.fc = nn.Linear(model_ft.fc.in_features, num_classes)  <span class="comment"># 替换ResNet18的最后全连接层  </span></span><br><span class="line">    model_ft.to(get_device())  <span class="comment"># 使用GPU or CPU训练</span></span><br><span class="line">    <span class="keyword">return</span> model_ft</span><br></pre></td></tr></table></figure>
-<ul>
-<li><code>models.resnet18(weights=&quot;DEFAULT&quot;</code>：加载 ResNet-18 预训练模型</li>
-<li><code>param.requires_grad = False</code>: 冻结 ResNet-18 的所有层，防止其参数被训练</li>
-<li><code>nn.Linear(model_ft.fc.in_features, num_classes)</code>：修改 ResNet 的最后一层，让它适应新的分类任务，因为当前训练集是102分类，<code>num_classes</code>为102，表示最后全连接层输出102个类别</li>
-<li><code>model_ft.to(get_device())</code>:让模型运行在 GPU 或 CPU上</li>
-</ul>
-<p>经过这样自定义后， ResNet-18模型只会训练最后的全连接层</p>
-<h3 id="3-优化器"><a href="#3-优化器" class="headerlink" title="3.优化器"></a>3.优化器</h3><p>优化器还是使用<code>Adam</code></p>
-<blockquote>
-<p><strong>Adam</strong> 是一种常用的优化算法，全名为 <strong>Adaptive Moment Estimation</strong>，它结合了 <strong>Momentum</strong> 和 <strong>RMSprop</strong> 的优点，能够自动调整学习率来提高训练效果，Adam 优化器会通过计算一阶矩（梯度的均值）和二阶矩（梯度的平方均值）来动态调整每个参数的学习率，从而提高训练的效率和稳定性。  </p>
-</blockquote>
-<p>适用范围：一种自适应优化算法，非常适用于大多数任务，尤其是当模型参数多，训练过程复杂的时候。</p>
-<p>在定义<code>Adam</code>优化器的时候需要注意，只有未冻结的参数才需要训练，冻结的参数不会被训练优化</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">get_optimizer</span>(<span class="params">_model_resnet</span>):  </span><br><span class="line">    params_to_update = []  </span><br><span class="line">    <span class="keyword">for</span> name, param <span class="keyword">in</span> _model_resnet.named_parameters():  </span><br><span class="line">        <span class="keyword">if</span> param.requires_grad:  </span><br><span class="line">            params_to_update.append(param)  </span><br><span class="line">    <span class="keyword">return</span> optim.Adam(params_to_update, lr=<span class="number">1e-2</span>) <span class="comment"># 初始学习率 lr=0.01</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="4-学习率"><a href="#4-学习率" class="headerlink" title="4.学习率"></a>4.学习率</h3><p>在训练过程中，随着 epoch 增加，模型可能会 <strong>收敛变慢</strong>，也就是训练准确度会提升，如果还是保持原有的 <strong>步长(step_size)</strong> 往往会使训练效果下降，为了提高模型训练精度需要后期小步调整， Loss 下降变慢时，自动降低学习率。<br>例如，前 10 轮学习率 0.01，第 10 轮后变 0.001，第20轮后变0.0001，依次类推</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">scheduler = optim.lr_scheduler.StepLR(optimizer_ft, step_size=<span class="number">10</span>, gamma=<span class="number">0.1</span>)</span><br></pre></td></tr></table></figure>
-<ul>
-<li><code>step_size=10</code>：每 10 个epoch让学习率衰减一次</li>
-<li><code>gamma=0.1</code>：每次衰减时，学习率乘以0.1（缩小10倍）</li>
-</ul>
-<h3 id="5-损失函数"><a href="#5-损失函数" class="headerlink" title="5.损失函数"></a>5.损失函数</h3><blockquote>
-<p><code>CrossEntropyLoss</code>是PyTorch 中一个常用的损失函数，专门用于 <strong>分类任务</strong>，尤其是多类别分类。它结合了 <strong>Softmax</strong> 函数和 <strong>负对数似然损失</strong>（Negative Log-Likelihood Loss），用于处理分类任务中 <strong>概率输出</strong> 的问题</p>
-</blockquote>
-<p>适用范围：真实标签应该是一个 <strong>整数</strong>，表示每个样本的真实类别索引（而不是 one-hot 编码）</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">criterion = nn.CrossEntropyLoss()</span><br></pre></td></tr></table></figure>
-<h2 id="4-模型训练和评估"><a href="#4-模型训练和评估" class="headerlink" title="4.模型训练和评估"></a>4.模型训练和评估</h2><h3 id="1-训练"><a href="#1-训练" class="headerlink" title="1.训练"></a>1.训练</h3><p><code>train_one_epoch</code>方法定义了一个完整的<strong>训练轮次（epoch）</strong>，包括 <strong>前向传播、损失计算、反向传播、参数更新</strong>，并计算 <strong>训练损失和准确率</strong></p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">train_one_epoch</span>(<span class="params">_model, dataloader, optimizer, _criterion, device, _scheduler</span>):  </span><br><span class="line">    <span class="string">&quot;&quot;&quot;  </span></span><br><span class="line"><span class="string">    训练一个 epoch</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span>    </span><br><span class="line">    _model.train()  <span class="comment"># 设置为训练模式  </span></span><br><span class="line">    running_loss = <span class="number">0.0</span>  <span class="comment"># 累计 batch 损失值</span></span><br><span class="line">    running_corrects = <span class="number">0</span>  <span class="comment"># 累计正确预测的样本数</span></span><br><span class="line">  </span><br><span class="line">    <span class="keyword">for</span> inputs, labels <span class="keyword">in</span> dataloader:  <span class="comment"># 遍历每个batch（批量数据）</span></span><br><span class="line">        inputs, labels = inputs.to(device), labels.to(device)  <span class="comment"># 转移到GPU/CPU，加速训练  </span></span><br><span class="line">  </span><br><span class="line">        optimizer.zero_grad()  <span class="comment"># 清空梯度  </span></span><br><span class="line">        outputs = _model(inputs)  <span class="comment"># 模型前向传播计算输出  </span></span><br><span class="line">        _, predicted = torch.<span class="built_in">max</span>(outputs, <span class="number">1</span>)  <span class="comment"># 取最大概率的类别作为预测值 </span></span><br><span class="line">        loss = _criterion(outputs, labels)  <span class="comment"># 计算损失  </span></span><br><span class="line">  </span><br><span class="line">        loss.backward()  <span class="comment"># 计算梯度（反向传播） </span></span><br><span class="line">        optimizer.step()  <span class="comment"># 更新模型参数 </span></span><br><span class="line">  </span><br><span class="line">        running_loss += loss.item() * inputs.size(<span class="number">0</span>)  <span class="comment"># batch损失*batch_size</span></span><br><span class="line">	    running_corrects += torch.<span class="built_in">sum</span>((predicted == labels).<span class="built_in">int</span>())  <span class="comment"># 统计正确预测的个数</span></span><br><span class="line">    epoch_loss = running_loss / <span class="built_in">len</span>(dataloader.dataset)  <span class="comment"># 平均损失（总损失/样本数）</span></span><br><span class="line">    epoch_acc = running_corrects / <span class="built_in">len</span>(dataloader.dataset)  <span class="comment"># 准确率（正确预测数/总样本数）</span></span><br><span class="line">    <span class="keyword">return</span> epoch_loss, epoch_acc</span><br></pre></td></tr></table></figure>
-
-<h3 id="2-评估"><a href="#2-评估" class="headerlink" title="2.评估"></a>2.评估</h3><p><code>validate_one_epoch</code> 方法 执行了一次完整的验证（evaluation），其核心功能是 <strong>前向传播、计算损失、计算准确率</strong>，但不会进行 <strong>反向传播和参数更新</strong></p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">validate_one_epoch</span>(<span class="params">_model, dataloader, _criterion, device</span>):  </span><br><span class="line">    <span class="string">&quot;&quot;&quot;  </span></span><br><span class="line"><span class="string">    进行一个 epoch 的验证  </span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span>    </span><br><span class="line">    _model.<span class="built_in">eval</span>()  <span class="comment"># 设置为评估模式  </span></span><br><span class="line">    running_loss = <span class="number">0.0</span>  <span class="comment"># 累计 batch 损失值</span></span><br><span class="line">    running_corrects = <span class="number">0</span>  <span class="comment"># 累计正确预测的样本数</span></span><br><span class="line">  </span><br><span class="line">    <span class="keyword">with</span> torch.no_grad():  <span class="comment"># 不计算梯度，加速计算  </span></span><br><span class="line">        <span class="keyword">for</span> inputs, labels <span class="keyword">in</span> dataloader:  <span class="comment"># 遍历每个batch（批量数据）</span></span><br><span class="line">            inputs, labels = inputs.to(device), labels.to(device)  <span class="comment"># 转移到GPU/CPU，加速训练</span></span><br><span class="line">            outputs = _model(inputs)  <span class="comment"># 模型前向计算输出</span></span><br><span class="line">            _, predicted = torch.<span class="built_in">max</span>(outputs, <span class="number">1</span>)  <span class="comment"># 取最大概率的类别作为预测值</span></span><br><span class="line">            loss = _criterion(outputs, labels)  <span class="comment"># 计算损失</span></span><br><span class="line">  </span><br><span class="line">            running_loss += loss.item() * inputs.size(<span class="number">0</span>)  <span class="comment"># batch损失*batch_size</span></span><br><span class="line">            running_corrects += torch.<span class="built_in">sum</span>((predicted == labels).<span class="built_in">int</span>())  <span class="comment"># 统计正确预测的个数 </span></span><br><span class="line">  </span><br><span class="line">    epoch_loss = running_loss / <span class="built_in">len</span>(dataloader.dataset)  <span class="comment"># 平均损失（总损失/样本数）</span></span><br><span class="line">    epoch_acc = running_corrects / <span class="built_in">len</span>(dataloader.dataset)  <span class="comment"># 准确率（正确预测数/总样本数）</span></span><br><span class="line">    <span class="keyword">return</span> epoch_loss, epoch_acc</span><br></pre></td></tr></table></figure>
-<h3 id="3-筛选与保存"><a href="#3-筛选与保存" class="headerlink" title="3.筛选与保存"></a>3.筛选与保存</h3><p><code>train_model</code>方法就是一个完整的模型训练过程了，包括</p>
-<ul>
-<li>训练多个 epoch（循环多轮数据集）</li>
-<li>对每个 epoch 进行训练和验证</li>
-<li>记录并打印损失、准确率、学习率变化</li>
-<li>保存最佳模型权重到本地</li>
-<li>在训练结束后，返回最佳模型参数</li>
-</ul>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">train_model</span>(<span class="params">_model, train_loader, valid_loader, _criterion, optimizer, _scheduler, num_epochs, device, _model_name</span>):  </span><br><span class="line">    <span class="string">&quot;&quot;&quot;  </span></span><br><span class="line"><span class="string">    训练完整模型  </span></span><br><span class="line"><span class="string">    return 最终模型、损失 &amp; 准确率历史、学习率变化</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span>    </span><br><span class="line">    start_time = time.time()  <span class="comment"># 记录训练开始时间</span></span><br><span class="line">    best_acc = <span class="number">0.0</span>  <span class="comment"># 记录最高的验证准确率，用于保存最佳模型</span></span><br><span class="line">    best_model_wts = copy.deepcopy(_model.state_dict())  <span class="comment"># 保存最佳模型的参数</span></span><br><span class="line">  </span><br><span class="line">    train_acc_history = []  <span class="comment"># 训练集的准确率</span></span><br><span class="line">    train_losses = []  <span class="comment"># 训练集的损失  </span></span><br><span class="line">    valid_acc_history = []  <span class="comment"># 验证集的准确率</span></span><br><span class="line">    valid_losses = []  <span class="comment"># 验证集的损失</span></span><br><span class="line">  </span><br><span class="line">    learning_rates = [optimizer.param_groups[<span class="number">0</span>][<span class="string">&#x27;lr&#x27;</span>]]  <span class="comment"># 学习率</span></span><br><span class="line">  </span><br><span class="line">    <span class="keyword">for</span> epoch <span class="keyword">in</span> <span class="built_in">range</span>(num_epochs):  </span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&#x27;Epoch:<span class="subst">&#123;epoch + <span class="number">1</span>&#125;</span>/<span class="subst">&#123;num_epochs&#125;</span>&#x27;</span>)  <span class="comment"># 循环epoch</span></span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 训练 记录训练损失和准确率</span></span><br><span class="line">        train_loss, train_acc = train_one_epoch(_model, train_loader, optimizer, _criterion, device, _scheduler)  </span><br><span class="line">        train_losses.append(train_loss)  </span><br><span class="line">        train_acc_history.append(train_acc)  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 验证 记录验证损失和准确率</span></span><br><span class="line">        valid_loss, valid_acc = validate_one_epoch(_model, valid_loader, _criterion, device)  </span><br><span class="line">        valid_losses.append(valid_loss)  </span><br><span class="line">        valid_acc_history.append(valid_acc)  </span><br><span class="line"></span><br><span class="line">        <span class="comment"># 记录&amp;打印本轮训练和验证的损失、准确率</span></span><br><span class="line">        time_elapsed = time.time() - start_time  </span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;Time elapsed: <span class="subst">&#123;time_elapsed // <span class="number">60</span>:<span class="number">.0</span>f&#125;</span>m <span class="subst">&#123;time_elapsed % <span class="number">60</span>:<span class="number">.0</span>f&#125;</span>s&quot;</span>)  </span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;Train Loss: <span class="subst">&#123;train_loss:<span class="number">.4</span>f&#125;</span> Acc: <span class="subst">&#123;train_acc:<span class="number">.4</span>f&#125;</span>&quot;</span>)  </span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;Valid Loss: <span class="subst">&#123;valid_loss:<span class="number">.4</span>f&#125;</span> Acc: <span class="subst">&#123;valid_acc:<span class="number">.4</span>f&#125;</span>&quot;</span>)  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 记录最佳模型  </span></span><br><span class="line">        <span class="keyword">if</span> valid_acc &gt; best_acc:  </span><br><span class="line">            best_acc = valid_acc  </span><br><span class="line">            best_model_wts = copy.deepcopy(_model.state_dict())  </span><br><span class="line">            state = &#123;  </span><br><span class="line">                <span class="string">&#x27;state_dict&#x27;</span>: _model.state_dict(),  </span><br><span class="line">                <span class="string">&#x27;best_acc&#x27;</span>: best_acc,  </span><br><span class="line">                <span class="string">&#x27;optimizer&#x27;</span>: optimizer.state_dict(),  </span><br><span class="line">            &#125;  </span><br><span class="line">            torch.save(state, model_name)  <span class="comment"># 保存最佳模型</span></span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 记录学习率  </span></span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27;Optimizer learning rate : &#123;:.7f&#125;&#x27;</span>.<span class="built_in">format</span>(optimizer.param_groups[<span class="number">0</span>][<span class="string">&#x27;lr&#x27;</span>]))  </span><br><span class="line">        learning_rates.append(optimizer.param_groups[<span class="number">0</span>][<span class="string">&#x27;lr&#x27;</span>])  </span><br><span class="line">        _scheduler.step()  <span class="comment"># 调整学习率 学习率衰减</span></span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27;-&#x27;</span> * <span class="number">100</span>)  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 训练完成 打印 训练总时长 最佳验证准确率</span></span><br><span class="line">    time_elapsed = time.time() - start_time  </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&#x27;Training complete in <span class="subst">&#123;time_elapsed // <span class="number">60</span>:<span class="number">.0</span>f&#125;</span>m <span class="subst">&#123;time_elapsed % <span class="number">60</span>:<span class="number">.0</span>f&#125;</span>s&#x27;</span>)  </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&#x27;Best validation Acc: <span class="subst">&#123;best_acc:<span class="number">.4</span>f&#125;</span>&#x27;</span>)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 用最佳模型的参数作为最终模型  </span></span><br><span class="line">    _model.load_state_dict(best_model_wts)  </span><br><span class="line">    <span class="keyword">return</span> _model, train_losses, train_acc_history, valid_losses, valid_acc_history, learning_rates</span><br></pre></td></tr></table></figure>
-<h3 id="4-一次训练"><a href="#4-一次训练" class="headerlink" title="4.一次训练"></a>4.一次训练</h3><p>一次训练20个epoch，训练完把模型保存到本地</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">train_model(model, train_dl, valid_dl, criterion, optimizer_ft, scheduler, <span class="number">20</span>, get_device(), model_name)</span><br></pre></td></tr></table></figure>
-<p>结果输出</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">...</span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">---------------------------------------------------------------------------------</span><br><span class="line">Epoch:<span class="number">19</span>/<span class="number">20</span></span><br><span class="line">Time elapsed: 33m 37s</span><br><span class="line">Train Loss: <span class="number">1.6936</span> Acc: <span class="number">0.5911</span></span><br><span class="line">Valid Loss: <span class="number">3.2956</span> Acc: <span class="number">0.3912</span></span><br><span class="line">Optimizer learning rate : <span class="number">0.0000100</span></span><br><span class="line">---------------------------------------------------------------------------------</span><br><span class="line">Epoch:<span class="number">20</span>/<span class="number">20</span></span><br><span class="line">Time elapsed: 34m 52s</span><br><span class="line">Train Loss: <span class="number">1.7088</span> Acc: <span class="number">0.5882</span></span><br><span class="line">Valid Loss: <span class="number">3.2838</span> Acc: <span class="number">0.3704</span></span><br><span class="line">Optimizer learning rate : <span class="number">0.0000100</span></span><br><span class="line">---------------------------------------------------------------------------------</span><br><span class="line">Training complete <span class="keyword">in</span> 35m 1s</span><br><span class="line">Best validation Acc: <span class="number">0.392421</span></span><br></pre></td></tr></table></figure>
-<p>训练完后当前模块文件夹下会有一个<code>best.pt</code>刚训练好的模型文件，准备二次训练</p>
-<h3 id="5-二次训练"><a href="#5-二次训练" class="headerlink" title="5.二次训练"></a>5.二次训练</h3><p>加载第一次训练的模型后，解冻模型的所有层，然后使用较小的学习率继续训练 10 轮，更新模型权重。这样做可以让模型达到更好的准确率。</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">second_train</span>(<span class="params">_model_name, _train_dl, _valid_dl, _criterion</span>):  </span><br><span class="line">    <span class="comment"># 初始化一个新模型，类别数 num_classes=102</span></span><br><span class="line">    <span class="comment"># 加载已有模型的权重，恢复之前训练好的参数</span></span><br><span class="line">    _model = init_model(num_classes=<span class="number">102</span>)  </span><br><span class="line">    checkpoint = torch.load(_model_name, weights_only=<span class="literal">True</span>)  </span><br><span class="line">    _model.load_state_dict(checkpoint[<span class="string">&#x27;state_dict&#x27;</span>])  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 解冻所有层的参数，让整个模型都可以,参与训练</span></span><br><span class="line">    <span class="keyword">for</span> param <span class="keyword">in</span> _model.parameters():  </span><br><span class="line">        param.requires_grad = <span class="literal">True</span>  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 调低学习率</span></span><br><span class="line">    _optimizer_next = optim.Adam(_model.parameters(), lr=<span class="number">1e-3</span>)  </span><br><span class="line">    <span class="comment"># 每7个epoch让学习率衰减一次（*0.1）</span></span><br><span class="line">    _scheduler_next = optim.lr_scheduler.StepLR(optimizer_ft, step_size=<span class="number">7</span>, gamma=<span class="number">0.1</span>)  </span><br><span class="line">    <span class="comment"># 重新训练</span></span><br><span class="line">    train_model(_model, _train_dl, _valid_dl, _criterion, _optimizer_next, _scheduler_next, <span class="number">10</span>, get_device(), _model_name)</span><br></pre></td></tr></table></figure>
-
-<p>二次训练较一次模型训练结果有改善</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">...</span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">---------------------------------------------------------------------------------</span><br><span class="line">Epoch:<span class="number">9</span>/<span class="number">10</span></span><br><span class="line">Time elapsed: 16m 47s</span><br><span class="line">Train Loss: <span class="number">0.6153</span> Acc: <span class="number">0.8155</span></span><br><span class="line">Valid Loss: <span class="number">1.6921</span> Acc: <span class="number">0.6051</span></span><br><span class="line">Optimizer learning rate : <span class="number">0.0010000</span></span><br><span class="line">---------------------------------------------------------------------------------</span><br><span class="line">Epoch:<span class="number">10</span>/<span class="number">10</span></span><br><span class="line">Time elapsed: 18m 36s</span><br><span class="line">Train Loss: <span class="number">0.5529</span> Acc: <span class="number">0.8361</span></span><br><span class="line">Valid Loss: <span class="number">1.6800</span> Acc: <span class="number">0.5941</span></span><br><span class="line">Optimizer learning rate : <span class="number">0.0010000</span></span><br><span class="line">---------------------------------------------------------------------------------</span><br><span class="line">Training complete <span class="keyword">in</span> 18m 36s</span><br><span class="line">Best validation Acc: <span class="number">0.6051</span></span><br></pre></td></tr></table></figure>
-
-<p>两轮训练完最终对于测试集的验证正确率是59.41%</p>
-<h2 id="5-模型测试"><a href="#5-模型测试" class="headerlink" title="5.模型测试"></a>5.模型测试</h2><p>展示真实标签和模型预测的对比图，如果预测错误标题显示红色</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">show_predicted</span>(<span class="params">_model_name</span>):</span><br><span class="line">    <span class="comment"># 初始化一个新模型，类别数 num_classes=102</span></span><br><span class="line">    <span class="comment"># 加载已有模型的权重，恢复之前训练好的参数</span></span><br><span class="line">    _model = init_model(num_classes=<span class="number">102</span>)  </span><br><span class="line">    checkpoint = torch.load(_model_name, weights_only=<span class="literal">True</span>)  </span><br><span class="line">    _model.load_state_dict(checkpoint[<span class="string">&#x27;state_dict&#x27;</span>])  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 花的名称</span></span><br><span class="line">    label_name = load_label_name()  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 取一批验证集的数据</span></span><br><span class="line">    images, labels = <span class="built_in">next</span>(<span class="built_in">iter</span>(valid_dl))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 进行预测</span></span><br><span class="line">    _model.<span class="built_in">eval</span>()  </span><br><span class="line">    output = _model(images)  </span><br><span class="line">    _, predicted_tensor = torch.<span class="built_in">max</span>(output, <span class="number">1</span>)  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 处理预测结果</span></span><br><span class="line">    train_on_gpu = torch.cuda.is_available()  </span><br><span class="line">    predicted = np.squeeze(predicted_tensor.numpy()) <span class="keyword">if</span> <span class="keyword">not</span> train_on_gpu <span class="keyword">else</span> np.squeeze(predicted_tensor.cpu().numpy())</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 画出8张预测图</span></span><br><span class="line">    fig, axes = plt.subplots(<span class="number">2</span>, <span class="number">4</span>, figsize=(<span class="number">12</span>, <span class="number">6</span>))  <span class="comment"># 创建 2x4 的子图网格  </span></span><br><span class="line">    axes = axes.flatten()  </span><br><span class="line">    <span class="comment"># 显示每张图像及预测结果</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">8</span>):  </span><br><span class="line">        img = denormalize(images[i])  <span class="comment"># 反标准化  </span></span><br><span class="line">        axes[i].imshow(img)  <span class="comment"># 显示图片  </span></span><br><span class="line">        axes[i].axis(<span class="string">&quot;off&quot;</span>)  <span class="comment"># 关闭坐标轴  </span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 设置标题：真实vs预测</span></span><br><span class="line">        predicted_label = label_name.get(<span class="built_in">str</span>(predicted[i]), <span class="string">&quot;Unknown&quot;</span>)  </span><br><span class="line">        true_label = label_name.get(<span class="built_in">str</span>(labels[i].item()), <span class="string">&quot;Unknown&quot;</span>)  </span><br><span class="line">        title_color = <span class="string">&quot;green&quot;</span> <span class="keyword">if</span> predicted_label == true_label <span class="keyword">else</span> <span class="string">&quot;red&quot;</span>  </span><br><span class="line">        axes[i].set_title(<span class="string">&quot;&#123;&#125; (&#123;&#125;)&quot;</span>.<span class="built_in">format</span>(predicted_label, true_label), color=( </span><br><span class="line">            title_color))  <span class="comment"># 显示标签  </span></span><br><span class="line">    plt.tight_layout()  </span><br><span class="line">    plt.show()</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250307155124.png"></p>
-<h2 id="6-总结"><a href="#6-总结" class="headerlink" title="6.总结"></a>6.总结</h2><p>本文主要讲的是如何利用预训练模型（ResNet-18）在新数据集上做微调。先冻结大部分网络层，只留最后一层全连接层，再经过训练集训练后解冻全部参数，继续训练，以适应新数据集。<br>完整流程：</p>
-<ol>
-<li>加载 ResNet-18 预训练模型</li>
-<li>修改 fc 层，适配新任务</li>
-<li>冻结特征层，仅训练 fc 层（特征提取模式）</li>
-<li>设置优化器，仅更新 fc 层参数</li>
-<li>使用 StepLR 进行学习率衰减</li>
-<li>训练（前向传播 + 反向传播 + 梯度更新）</li>
-<li>验证模型性能（不更新梯度）</li>
-<li>保存最佳模型（防止过拟合）</li>
-<li>微调（解冻全部参数，降低学习率）</li>
-<li>可视化预测结果，检查分类准确率</li>
-</ol>
-<h2 id="7-模型优化"><a href="#7-模型优化" class="headerlink" title="7.模型优化"></a>7.模型优化</h2><p>八张图片中有两张识别错误，模型的识别准确率还有提升的空间，那如何进一步提高准确率呢？<br>查了一下，大致可以有以下几种方法：</p>
-<ol>
-<li>使用ResNet-50，ResNet-50由于参数更多，可以学习更复杂的特征，分类效果通常更好</li>
-<li>采用更好的优化器，例如<strong>AdamW</strong>（更稳定，L2 正则化）、<strong>SGD + Momentum</strong>（更适合 Fine-tuning）等</li>
-<li>优化学习率调度策略，例如<strong>ReduceLROnPlateau</strong>（监控验证集 Loss 下降才调整学习率）、<strong>CosineAnnealingLR</strong>（余弦退火，适用于 Fine-tuning）、<strong>OneCycleLR</strong>（加速收敛）等</li>
-<li>冻结更多层后逐步解冻，先只训练 fc 层，再解冻 ResNet 最后 1-2 个 block，最后解冻整个 ResNet 进行 Fine-tuning</li>
-<li>增加 Dropout 防止过拟合</li>
-<li>使用 Label Smoothing，目前的 CrossEntropyLoss 过于严格，可以用 <strong>Label Smoothing</strong>，防止过拟合</li>
-<li>使用混合精度训练（加速 + 提高泛化能力）</li>
-<li>使用 Early Stopping，训练更久的同时还能防止过拟合</li>
-</ol>
-<p>留待以后扩展用</p>
-<h2 id="8-备注"><a href="#8-备注" class="headerlink" title="8.备注"></a>8.备注</h2><p>环境：</p>
-<ul>
-<li>mac: 15.2</li>
-<li>python: 3.12.4</li>
-<li>pytorch: 2.5.1</li>
-<li>matplotlib: 3.8.4</li>
-<li>numpy: 1.26.4</li>
-</ul>
-<p>数据集：<br>	<a href="https://github.com/keychankc/dl_code_for_blog/tree/main/cnn_classification_flowers/data">https://github.com/keychankc/dl_code_for_blog/tree/main/cnn_classification_flowers/data</a></p>
-<p>完整代码：<br>	<a href="https://github.com/keychankc/dl_code_for_blog/blob/main/cnn_classification_flowers/main.py">https://github.com/keychankc/dl_code_for_blog/blob/main/cnn_classification_flowers/main.py</a></p>
-]]></content>
-      <categories>
-        <category>深度学习</category>
-      </categories>
-      <tags>
-        <tag>Python</tag>
-        <tag>PyTorch</tag>
-        <tag>模型训练</tag>
-        <tag>卷积神经网络</tag>
-        <tag>matplotlib</tag>
-        <tag>迁移学习</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>利用神经网络实现手写字体识别</title>
-    <url>/2025/02/26/nn-digital-recognition/</url>
+    <url>/2025/02/26/001-nn-digital-recognition/</url>
     <content><![CDATA[<p>本文主要是讲如何使用 PyTorch 实现手写数字识别，包括MNIST数据集加载处理、神经网络模型定义、训练并评估模型。</p>
 <h2 id="1-Mnist数据集"><a href="#1-Mnist数据集" class="headerlink" title="1.Mnist数据集"></a>1.Mnist数据集</h2><p>Mnist数据集是美国国家标准与技术研究院收集的关于手写数字扫描图像及其对应识别数字的数据集。该数据集分为两部分：<br>第一部分包含60000幅28x28大小的灰度图及对应识别数字，用作训练数据，这些图像扫描自250个人的手写样本。<br>第二部分包含10000幅28x28大小的灰度图及对应识别数字，用作测试数据，为了保证测试结果，这些图像来自另外一批人。</p>
 <span id="more"></span>
@@ -410,23 +129,23 @@
 <li>matplotlib: 3.8.4</li>
 <li>numpy: 1.26.4</li>
 </ul>
-<p>数据集：<br>	<a href="https://github.com/keychankc/dl_code_for_blog/tree/main/nn_digital_recognition/data/mnist">https://github.com/keychankc/dl_code_for_blog/tree/main/nn_digital_recognition/data/mnist</a></p>
-<p>完整代码：<br>	<a href="https://github.com/keychankc/dl_code_for_blog/tree/main/nn_digital_recognition">https://github.com/keychankc/dl_code_for_blog/tree/main/nn_digital_recognition</a></p>
+<p>数据集：<br>	<a href="https://github.com/keychankc/dl_code_for_blog/tree/main/001_nn_digital_recognition/data/mnist">https://github.com/keychankc/dl_code_for_blog/tree/main/001_nn_digital_recognition/data/mnist</a></p>
+<p>完整代码：<br>	<a href="https://github.com/keychankc/dl_code_for_blog/tree/main/001_nn_digital_recognition">https://github.com/keychankc/dl_code_for_blog/tree/main/001_nn_digital_recognition</a></p>
 ]]></content>
       <categories>
         <category>深度学习</category>
       </categories>
       <tags>
+        <tag>神经网络</tag>
+        <tag>全连接层</tag>
         <tag>Python</tag>
         <tag>PyTorch</tag>
         <tag>模型训练</tag>
-        <tag>神经网络</tag>
-        <tag>全连接层</tag>
       </tags>
   </entry>
   <entry>
     <title>基于回归任务的气温预测</title>
-    <url>/2025/02/28/nn-weather-forecast/</url>
+    <url>/2025/02/28/002-nn-weather-forecast/</url>
     <content><![CDATA[<p>回归任务：通过输入一些样本数据或者特征，经过N层神经网络，输出一个预测值。</p>
 <h2 id="1-气温数据处理"><a href="#1-气温数据处理" class="headerlink" title="1.气温数据处理"></a>1.气温数据处理</h2><h3 id="1-数据加载"><a href="#1-数据加载" class="headerlink" title="1.数据加载"></a>1.数据加载</h3><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">load_csv</span>():  </span><br><span class="line">    path = Path(<span class="string">&quot;data&quot;</span>)  </span><br><span class="line">    filename = <span class="string">&quot;temps.csv&quot;</span>  </span><br><span class="line">    <span class="keyword">return</span> pd.read_csv(path / filename)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;shape:<span class="subst">&#123;features.shape&#125;</span>\n columns:<span class="subst">&#123;features.columns&#125;</span>&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(features[:<span class="number">5</span>]) <span class="comment"># 打印前5条数据</span></span><br></pre></td></tr></table></figure>
 <span id="more"></span>
@@ -494,8 +213,142 @@
 <li>numpy: 1.26.4</li>
 <li>panda: 2.2.2</li>
 </ul>
-<p>数据集：<br>	<a href="https://github.com/keychankc/dl_code_for_blog/tree/main/nn_weather_forecast/data">https://github.com/keychankc/dl_code_for_blog/tree/main/nn_weather_forecast/data</a></p>
-<p>完整代码：<br>	<a href="https://github.com/keychankc/dl_code_for_blog/tree/main/nn_weather_forecast">https://github.com/keychankc/dl_code_for_blog/tree/main/nn_weather_forecast</a></p>
+<p>数据集：<br>	<a href="https://github.com/keychankc/dl_code_for_blog/tree/main/002_nn_weather_forecast/data">https://github.com/keychankc/dl_code_for_blog/tree/main/002_nn_weather_forecast/data</a></p>
+<p>完整代码：<br>	<a href="https://github.com/keychankc/dl_code_for_blog/tree/main/002_nn_weather_forecast">https://github.com/keychankc/dl_code_for_blog/tree/main/002_nn_weather_forecast</a></p>
+]]></content>
+      <categories>
+        <category>深度学习</category>
+      </categories>
+      <tags>
+        <tag>神经网络</tag>
+        <tag>全连接层</tag>
+        <tag>Python</tag>
+        <tag>PyTorch</tag>
+        <tag>模型训练</tag>
+        <tag>matplotlib</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>利用卷积神经网络实现手写字体识别</title>
+    <url>/2025/03/02/003-cnn-digital-recognition/</url>
+    <content><![CDATA[<p>前文 <a href="https://keychankc.github.io/2025/02/26/nn-digital-recognition/"><strong>利用神经网络实现手写字体识别</strong></a> 的模型结构是基于神经网络的全连接层， 其中每一层的神经元都会与前一层的所有神经元相连接，这种结构更适合于结构化数据或一维数据。而像手写字体识别之类的图像结构数据，使用卷积神经网络会更合适一点，一方面通过卷积层可以提取局部特征，另一方面经过池化层还能减少参数量，提高处理效率。</p>
+<h2 id="1-卷积神经网络"><a href="#1-卷积神经网络" class="headerlink" title="1.卷积神经网络"></a>1.卷积神经网络</h2><p>卷积神经网络（Convolutional Neural Network，简称CNN）是一种特别适合处理图像、视频、语音、文本等数据的神经网络结构，它通过模仿生物视觉系统的工作原理，利用 <strong>卷积层</strong>、<strong>池化层</strong> 和 <strong>全连接层</strong> 来提取数据中的空间特征，并通过训练优化参数，广泛应用在计算机视觉任务中。</p>
+<h3 id="1-基本原理"><a href="#1-基本原理" class="headerlink" title="1.基本原理"></a>1.基本原理</h3><p>CNN的核心思想是“卷积”操作。简单来说，卷积是用一个小的矩阵（称为<strong>卷积核</strong>）在输入图像上滑动，通过和图像的局部区域进行逐点相乘并求和，提取出图像的局部特征。卷积操作通常会在多个卷积层次上进行，从而能够识别图像中的简单特征（如边缘、纹理）和复杂特征（如物体、面部等）。</p>
+<span id="more"></span>
+<h3 id="2-基本结构"><a href="#2-基本结构" class="headerlink" title="2.基本结构"></a>2.基本结构</h3><ol>
+<li><strong>卷积层（Convolutional Layer）</strong><ul>
+<li>CNN核心部分，通过卷积核在输入数据（如图像）上滑动，逐步提取边缘、纹理、角点等局部特征</li>
+<li>卷积层会将输入数据映射到多个特征图（Feature Maps），每个卷积核生成一个特征图，即输出的通道数等于卷积核的数量</li>
+</ul>
+</li>
+<li><strong>池化层（Pooling Layer）</strong><ul>
+<li>用于 <strong>下采样</strong>，减少特征图的尺寸，从而减少计算量、提高模型的计算效率，并防止过拟合。常用的池化方法包括 <strong>最大池化</strong>（Max Pooling）和 <strong>平均池化</strong>（Average Pooling）</li>
+</ul>
+</li>
+<li><strong>全连接层（Fully Connected Layer）</strong><ul>
+<li>在CNN的最后通常会通过一个或多个全连接层将提取到的特征转换为最终的输出。例如，图像分类的类别概率</li>
+<li>前提取到的特征进行 <strong>非线性变换</strong>，生成模型的最终输出</li>
+</ul>
+</li>
+<li><strong>激活函数</strong><ul>
+<li>卷积层和全连接层的输出通常会通过 <strong>激活函数</strong>（如 ReLU、Sigmoid 或 Tanh）进行非线性变换，以帮助模型学习复杂的特征</li>
+</ul>
+</li>
+</ol>
+<h3 id="3-特点"><a href="#3-特点" class="headerlink" title="3.特点"></a>3.特点</h3><ol>
+<li><strong>局部连接</strong>：每个卷积核只与输入数据的一个小区域进行连接（局部感受野），这样可以有效地捕捉数据的局部特征（如图像中的边缘、角点、纹理等）</li>
+<li><strong>共享权重</strong>：同一个卷积核在所有输入区域使用相同的权重参数，这大大减少了参数的数量，提高了计算效率</li>
+<li><strong>层次化特征提取</strong>：CNN 可以通过多层卷积操作逐层提取数据的特征，从低级特征（如边缘）到高级特征（如物体的形状、纹理等）。这种层次化的特征提取方式能够捕捉复杂的模式。</li>
+<li><strong>平移不变性</strong>：CNN 通过卷积操作具备一定的 <strong>平移不变性</strong>，即如果图像中的物体发生平移，卷积层仍能有效地识别物体。这是因为卷积核在图像中滑动，每个区域的特征都有相同的权重。</li>
+<li><strong>高效的参数共享</strong>：由于卷积核共享权重，CNN 的参数数量远低于传统的全连接神经网络。这样使得 CNN 更适合处理大型图像数据集，且训练时所需的计算和内存资源较少。</li>
+</ol>
+<h2 id="2-数据集处理"><a href="#2-数据集处理" class="headerlink" title="2.数据集处理"></a>2.数据集处理</h2><p>加载 <strong>MNIST 数据集</strong>，并对数据进行预处理。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> torchvision <span class="keyword">import</span> datasets, transforms</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">load_dataset</span>():  </span><br><span class="line">    train_ds = datasets.MNIST(root=<span class="string">&#x27;./data&#x27;</span>,  </span><br><span class="line">                              train=<span class="literal">True</span>,  </span><br><span class="line">                              transform=transforms.ToTensor(),  </span><br><span class="line">                              download=<span class="literal">True</span>)  </span><br><span class="line">  </span><br><span class="line">    test_ds = datasets.MNIST(root=<span class="string">&#x27;./data&#x27;</span>,  </span><br><span class="line">                             train=<span class="literal">False</span>,  </span><br><span class="line">                             transform=transforms.ToTensor())  </span><br><span class="line">    <span class="keyword">return</span> train_ds, test_ds</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">load_loader</span>(<span class="params">train_ds, test_ds</span>):  </span><br><span class="line">    train_dl = torch.utils.data.DataLoader(dataset=train_ds,  </span><br><span class="line">                                           batch_size=batch_size,  </span><br><span class="line">                                           shuffle=<span class="literal">True</span>)  </span><br><span class="line">    test_dl = torch.utils.data.DataLoader(dataset=test_ds,  </span><br><span class="line">                                          batch_size=batch_size,  </span><br><span class="line">                                          shuffle=<span class="literal">True</span>)  </span><br><span class="line">    <span class="keyword">return</span> train_dl, test_dl</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-加载数据"><a href="#1-加载数据" class="headerlink" title="1.加载数据"></a>1.加载数据</h3><p>从 <code>torchvision</code>的datasets中导入自带的MNIST数据集并保存在<code>root</code>路径下，<code>train=True</code>，表示加载的是训练集（train&#x3D;False 则表示加载测试集）。</p>
+<p>datasets除了包含MNIST数据集，还有：<br>	• <strong>图像分类</strong>：CIFAR-10、ImageNet等<br>	• <strong>目标检测与分割</strong>：COCO、PASCAL VOC、Cityscapes等<br>	• <strong>人脸识别</strong>：LFW（Labeled Faces in the Wild）<br>	• <strong>支持学习与小样本学习</strong>：Omniglot</p>
+<p>这些数据集大大方便了研究人员、开发者进行计算机视觉任务的训练和测试。随着计算机视觉的发展，datasets模块也在不断更新扩展中</p>
+<p>数据加载器（DataLoader）为了高效批量加载数据。batch_size为每个批次的数据量，shuffle表示是否打乱数据</p>
+<h3 id="2-预处理"><a href="#2-预处理" class="headerlink" title="2.预处理"></a>2.预处理</h3><p><code>transforms.ToTensor()</code> 会将加载的图像数据转换为 <strong>张量（Tensor）</strong>，并将像素值从 [0, 255] 范围缩放到 [0, 1] 范围。此转换是为了方便后续神经网络训练。</p>
+<h2 id="3-模型定义"><a href="#3-模型定义" class="headerlink" title="3.模型定义"></a>3.模型定义</h2><p><code>Mnist_CNN</code>模型中，包括两部分构造函数和前向传播，前向传播函数会在模型训练的时候自动调用</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Mnist_CNN</span>(nn.Module):  </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):  </span><br><span class="line">        <span class="built_in">super</span>(Mnist_CNN, <span class="variable language_">self</span>).__init__()  </span><br><span class="line">        </span><br><span class="line">        <span class="variable language_">self</span>.conv1 = nn.Sequential(         <span class="comment"># 输入大小 (1, 28, 28)        </span></span><br><span class="line">	        nn.Conv2d(in_channels=<span class="number">1</span>, out_channels=<span class="number">16</span>, kernel_size=<span class="number">5</span>, stride=<span class="number">1</span>, padding=<span class="number">2</span>),  </span><br><span class="line">            nn.ReLU(),                      <span class="comment"># relu层  </span></span><br><span class="line">            nn.MaxPool2d(kernel_size=<span class="number">2</span>),    <span class="comment"># 进行池化操作</span></span><br><span class="line">        )                                   <span class="comment"># 输出(16, 14, 14)</span></span><br><span class="line">        </span><br><span class="line">        <span class="variable language_">self</span>.conv2 = nn.Sequential(</span><br><span class="line">            nn.Conv2d(<span class="number">16</span>, <span class="number">32</span>, <span class="number">5</span>, <span class="number">1</span>, <span class="number">2</span>),     <span class="comment"># 输出 (32, 14, 14)     </span></span><br><span class="line">            nn.ReLU(),                      <span class="comment"># relu层  </span></span><br><span class="line">            nn.MaxPool2d(<span class="number">2</span>),                <span class="comment"># 进行池化操作</span></span><br><span class="line">		)                                   <span class="comment"># 输出 (32, 7, 7)    </span></span><br><span class="line">        </span><br><span class="line">        <span class="variable language_">self</span>.conv3 = nn.Sequential(  </span><br><span class="line">            nn.Conv2d(<span class="number">32</span>, <span class="number">64</span>, <span class="number">5</span>, <span class="number">1</span>, <span class="number">2</span>),  </span><br><span class="line">            nn.ReLU(),                         </span><br><span class="line">	    )                                   <span class="comment"># 输出 (64, 7, 7)</span></span><br><span class="line">	      </span><br><span class="line">        <span class="variable language_">self</span>.out = nn.Linear(<span class="number">64</span> * <span class="number">7</span> * <span class="number">7</span>, <span class="number">10</span>)<span class="comment"># 全连接层得到的结果  </span></span><br><span class="line">  </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):  </span><br><span class="line">        x = <span class="variable language_">self</span>.conv1(x)  </span><br><span class="line">        x = <span class="variable language_">self</span>.conv2(x)  </span><br><span class="line">        x = <span class="variable language_">self</span>.conv3(x)  </span><br><span class="line">        x = x.view(x.size(<span class="number">0</span>), -<span class="number">1</span>)           <span class="comment"># flatten操作 (batch_size, 32 * 7 * 7)  </span></span><br><span class="line">        output = <span class="variable language_">self</span>.out(x)  </span><br><span class="line">        <span class="keyword">return</span> output</span><br></pre></td></tr></table></figure>
+<h3 id="1-构造函数"><a href="#1-构造函数" class="headerlink" title="1.构造函数"></a>1.构造函数</h3><p>构造函数会初始化神经网络的各个层，模型中定义了三个卷积层和一个全连接层：</p>
+<h4 id="卷积层conv1"><a href="#卷积层conv1" class="headerlink" title="卷积层conv1"></a>卷积层conv1</h4><p><strong>nn.Conv2d</strong>：这是一个二维卷积层，用来提取输入图像的局部特征</p>
+<ul>
+<li><code>in_channels=1</code>：输入图像的通道数，MNIST 图像是单通道（灰度图），所以是 1</li>
+<li><code>out_channels=16</code>：卷积层输出的特征图的通道数，设置为16，意味着该层将学习16个不同的特征</li>
+<li><code>kernel_size=5</code>：卷积核的大小为5x5</li>
+<li><code>padding=2</code>：在图像边缘添加2个像素的零填充，目的是让输出图像的大小与输入相对称</li>
+</ul>
+<p><strong>nn.ReLU()</strong>：这是一个激活函数层，使用 ReLU（Rectified Linear Unit）激活函数来对卷积结果进行非线性映射。ReLU 会将所有负值置为零</p>
+<p><strong>nn.MaxPool2d</strong>：池化层，进行下采样（降维）操作。kernel_size&#x3D;2：池化窗口大小是2x2，表示每个2x2的区域都会被池化成一个最大值（最大池化）。池化操作可以降低计算量并提取最重要的特征</p>
+<p>输出尺寸：原始输入图像的尺寸是 (28, 28)，经过卷积后，尺寸为 (28, 28)，再加上池化操作，最终输出为 (16, 14, 14)，也就是16个14x14的特征图。</p>
+<h4 id="卷积层conv2"><a href="#卷积层conv2" class="headerlink" title="卷积层conv2"></a>卷积层conv2</h4><p>作用类似conv1，只是输入和输出的通道数发生了变化：</p>
+<ul>
+<li>输入通道是16（来自上一层 conv1 的输出），输出通道是32</li>
+<li>卷积核大小、步长和填充方式保持不变</li>
+</ul>
+<p>输出尺寸：经过卷积和池化后，输出特征图的尺寸是 (32, 7, 7)，即32个7x7的特征图。</p>
+<h4 id="卷积层conv3"><a href="#卷积层conv3" class="headerlink" title="卷积层conv3"></a>卷积层conv3</h4><p>作用同conv1和conv1，输入通道是32，输出通道是64，卷积核大小、步长和填充方式保持不变。<br>输出尺寸：经过这一层后，输出的特征图尺寸是 (64, 7, 7)，即64个7x7的特征图。</p>
+<h4 id="全连接层out"><a href="#全连接层out" class="headerlink" title="全连接层out"></a>全连接层out</h4><p>做一个10分类的操作，将卷积层提取的特征映射到最终的分类结果</p>
+<ul>
+<li>因为conv3输出的特征图的尺寸是 (64, 7, 7)，输入特征的数量是 64 * 7 * 7 &#x3D; 3136</li>
+<li>因为MNIST数据集有10个数字类别（0-9），输出特征的数量是 10</li>
+</ul>
+<h3 id="2-前向传播"><a href="#2-前向传播" class="headerlink" title="2.前向传播"></a>2.前向传播</h3><p>数据从输入到输出的流动过程，依次通过三个卷积层和一个全连接层</p>
+<ul>
+<li><code>x = self.conv1(x)</code>：输入数据首先通过 conv1 层，输出经过 ReLU 激活和池化后的特征</li>
+<li><code>x = self.conv2(x)</code>：接着通过 conv2 层，继续提取特征</li>
+<li><code>x = self.conv3(x)</code>：然后经过 conv3 层，进一步提取深层特征</li>
+<li><code>x = x.view(x.size(0), -1)</code>：这里将卷积层输出的特征图展平（flatten）为一维向量，将(64, 7, 7)特征图转化为64 * 7 * 7 &#x3D; 3136个特征。x.size(0) 是批次大小（batch_size），-1 代表根据批次大小自动计算展平后的大小</li>
+<li><code>output = self.out(x)</code>：将展平后的向量通过全连接层，输出 10 个分类结果</li>
+</ul>
+<h2 id="4-模型训练和验证"><a href="#4-模型训练和验证" class="headerlink" title="4.模型训练和验证"></a>4.模型训练和验证</h2><h3 id="1-计算准确率"><a href="#1-计算准确率" class="headerlink" title="1.计算准确率"></a>1.计算准确率</h3><p>返回预测正确的样本数和总样本数</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">accuracy</span>(<span class="params">predictions, labels</span>):  </span><br><span class="line">    pred = torch.<span class="built_in">max</span>(predictions.data, <span class="number">1</span>)[<span class="number">1</span>]  </span><br><span class="line">    rights = pred.eq(labels.data.view_as(pred)).<span class="built_in">sum</span>()  </span><br><span class="line">    <span class="keyword">return</span> rights, <span class="built_in">len</span>(labels)</span><br></pre></td></tr></table></figure>
+<p>实现：</p>
+<ul>
+<li><code>torch.max(predictions.data, 1)[1]</code>：返回每个样本在所有类别中最大概率的类别（即预测的类别）。torch.max 返回两个值，第一个是最大值，第二个是最大值对应的索引（即预测类别）</li>
+<li><code>pred.eq(labels.data.view_as(pred))</code>：eq 函数用于判断预测值和真实标签是否相等。如果相等返回 True，否则返回 False</li>
+<li><code>sum()</code>：统计预测正确的样本数</li>
+</ul>
+<h3 id="2-训练验证模型"><a href="#2-训练验证模型" class="headerlink" title="2.训练验证模型"></a>2.训练验证模型</h3><p>训练模型的主函数，进行<strong>模型训练</strong>和<strong>评估</strong></p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">train</span>(<span class="params">model, train_loader, test_loader, num_epochs</span>):  </span><br><span class="line">    <span class="keyword">for</span> epoch <span class="keyword">in</span> <span class="built_in">range</span>(num_epochs):  </span><br><span class="line">        <span class="comment"># 当前epoch的训练结果</span></span><br><span class="line">        train_rights = []  </span><br><span class="line">        <span class="comment"># 针对容器中的每一批进行循环  </span></span><br><span class="line">        <span class="keyword">for</span> batch_idx, (data, target) <span class="keyword">in</span> <span class="built_in">enumerate</span>(train_loader):</span><br><span class="line">            model.train()  </span><br><span class="line">            output = model(data)  </span><br><span class="line">            loss = criterion(output, target)  </span><br><span class="line">            optimizer.zero_grad()  </span><br><span class="line">            loss.backward()  </span><br><span class="line">            optimizer.step()  </span><br><span class="line">            right = accuracy(output, target)  </span><br><span class="line">            train_rights.append(right)  </span><br><span class="line">		</span><br><span class="line">            <span class="comment"># 每100个批次输出一次训练进度和损失</span></span><br><span class="line">            <span class="keyword">if</span> batch_idx % <span class="number">100</span> == <span class="number">0</span>:  </span><br><span class="line">  </span><br><span class="line">                model.<span class="built_in">eval</span>()  </span><br><span class="line">                val_rights = []  </span><br><span class="line">  </span><br><span class="line">                <span class="comment"># 迭代测试集中的每个批次</span></span><br><span class="line">                <span class="keyword">for</span> (data, target) <span class="keyword">in</span> test_loader:  </span><br><span class="line">                    output = model(data)  </span><br><span class="line">                    right = accuracy(output, target)  </span><br><span class="line">                    val_rights.append(right)  </span><br><span class="line">  </span><br><span class="line">                <span class="comment"># 准确率计算  </span></span><br><span class="line">                train_r = (<span class="built_in">sum</span>([tup[<span class="number">0</span>] <span class="keyword">for</span> tup <span class="keyword">in</span> train_rights]), <span class="built_in">sum</span>([tup[<span class="number">1</span>] <span class="keyword">for</span> tup <span class="keyword">in</span> train_rights]))  </span><br><span class="line">                val_r = (<span class="built_in">sum</span>([tup[<span class="number">0</span>] <span class="keyword">for</span> tup <span class="keyword">in</span> val_rights]), <span class="built_in">sum</span>([tup[<span class="number">1</span>] <span class="keyword">for</span> tup <span class="keyword">in</span> val_rights]))  </span><br><span class="line">  </span><br><span class="line">                <span class="comment"># 训练进度  </span></span><br><span class="line">                train_percent = <span class="number">100</span> * batch_idx / <span class="built_in">len</span>(train_loader)  </span><br><span class="line">                <span class="comment"># 训练集准确率  </span></span><br><span class="line">                train_set_accurate = <span class="number">100</span> * train_r[<span class="number">0</span>].numpy() / train_r[<span class="number">1</span>]  </span><br><span class="line">                <span class="comment"># 测试集正确率  </span></span><br><span class="line">                test_set_accurate = <span class="number">100</span> * val_r[<span class="number">0</span>].numpy() / val_r[<span class="number">1</span>]  </span><br><span class="line">  </span><br><span class="line">                <span class="built_in">print</span>(<span class="string">f&quot;&quot;&quot;当前epoch:<span class="subst">&#123;epoch+<span class="number">1</span>&#125;</span> 训练进度:<span class="subst">&#123;train_percent:<span class="number">.0</span>f&#125;</span>% 损失:<span class="subst">&#123;loss.data:<span class="number">.6</span>f&#125;</span> 训练集准确率: <span class="subst">&#123;train_set_accurate:<span class="number">.2</span>f&#125;</span>% 测试集正确率: <span class="subst">&#123;test_set_accurate:<span class="number">.2</span>f&#125;</span>% &quot;&quot;&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>每个 epoch 中会执行以下步骤，每次迭代叫做一个epoch：</p>
+<h4 id="训练"><a href="#训练" class="headerlink" title="训练"></a>训练</h4><ul>
+<li><code>for batch_idx, (data, target) in enumerate(train_loader):</code>：对于训练数据集（通过 train_loader 加载），每次获取一个批次的输入数据 data 和目标标签 target</li>
+<li><code>model.train()</code>：将模型设置为训练模式（启用 dropout 和 batch normalization 等层）</li>
+<li><code>output = model(data)</code>：通过模型对输入 data 进行前向传播，得到输出 output</li>
+<li><code>loss = criterion(output, target)</code>：计算预测值 output 与真实标签 target 之间的损失（如交叉熵损失）</li>
+<li><code>optimizer.zero_grad()</code>：在每个步骤之前清空梯度，以避免梯度累积</li>
+<li><code>loss.backward()</code>：做反向传播，计算损失的梯度</li>
+<li><code>optimizer.step()</code>：更新模型的参数（使用梯度下降或其他优化算法）</li>
+</ul>
+<h4 id="准确率计算"><a href="#准确率计算" class="headerlink" title="准确率计算"></a>准确率计算</h4><ul>
+<li><code>right = accuracy(output, target)</code>：通过 accuracy 函数计算当前批次的正确预测数量</li>
+<li><code>train_rights.append(right)</code>：将当前批次的正确预测数目添加到 train_rights 列表中</li>
+</ul>
+<h4 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h4><ul>
+<li><code>model.eval()</code>：将模型设置为评估模式（禁用 dropout 和 batch normalization）</li>
+<li><code>val_rights = []</code>：初始化 val_rights 列表来存储验证集的准确率</li>
+<li><code>output = model(data)</code>：计算模型对测试集的预测</li>
+<li><code>right = accuracy(output, target)</code>：计算当前批次的正确预测数</li>
+<li><code>val_rights.append(right)</code>：将当前批次的预测结果添加到 val_rights</li>
+</ul>
+<h4 id="输出"><a href="#输出" class="headerlink" title="输出"></a>输出</h4><p>三次epoch输出，测试集正确率相比单纯利用神经网络构建的97%要高一点。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">当前epoch:1 训练进度:0% 损失:2.298599 训练集准确率: 14.06% 测试集正确率: 10.32% </span><br><span class="line">当前epoch:1 训练进度:11% 损失:0.243815 训练集准确率: 78.31% 测试集正确率: 93.28% </span><br><span class="line">当前epoch:1 训练进度:21% 损失:0.137110 训练集准确率: 86.57% 测试集正确率: 96.24% </span><br><span class="line">当前epoch:1 训练进度:32% 损失:0.146362 训练集准确率: 89.68% 测试集正确率: 96.94% </span><br><span class="line">当前epoch:1 训练进度:43% 损失:0.161816 训练集准确率: 91.50% 测试集正确率: 97.73% </span><br><span class="line">当前epoch:1 训练进度:53% 损失:0.059365 训练集准确率: 92.69% 测试集正确率: 97.47% </span><br><span class="line">当前epoch:1 训练进度:64% 损失:0.114041 训练集准确率: 93.52% 测试集正确率: 98.34% </span><br><span class="line">当前epoch:1 训练进度:75% 损失:0.100607 训练集准确率: 94.16% 测试集正确率: 98.22% </span><br><span class="line">当前epoch:1 训练进度:85% 损失:0.006606 训练集准确率: 94.65% 测试集正确率: 98.47% </span><br><span class="line">当前epoch:1 训练进度:96% 损失:0.043186 训练集准确率: 95.04% 测试集正确率: 98.83% </span><br><span class="line">当前epoch:2 训练进度:0% 损失:0.003247 训练集准确率: 100.00% 测试集正确率: 98.75% </span><br><span class="line">当前epoch:2 训练进度:11% 损失:0.077238 训练集准确率: 98.47% 测试集正确率: 98.81% </span><br><span class="line">当前epoch:2 训练进度:21% 损失:0.032691 训练集准确率: 98.39% 测试集正确率: 98.75% </span><br><span class="line">当前epoch:2 训练进度:32% 损失:0.019059 训练集准确率: 98.47% 测试集正确率: 98.61% </span><br><span class="line">当前epoch:2 训练进度:43% 损失:0.172091 训练集准确率: 98.46% 测试集正确率: 98.73% </span><br><span class="line">当前epoch:2 训练进度:53% 损失:0.023476 训练集准确率: 98.50% 测试集正确率: 98.76% </span><br><span class="line">当前epoch:2 训练进度:64% 损失:0.013946 训练集准确率: 98.53% 测试集正确率: 98.97% </span><br><span class="line">当前epoch:2 训练进度:75% 损失:0.011354 训练集准确率: 98.57% 测试集正确率: 98.91% </span><br><span class="line">当前epoch:2 训练进度:85% 损失:0.024460 训练集准确率: 98.60% 测试集正确率: 98.98% </span><br><span class="line">当前epoch:2 训练进度:96% 损失:0.021631 训练集准确率: 98.63% 测试集正确率: 98.97% </span><br><span class="line">当前epoch:3 训练进度:0% 损失:0.055015 训练集准确率: 96.88% 测试集正确率: 98.94% </span><br><span class="line">当前epoch:3 训练进度:11% 损失:0.060590 训练集准确率: 99.12% 测试集正确率: 99.07% </span><br><span class="line">当前epoch:3 训练进度:21% 损失:0.066504 训练集准确率: 99.04% 测试集正确率: 98.85% </span><br><span class="line">当前epoch:3 训练进度:32% 损失:0.004511 训练集准确率: 99.03% 测试集正确率: 98.95% </span><br><span class="line">当前epoch:3 训练进度:43% 损失:0.019243 训练集准确率: 99.00% 测试集正确率: 99.17% </span><br><span class="line">当前epoch:3 训练进度:53% 损失:0.037509 训练集准确率: 99.01% 测试集正确率: 99.08% </span><br><span class="line">当前epoch:3 训练进度:64% 损失:0.004599 训练集准确率: 99.03% 测试集正确率: 98.95% </span><br><span class="line">当前epoch:3 训练进度:75% 损失:0.089442 训练集准确率: 99.01% 测试集正确率: 99.12% </span><br><span class="line">当前epoch:3 训练进度:85% 损失:0.018963 训练集准确率: 99.04% 测试集正确率: 98.58% </span><br><span class="line">当前epoch:3 训练进度:96% 损失:0.000661 训练集准确率: 99.04% 测试集正确率: 99.12% </span><br></pre></td></tr></table></figure>
+<h3 id="3-调用"><a href="#3-调用" class="headerlink" title="3.调用"></a>3.调用</h3><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">input_size = <span class="number">28</span>  <span class="comment"># 图像的总尺寸28*28  </span></span><br><span class="line">num_epochs = <span class="number">3</span>   <span class="comment"># 训练的总循环周期  </span></span><br><span class="line">batch_size = <span class="number">64</span>  <span class="comment"># 一个批次的大小，64张图片  </span></span><br><span class="line">  </span><br><span class="line"><span class="comment"># 训练集 测试机  </span></span><br><span class="line">train_dataset, test_dataset = load_dataset()  </span><br><span class="line">train_loader, test_loader = load_loader(train_dataset, test_dataset)  </span><br><span class="line">  </span><br><span class="line"><span class="comment"># 模型  </span></span><br><span class="line">model = Mnist_CNN()  </span><br><span class="line"><span class="comment"># 损失函数  </span></span><br><span class="line">criterion = nn.CrossEntropyLoss()  </span><br><span class="line"><span class="comment"># 优化器  </span></span><br><span class="line">optimizer = optim.Adam(model.parameters(), lr=<span class="number">0.001</span>) </span><br><span class="line"><span class="comment"># 训练  </span></span><br><span class="line">train(model, train_loader, test_loader, num_epochs)</span><br></pre></td></tr></table></figure>
+
+<h4 id="损失函数"><a href="#损失函数" class="headerlink" title="损失函数"></a>损失函数</h4><p>CrossEntropyLoss是PyTorch 中一个常用的损失函数，专门用于 <strong>分类任务</strong>，尤其是多类别分类。它结合了 <strong>Softmax</strong> 函数和 <strong>负对数似然损失</strong>（Negative Log-Likelihood Loss），用于处理分类任务中 <strong>概率输出</strong> 的问题。<br>适用范围：真实标签应该是一个 <strong>整数</strong>，表示每个样本的真实类别索引（而不是 one-hot 编码）</p>
+<h4 id="优化器"><a href="#优化器" class="headerlink" title="优化器"></a>优化器</h4><p><strong>Adam</strong> 是一种常用的优化算法，全名为 <strong>Adaptive Moment Estimation</strong>，它结合了 <strong>Momentum</strong> 和 <strong>RMSprop</strong> 的优点，能够自动调整学习率来提高训练效果，Adam 优化器会通过计算一阶矩（梯度的均值）和二阶矩（梯度的平方均值）来动态调整每个参数的学习率，从而提高训练的效率和稳定性。<br>适用范围：一种自适应优化算法，非常适用于大多数任务，尤其是当模型参数多，训练过程复杂的时候。</p>
+<h2 id="5-总结"><a href="#5-总结" class="headerlink" title="5.总结"></a>5.总结</h2><p>本文主要讲通过使用卷积神经网络来实现手写数字识别，相较于神经网络使用卷积神经网络更适合处理图像、视频、语音、文本等的数据，正确率也相对高一点。</p>
+<h2 id="6-备注"><a href="#6-备注" class="headerlink" title="6.备注"></a>6.备注</h2><p>环境：</p>
+<ul>
+<li>mac: 15.2</li>
+<li>python: 3.12.4</li>
+<li>pytorch: 2.5.1</li>
+</ul>
+<p>完整代码：<br>	<a href="https://github.com/keychankc/dl_code_for_blog/tree/main/003_cnn_digital_recognition">https://github.com/keychankc/dl_code_for_blog/tree/main/003_cnn_digital_recognition</a></p>
 ]]></content>
       <categories>
         <category>深度学习</category>
@@ -504,169 +357,13 @@
         <tag>Python</tag>
         <tag>PyTorch</tag>
         <tag>模型训练</tag>
-        <tag>matplotlib</tag>
-        <tag>神经网络</tag>
-        <tag>全连接层</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>OpenCV之全景图像拼接</title>
-    <url>/2025/03/24/opencv-image-stitching/</url>
-    <content><![CDATA[<h2 id="1-实现流程"><a href="#1-实现流程" class="headerlink" title="1.实现流程"></a>1.实现流程</h2><p>通过提取图像中的特征点并匹配这些特征点来找到图像间的对应关系，再通过透视变换（Homography）将两幅图像拼接成一幅完整的图像，大致流程：</p>
-<ol>
-<li>特征点检测与描述<ul>
-<li>使用 <strong>SIFT</strong> 算法检测两张图像中的关键点，并计算特征描述子（局部特征向量）</li>
-</ul>
-</li>
-<li>特征匹配<ul>
-<li>采用 <strong>KNN 近邻匹配</strong>（k&#x3D;2）找到两张图像间的最佳匹配点对</li>
-<li>使用 <strong>比值测试（ratio test）</strong> 过滤掉低质量的匹配点，减少误匹配</li>
-</ul>
-</li>
-<li>单应性矩阵计算<ul>
-<li>通过 <strong>RANSAC 算法</strong> 计算 <strong>单应性矩阵 (Homography, H)</strong>，剔除误匹配点</li>
-<li>单应性矩阵用于 <strong>透视变换</strong>，使一张图像对齐另一张图像</li>
-</ul>
-</li>
-<li>图像变换与拼接<ul>
-<li>利用 cv2.warpPerspective() <strong>对图像A进行透视变换</strong>，使其尽可能与图像B对齐</li>
-<li>将<strong>图像B放入最终结果中</strong>，合成拼接图像</li>
-</ul>
-</li>
-<li>可视化匹配结果<ul>
-<li>在两张图像上绘制匹配点连线，帮助观察特征匹配的效果</li>
-</ul>
-</li>
-</ol>
-<h2 id="2-相关算法"><a href="#2-相关算法" class="headerlink" title="2.相关算法"></a>2.相关算法</h2><h3 id="1-SIFT（尺度不变特征变换）"><a href="#1-SIFT（尺度不变特征变换）" class="headerlink" title="1.SIFT（尺度不变特征变换）"></a>1.SIFT（尺度不变特征变换）</h3><p>SIFT (<strong>Scale-Invariant Feature Transform</strong>) 是一种 <strong>关键点检测和描述算法</strong>，能够在 <strong>不同尺度、旋转、光照变化</strong> 下仍然保持稳定的特征匹配。</p>
-<span id="more"></span>
-<p><strong>主要步骤</strong>：</p>
-<ol>
-<li><strong>尺度空间构造</strong>：<ul>
-<li>采用 <strong>高斯模糊（Gaussian Blur）</strong> 生成不同尺度的图像（高斯金字塔）</li>
-<li>计算 <strong>DoG（Difference of Gaussian, 差分高斯）</strong> 以找到特征点</li>
-</ul>
-</li>
-<li><strong>关键点检测与精细定位</strong>：<ul>
-<li>通过 <strong>极值检测</strong> 在不同尺度下找到潜在特征点</li>
-<li>过滤掉低对比度点和边缘响应点，提高鲁棒性</li>
-</ul>
-</li>
-<li><strong>方向分配</strong>：<ul>
-<li>计算特征点周围的 <strong>梯度方向直方图</strong>，分配主要方向，使其具备<strong>旋转不变性</strong></li>
-</ul>
-</li>
-<li><strong>特征描述</strong>：<ul>
-<li>计算每个关键点周围的 <strong>梯度直方图</strong>，形成 <strong>128 维特征向量</strong>（局部描述子）</li>
-<li>这些特征向量用于匹配不同图像中的关键点</li>
-</ul>
-</li>
-</ol>
-<p><strong>特点</strong>：</p>
-<ul>
-<li><strong>尺度、旋转、光照不变性</strong>：可用于不同大小、旋转角度和亮度变化的图像匹配</li>
-<li><strong>抗噪性强</strong>：在复杂背景下仍能准确提取关键点</li>
-<li><strong>计算复杂度高</strong>：比其他方法（如 ORB）慢，但匹配效果更稳定</li>
-</ul>
-<h3 id="2-KNN-近邻匹配"><a href="#2-KNN-近邻匹配" class="headerlink" title="2.KNN 近邻匹配"></a>2.KNN 近邻匹配</h3><p>KNN (<strong>K-Nearest Neighbors</strong>) 是一种用于 <strong>特征点匹配</strong> 的方法，它基于<strong>欧几里得距离</strong>计算两个图像之间的相似特征点</p>
-<p><strong>工作原理</strong>：</p>
-<ol>
-<li><strong>计算欧几里得距离</strong>：<ul>
-<li>计算图像A中的每个特征点与图像B中所有特征点的<strong>欧几里得距离</strong>，找到最相似的 K 个点（通常 K&#x3D;2）</li>
-</ul>
-</li>
-<li><strong>比值测试（Ratio Test）</strong>：<ul>
-<li>计算最近邻 D1 和次近邻 D2 之间的距离比 D1&#x2F;D2</li>
-<li>如果 D1&#x2F;D2 &lt; 设定阈值（通常 0.75），则认为匹配有效，否则丢弃该匹配点</li>
-<li>这样可以过滤掉误匹配点，提高匹配精度</li>
-</ul>
-</li>
-</ol>
-<p><strong>特点</strong>：</p>
-<ul>
-<li><strong>简单高效</strong>：直接基于欧几里得距离计算匹配点</li>
-<li><strong>容易受噪声干扰</strong>：误匹配点较多，因此需要 <strong>比值测试</strong> 或 <strong>RANSAC</strong> 进行筛选</li>
-</ul>
-<h3 id="3-RANSAC（随机抽样一致性算法）"><a href="#3-RANSAC（随机抽样一致性算法）" class="headerlink" title="3.RANSAC（随机抽样一致性算法）"></a>3.RANSAC（随机抽样一致性算法）</h3><p>RANSAC (<strong>RANdom SAmple Consensus, 随机抽样一致算法</strong>) 是一种 <strong>鲁棒的误匹配去除方法</strong>，用于筛选正确的匹配点，提高拼接精度</p>
-<p><strong>工作原理</strong>：</p>
-<ol>
-<li><strong>随机采样</strong>：<ul>
-<li>在匹配点集中 <strong>随机选取 4 对匹配点</strong>，计算一个变换模型（如单应性矩阵 H）。</li>
-</ul>
-</li>
-<li><strong>计算内点数</strong>：<ul>
-<li>通过该变换模型，将所有匹配点进行投影，并计算它们与目标点的误差。</li>
-<li>误差小于阈值（如 4 像素）的点称为 <strong>内点（Inliers）</strong>。</li>
-</ul>
-</li>
-<li><strong>重复迭代</strong>：<ul>
-<li>反复进行 <strong>随机抽样+计算内点数</strong> 的过程，找到拥有最多内点的模型。</li>
-<li>最终使用这些内点 <strong>重新计算一个更精确的变换矩阵</strong>。</li>
-</ul>
-</li>
-</ol>
-<p><strong>特点</strong>：</p>
-<ul>
-<li><strong>能够过滤掉错误匹配点</strong>，提高拼接的精度。</li>
-<li><strong>适用于特征匹配、物体识别、立体视觉</strong>等任务。</li>
-<li><strong>计算复杂度较高</strong>，但效果很好。</li>
-</ul>
-<h3 id="4-透视变换（Homography）"><a href="#4-透视变换（Homography）" class="headerlink" title="4.透视变换（Homography）"></a>4.透视变换（Homography）</h3><p>透视变换 (<strong>Homography Transformation</strong>) 主要用于<strong>将一张图像变换到与另一张图像对齐的视角</strong>，从而实现图像拼接。</p>
-<p><strong>数学模型</strong>：<br>透视变换矩阵 H 是一个 <strong>3×3 矩阵</strong>，用于描述两张图像之间的映射关系：</p>
-<p>$\begin{bmatrix} x{\prime} \ y{\prime} \ w{\prime} \end{bmatrix} &#x3D; H \cdot \begin{bmatrix} x \ y \ 1 \end{bmatrix}$</p>
-<p>其中：</p>
-<ul>
-<li>$(x, y)$是原始图像中的坐标。</li>
-<li>$(x{\prime}, y{\prime})$ 是变换后图像的坐标。</li>
-<li>cv2.findHomography() 通过匹配点计算 H，并用 cv2.warpPerspective() 对图像进行变换。</li>
-</ul>
-<p><strong>特点</strong>：</p>
-<ul>
-<li><strong>适用于拼接、增强现实（AR）、目标跟踪</strong> 等任务。</li>
-<li>需要 <strong>至少 4 对匹配点</strong> 才能计算出 H 矩阵。</li>
-<li>如果匹配点不够准确，会导致变换失败。</li>
-</ul>
-<h2 id="3-实现过程"><a href="#3-实现过程" class="headerlink" title="3.实现过程"></a>3.实现过程</h2><h3 id="1-获取特征点"><a href="#1-获取特征点" class="headerlink" title="1.获取特征点"></a>1.获取特征点</h3><p>检测图像中的特征点并计算这些特征点的描述子，使用 <strong>SIFT</strong> 算法来实现</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_detect_describe</span>(<span class="params">image</span>):  </span><br><span class="line">    <span class="comment"># 创建SIFT特征检测器  </span></span><br><span class="line">    descriptor = cv2.SIFT_create()  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 寻找图像中的特征点，计算这些关键点的特征描述子，用于后续的匹配</span></span><br><span class="line">    <span class="comment"># kps 包含图像中所有关键点的信息（例如位置、尺度等）</span></span><br><span class="line">    <span class="comment"># features 每个关键点的描述子，它用于描述关键点的外观特征</span></span><br><span class="line">    (kps, features) = descriptor.detectAndCompute(image, <span class="literal">None</span>)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 关键点的坐标（x, y）</span></span><br><span class="line">    num_kps = np.float32([kp.pt <span class="keyword">for</span> kp <span class="keyword">in</span> kps])  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 关键点的坐标，关键点的描述子，关键点对象  </span></span><br><span class="line">    <span class="keyword">return</span> num_kps, features, kps  </span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h3 id="2-匹配特征点"><a href="#2-匹配特征点" class="headerlink" title="2.匹配特征点"></a>2.匹配特征点</h3><p>用于匹配两幅图像的特征点，使用暴力匹配器（BFMatcher）和 k 最近邻（KNN）算法来找到两幅图像之间的特征点对应关系</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_match_key_points</span>(<span class="params">kpsA, kpsB, featuresA, featuresB, ratio, reprojThresh</span>):  </span><br><span class="line">    <span class="comment"># 创建暴力匹配器，基于欧几里得距离来进行特征点匹配</span></span><br><span class="line">    matcher = cv2.BFMatcher()  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 为每个特征点找到两个最接近的匹配点（最近邻和次最近邻） </span></span><br><span class="line">    raw_matches = matcher.knnMatch(featuresA, featuresB, <span class="number">2</span>)  </span><br><span class="line">  </span><br><span class="line">    matches = []  </span><br><span class="line">    <span class="keyword">for</span> m <span class="keyword">in</span> raw_matches:  </span><br><span class="line">        <span class="comment"># 检查最近的匹配点与次近的匹配点的距离比是否满足ratio阈值</span></span><br><span class="line">        <span class="comment"># 如果是，则认为这两个特征点匹配成功</span></span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(m) == <span class="number">2</span> <span class="keyword">and</span> m[<span class="number">0</span>].distance &lt; m[<span class="number">1</span>].distance * ratio:  </span><br><span class="line">            <span class="comment"># 存储两个点在featuresA, featuresB中的索引值  </span></span><br><span class="line">            matches.append((m[<span class="number">0</span>].trainIdx, m[<span class="number">0</span>].queryIdx))  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 当筛选后的匹配对大于4时，计算视角变换矩阵  </span></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(matches) &gt; <span class="number">4</span>:  </span><br><span class="line">        <span class="comment"># 获取匹配对的点坐标  </span></span><br><span class="line">        pts_a = np.float32([kpsA[i] <span class="keyword">for</span> (_, i) <span class="keyword">in</span> matches])  </span><br><span class="line">        pts_b = np.float32([kpsB[i] <span class="keyword">for</span> (i, _) <span class="keyword">in</span> matches])  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 通过RANSAC筛选出更准确的匹配点对，减少误匹配的影响  </span></span><br><span class="line">        (H, status) = cv2.findHomography(pts_a, pts_b, cv2.RANSAC, reprojThresh) </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 返回结果  </span></span><br><span class="line">        <span class="keyword">return</span> matches, H, status  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 如果匹配对小于4时，返回None  </span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">None</span>  </span><br></pre></td></tr></table></figure>
-
-<h3 id="3-图像拼接"><a href="#3-图像拼接" class="headerlink" title="3.图像拼接"></a>3.图像拼接</h3><p>这里将两张图片横向拼接，并在匹配点之间绘制红色直线，帮助可视化匹配效果  </p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_draw_matches</span>(<span class="params">imageA, imageB, kpsA, kpsB, matches, status</span>):  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 初始化可视化图片，将A、B图左右连接到一起  </span></span><br><span class="line">    (hA, wA) = imageA.shape[:<span class="number">2</span>]  </span><br><span class="line">    (hB, wB) = imageB.shape[:<span class="number">2</span>]  </span><br><span class="line">    vis = np.zeros((<span class="built_in">max</span>(hA, hB), wA + wB, <span class="number">3</span>), dtype=<span class="string">&quot;uint8&quot;</span>)  </span><br><span class="line">    vis[<span class="number">0</span>:hA, <span class="number">0</span>:wA] = imageA  </span><br><span class="line">    vis[<span class="number">0</span>:hB, wA:] = imageB  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 联合遍历，画出匹配对  </span></span><br><span class="line">    <span class="keyword">for</span> ((trainIdx, queryIdx), s) <span class="keyword">in</span> <span class="built_in">zip</span>(matches, status):  </span><br><span class="line">        <span class="comment"># 当点对匹配成功时，画到可视化图上  </span></span><br><span class="line">        <span class="keyword">if</span> s == <span class="number">1</span>:  </span><br><span class="line">            pt_a = (<span class="built_in">int</span>(kpsA[queryIdx].pt[<span class="number">0</span>]), <span class="built_in">int</span>(kpsA[queryIdx].pt[<span class="number">1</span>]))  </span><br><span class="line">            pt_b = (<span class="built_in">int</span>(kpsB[trainIdx].pt[<span class="number">0</span>]) + wA, <span class="built_in">int</span>(kpsB[trainIdx].pt[<span class="number">1</span>]))</span><br><span class="line">            <span class="comment"># 在两幅图像之间的匹配特征点之间绘制红色线段，便于查看哪些点在两幅图像中是匹配的  </span></span><br><span class="line">            cv2.line(vis, pt_a, pt_b, (<span class="number">0</span>, <span class="number">0</span>, <span class="number">255</span>), <span class="number">1</span>)  </span><br><span class="line">    <span class="keyword">return</span> vis  </span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<h3 id="4-调用"><a href="#4-调用" class="headerlink" title="4.调用"></a>4.调用</h3><p>原图<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-38-47.jpg"><br>最终效果<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-32-12.jpg"></p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">stitch</span>(<span class="params">imageB, imageA, ratio=<span class="number">0.75</span>, reprojThresh=<span class="number">4.0</span></span>):  </span><br><span class="line">    <span class="comment"># 提取SIFT特征：对两张图像分别检测特征点和计算描述子  </span></span><br><span class="line">    (num_kpsA, featuresA, kpsA) = _detect_describe(imageA)  </span><br><span class="line">    (num_kpsB, featuresB, kpsB) = _detect_describe(imageB)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 找到匹配点对，并计算 单应性矩阵 H    </span></span><br><span class="line">    m = _match_key_points(num_kpsA, num_kpsB, featuresA, featuresB, ratio, reprojThresh)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 如果返回结果为空，没有匹配成功的特征点，退出算法  </span></span><br><span class="line">    <span class="keyword">if</span> m <span class="keyword">is</span> <span class="literal">None</span>:  </span><br><span class="line">        <span class="keyword">return</span> <span class="literal">None</span>  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># H是3x3视角变换矩阵  </span></span><br><span class="line">    (matches, H, status) = m  </span><br><span class="line">    <span class="comment"># 透视变换，使两张图像对齐</span></span><br><span class="line">    result = cv2.warpPerspective(imageA, H, (imageA.shape[<span class="number">1</span>] + imageB.shape[<span class="number">1</span>], imageA.shape[<span class="number">0</span>])) </span><br><span class="line">    utils.cv_show(<span class="string">&#x27;result imageA&#x27;</span>, result) <span class="comment"># 如下图</span></span><br><span class="line">    <span class="comment"># 将图片B传入result图片最左端，最终形成一张拼接后的大图</span></span><br><span class="line">    result[<span class="number">0</span>:imageB.shape[<span class="number">0</span>], <span class="number">0</span>:imageB.shape[<span class="number">1</span>]] = imageB  </span><br><span class="line">    utils.cv_show(<span class="string">&#x27;result imageB&#x27;</span>, result) <span class="comment"># 如下图</span></span><br><span class="line">    <span class="comment"># 生成匹配图片  </span></span><br><span class="line">    vis = _draw_matches(imageA, imageB, kpsA, kpsB, matches, status)  </span><br><span class="line">    utils.cv_show(<span class="string">&#x27;draw matches&#x27;</span>, vis)  <span class="comment"># 如下图</span></span><br><span class="line">    <span class="keyword">return</span> result</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-31-22.jpg"></p>
-<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-31-40.jpg"></p>
-<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-31-56.jpg"></p>
-<h2 id="4-总结"><a href="#4-总结" class="headerlink" title="4.总结"></a>4.总结</h2><p>关键步骤包括：</p>
-<ol>
-<li>检测并描述图像中的特征点    </li>
-<li>匹配特征点并计算单应性矩阵</li>
-<li>通过透视变换将图像对齐，并拼接成一张新图像</li>
-</ol>
-<h2 id="5-备注"><a href="#5-备注" class="headerlink" title="5.备注"></a>5.备注</h2><p>环境：</p>
-<ul>
-<li>mac: 15.2</li>
-<li>python: 3.12.4</li>
-<li>numpy: 1.26.4</li>
-<li>opencv-python: 4.11.0.86<br>资源和代码：<br>  <a href="https://github.com/keychankc/dl_code_for_blog/tree/main/007_image_stitching">https://github.com/keychankc/dl_code_for_blog/tree/main/007_image_stitching</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>深度学习</category>
-        <category>OpenCV</category>
-      </categories>
-      <tags>
-        <tag>图像处理</tag>
-        <tag>计算机视觉</tag>
-        <tag>图像识别</tag>
+        <tag>卷积神经网络</tag>
+        <tag>卷积层</tag>
       </tags>
   </entry>
   <entry>
     <title>基于循环神经网络的文本分类实践</title>
-    <url>/2025/03/14/rnn-classification-text/</url>
+    <url>/2025/03/14/005-rnn-classification-text/</url>
     <content><![CDATA[<h2 id="1-循环神经网络-RNN"><a href="#1-循环神经网络-RNN" class="headerlink" title="1.循环神经网络(RNN)"></a>1.循环神经网络(RNN)</h2><p>RNN有<strong>隐藏状态（hidden state）</strong>，可以保留和传递之前时刻的信息，也就是有记忆功能，从而可实现<strong>时间依赖性</strong>的数据处理，比较适用于处理序列数据（如时间序列、文本、语音等）。<br>通俗一点就像是人在读一句话：</p>
 <ul>
 <li>读到 “我” → 记住</li>
@@ -992,8 +689,8 @@
 <li>numpy: 1.26.4</li>
 <li>tensorBoard : 2.19.0</li>
 </ul>
-<p>数据集：<br>	<a href="https://github.com/keychankc/dl_code_for_blog/tree/main/rnn_classification_text/THUCNews/data">https://github.com/keychankc/dl_code_for_blog/tree/main/rnn_classification_text/THUCNews/data</a></p>
-<p>完整代码：<br>	<a href="https://github.com/keychankc/dl_code_for_blog/tree/main/rnn_classification_text">https://github.com/keychankc/dl_code_for_blog/tree/main/rnn_classification_text</a></p>
+<p>数据集：<br>	<a href="https://github.com/keychankc/dl_code_for_blog/tree/main/005_rnn_classification_text/THUCNews/data">https://github.com/keychankc/dl_code_for_blog/tree/main/005_rnn_classification_text/THUCNews/data</a></p>
+<p>完整代码：<br>	<a href="https://github.com/keychankc/dl_code_for_blog/tree/main/005_rnn_classification_text">https://github.com/keychankc/dl_code_for_blog/tree/main/005_rnn_classification_text</a></p>
 ]]></content>
       <categories>
         <category>深度学习</category>
@@ -1010,7 +707,7 @@
   </entry>
   <entry>
     <title>OpenCV之信用卡卡号识别</title>
-    <url>/2025/03/18/opencv-credit-card-ocr/</url>
+    <url>/2025/03/18/006-opencv-credit-card-ocr/</url>
     <content><![CDATA[<h2 id="1-OpenCV概述"><a href="#1-OpenCV概述" class="headerlink" title="1.OpenCV概述"></a>1.OpenCV概述</h2><p>OpenCV（Open Source Computer Vision Library）是一个开源的计算机视觉和图像处理库，主要用于 <strong>图像处理、视频分析、机器视觉、深度学习</strong> 等领域。它最初由 Intel 研发，现在由 <strong>OpenCV 组织</strong> 维护，并支持 C++、Python、Java 等多种语言。擅长领域有：</p>
 <ol>
 <li>图像处理<ul>
@@ -1118,6 +815,309 @@
         <tag>计算机视觉</tag>
         <tag>图像识别</tag>
         <tag>目标检测</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>OpenCV之全景图像拼接</title>
+    <url>/2025/03/24/007-opencv-image-stitching/</url>
+    <content><![CDATA[<h2 id="1-实现流程"><a href="#1-实现流程" class="headerlink" title="1.实现流程"></a>1.实现流程</h2><p>通过提取图像中的特征点并匹配这些特征点来找到图像间的对应关系，再通过透视变换（Homography）将两幅图像拼接成一幅完整的图像，大致流程：</p>
+<ol>
+<li>特征点检测与描述<ul>
+<li>使用 <strong>SIFT</strong> 算法检测两张图像中的关键点，并计算特征描述子（局部特征向量）</li>
+</ul>
+</li>
+<li>特征匹配<ul>
+<li>采用 <strong>KNN 近邻匹配</strong>（k&#x3D;2）找到两张图像间的最佳匹配点对</li>
+<li>使用 <strong>比值测试（ratio test）</strong> 过滤掉低质量的匹配点，减少误匹配</li>
+</ul>
+</li>
+<li>单应性矩阵计算<ul>
+<li>通过 <strong>RANSAC 算法</strong> 计算 <strong>单应性矩阵 (Homography, H)</strong>，剔除误匹配点</li>
+<li>单应性矩阵用于 <strong>透视变换</strong>，使一张图像对齐另一张图像</li>
+</ul>
+</li>
+<li>图像变换与拼接<ul>
+<li>利用 cv2.warpPerspective() <strong>对图像A进行透视变换</strong>，使其尽可能与图像B对齐</li>
+<li>将<strong>图像B放入最终结果中</strong>，合成拼接图像</li>
+</ul>
+</li>
+<li>可视化匹配结果<ul>
+<li>在两张图像上绘制匹配点连线，帮助观察特征匹配的效果</li>
+</ul>
+</li>
+</ol>
+<h2 id="2-相关算法"><a href="#2-相关算法" class="headerlink" title="2.相关算法"></a>2.相关算法</h2><h3 id="1-SIFT（尺度不变特征变换）"><a href="#1-SIFT（尺度不变特征变换）" class="headerlink" title="1.SIFT（尺度不变特征变换）"></a>1.SIFT（尺度不变特征变换）</h3><p>SIFT (<strong>Scale-Invariant Feature Transform</strong>) 是一种 <strong>关键点检测和描述算法</strong>，能够在 <strong>不同尺度、旋转、光照变化</strong> 下仍然保持稳定的特征匹配。</p>
+<span id="more"></span>
+<p><strong>主要步骤</strong>：</p>
+<ol>
+<li><strong>尺度空间构造</strong>：<ul>
+<li>采用 <strong>高斯模糊（Gaussian Blur）</strong> 生成不同尺度的图像（高斯金字塔）</li>
+<li>计算 <strong>DoG（Difference of Gaussian, 差分高斯）</strong> 以找到特征点</li>
+</ul>
+</li>
+<li><strong>关键点检测与精细定位</strong>：<ul>
+<li>通过 <strong>极值检测</strong> 在不同尺度下找到潜在特征点</li>
+<li>过滤掉低对比度点和边缘响应点，提高鲁棒性</li>
+</ul>
+</li>
+<li><strong>方向分配</strong>：<ul>
+<li>计算特征点周围的 <strong>梯度方向直方图</strong>，分配主要方向，使其具备<strong>旋转不变性</strong></li>
+</ul>
+</li>
+<li><strong>特征描述</strong>：<ul>
+<li>计算每个关键点周围的 <strong>梯度直方图</strong>，形成 <strong>128 维特征向量</strong>（局部描述子）</li>
+<li>这些特征向量用于匹配不同图像中的关键点</li>
+</ul>
+</li>
+</ol>
+<p><strong>特点</strong>：</p>
+<ul>
+<li><strong>尺度、旋转、光照不变性</strong>：可用于不同大小、旋转角度和亮度变化的图像匹配</li>
+<li><strong>抗噪性强</strong>：在复杂背景下仍能准确提取关键点</li>
+<li><strong>计算复杂度高</strong>：比其他方法（如 ORB）慢，但匹配效果更稳定</li>
+</ul>
+<h3 id="2-KNN-近邻匹配"><a href="#2-KNN-近邻匹配" class="headerlink" title="2.KNN 近邻匹配"></a>2.KNN 近邻匹配</h3><p>KNN (<strong>K-Nearest Neighbors</strong>) 是一种用于 <strong>特征点匹配</strong> 的方法，它基于<strong>欧几里得距离</strong>计算两个图像之间的相似特征点</p>
+<p><strong>工作原理</strong>：</p>
+<ol>
+<li><strong>计算欧几里得距离</strong>：<ul>
+<li>计算图像A中的每个特征点与图像B中所有特征点的<strong>欧几里得距离</strong>，找到最相似的 K 个点（通常 K&#x3D;2）</li>
+</ul>
+</li>
+<li><strong>比值测试（Ratio Test）</strong>：<ul>
+<li>计算最近邻 D1 和次近邻 D2 之间的距离比 D1&#x2F;D2</li>
+<li>如果 D1&#x2F;D2 &lt; 设定阈值（通常 0.75），则认为匹配有效，否则丢弃该匹配点</li>
+<li>这样可以过滤掉误匹配点，提高匹配精度</li>
+</ul>
+</li>
+</ol>
+<p><strong>特点</strong>：</p>
+<ul>
+<li><strong>简单高效</strong>：直接基于欧几里得距离计算匹配点</li>
+<li><strong>容易受噪声干扰</strong>：误匹配点较多，因此需要 <strong>比值测试</strong> 或 <strong>RANSAC</strong> 进行筛选</li>
+</ul>
+<h3 id="3-RANSAC（随机抽样一致性算法）"><a href="#3-RANSAC（随机抽样一致性算法）" class="headerlink" title="3.RANSAC（随机抽样一致性算法）"></a>3.RANSAC（随机抽样一致性算法）</h3><p>RANSAC (<strong>RANdom SAmple Consensus, 随机抽样一致算法</strong>) 是一种 <strong>鲁棒的误匹配去除方法</strong>，用于筛选正确的匹配点，提高拼接精度</p>
+<p><strong>工作原理</strong>：</p>
+<ol>
+<li><strong>随机采样</strong>：<ul>
+<li>在匹配点集中 <strong>随机选取 4 对匹配点</strong>，计算一个变换模型（如单应性矩阵 H）。</li>
+</ul>
+</li>
+<li><strong>计算内点数</strong>：<ul>
+<li>通过该变换模型，将所有匹配点进行投影，并计算它们与目标点的误差。</li>
+<li>误差小于阈值（如 4 像素）的点称为 <strong>内点（Inliers）</strong>。</li>
+</ul>
+</li>
+<li><strong>重复迭代</strong>：<ul>
+<li>反复进行 <strong>随机抽样+计算内点数</strong> 的过程，找到拥有最多内点的模型。</li>
+<li>最终使用这些内点 <strong>重新计算一个更精确的变换矩阵</strong>。</li>
+</ul>
+</li>
+</ol>
+<p><strong>特点</strong>：</p>
+<ul>
+<li><strong>能够过滤掉错误匹配点</strong>，提高拼接的精度。</li>
+<li><strong>适用于特征匹配、物体识别、立体视觉</strong>等任务。</li>
+<li><strong>计算复杂度较高</strong>，但效果很好。</li>
+</ul>
+<h3 id="4-透视变换（Homography）"><a href="#4-透视变换（Homography）" class="headerlink" title="4.透视变换（Homography）"></a>4.透视变换（Homography）</h3><p>透视变换 (<strong>Homography Transformation</strong>) 主要用于<strong>将一张图像变换到与另一张图像对齐的视角</strong>，从而实现图像拼接。</p>
+<p><strong>数学模型</strong>：<br>透视变换矩阵 H 是一个 <strong>3×3 矩阵</strong>，用于描述两张图像之间的映射关系：</p>
+<p>$\begin{bmatrix} x{\prime} \ y{\prime} \ w{\prime} \end{bmatrix} &#x3D; H \cdot \begin{bmatrix} x \ y \ 1 \end{bmatrix}$</p>
+<p>其中：</p>
+<ul>
+<li>$(x, y)$是原始图像中的坐标。</li>
+<li>$(x{\prime}, y{\prime})$ 是变换后图像的坐标。</li>
+<li>cv2.findHomography() 通过匹配点计算 H，并用 cv2.warpPerspective() 对图像进行变换。</li>
+</ul>
+<p><strong>特点</strong>：</p>
+<ul>
+<li><strong>适用于拼接、增强现实（AR）、目标跟踪</strong> 等任务。</li>
+<li>需要 <strong>至少 4 对匹配点</strong> 才能计算出 H 矩阵。</li>
+<li>如果匹配点不够准确，会导致变换失败。</li>
+</ul>
+<h2 id="3-实现过程"><a href="#3-实现过程" class="headerlink" title="3.实现过程"></a>3.实现过程</h2><h3 id="1-获取特征点"><a href="#1-获取特征点" class="headerlink" title="1.获取特征点"></a>1.获取特征点</h3><p>检测图像中的特征点并计算这些特征点的描述子，使用 <strong>SIFT</strong> 算法来实现</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_detect_describe</span>(<span class="params">image</span>):  </span><br><span class="line">    <span class="comment"># 创建SIFT特征检测器  </span></span><br><span class="line">    descriptor = cv2.SIFT_create()  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 寻找图像中的特征点，计算这些关键点的特征描述子，用于后续的匹配</span></span><br><span class="line">    <span class="comment"># kps 包含图像中所有关键点的信息（例如位置、尺度等）</span></span><br><span class="line">    <span class="comment"># features 每个关键点的描述子，它用于描述关键点的外观特征</span></span><br><span class="line">    (kps, features) = descriptor.detectAndCompute(image, <span class="literal">None</span>)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 关键点的坐标（x, y）</span></span><br><span class="line">    num_kps = np.float32([kp.pt <span class="keyword">for</span> kp <span class="keyword">in</span> kps])  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 关键点的坐标，关键点的描述子，关键点对象  </span></span><br><span class="line">    <span class="keyword">return</span> num_kps, features, kps  </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-匹配特征点"><a href="#2-匹配特征点" class="headerlink" title="2.匹配特征点"></a>2.匹配特征点</h3><p>用于匹配两幅图像的特征点，使用暴力匹配器（BFMatcher）和 k 最近邻（KNN）算法来找到两幅图像之间的特征点对应关系</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_match_key_points</span>(<span class="params">kpsA, kpsB, featuresA, featuresB, ratio, reprojThresh</span>):  </span><br><span class="line">    <span class="comment"># 创建暴力匹配器，基于欧几里得距离来进行特征点匹配</span></span><br><span class="line">    matcher = cv2.BFMatcher()  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 为每个特征点找到两个最接近的匹配点（最近邻和次最近邻） </span></span><br><span class="line">    raw_matches = matcher.knnMatch(featuresA, featuresB, <span class="number">2</span>)  </span><br><span class="line">  </span><br><span class="line">    matches = []  </span><br><span class="line">    <span class="keyword">for</span> m <span class="keyword">in</span> raw_matches:  </span><br><span class="line">        <span class="comment"># 检查最近的匹配点与次近的匹配点的距离比是否满足ratio阈值</span></span><br><span class="line">        <span class="comment"># 如果是，则认为这两个特征点匹配成功</span></span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(m) == <span class="number">2</span> <span class="keyword">and</span> m[<span class="number">0</span>].distance &lt; m[<span class="number">1</span>].distance * ratio:  </span><br><span class="line">            <span class="comment"># 存储两个点在featuresA, featuresB中的索引值  </span></span><br><span class="line">            matches.append((m[<span class="number">0</span>].trainIdx, m[<span class="number">0</span>].queryIdx))  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 当筛选后的匹配对大于4时，计算视角变换矩阵  </span></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(matches) &gt; <span class="number">4</span>:  </span><br><span class="line">        <span class="comment"># 获取匹配对的点坐标  </span></span><br><span class="line">        pts_a = np.float32([kpsA[i] <span class="keyword">for</span> (_, i) <span class="keyword">in</span> matches])  </span><br><span class="line">        pts_b = np.float32([kpsB[i] <span class="keyword">for</span> (i, _) <span class="keyword">in</span> matches])  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 通过RANSAC筛选出更准确的匹配点对，减少误匹配的影响  </span></span><br><span class="line">        (H, status) = cv2.findHomography(pts_a, pts_b, cv2.RANSAC, reprojThresh) </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 返回结果  </span></span><br><span class="line">        <span class="keyword">return</span> matches, H, status  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 如果匹配对小于4时，返回None  </span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">None</span>  </span><br></pre></td></tr></table></figure>
+
+<h3 id="3-图像拼接"><a href="#3-图像拼接" class="headerlink" title="3.图像拼接"></a>3.图像拼接</h3><p>这里将两张图片横向拼接，并在匹配点之间绘制红色直线，帮助可视化匹配效果  </p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_draw_matches</span>(<span class="params">imageA, imageB, kpsA, kpsB, matches, status</span>):  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 初始化可视化图片，将A、B图左右连接到一起  </span></span><br><span class="line">    (hA, wA) = imageA.shape[:<span class="number">2</span>]  </span><br><span class="line">    (hB, wB) = imageB.shape[:<span class="number">2</span>]  </span><br><span class="line">    vis = np.zeros((<span class="built_in">max</span>(hA, hB), wA + wB, <span class="number">3</span>), dtype=<span class="string">&quot;uint8&quot;</span>)  </span><br><span class="line">    vis[<span class="number">0</span>:hA, <span class="number">0</span>:wA] = imageA  </span><br><span class="line">    vis[<span class="number">0</span>:hB, wA:] = imageB  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 联合遍历，画出匹配对  </span></span><br><span class="line">    <span class="keyword">for</span> ((trainIdx, queryIdx), s) <span class="keyword">in</span> <span class="built_in">zip</span>(matches, status):  </span><br><span class="line">        <span class="comment"># 当点对匹配成功时，画到可视化图上  </span></span><br><span class="line">        <span class="keyword">if</span> s == <span class="number">1</span>:  </span><br><span class="line">            pt_a = (<span class="built_in">int</span>(kpsA[queryIdx].pt[<span class="number">0</span>]), <span class="built_in">int</span>(kpsA[queryIdx].pt[<span class="number">1</span>]))  </span><br><span class="line">            pt_b = (<span class="built_in">int</span>(kpsB[trainIdx].pt[<span class="number">0</span>]) + wA, <span class="built_in">int</span>(kpsB[trainIdx].pt[<span class="number">1</span>]))</span><br><span class="line">            <span class="comment"># 在两幅图像之间的匹配特征点之间绘制红色线段，便于查看哪些点在两幅图像中是匹配的  </span></span><br><span class="line">            cv2.line(vis, pt_a, pt_b, (<span class="number">0</span>, <span class="number">0</span>, <span class="number">255</span>), <span class="number">1</span>)  </span><br><span class="line">    <span class="keyword">return</span> vis  </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="4-调用"><a href="#4-调用" class="headerlink" title="4.调用"></a>4.调用</h3><p>原图<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-38-47.jpg"><br>最终效果<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-32-12.jpg"></p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">stitch</span>(<span class="params">imageB, imageA, ratio=<span class="number">0.75</span>, reprojThresh=<span class="number">4.0</span></span>):  </span><br><span class="line">    <span class="comment"># 提取SIFT特征：对两张图像分别检测特征点和计算描述子  </span></span><br><span class="line">    (num_kpsA, featuresA, kpsA) = _detect_describe(imageA)  </span><br><span class="line">    (num_kpsB, featuresB, kpsB) = _detect_describe(imageB)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 找到匹配点对，并计算 单应性矩阵 H    </span></span><br><span class="line">    m = _match_key_points(num_kpsA, num_kpsB, featuresA, featuresB, ratio, reprojThresh)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 如果返回结果为空，没有匹配成功的特征点，退出算法  </span></span><br><span class="line">    <span class="keyword">if</span> m <span class="keyword">is</span> <span class="literal">None</span>:  </span><br><span class="line">        <span class="keyword">return</span> <span class="literal">None</span>  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># H是3x3视角变换矩阵  </span></span><br><span class="line">    (matches, H, status) = m  </span><br><span class="line">    <span class="comment"># 透视变换，使两张图像对齐</span></span><br><span class="line">    result = cv2.warpPerspective(imageA, H, (imageA.shape[<span class="number">1</span>] + imageB.shape[<span class="number">1</span>], imageA.shape[<span class="number">0</span>])) </span><br><span class="line">    utils.cv_show(<span class="string">&#x27;result imageA&#x27;</span>, result) <span class="comment"># 如下图</span></span><br><span class="line">    <span class="comment"># 将图片B传入result图片最左端，最终形成一张拼接后的大图</span></span><br><span class="line">    result[<span class="number">0</span>:imageB.shape[<span class="number">0</span>], <span class="number">0</span>:imageB.shape[<span class="number">1</span>]] = imageB  </span><br><span class="line">    utils.cv_show(<span class="string">&#x27;result imageB&#x27;</span>, result) <span class="comment"># 如下图</span></span><br><span class="line">    <span class="comment"># 生成匹配图片  </span></span><br><span class="line">    vis = _draw_matches(imageA, imageB, kpsA, kpsB, matches, status)  </span><br><span class="line">    utils.cv_show(<span class="string">&#x27;draw matches&#x27;</span>, vis)  <span class="comment"># 如下图</span></span><br><span class="line">    <span class="keyword">return</span> result</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-31-22.jpg"></p>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-31-40.jpg"></p>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-31-56.jpg"></p>
+<h2 id="4-总结"><a href="#4-总结" class="headerlink" title="4.总结"></a>4.总结</h2><p>关键步骤包括：</p>
+<ol>
+<li>检测并描述图像中的特征点    </li>
+<li>匹配特征点并计算单应性矩阵</li>
+<li>通过透视变换将图像对齐，并拼接成一张新图像</li>
+</ol>
+<h2 id="5-备注"><a href="#5-备注" class="headerlink" title="5.备注"></a>5.备注</h2><p>环境：</p>
+<ul>
+<li>mac: 15.2</li>
+<li>python: 3.12.4</li>
+<li>numpy: 1.26.4</li>
+<li>opencv-python: 4.11.0.86<br>资源和代码：<br>  <a href="https://github.com/keychankc/dl_code_for_blog/tree/main/007_opencv_image_stitching">https://github.com/keychankc/dl_code_for_blog/tree/main/007_opencv_image_stitching</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>深度学习</category>
+        <category>OpenCV</category>
+      </categories>
+      <tags>
+        <tag>图像处理</tag>
+        <tag>计算机视觉</tag>
+        <tag>图像识别</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>基于迁移学习(ResNet-18)的花卉识别</title>
+    <url>/2025/03/07/004-cnn-identify-flowers/</url>
+    <content><![CDATA[<h2 id="1-迁移学习"><a href="#1-迁移学习" class="headerlink" title="1.迁移学习"></a>1.迁移学习</h2><p>用<strong>CNN</strong>做图像识别是不是每次都意味着要自己定义模型，确定好 <strong>卷积层</strong>、<strong>池化层</strong> 和 <strong>全连接层</strong>，然后从0开始训练？不同类型的图像数据集会不会有通用的特征？如果训练样本比较少怎么办？（例如本次花卉识别训练图片只有六千多张）是不是可以有那种已经训练好的模型，拿过来稍微改改就可以用的？</p>
+<p><strong>迁移学习（Transfer Learning）</strong> 就是这种可以将已有模型的知识迁移到新任务的学习方法，有以下特点</p>
+<ul>
+<li>适合数据量比较少的任务，有预训练知识无需从头训练深度神经网络</li>
+<li>更快的训练速度和更少的资源消耗</li>
+<li>避免过拟合效果更好，预训练的模型已经在大数据集上学到了<strong>通用特征</strong>（如边缘、形状、颜色）</li>
+</ul>
+<p>迁移学习常见的使用方式：</p>
+<ol>
+<li>冻结预训练模型的大部分参数，仅训练全连接层（FC 层）,优点是训练快，适合小数据集，缺点是预训练模型的特征可能不完全适用于新任务</li>
+<li>解冻部分或全部预训练层，使其适应新任务，优点是特征提取灵活，能学到更多任务相关的特征，缺点是训练时间长，需要手动调节学习率</li>
+</ol>
+<span id="more"></span>
+
+<h2 id="2-数据处理"><a href="#2-数据处理" class="headerlink" title="2.数据处理"></a>2.数据处理</h2><h3 id="1-数据结构"><a href="#1-数据结构" class="headerlink" title="1.数据结构"></a>1.数据结构</h3><p>训练集和验证集都是图片，每一个类型的花放在一个文件夹中，文件夹的名称可以通过<code>cat_to_name.json</code>文件匹配对应的花名称。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250306163312.png" alt="训练集和验证集结构" width="300"></p>
+<h3 id="2-数据加载与预处理"><a href="#2-数据加载与预处理" class="headerlink" title="2.数据加载与预处理"></a>2.数据加载与预处理</h3><p>由于本次任务训练集数据比较少，为了提高模型的泛化能力和训练效果，需要在做数据预处理的时候做下增强操作。<br>预处理：</p>
+<ul>
+<li><strong>transforms.Resize([96, 96])</strong>：将图片缩放到 96x96 的大小，统一输入尺寸，保证模型输入一致</li>
+<li><strong>transforms.ToTensor()</strong>：将图像从 PIL 图像或 NumPy 数组转换为 PyTorch 的 Tensor 格式<br>增强：</li>
+<li><strong>transforms.RandomRotation(45)</strong>：对图像进行随机旋转，角度范围是 -45 到 45 度之间。目的是增加模型对旋转变化的鲁棒性</li>
+<li><strong>transforms.CenterCrop(64)</strong>：从图像中心裁剪出 64x64 的区域。减少输入图像的多余部分，增强模型对图像的中心部分的学习</li>
+<li><strong>transforms.RandomHorizontalFlip(p&#x3D;0.5)</strong>：有 50% 的概率对图像进行水平翻转，能提高模型对图像左右方向不对称的适应能力</li>
+<li><strong>transforms.RandomVerticalFlip(p&#x3D;0.5)</strong>：有 50% 的概率对图像进行垂直翻转，进一步增强模型对图像的多样化学习</li>
+<li><strong>transforms.ColorJitter(brightness&#x3D;0.2, contrast&#x3D;0.1, saturation&#x3D;0.1, hue&#x3D;0.1)</strong>：对图像的亮度、对比度、饱和度和色调进行随机调整，增强模型对不同光照条件和颜色变化的鲁棒性</li>
+<li><strong>transforms.RandomGrayscale(p&#x3D;0.025)</strong>：有 2.5% 的概率将图像转为灰度图，这样模型能学到更多的图像特征，而不仅仅依赖颜色信息</li>
+<li><strong>transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])</strong>：标准化图像数据，使用 ImageNet 数据集的均值和标准差。标准化可以加速模型训练并提高收敛速度</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 数据预处理和增强</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">data_transforms</span>():  </span><br><span class="line">    <span class="keyword">return</span> &#123;  </span><br><span class="line">        <span class="string">&#x27;train&#x27;</span>:  </span><br><span class="line">            transforms.Compose([  </span><br><span class="line">                transforms.Resize([<span class="number">96</span>, <span class="number">96</span>]),  <span class="comment"># 转化成96*96大小的图像数据  </span></span><br><span class="line">                transforms.RandomRotation(<span class="number">45</span>),  <span class="comment"># 数据增强，-45到45度之间随机旋转  </span></span><br><span class="line">                transforms.CenterCrop(<span class="number">64</span>),  <span class="comment"># 数据增强，从中心开始裁剪为64*64  </span></span><br><span class="line">                transforms.RandomHorizontalFlip(p=<span class="number">0.5</span>),  <span class="comment"># 数据增强，选择一个概率概率随机水平翻转  </span></span><br><span class="line">                transforms.RandomVerticalFlip(p=<span class="number">0.5</span>),  <span class="comment"># 数据增强，选择一个概率概率随机水平翻转  </span></span><br><span class="line">                <span class="comment"># 数据增强，亮度，对比度，饱和度，色相调整  </span></span><br><span class="line">                transforms.ColorJitter(brightness=<span class="number">0.2</span>, contrast=<span class="number">0.1</span>, saturation=<span class="number">0.1</span>, hue=<span class="number">0.1</span>),  </span><br><span class="line">                transforms.RandomGrayscale(p=<span class="number">0.025</span>),  <span class="comment"># 数据增强，灰度调整  </span></span><br><span class="line">                transforms.ToTensor(),  <span class="comment"># 转化为tensor结构  </span></span><br><span class="line">                <span class="comment"># ImageNet提供的均值，标准差  </span></span><br><span class="line">                transforms.Normalize([<span class="number">0.485</span>, <span class="number">0.456</span>, <span class="number">0.406</span>], [<span class="number">0.229</span>, <span class="number">0.224</span>, <span class="number">0.225</span>])  </span><br><span class="line">            ]),  </span><br><span class="line">        <span class="string">&#x27;valid&#x27;</span>:  </span><br><span class="line">            transforms.Compose([  </span><br><span class="line">                transforms.Resize([<span class="number">64</span>, <span class="number">64</span>]),  </span><br><span class="line">                transforms.ToTensor(),  </span><br><span class="line">                <span class="comment"># ImageNet提供的均值，标准差  </span></span><br><span class="line">                transforms.Normalize([<span class="number">0.485</span>, <span class="number">0.456</span>, <span class="number">0.406</span>], [<span class="number">0.229</span>, <span class="number">0.224</span>, <span class="number">0.225</span>])  </span><br><span class="line">            ]),  </span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 数据加载</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">load_data_loader</span>():  </span><br><span class="line">    batch_size = <span class="number">128</span>  </span><br><span class="line">    image_datasets = &#123;x: datasets.ImageFolder(os.path.join(Path(<span class="string">&quot;./data/&quot;</span>), x), data_transforms()[x]) <span class="keyword">for</span> x <span class="keyword">in</span>  </span><br><span class="line">                      [<span class="string">&#x27;train&#x27;</span>, <span class="string">&#x27;valid&#x27;</span>]&#125;  </span><br><span class="line">    dataloaders = &#123;x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size, shuffle=<span class="literal">True</span>) <span class="keyword">for</span> x <span class="keyword">in</span>  </span><br><span class="line">                   [<span class="string">&#x27;train&#x27;</span>, <span class="string">&#x27;valid&#x27;</span>]&#125;  </span><br><span class="line">    <span class="keyword">return</span> dataloaders[<span class="string">&#x27;train&#x27;</span>], dataloaders[<span class="string">&#x27;valid&#x27;</span>]</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 训练数据 验证数据  </span></span><br><span class="line">train_dl, valid_dl = load_data_loader()</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-绘制部分预处理数据"><a href="#3-绘制部分预处理数据" class="headerlink" title="3.绘制部分预处理数据"></a>3.绘制部分预处理数据</h3><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 反标准化（恢复原始图像）  </span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">denormalize</span>(<span class="params">image</span>):  </span><br><span class="line">    mean = np.array([<span class="number">0.485</span>, <span class="number">0.456</span>, <span class="number">0.406</span>])  </span><br><span class="line">    std = np.array([<span class="number">0.229</span>, <span class="number">0.224</span>, <span class="number">0.225</span>])  </span><br><span class="line">    image = image.numpy().transpose((<span class="number">1</span>, <span class="number">2</span>, <span class="number">0</span>))  <span class="comment"># 转换为 HWC 格式  </span></span><br><span class="line">    image = std * image + mean  <span class="comment"># 反标准化  </span></span><br><span class="line">    image = np.clip(image, <span class="number">0</span>, <span class="number">1</span>)  <span class="comment"># 限制在 [0,1] 之间  </span></span><br><span class="line">    <span class="keyword">return</span> image</span><br><span class="line"></span><br><span class="line"><span class="comment"># 绘制部分预处理后的数据</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">draw_dl_8img</span>(<span class="params">data_loader</span>):  </span><br><span class="line">    images, labels = <span class="built_in">next</span>(<span class="built_in">iter</span>(data_loader))  </span><br><span class="line">    fig, axes = plt.subplots(<span class="number">2</span>, <span class="number">4</span>, figsize=(<span class="number">12</span>, <span class="number">6</span>))  <span class="comment"># 创建 2x4 的子图网格  </span></span><br><span class="line">    axes = axes.flatten()  </span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">8</span>):  </span><br><span class="line">        img = denormalize(images[i])  <span class="comment"># 反标准化  </span></span><br><span class="line">        axes[i].imshow(img)  <span class="comment"># 显示图片  </span></span><br><span class="line">        axes[i].axis(<span class="string">&quot;off&quot;</span>)  <span class="comment"># 关闭坐标轴  </span></span><br><span class="line">        axes[i].set_title(<span class="string">f&quot;Label: <span class="subst">&#123;labels[i].item()&#125;</span>&quot;</span>)  <span class="comment"># 显示标签  </span></span><br><span class="line">    plt.tight_layout()  </span><br><span class="line">    plt.show()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">draw_dl_8img(train_dl)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250306171732.png"></p>
+<h2 id="3-模型配置"><a href="#3-模型配置" class="headerlink" title="3.模型配置"></a>3.模型配置</h2><h3 id="1-ResNet-18"><a href="#1-ResNet-18" class="headerlink" title="1.ResNet-18"></a>1.ResNet-18</h3><p><strong>ResNet-18</strong>可以用在别的任务上是因为它在 <strong>ImageNet</strong> 这样的超大规模数据集上训练过，学习到了通用的特征。<br>在深度学习模型训练中前几层通常学习 <strong>通用的低级特征</strong>（比如边缘、纹理、形状等），而后几层学习 <strong>高级的特定特征</strong>（比如猫的耳朵、人脸的结构）。前几层的特征对不同任务是通用的，因此可以在其他数据集上直接使用，只需调整最后几层（或者不调整）就能适应新的任务。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">BasicBlock</span>(nn.Module):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;ResNet 的基本残差块（适用于 ResNet-18 和 ResNet-34）&quot;&quot;&quot;</span></span><br><span class="line">    expansion = <span class="number">1</span>  <span class="comment"># 该块不会改变通道数</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, in_channels, out_channels, stride=<span class="number">1</span>, downsample=<span class="literal">None</span></span>):</span><br><span class="line">        <span class="built_in">super</span>(BasicBlock, <span class="variable language_">self</span>).__init__()</span><br><span class="line">        <span class="variable language_">self</span>.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=<span class="number">3</span>, stride=stride, padding=<span class="number">1</span>, bias=<span class="literal">False</span>)</span><br><span class="line">        <span class="variable language_">self</span>.bn1 = nn.BatchNorm2d(out_channels)</span><br><span class="line">        <span class="variable language_">self</span>.relu = nn.ReLU(inplace=<span class="literal">True</span>)</span><br><span class="line">        <span class="variable language_">self</span>.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=<span class="number">3</span>, stride=<span class="number">1</span>, padding=<span class="number">1</span>, bias=<span class="literal">False</span>)</span><br><span class="line">        <span class="variable language_">self</span>.bn2 = nn.BatchNorm2d(out_channels)</span><br><span class="line">        <span class="variable language_">self</span>.downsample = downsample  <span class="comment"># 是否使用 1×1 卷积调整通道数和尺寸</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        identity = x</span><br><span class="line">        <span class="keyword">if</span> <span class="variable language_">self</span>.downsample <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">            identity = <span class="variable language_">self</span>.downsample(x)</span><br><span class="line">        out = <span class="variable language_">self</span>.conv1(x)</span><br><span class="line">        out = <span class="variable language_">self</span>.bn1(out)</span><br><span class="line">        out = <span class="variable language_">self</span>.relu(out)</span><br><span class="line">        out = <span class="variable language_">self</span>.conv2(out)</span><br><span class="line">        out = <span class="variable language_">self</span>.bn2(out)</span><br><span class="line">        out += identity  <span class="comment"># 残差连接</span></span><br><span class="line">        out = <span class="variable language_">self</span>.relu(out)</span><br><span class="line">        <span class="keyword">return</span> out</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ResNet</span>(nn.Module):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;ResNet-18 模型&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, num_classes=<span class="number">1000</span></span>):</span><br><span class="line">        <span class="built_in">super</span>(ResNet, <span class="variable language_">self</span>).__init__()</span><br><span class="line">        <span class="variable language_">self</span>.conv1 = nn.Conv2d(<span class="number">3</span>, <span class="number">64</span>, kernel_size=<span class="number">7</span>, stride=<span class="number">2</span>, padding=<span class="number">3</span>, bias=<span class="literal">False</span>)</span><br><span class="line">        <span class="variable language_">self</span>.bn1 = nn.BatchNorm2d(<span class="number">64</span>)</span><br><span class="line">        <span class="variable language_">self</span>.relu = nn.ReLU(inplace=<span class="literal">True</span>)</span><br><span class="line">        <span class="variable language_">self</span>.maxpool = nn.MaxPool2d(kernel_size=<span class="number">3</span>, stride=<span class="number">2</span>, padding=<span class="number">1</span>)</span><br><span class="line">        <span class="comment"># ResNet 的四个层，每个包含 2 个 BasicBlock</span></span><br><span class="line">        <span class="variable language_">self</span>.layer1 = <span class="variable language_">self</span>._make_layer(<span class="number">64</span>, <span class="number">64</span>, <span class="number">2</span>, stride=<span class="number">1</span>)</span><br><span class="line">        <span class="variable language_">self</span>.layer2 = <span class="variable language_">self</span>._make_layer(<span class="number">64</span>, <span class="number">128</span>, <span class="number">2</span>, stride=<span class="number">2</span>)</span><br><span class="line">        <span class="variable language_">self</span>.layer3 = <span class="variable language_">self</span>._make_layer(<span class="number">128</span>, <span class="number">256</span>, <span class="number">2</span>, stride=<span class="number">2</span>)</span><br><span class="line">        <span class="variable language_">self</span>.layer4 = <span class="variable language_">self</span>._make_layer(<span class="number">256</span>, <span class="number">512</span>, <span class="number">2</span>, stride=<span class="number">2</span>)</span><br><span class="line">        <span class="variable language_">self</span>.avgpool = nn.AdaptiveAvgPool2d((<span class="number">1</span>, <span class="number">1</span>))</span><br><span class="line">        <span class="variable language_">self</span>.fc = nn.Linear(<span class="number">512</span>, num_classes)  <span class="comment"># 最终的全连接层</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">_make_layer</span>(<span class="params">self, in_channels, out_channels, blocks, stride</span>):</span><br><span class="line"></span><br><span class="line">        <span class="string">&quot;&quot;&quot;构建一个 ResNet 层&quot;&quot;&quot;</span></span><br><span class="line">        downsample = <span class="literal">None</span></span><br><span class="line">        <span class="keyword">if</span> stride != <span class="number">1</span> <span class="keyword">or</span> in_channels != out_channels:</span><br><span class="line">            downsample = nn.Sequential(</span><br><span class="line">                nn.Conv2d(in_channels, out_channels, kernel_size=<span class="number">1</span>, stride=stride, bias=<span class="literal">False</span>),</span><br><span class="line">                nn.BatchNorm2d(out_channels),</span><br><span class="line">            )</span><br><span class="line">        layers = []</span><br><span class="line">        layers.append(BasicBlock(in_channels, out_channels, stride, downsample))</span><br><span class="line">        <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, blocks):</span><br><span class="line">            layers.append(BasicBlock(out_channels, out_channels))</span><br><span class="line">        <span class="keyword">return</span> nn.Sequential(*layers)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        x = <span class="variable language_">self</span>.conv1(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.bn1(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.relu(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.maxpool(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.layer1(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.layer2(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.layer3(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.layer4(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.avgpool(x)</span><br><span class="line">        x = torch.flatten(x, <span class="number">1</span>)</span><br><span class="line">        x = <span class="variable language_">self</span>.fc(x)</span><br><span class="line">        <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
+<p>上面是ResNet-18 模型的结构，了解即可。因为ResNet-18 已经被 <strong>PyTorch 的 torchvision.models</strong> 模块包含并预定义了，我们无需手动定义整个模型结构，可直接使用它。</p>
+<h3 id="2-自定义ResNet-18"><a href="#2-自定义ResNet-18" class="headerlink" title="2.自定义ResNet-18"></a>2.自定义ResNet-18</h3><p>初始化一个预训练的 ResNet-18 模型，并修改它用于新的分类任务</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">init_model</span>(<span class="params">num_classes</span>):  </span><br><span class="line">    <span class="comment"># torch自带的18层训练好的模型  </span></span><br><span class="line">    model_ft = models.resnet18(weights=<span class="string">&quot;DEFAULT&quot;</span>)  </span><br><span class="line">    <span class="keyword">for</span> param <span class="keyword">in</span> model_ft.parameters():  </span><br><span class="line">        param.requires_grad = <span class="literal">False</span>  <span class="comment"># 冻结参数，使其在训练过程中 不会被优化  </span></span><br><span class="line">    model_ft.fc = nn.Linear(model_ft.fc.in_features, num_classes)  <span class="comment"># 替换ResNet18的最后全连接层  </span></span><br><span class="line">    model_ft.to(get_device())  <span class="comment"># 使用GPU or CPU训练</span></span><br><span class="line">    <span class="keyword">return</span> model_ft</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>models.resnet18(weights=&quot;DEFAULT&quot;</code>：加载 ResNet-18 预训练模型</li>
+<li><code>param.requires_grad = False</code>: 冻结 ResNet-18 的所有层，防止其参数被训练</li>
+<li><code>nn.Linear(model_ft.fc.in_features, num_classes)</code>：修改 ResNet 的最后一层，让它适应新的分类任务，因为当前训练集是102分类，<code>num_classes</code>为102，表示最后全连接层输出102个类别</li>
+<li><code>model_ft.to(get_device())</code>:让模型运行在 GPU 或 CPU上</li>
+</ul>
+<p>经过这样自定义后， ResNet-18模型只会训练最后的全连接层</p>
+<h3 id="3-优化器"><a href="#3-优化器" class="headerlink" title="3.优化器"></a>3.优化器</h3><p>优化器还是使用<code>Adam</code></p>
+<blockquote>
+<p><strong>Adam</strong> 是一种常用的优化算法，全名为 <strong>Adaptive Moment Estimation</strong>，它结合了 <strong>Momentum</strong> 和 <strong>RMSprop</strong> 的优点，能够自动调整学习率来提高训练效果，Adam 优化器会通过计算一阶矩（梯度的均值）和二阶矩（梯度的平方均值）来动态调整每个参数的学习率，从而提高训练的效率和稳定性。  </p>
+</blockquote>
+<p>适用范围：一种自适应优化算法，非常适用于大多数任务，尤其是当模型参数多，训练过程复杂的时候。</p>
+<p>在定义<code>Adam</code>优化器的时候需要注意，只有未冻结的参数才需要训练，冻结的参数不会被训练优化</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">get_optimizer</span>(<span class="params">_model_resnet</span>):  </span><br><span class="line">    params_to_update = []  </span><br><span class="line">    <span class="keyword">for</span> name, param <span class="keyword">in</span> _model_resnet.named_parameters():  </span><br><span class="line">        <span class="keyword">if</span> param.requires_grad:  </span><br><span class="line">            params_to_update.append(param)  </span><br><span class="line">    <span class="keyword">return</span> optim.Adam(params_to_update, lr=<span class="number">1e-2</span>) <span class="comment"># 初始学习率 lr=0.01</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-学习率"><a href="#4-学习率" class="headerlink" title="4.学习率"></a>4.学习率</h3><p>在训练过程中，随着 epoch 增加，模型可能会 <strong>收敛变慢</strong>，也就是训练准确度会提升，如果还是保持原有的 <strong>步长(step_size)</strong> 往往会使训练效果下降，为了提高模型训练精度需要后期小步调整， Loss 下降变慢时，自动降低学习率。<br>例如，前 10 轮学习率 0.01，第 10 轮后变 0.001，第20轮后变0.0001，依次类推</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">scheduler = optim.lr_scheduler.StepLR(optimizer_ft, step_size=<span class="number">10</span>, gamma=<span class="number">0.1</span>)</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>step_size=10</code>：每 10 个epoch让学习率衰减一次</li>
+<li><code>gamma=0.1</code>：每次衰减时，学习率乘以0.1（缩小10倍）</li>
+</ul>
+<h3 id="5-损失函数"><a href="#5-损失函数" class="headerlink" title="5.损失函数"></a>5.损失函数</h3><blockquote>
+<p><code>CrossEntropyLoss</code>是PyTorch 中一个常用的损失函数，专门用于 <strong>分类任务</strong>，尤其是多类别分类。它结合了 <strong>Softmax</strong> 函数和 <strong>负对数似然损失</strong>（Negative Log-Likelihood Loss），用于处理分类任务中 <strong>概率输出</strong> 的问题</p>
+</blockquote>
+<p>适用范围：真实标签应该是一个 <strong>整数</strong>，表示每个样本的真实类别索引（而不是 one-hot 编码）</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">criterion = nn.CrossEntropyLoss()</span><br></pre></td></tr></table></figure>
+<h2 id="4-模型训练和评估"><a href="#4-模型训练和评估" class="headerlink" title="4.模型训练和评估"></a>4.模型训练和评估</h2><h3 id="1-训练"><a href="#1-训练" class="headerlink" title="1.训练"></a>1.训练</h3><p><code>train_one_epoch</code>方法定义了一个完整的<strong>训练轮次（epoch）</strong>，包括 <strong>前向传播、损失计算、反向传播、参数更新</strong>，并计算 <strong>训练损失和准确率</strong></p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">train_one_epoch</span>(<span class="params">_model, dataloader, optimizer, _criterion, device, _scheduler</span>):  </span><br><span class="line">    <span class="string">&quot;&quot;&quot;  </span></span><br><span class="line"><span class="string">    训练一个 epoch</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span>    </span><br><span class="line">    _model.train()  <span class="comment"># 设置为训练模式  </span></span><br><span class="line">    running_loss = <span class="number">0.0</span>  <span class="comment"># 累计 batch 损失值</span></span><br><span class="line">    running_corrects = <span class="number">0</span>  <span class="comment"># 累计正确预测的样本数</span></span><br><span class="line">  </span><br><span class="line">    <span class="keyword">for</span> inputs, labels <span class="keyword">in</span> dataloader:  <span class="comment"># 遍历每个batch（批量数据）</span></span><br><span class="line">        inputs, labels = inputs.to(device), labels.to(device)  <span class="comment"># 转移到GPU/CPU，加速训练  </span></span><br><span class="line">  </span><br><span class="line">        optimizer.zero_grad()  <span class="comment"># 清空梯度  </span></span><br><span class="line">        outputs = _model(inputs)  <span class="comment"># 模型前向传播计算输出  </span></span><br><span class="line">        _, predicted = torch.<span class="built_in">max</span>(outputs, <span class="number">1</span>)  <span class="comment"># 取最大概率的类别作为预测值 </span></span><br><span class="line">        loss = _criterion(outputs, labels)  <span class="comment"># 计算损失  </span></span><br><span class="line">  </span><br><span class="line">        loss.backward()  <span class="comment"># 计算梯度（反向传播） </span></span><br><span class="line">        optimizer.step()  <span class="comment"># 更新模型参数 </span></span><br><span class="line">  </span><br><span class="line">        running_loss += loss.item() * inputs.size(<span class="number">0</span>)  <span class="comment"># batch损失*batch_size</span></span><br><span class="line">	    running_corrects += torch.<span class="built_in">sum</span>((predicted == labels).<span class="built_in">int</span>())  <span class="comment"># 统计正确预测的个数</span></span><br><span class="line">    epoch_loss = running_loss / <span class="built_in">len</span>(dataloader.dataset)  <span class="comment"># 平均损失（总损失/样本数）</span></span><br><span class="line">    epoch_acc = running_corrects / <span class="built_in">len</span>(dataloader.dataset)  <span class="comment"># 准确率（正确预测数/总样本数）</span></span><br><span class="line">    <span class="keyword">return</span> epoch_loss, epoch_acc</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-评估"><a href="#2-评估" class="headerlink" title="2.评估"></a>2.评估</h3><p><code>validate_one_epoch</code> 方法 执行了一次完整的验证（evaluation），其核心功能是 <strong>前向传播、计算损失、计算准确率</strong>，但不会进行 <strong>反向传播和参数更新</strong></p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">validate_one_epoch</span>(<span class="params">_model, dataloader, _criterion, device</span>):  </span><br><span class="line">    <span class="string">&quot;&quot;&quot;  </span></span><br><span class="line"><span class="string">    进行一个 epoch 的验证  </span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span>    </span><br><span class="line">    _model.<span class="built_in">eval</span>()  <span class="comment"># 设置为评估模式  </span></span><br><span class="line">    running_loss = <span class="number">0.0</span>  <span class="comment"># 累计 batch 损失值</span></span><br><span class="line">    running_corrects = <span class="number">0</span>  <span class="comment"># 累计正确预测的样本数</span></span><br><span class="line">  </span><br><span class="line">    <span class="keyword">with</span> torch.no_grad():  <span class="comment"># 不计算梯度，加速计算  </span></span><br><span class="line">        <span class="keyword">for</span> inputs, labels <span class="keyword">in</span> dataloader:  <span class="comment"># 遍历每个batch（批量数据）</span></span><br><span class="line">            inputs, labels = inputs.to(device), labels.to(device)  <span class="comment"># 转移到GPU/CPU，加速训练</span></span><br><span class="line">            outputs = _model(inputs)  <span class="comment"># 模型前向计算输出</span></span><br><span class="line">            _, predicted = torch.<span class="built_in">max</span>(outputs, <span class="number">1</span>)  <span class="comment"># 取最大概率的类别作为预测值</span></span><br><span class="line">            loss = _criterion(outputs, labels)  <span class="comment"># 计算损失</span></span><br><span class="line">  </span><br><span class="line">            running_loss += loss.item() * inputs.size(<span class="number">0</span>)  <span class="comment"># batch损失*batch_size</span></span><br><span class="line">            running_corrects += torch.<span class="built_in">sum</span>((predicted == labels).<span class="built_in">int</span>())  <span class="comment"># 统计正确预测的个数 </span></span><br><span class="line">  </span><br><span class="line">    epoch_loss = running_loss / <span class="built_in">len</span>(dataloader.dataset)  <span class="comment"># 平均损失（总损失/样本数）</span></span><br><span class="line">    epoch_acc = running_corrects / <span class="built_in">len</span>(dataloader.dataset)  <span class="comment"># 准确率（正确预测数/总样本数）</span></span><br><span class="line">    <span class="keyword">return</span> epoch_loss, epoch_acc</span><br></pre></td></tr></table></figure>
+<h3 id="3-筛选与保存"><a href="#3-筛选与保存" class="headerlink" title="3.筛选与保存"></a>3.筛选与保存</h3><p><code>train_model</code>方法就是一个完整的模型训练过程了，包括</p>
+<ul>
+<li>训练多个 epoch（循环多轮数据集）</li>
+<li>对每个 epoch 进行训练和验证</li>
+<li>记录并打印损失、准确率、学习率变化</li>
+<li>保存最佳模型权重到本地</li>
+<li>在训练结束后，返回最佳模型参数</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">train_model</span>(<span class="params">_model, train_loader, valid_loader, _criterion, optimizer, _scheduler, num_epochs, device, _model_name</span>):  </span><br><span class="line">    <span class="string">&quot;&quot;&quot;  </span></span><br><span class="line"><span class="string">    训练完整模型  </span></span><br><span class="line"><span class="string">    return 最终模型、损失 &amp; 准确率历史、学习率变化</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span>    </span><br><span class="line">    start_time = time.time()  <span class="comment"># 记录训练开始时间</span></span><br><span class="line">    best_acc = <span class="number">0.0</span>  <span class="comment"># 记录最高的验证准确率，用于保存最佳模型</span></span><br><span class="line">    best_model_wts = copy.deepcopy(_model.state_dict())  <span class="comment"># 保存最佳模型的参数</span></span><br><span class="line">  </span><br><span class="line">    train_acc_history = []  <span class="comment"># 训练集的准确率</span></span><br><span class="line">    train_losses = []  <span class="comment"># 训练集的损失  </span></span><br><span class="line">    valid_acc_history = []  <span class="comment"># 验证集的准确率</span></span><br><span class="line">    valid_losses = []  <span class="comment"># 验证集的损失</span></span><br><span class="line">  </span><br><span class="line">    learning_rates = [optimizer.param_groups[<span class="number">0</span>][<span class="string">&#x27;lr&#x27;</span>]]  <span class="comment"># 学习率</span></span><br><span class="line">  </span><br><span class="line">    <span class="keyword">for</span> epoch <span class="keyword">in</span> <span class="built_in">range</span>(num_epochs):  </span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&#x27;Epoch:<span class="subst">&#123;epoch + <span class="number">1</span>&#125;</span>/<span class="subst">&#123;num_epochs&#125;</span>&#x27;</span>)  <span class="comment"># 循环epoch</span></span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 训练 记录训练损失和准确率</span></span><br><span class="line">        train_loss, train_acc = train_one_epoch(_model, train_loader, optimizer, _criterion, device, _scheduler)  </span><br><span class="line">        train_losses.append(train_loss)  </span><br><span class="line">        train_acc_history.append(train_acc)  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 验证 记录验证损失和准确率</span></span><br><span class="line">        valid_loss, valid_acc = validate_one_epoch(_model, valid_loader, _criterion, device)  </span><br><span class="line">        valid_losses.append(valid_loss)  </span><br><span class="line">        valid_acc_history.append(valid_acc)  </span><br><span class="line"></span><br><span class="line">        <span class="comment"># 记录&amp;打印本轮训练和验证的损失、准确率</span></span><br><span class="line">        time_elapsed = time.time() - start_time  </span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;Time elapsed: <span class="subst">&#123;time_elapsed // <span class="number">60</span>:<span class="number">.0</span>f&#125;</span>m <span class="subst">&#123;time_elapsed % <span class="number">60</span>:<span class="number">.0</span>f&#125;</span>s&quot;</span>)  </span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;Train Loss: <span class="subst">&#123;train_loss:<span class="number">.4</span>f&#125;</span> Acc: <span class="subst">&#123;train_acc:<span class="number">.4</span>f&#125;</span>&quot;</span>)  </span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;Valid Loss: <span class="subst">&#123;valid_loss:<span class="number">.4</span>f&#125;</span> Acc: <span class="subst">&#123;valid_acc:<span class="number">.4</span>f&#125;</span>&quot;</span>)  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 记录最佳模型  </span></span><br><span class="line">        <span class="keyword">if</span> valid_acc &gt; best_acc:  </span><br><span class="line">            best_acc = valid_acc  </span><br><span class="line">            best_model_wts = copy.deepcopy(_model.state_dict())  </span><br><span class="line">            state = &#123;  </span><br><span class="line">                <span class="string">&#x27;state_dict&#x27;</span>: _model.state_dict(),  </span><br><span class="line">                <span class="string">&#x27;best_acc&#x27;</span>: best_acc,  </span><br><span class="line">                <span class="string">&#x27;optimizer&#x27;</span>: optimizer.state_dict(),  </span><br><span class="line">            &#125;  </span><br><span class="line">            torch.save(state, model_name)  <span class="comment"># 保存最佳模型</span></span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 记录学习率  </span></span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27;Optimizer learning rate : &#123;:.7f&#125;&#x27;</span>.<span class="built_in">format</span>(optimizer.param_groups[<span class="number">0</span>][<span class="string">&#x27;lr&#x27;</span>]))  </span><br><span class="line">        learning_rates.append(optimizer.param_groups[<span class="number">0</span>][<span class="string">&#x27;lr&#x27;</span>])  </span><br><span class="line">        _scheduler.step()  <span class="comment"># 调整学习率 学习率衰减</span></span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27;-&#x27;</span> * <span class="number">100</span>)  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 训练完成 打印 训练总时长 最佳验证准确率</span></span><br><span class="line">    time_elapsed = time.time() - start_time  </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&#x27;Training complete in <span class="subst">&#123;time_elapsed // <span class="number">60</span>:<span class="number">.0</span>f&#125;</span>m <span class="subst">&#123;time_elapsed % <span class="number">60</span>:<span class="number">.0</span>f&#125;</span>s&#x27;</span>)  </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&#x27;Best validation Acc: <span class="subst">&#123;best_acc:<span class="number">.4</span>f&#125;</span>&#x27;</span>)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 用最佳模型的参数作为最终模型  </span></span><br><span class="line">    _model.load_state_dict(best_model_wts)  </span><br><span class="line">    <span class="keyword">return</span> _model, train_losses, train_acc_history, valid_losses, valid_acc_history, learning_rates</span><br></pre></td></tr></table></figure>
+<h3 id="4-一次训练"><a href="#4-一次训练" class="headerlink" title="4.一次训练"></a>4.一次训练</h3><p>一次训练20个epoch，训练完把模型保存到本地</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">train_model(model, train_dl, valid_dl, criterion, optimizer_ft, scheduler, <span class="number">20</span>, get_device(), model_name)</span><br></pre></td></tr></table></figure>
+<p>结果输出</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">...</span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">---------------------------------------------------------------------------------</span><br><span class="line">Epoch:<span class="number">19</span>/<span class="number">20</span></span><br><span class="line">Time elapsed: 33m 37s</span><br><span class="line">Train Loss: <span class="number">1.6936</span> Acc: <span class="number">0.5911</span></span><br><span class="line">Valid Loss: <span class="number">3.2956</span> Acc: <span class="number">0.3912</span></span><br><span class="line">Optimizer learning rate : <span class="number">0.0000100</span></span><br><span class="line">---------------------------------------------------------------------------------</span><br><span class="line">Epoch:<span class="number">20</span>/<span class="number">20</span></span><br><span class="line">Time elapsed: 34m 52s</span><br><span class="line">Train Loss: <span class="number">1.7088</span> Acc: <span class="number">0.5882</span></span><br><span class="line">Valid Loss: <span class="number">3.2838</span> Acc: <span class="number">0.3704</span></span><br><span class="line">Optimizer learning rate : <span class="number">0.0000100</span></span><br><span class="line">---------------------------------------------------------------------------------</span><br><span class="line">Training complete <span class="keyword">in</span> 35m 1s</span><br><span class="line">Best validation Acc: <span class="number">0.392421</span></span><br></pre></td></tr></table></figure>
+<p>训练完后当前模块文件夹下会有一个<code>best.pt</code>刚训练好的模型文件，准备二次训练</p>
+<h3 id="5-二次训练"><a href="#5-二次训练" class="headerlink" title="5.二次训练"></a>5.二次训练</h3><p>加载第一次训练的模型后，解冻模型的所有层，然后使用较小的学习率继续训练 10 轮，更新模型权重。这样做可以让模型达到更好的准确率。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">second_train</span>(<span class="params">_model_name, _train_dl, _valid_dl, _criterion</span>):  </span><br><span class="line">    <span class="comment"># 初始化一个新模型，类别数 num_classes=102</span></span><br><span class="line">    <span class="comment"># 加载已有模型的权重，恢复之前训练好的参数</span></span><br><span class="line">    _model = init_model(num_classes=<span class="number">102</span>)  </span><br><span class="line">    checkpoint = torch.load(_model_name, weights_only=<span class="literal">True</span>)  </span><br><span class="line">    _model.load_state_dict(checkpoint[<span class="string">&#x27;state_dict&#x27;</span>])  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 解冻所有层的参数，让整个模型都可以,参与训练</span></span><br><span class="line">    <span class="keyword">for</span> param <span class="keyword">in</span> _model.parameters():  </span><br><span class="line">        param.requires_grad = <span class="literal">True</span>  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 调低学习率</span></span><br><span class="line">    _optimizer_next = optim.Adam(_model.parameters(), lr=<span class="number">1e-3</span>)  </span><br><span class="line">    <span class="comment"># 每7个epoch让学习率衰减一次（*0.1）</span></span><br><span class="line">    _scheduler_next = optim.lr_scheduler.StepLR(optimizer_ft, step_size=<span class="number">7</span>, gamma=<span class="number">0.1</span>)  </span><br><span class="line">    <span class="comment"># 重新训练</span></span><br><span class="line">    train_model(_model, _train_dl, _valid_dl, _criterion, _optimizer_next, _scheduler_next, <span class="number">10</span>, get_device(), _model_name)</span><br></pre></td></tr></table></figure>
+
+<p>二次训练较一次模型训练结果有改善</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">...</span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">---------------------------------------------------------------------------------</span><br><span class="line">Epoch:<span class="number">9</span>/<span class="number">10</span></span><br><span class="line">Time elapsed: 16m 47s</span><br><span class="line">Train Loss: <span class="number">0.6153</span> Acc: <span class="number">0.8155</span></span><br><span class="line">Valid Loss: <span class="number">1.6921</span> Acc: <span class="number">0.6051</span></span><br><span class="line">Optimizer learning rate : <span class="number">0.0010000</span></span><br><span class="line">---------------------------------------------------------------------------------</span><br><span class="line">Epoch:<span class="number">10</span>/<span class="number">10</span></span><br><span class="line">Time elapsed: 18m 36s</span><br><span class="line">Train Loss: <span class="number">0.5529</span> Acc: <span class="number">0.8361</span></span><br><span class="line">Valid Loss: <span class="number">1.6800</span> Acc: <span class="number">0.5941</span></span><br><span class="line">Optimizer learning rate : <span class="number">0.0010000</span></span><br><span class="line">---------------------------------------------------------------------------------</span><br><span class="line">Training complete <span class="keyword">in</span> 18m 36s</span><br><span class="line">Best validation Acc: <span class="number">0.6051</span></span><br></pre></td></tr></table></figure>
+
+<p>两轮训练完最终对于测试集的验证正确率是59.41%</p>
+<h2 id="5-模型测试"><a href="#5-模型测试" class="headerlink" title="5.模型测试"></a>5.模型测试</h2><p>展示真实标签和模型预测的对比图，如果预测错误标题显示红色</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">show_predicted</span>(<span class="params">_model_name</span>):</span><br><span class="line">    <span class="comment"># 初始化一个新模型，类别数 num_classes=102</span></span><br><span class="line">    <span class="comment"># 加载已有模型的权重，恢复之前训练好的参数</span></span><br><span class="line">    _model = init_model(num_classes=<span class="number">102</span>)  </span><br><span class="line">    checkpoint = torch.load(_model_name, weights_only=<span class="literal">True</span>)  </span><br><span class="line">    _model.load_state_dict(checkpoint[<span class="string">&#x27;state_dict&#x27;</span>])  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 花的名称</span></span><br><span class="line">    label_name = load_label_name()  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 取一批验证集的数据</span></span><br><span class="line">    images, labels = <span class="built_in">next</span>(<span class="built_in">iter</span>(valid_dl))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 进行预测</span></span><br><span class="line">    _model.<span class="built_in">eval</span>()  </span><br><span class="line">    output = _model(images)  </span><br><span class="line">    _, predicted_tensor = torch.<span class="built_in">max</span>(output, <span class="number">1</span>)  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 处理预测结果</span></span><br><span class="line">    train_on_gpu = torch.cuda.is_available()  </span><br><span class="line">    predicted = np.squeeze(predicted_tensor.numpy()) <span class="keyword">if</span> <span class="keyword">not</span> train_on_gpu <span class="keyword">else</span> np.squeeze(predicted_tensor.cpu().numpy())</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 画出8张预测图</span></span><br><span class="line">    fig, axes = plt.subplots(<span class="number">2</span>, <span class="number">4</span>, figsize=(<span class="number">12</span>, <span class="number">6</span>))  <span class="comment"># 创建 2x4 的子图网格  </span></span><br><span class="line">    axes = axes.flatten()  </span><br><span class="line">    <span class="comment"># 显示每张图像及预测结果</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">8</span>):  </span><br><span class="line">        img = denormalize(images[i])  <span class="comment"># 反标准化  </span></span><br><span class="line">        axes[i].imshow(img)  <span class="comment"># 显示图片  </span></span><br><span class="line">        axes[i].axis(<span class="string">&quot;off&quot;</span>)  <span class="comment"># 关闭坐标轴  </span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 设置标题：真实vs预测</span></span><br><span class="line">        predicted_label = label_name.get(<span class="built_in">str</span>(predicted[i]), <span class="string">&quot;Unknown&quot;</span>)  </span><br><span class="line">        true_label = label_name.get(<span class="built_in">str</span>(labels[i].item()), <span class="string">&quot;Unknown&quot;</span>)  </span><br><span class="line">        title_color = <span class="string">&quot;green&quot;</span> <span class="keyword">if</span> predicted_label == true_label <span class="keyword">else</span> <span class="string">&quot;red&quot;</span>  </span><br><span class="line">        axes[i].set_title(<span class="string">&quot;&#123;&#125; (&#123;&#125;)&quot;</span>.<span class="built_in">format</span>(predicted_label, true_label), color=( </span><br><span class="line">            title_color))  <span class="comment"># 显示标签  </span></span><br><span class="line">    plt.tight_layout()  </span><br><span class="line">    plt.show()</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250307155124.png"></p>
+<h2 id="6-总结"><a href="#6-总结" class="headerlink" title="6.总结"></a>6.总结</h2><p>本文主要讲的是如何利用预训练模型（ResNet-18）在新数据集上做微调。先冻结大部分网络层，只留最后一层全连接层，再经过训练集训练后解冻全部参数，继续训练，以适应新数据集。<br>完整流程：</p>
+<ol>
+<li>加载 ResNet-18 预训练模型</li>
+<li>修改 fc 层，适配新任务</li>
+<li>冻结特征层，仅训练 fc 层（特征提取模式）</li>
+<li>设置优化器，仅更新 fc 层参数</li>
+<li>使用 StepLR 进行学习率衰减</li>
+<li>训练（前向传播 + 反向传播 + 梯度更新）</li>
+<li>验证模型性能（不更新梯度）</li>
+<li>保存最佳模型（防止过拟合）</li>
+<li>微调（解冻全部参数，降低学习率）</li>
+<li>可视化预测结果，检查分类准确率</li>
+</ol>
+<h2 id="7-模型优化"><a href="#7-模型优化" class="headerlink" title="7.模型优化"></a>7.模型优化</h2><p>八张图片中有两张识别错误，模型的识别准确率还有提升的空间，那如何进一步提高准确率呢？<br>查了一下，大致可以有以下几种方法：</p>
+<ol>
+<li>使用ResNet-50，ResNet-50由于参数更多，可以学习更复杂的特征，分类效果通常更好</li>
+<li>采用更好的优化器，例如<strong>AdamW</strong>（更稳定，L2 正则化）、<strong>SGD + Momentum</strong>（更适合 Fine-tuning）等</li>
+<li>优化学习率调度策略，例如<strong>ReduceLROnPlateau</strong>（监控验证集 Loss 下降才调整学习率）、<strong>CosineAnnealingLR</strong>（余弦退火，适用于 Fine-tuning）、<strong>OneCycleLR</strong>（加速收敛）等</li>
+<li>冻结更多层后逐步解冻，先只训练 fc 层，再解冻 ResNet 最后 1-2 个 block，最后解冻整个 ResNet 进行 Fine-tuning</li>
+<li>增加 Dropout 防止过拟合</li>
+<li>使用 Label Smoothing，目前的 CrossEntropyLoss 过于严格，可以用 <strong>Label Smoothing</strong>，防止过拟合</li>
+<li>使用混合精度训练（加速 + 提高泛化能力）</li>
+<li>使用 Early Stopping，训练更久的同时还能防止过拟合</li>
+</ol>
+<p>留待以后扩展用</p>
+<h2 id="8-备注"><a href="#8-备注" class="headerlink" title="8.备注"></a>8.备注</h2><p>环境：</p>
+<ul>
+<li>mac: 15.2</li>
+<li>python: 3.12.4</li>
+<li>pytorch: 2.5.1</li>
+<li>matplotlib: 3.8.4</li>
+<li>numpy: 1.26.4</li>
+</ul>
+<p>数据集：<br>	<a href="https://github.com/keychankc/dl_code_for_blog/tree/main/004_cnn_classification_flowers/data">https://github.com/keychankc/dl_code_for_blog/tree/main/004_cnn_classification_flowers/data</a></p>
+<p>完整代码：<br>	<a href="https://github.com/keychankc/dl_code_for_blog/blob/main/004_cnn_classification_flowers/main.py">https://github.com/keychankc/dl_code_for_blog/blob/main/004_cnn_classification_flowers/main.py</a></p>
+]]></content>
+      <categories>
+        <category>深度学习</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+        <tag>PyTorch</tag>
+        <tag>模型训练</tag>
+        <tag>matplotlib</tag>
+        <tag>卷积神经网络</tag>
+        <tag>迁移学习</tag>
       </tags>
   </entry>
 </search>
