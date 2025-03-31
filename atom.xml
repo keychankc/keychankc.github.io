@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-03-26T08:59:57.336Z</updated>
+  <updated>2025-03-31T08:33:24.503Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -17,11 +17,50 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>OpenCV之停车场车位识别</title>
+    <link href="https://keychankc.github.io/2025/03/31/008-opencv-park/"/>
+    <id>https://keychankc.github.io/2025/03/31/008-opencv-park/</id>
+    <published>2025-03-31T02:29:12.000Z</published>
+    <updated>2025-03-31T08:33:24.503Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-实现流程&quot;&gt;&lt;a href=&quot;#1-实现流程&quot; class=&quot;headerlink&quot; title=&quot;1.实现流程&quot;&gt;&lt;/a&gt;1.实现流程&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;训练基于VGG16的迁移学习图像分类模型，使其能够分类每个车位有车或者没车&lt;/li&gt;
+&lt;li&gt;通过OpenCV处理停车场图片，分割成单个车位图像数据&lt;/li&gt;
+&lt;li&gt;基于训练模型识别并绘制出空车位&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&quot;2-模型训练&quot;&gt;&lt;a href=&quot;#2-模型训练&quot; class=&quot;headerlink&quot; title=&quot;2.模型训练&quot;&gt;&lt;/a&gt;2.模型训练&lt;/h2&gt;&lt;h3 id=&quot;1-VGG16&quot;&gt;&lt;a href=&quot;#1-VGG16&quot; class=&quot;headerlink&quot; title=&quot;1.VGG16&quot;&gt;&lt;/a&gt;1.VGG16&lt;/h3&gt;&lt;p&gt;&lt;strong&gt;VGG16&lt;/strong&gt; 是由牛津大学 Visual Geometry Group（VGG）在 2014 年提出的经典卷积神经网络（CNN）模型，主要用于图像分类任务。其核心特点是：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;​&lt;strong&gt;结构简单但深度大&lt;/strong&gt;：由 ​&lt;strong&gt;16 层&lt;/strong&gt;​（13 个卷积层 + 3 个全连接层）组成，使用 ​&lt;strong&gt;3x3 小卷积核堆叠&lt;/strong&gt;​（通过多层小卷积核模拟大感受野）。&lt;/li&gt;
+&lt;li&gt;​&lt;strong&gt;ImageNet 竞赛的里程碑&lt;/strong&gt;：在 2014 年 ImageNet 大规模视觉识别挑战赛（ILSVRC）中取得第二名（Top-5 错误率 7.3%），证明了深度网络对视觉任务的重要性。&lt;/li&gt;
+&lt;li&gt;​&lt;strong&gt;标准化设计&lt;/strong&gt;：所有卷积层使用相同配置（3x3 卷积核，步长 1，填充 same），全连接层统一为 4096 个神经元。&lt;/li&gt;
+&lt;/ul&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    <category term="OpenCV" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/OpenCV/"/>
+    
+    
+    <category term="图像处理" scheme="https://keychankc.github.io/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/"/>
+    
+    <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
+    
+    <category term="图像识别" scheme="https://keychankc.github.io/tags/%E5%9B%BE%E5%83%8F%E8%AF%86%E5%88%AB/"/>
+    
+    <category term="图像分割" scheme="https://keychankc.github.io/tags/%E5%9B%BE%E5%83%8F%E5%88%86%E5%89%B2/"/>
+    
+    <category term="keras" scheme="https://keychankc.github.io/tags/keras/"/>
+    
+  </entry>
+  
+  <entry>
     <title>OpenCV之全景图像拼接</title>
     <link href="https://keychankc.github.io/2025/03/24/007-opencv-image-stitching/"/>
     <id>https://keychankc.github.io/2025/03/24/007-opencv-image-stitching/</id>
     <published>2025-03-24T02:29:12.000Z</published>
-    <updated>2025-03-26T08:59:57.336Z</updated>
+    <updated>2025-03-31T02:12:03.886Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-实现流程&quot;&gt;&lt;a href=&quot;#1-实现流程&quot; class=&quot;headerlink&quot; title=&quot;1.实现流程&quot;&gt;&lt;/a&gt;1.实现流程&lt;/h2&gt;&lt;p&gt;通过提取图像中的特征点并匹配这些特征点来找到图像间的对应关系，再通过透视变换（Homography）将两幅图像拼接成一幅完整的图像，大致流程：&lt;/p&gt;
@@ -120,7 +159,7 @@
     <link href="https://keychankc.github.io/2025/03/14/005-rnn-classification-text/"/>
     <id>https://keychankc.github.io/2025/03/14/005-rnn-classification-text/</id>
     <published>2025-03-14T08:32:25.000Z</published>
-    <updated>2025-03-26T08:59:07.124Z</updated>
+    <updated>2025-03-31T08:27:44.396Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-循环神经网络-RNN&quot;&gt;&lt;a href=&quot;#1-循环神经网络-RNN&quot; class=&quot;headerlink&quot; title=&quot;1.循环神经网络(RNN)&quot;&gt;&lt;/a&gt;1.循环神经网络(RNN)&lt;/h2&gt;&lt;p&gt;RNN有&lt;strong&gt;隐藏状态（hidden state）&lt;/strong&gt;，可以保留和传递之前时刻的信息，也就是有记忆功能，从而可实现&lt;strong&gt;时间依赖性&lt;/strong&gt;的数据处理，比较适用于处理序列数据（如时间序列、文本、语音等）。&lt;br&gt;通俗一点就像是人在读一句话：&lt;/p&gt;
