@@ -377,7 +377,7 @@
 </ol>
 <p>将这些点连接起来形成 <strong>PR 曲线</strong><br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-04-10_15-29-57.jpg" width="600"/></p>
 <h4 id="5-计算-AP-和-mAP"><a href="#5-计算-AP-和-mAP" class="headerlink" title="5.计算 AP 和 mAP"></a>5.计算 AP 和 mAP</h4><p>对这条 PR 曲线下的面积求和，就是这张图“猫”这一类的 <strong>AP</strong>，如果还有“狗”“人”等类，每个类都算一个 AP，再平均得到 <strong>mAP</strong></p>
-<h4 id="6-VOC-vs-COCO"><a href="#6-VOC-vs-COCO" class="headerlink" title="6.VOC vs COCO"></a>6.VOC vs COCO</h4><p>在 VOC 中，IoU &gt; 0.5 就算 TP，所以我们这里算的是 <strong><a href="mailto:&#x41;&#80;&#x40;&#x30;&#46;&#x35;">AP@0.5</a></strong>，在 COCO 中，还会算 <a href="mailto:&#x41;&#x50;&#64;&#48;&#46;&#x35;">AP@0.5</a>、<a href="mailto:&#x41;&#80;&#64;&#48;&#x2e;&#55;&#53;">AP@0.75</a>、<a href="mailto:&#65;&#80;&#64;&#x30;&#x2e;&#x39;&#x35;">AP@0.95</a> 等，再平均得到更严格的 mAP。</p>
+<h4 id="6-VOC-vs-COCO"><a href="#6-VOC-vs-COCO" class="headerlink" title="6.VOC vs COCO"></a>6.VOC vs COCO</h4><p>在 VOC 中，IoU &gt; 0.5 就算 TP，所以我们这里算的是 <strong><a href="mailto:&#65;&#80;&#64;&#48;&#x2e;&#53;">AP@0.5</a></strong>，在 COCO 中，还会算 <a href="mailto:&#65;&#x50;&#x40;&#x30;&#46;&#53;">AP@0.5</a>、<a href="mailto:&#65;&#80;&#x40;&#48;&#46;&#55;&#x35;">AP@0.75</a>、<a href="mailto:&#x41;&#x50;&#x40;&#x30;&#x2e;&#57;&#x35;">AP@0.95</a> 等，再平均得到更严格的 mAP。</p>
 <h2 id="2-YOLO-V1"><a href="#2-YOLO-V1" class="headerlink" title="2.YOLO-V1"></a>2.YOLO-V1</h2><h3 id="1-目标检测方法"><a href="#1-目标检测方法" class="headerlink" title="1.目标检测方法"></a>1.目标检测方法</h3><h4 id="1-两阶段检测（Two-Stage）​"><a href="#1-两阶段检测（Two-Stage）​" class="headerlink" title="1.两阶段检测（Two-Stage）​"></a>1.两阶段检测（Two-Stage）​</h4><p>​代表模型​：Faster R-CNN、Mask R-CNN<br>​核心思想​：​<strong>​“先粗选再精修”​</strong>，像选秀节目：</p>
 <ol>
 <li>​<strong>海选阶段（Region Proposal）​</strong>​：<ul>

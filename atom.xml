@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-04-14T07:51:30.809Z</updated>
+  <updated>2025-04-14T08:23:16.797Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="https://keychankc.github.io/2025/04/15/010-opencv-face-fatigue-detection/"/>
     <id>https://keychankc.github.io/2025/04/15/010-opencv-face-fatigue-detection/</id>
     <published>2025-04-15T14:29:12.000Z</published>
-    <updated>2025-04-14T07:51:30.809Z</updated>
+    <updated>2025-04-14T08:23:16.797Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-dlib&quot;&gt;&lt;a href=&quot;#1-dlib&quot; class=&quot;headerlink&quot; title=&quot;1.dlib&quot;&gt;&lt;/a&gt;1.dlib&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://dlib.net/&quot;&gt;dlib&lt;/a&gt; 是一个用 C++ 编写的开源机器学习库，同时也提供了 Python 接口，它被广泛应用于计算机视觉和机器学习领域：&lt;/p&gt;
@@ -300,9 +300,9 @@
     
     <category term="模型训练" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83/"/>
     
-    <category term="matplotlib" scheme="https://keychankc.github.io/tags/matplotlib/"/>
-    
     <category term="卷积神经网络" scheme="https://keychankc.github.io/tags/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
+    
+    <category term="matplotlib" scheme="https://keychankc.github.io/tags/matplotlib/"/>
     
     <category term="迁移学习" scheme="https://keychankc.github.io/tags/%E8%BF%81%E7%A7%BB%E5%AD%A6%E4%B9%A0/"/>
     
@@ -353,15 +353,15 @@
     <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
-    <category term="神经网络" scheme="https://keychankc.github.io/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
-    
-    <category term="全连接层" scheme="https://keychankc.github.io/tags/%E5%85%A8%E8%BF%9E%E6%8E%A5%E5%B1%82/"/>
-    
     <category term="Python" scheme="https://keychankc.github.io/tags/Python/"/>
     
     <category term="PyTorch" scheme="https://keychankc.github.io/tags/PyTorch/"/>
     
     <category term="模型训练" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83/"/>
+    
+    <category term="神经网络" scheme="https://keychankc.github.io/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
+    
+    <category term="全连接层" scheme="https://keychankc.github.io/tags/%E5%85%A8%E8%BF%9E%E6%8E%A5%E5%B1%82/"/>
     
     <category term="matplotlib" scheme="https://keychankc.github.io/tags/matplotlib/"/>
     
@@ -383,15 +383,15 @@
     <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
-    <category term="神经网络" scheme="https://keychankc.github.io/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
-    
-    <category term="全连接层" scheme="https://keychankc.github.io/tags/%E5%85%A8%E8%BF%9E%E6%8E%A5%E5%B1%82/"/>
-    
     <category term="Python" scheme="https://keychankc.github.io/tags/Python/"/>
     
     <category term="PyTorch" scheme="https://keychankc.github.io/tags/PyTorch/"/>
     
     <category term="模型训练" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83/"/>
+    
+    <category term="神经网络" scheme="https://keychankc.github.io/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
+    
+    <category term="全连接层" scheme="https://keychankc.github.io/tags/%E5%85%A8%E8%BF%9E%E6%8E%A5%E5%B1%82/"/>
     
   </entry>
   
