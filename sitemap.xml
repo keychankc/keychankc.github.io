@@ -227,27 +227,6 @@
   </url>
   
   <url>
-    <loc>https://keychankc.github.io/tags/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/</loc>
-    <lastmod>2025-04-17</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://keychankc.github.io/tags/TensorBoard/</loc>
-    <lastmod>2025-04-17</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://keychankc.github.io/tags/LSTM/</loc>
-    <lastmod>2025-04-17</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://keychankc.github.io/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/</loc>
     <lastmod>2025-04-17</lastmod>
     <changefreq>weekly</changefreq>
@@ -276,14 +255,21 @@
   </url>
   
   <url>
-    <loc>https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA/</loc>
+    <loc>https://keychankc.github.io/tags/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/</loc>
     <lastmod>2025-04-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://keychankc.github.io/tags/dlib/</loc>
+    <loc>https://keychankc.github.io/tags/TensorBoard/</loc>
+    <lastmod>2025-04-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://keychankc.github.io/tags/LSTM/</loc>
     <lastmod>2025-04-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -298,6 +284,20 @@
   
   <url>
     <loc>https://keychankc.github.io/tags/keras/</loc>
+    <lastmod>2025-04-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA/</loc>
+    <lastmod>2025-04-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://keychankc.github.io/tags/dlib/</loc>
     <lastmod>2025-04-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>

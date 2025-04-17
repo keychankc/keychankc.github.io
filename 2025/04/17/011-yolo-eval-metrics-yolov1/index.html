@@ -37,7 +37,7 @@
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/202504102313.jpg">
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/202504102315.jpg">
 <meta property="article:published_time" content="2025-04-17T04:29:12.000Z">
-<meta property="article:modified_time" content="2025-04-17T05:53:40.803Z">
+<meta property="article:modified_time" content="2025-04-17T06:02:38.667Z">
 <meta property="article:author" content="KeyChan">
 <meta property="article:tag" content="计算机视觉">
 <meta property="article:tag" content="目标检测">
@@ -459,24 +459,12 @@
 <h2 id="2-YOLO-V1"><a href="#2-YOLO-V1" class="headerlink" title="2.YOLO-V1"></a>2.YOLO-V1</h2><h3 id="1-目标检测方法"><a href="#1-目标检测方法" class="headerlink" title="1.目标检测方法"></a>1.目标检测方法</h3><h4 id="1-两阶段检测（Two-Stage）​"><a href="#1-两阶段检测（Two-Stage）​" class="headerlink" title="1.两阶段检测（Two-Stage）​"></a>1.两阶段检测（Two-Stage）​</h4><p>​代表模型​：Faster R-CNN、Mask R-CNN<br>​核心思想​：​<strong>​“先粗选再精修”​</strong>，像选秀节目：</p>
 <ol>
 <li>​<strong>海选阶段（Region Proposal）​</strong>​，用RPN（Region Proposal Network）快速生成约2k个候选框（可能含物体的区域）。特点是高召回率（宁可多选不错过），但框不准。</li>
-<li>​<strong>决赛阶段（RoI分类与回归）​</strong>​，对每个候选框精细调整位置，并分类（如“猫”“狗”）。特点是计算量大但精度高。<br>​<strong>优点</strong>​：<br> ✅ 精度高（适合复杂场景，如小物体或密集目标）<br> ✅ 适合需要实例分割的任务（如Mask R-CNN）<br>​<strong>缺点</strong>​：<br> ❌ 速度慢（通常5~20 FPS）<br> ❌ 训练流程复杂（分阶段训练或端到端调参难）</li>
+<li>​<strong>决赛阶段（RoI分类与回归）​</strong>​，对每个候选框精细调整位置，并分类（如“猫”“狗”）。特点是计算量大但精度高。<br>​优点​是：精度高（适合复杂场景，如小物体或密集目标），适合需要实例分割的任务（如Mask R-CNN）。​缺点是​速度慢（通常5~20 FPS），训练流程复杂（分阶段训练或端到端调参难）。典型应用​有医学影像分析（肿瘤检测需高精度）、自动驾驶（高精度3D检测）、竞赛刷榜（COCO数据集冠军常客）。</li>
 </ol>
-<p>​<strong>典型应用</strong>​：</p>
-<ul>
-<li>医学影像分析（肿瘤检测需高精度）</li>
-<li>自动驾驶（高精度3D检测）</li>
-<li>竞赛刷榜（COCO数据集冠军常客）</li>
-</ul>
 <h4 id="2-单阶段检测（One-Stage）​​"><a href="#2-单阶段检测（One-Stage）​​" class="headerlink" title="2. 单阶段检测（One-Stage）​​"></a>2. 单阶段检测（One-Stage）​​</h4><p>​代表模型​：YOLO系列、SSD、RetinaNet<br>​核心思想​：​<strong>​“一步到位”​</strong>，像快餐点单：</p>
 <ol>
-<li>​<strong>直接输出</strong>​，对图像网格化，每个格子同时预测边界框和类别（无候选框步骤）。特点是速度快但易漏检小物体。<br>​<strong>优点</strong>​：<br> ✅ 速度快（YOLOv8可达100+ FPS）。<br> ✅ 部署简单（适合端侧设备如手机、无人机）<br>​<strong>缺点</strong>​：<br> ❌ 精度略低（尤其小物体检测）<br> ❌ 密集物体易重叠（如人群中的个体）</li>
+<li>​<strong>直接输出</strong>​，对图像网格化，每个格子同时预测边界框和类别（无候选框步骤）。特点是速度快但易漏检小物体。优点是速度快（YOLOv8可达100+ FPS），部署简单（适合端侧设备如手机、无人机）。缺点是​：精度略低（尤其小物体检测），密集物体易重叠（如人群中的个体）。典型应用有实时视频分析（安防监控、直播质检）、移动端APP（手机AR贴纸、扫商品）、工业质检（快速检测缺陷）。</li>
 </ol>
-<p>​<strong>典型应用</strong>​：</p>
-<ul>
-<li>实时视频分析（安防监控、直播质检）</li>
-<li>移动端APP（手机AR贴纸、扫商品）</li>
-<li>工业质检（快速检测缺陷）</li>
-</ul>
 <h4 id="3-技术演进趋势​"><a href="#3-技术演进趋势​" class="headerlink" title="3.技术演进趋势​"></a>3.技术演进趋势​</h4><ul>
 <li>​<strong>两阶段的改进</strong>​：<ul>
 <li>更高效的候选框生成（如Cascade R-CNN）</li>
@@ -493,11 +481,8 @@
 </li>
 </ul>
 <h3 id="2-YOLO产生背景"><a href="#2-YOLO产生背景" class="headerlink" title="2.YOLO产生背景"></a>2.YOLO产生背景</h3><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/202504102311.jpg" width="600"/>
-在 YOLO 出现之前，目标检测主流方法是两阶段的，例如：
-	• R-CNN（2013）：通过选择性搜索（Selective Search）生成候选框，然后再用 CNN 对每个框分类，mAP 为 58.5，但速度慢
-	• Fast R-CNN（2015）：引入 ROI Pooling 提高效率，但候选框还是靠外部生成（如选择性搜索），mAP 提升到 70，但 FPS 仍只有 0.5
-	• Faster R-CNN（2015）：引入 Region Proposal Network（RPN），第一次实现了端到端训练，mAP 达到 73.2，速度提升到 7 FPS
 
+<p>在 YOLO 出现之前，目标检测主流方法是两阶段的，例如<br>	• R-CNN（2013）：通过选择性搜索（Selective Search）生成候选框，然后再用 CNN 对每个框分类，mAP 为 58.5，但速度慢<br>	• Fast R-CNN（2015）：引入 ROI Pooling 提高效率，但候选框还是靠外部生成（如选择性搜索），mAP 提升到 70，但 FPS 仍只有 0.5<br>	• Faster R-CNN（2015）：引入 Region Proposal Network（RPN），第一次实现了端到端训练，mAP 达到 73.2，速度提升到 7 FPS</p>
 <p>这些方法虽然精度高，但速度较慢，难以应对实时场景。</p>
 <p>YOLO（You Only Look Once）于 2015 年提出，核心思想是将目标检测转化为一个 <strong>回归问题</strong>，在一张图上直接预测边界框和类别：<br>特点：</p>
 <ol>
