@@ -23,7 +23,7 @@
 
     <meta name="description" content="1.物体检测评估指标1.TP &#x2F; FP &#x2F; FN &#x2F; TN这四个指标是分类任务的基础：• TP（True Positive）：预测为正，且是真正的正样本（比如检测到了一个人，且确实是人）• FP（False Positive）：预测为正，但实际上是负样本（检测到了人，但其实是背景或别的物体）• FN（False Negative）：实际是正样本，但没检测出来（图里有人">
 <meta property="og:type" content="article">
-<meta property="og:title" content="【YOLO系列①】物体检测评估指标和YOLO-v1实现思路">
+<meta property="og:title" content="[YOLO系列①] 物体检测评估指标和YOLO-v1实现思路">
 <meta property="og:url" content="https://keychankc.github.io/2025/04/17/011-yolo-eval-metrics-yolov1/index.html">
 <meta property="og:site_name" content="KeyChan&#39;s blog">
 <meta property="og:description" content="1.物体检测评估指标1.TP &#x2F; FP &#x2F; FN &#x2F; TN这四个指标是分类任务的基础：• TP（True Positive）：预测为正，且是真正的正样本（比如检测到了一个人，且确实是人）• FP（False Positive）：预测为正，但实际上是负样本（检测到了人，但其实是背景或别的物体）• FN（False Negative）：实际是正样本，但没检测出来（图里有人">
@@ -37,7 +37,7 @@
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/202504102313.jpg">
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/202504102315.jpg">
 <meta property="article:published_time" content="2025-04-17T04:29:12.000Z">
-<meta property="article:modified_time" content="2025-04-17T06:02:38.667Z">
+<meta property="article:modified_time" content="2025-04-17T06:12:24.002Z">
 <meta property="article:author" content="KeyChan">
 <meta property="article:tag" content="计算机视觉">
 <meta property="article:tag" content="目标检测">
@@ -48,10 +48,10 @@
 <link rel="canonical" href="https://keychankc.github.io/2025/04/17/011-yolo-eval-metrics-yolov1/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/2025/04/17/011-yolo-eval-metrics-yolov1/","path":"2025/04/17/011-yolo-eval-metrics-yolov1/","title":"【YOLO系列①】物体检测评估指标和YOLO-v1实现思路"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/2025/04/17/011-yolo-eval-metrics-yolov1/","path":"2025/04/17/011-yolo-eval-metrics-yolov1/","title":"[YOLO系列①] 物体检测评估指标和YOLO-v1实现思路"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>【YOLO系列①】物体检测评估指标和YOLO-v1实现思路 | KeyChan's blog</title>
+<title>[YOLO系列①] 物体检测评估指标和YOLO-v1实现思路 | KeyChan's blog</title>
   
 
 
@@ -231,12 +231,12 @@
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="【YOLO系列①】物体检测评估指标和YOLO-v1实现思路 | KeyChan's blog">
+      <meta itemprop="name" content="[YOLO系列①] 物体检测评估指标和YOLO-v1实现思路 | KeyChan's blog">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          【YOLO系列①】物体检测评估指标和YOLO-v1实现思路
+          [YOLO系列①] 物体检测评估指标和YOLO-v1实现思路
         </h1>
 
         <div class="post-meta-container">
@@ -616,7 +616,7 @@
   </li>
   <li class="post-copyright-link">
       <strong>本文链接：</strong>
-      <a href="https://keychankc.github.io/2025/04/17/011-yolo-eval-metrics-yolov1/" title="【YOLO系列①】物体检测评估指标和YOLO-v1实现思路">https://keychankc.github.io/2025/04/17/011-yolo-eval-metrics-yolov1/</a>
+      <a href="https://keychankc.github.io/2025/04/17/011-yolo-eval-metrics-yolov1/" title="[YOLO系列①] 物体检测评估指标和YOLO-v1实现思路">https://keychankc.github.io/2025/04/17/011-yolo-eval-metrics-yolov1/</a>
   </li>
   <li class="post-copyright-license">
       <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
