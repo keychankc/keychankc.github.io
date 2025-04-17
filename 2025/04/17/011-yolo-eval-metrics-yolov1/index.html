@@ -37,7 +37,7 @@
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/202504102313.jpg">
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/202504102315.jpg">
 <meta property="article:published_time" content="2025-04-17T04:29:12.000Z">
-<meta property="article:modified_time" content="2025-04-17T05:11:03.586Z">
+<meta property="article:modified_time" content="2025-04-17T05:53:40.803Z">
 <meta property="article:author" content="KeyChan">
 <meta property="article:tag" content="计算机视觉">
 <meta property="article:tag" content="目标检测">
@@ -341,22 +341,20 @@
 <td>背景没有猫，模型也没检测到</td>
 </tr>
 </tbody></table>
-<p>为何对物体检测来说，通常不关注 TN？<br>由于背景太多了。一张图中，除了少数目标区域，剩下都是背景（负样本）。比如整张图只有2只猫，剩下的几百万像素都是“不是猫”。所以 TN 的数量巨大无比，所以关注TN就没啥意义。</p>
-<p>在物体检测中，正因为背景（负样本）太多且没明确边界，所以我们更关注的是<strong>检测出来的东西是否准确（TP &#x2F; FP）</strong>，和<strong>有没有漏检（FN）</strong></p>
-<h3 id="2-IoU（Intersection-over-Union）"><a href="#2-IoU（Intersection-over-Union）" class="headerlink" title="2.IoU（Intersection over Union）"></a>2.IoU（Intersection over Union）</h3><p>表示预测框与真实框的重叠程度，<strong>IoU &gt; 某个阈值（比如 0.5）</strong> 就认为检测成功（TP），否则认为是 FP 或 FN。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250410142350.png" width="400"/></p>
-<h3 id="3-Confidence（置信度）"><a href="#3-Confidence（置信度）" class="headerlink" title="3.Confidence（置信度）"></a>3.Confidence（置信度）</h3><p>模型对<strong>这个框里确实有物体</strong>的信心程度，通常是一个介于 <strong>0 到 1</strong> 之间的小数<br>物体检测输出是：[类名, 置信度, 边界框坐标]<br>YOLO中是模型对检测框中存在目标物体及其预测类别准确性的综合置信程度。</p>
+<p>为何对物体检测来说，通常不关注 TN？<br>因为背景太多了，一张图中，除了少数目标区域，剩下都是背景（负样本）。比如整张图只有2只猫，剩下的几百万像素都是“不是猫”。所以 TN 的数量巨大无比，关注TN就没啥意义。</p>
+<p>在物体检测中，正因为背景（负样本）太多且没明确边界，所以我们更关注的是<strong>检测出来的东西是否准确（TP &#x2F; FP）</strong>，和<strong>有没有漏检（FN）</strong>。</p>
+<h3 id="2-IoU（Intersection-over-Union）"><a href="#2-IoU（Intersection-over-Union）" class="headerlink" title="2.IoU（Intersection over Union）"></a>2.IoU（Intersection over Union）</h3><p>预测框与真实框的重叠程度，<strong>IoU &gt; 某个阈值（比如 0.5）</strong> 就认为检测成功（TP），否则认为是 FP 或 FN。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250410142350.png" width="400"/></p>
+<h3 id="3-Confidence（置信度）"><a href="#3-Confidence（置信度）" class="headerlink" title="3.Confidence（置信度）"></a>3.Confidence（置信度）</h3><p>模型对<strong>这个框里确实有物体</strong>的信心程度，通常是一个介于 <strong>0 到 1</strong> 之间的小数。物体检测输出是：[类名, 置信度, 边界框坐标]。YOLO中是模型对检测框中存在目标物体及其预测类别准确性的综合置信程度。</p>
 <p>作用：<br>	1. 控制预测数量（过滤阈值），我们通常会设置一个阈值，比如 confidence &gt; 0.5，只保留“自信”的预测。低于这个阈值的预测会被忽略，减少 FP（误报）<br>	2. 用来画 PR 曲线、计算 AP，通过调整置信度阈值，我们会得到不同的：TP &#x2F; FP &#x2F; FN &#x2F; Precision &#x2F; Recall，画出 PR 曲线后 → 求 AP<br>	3. 排序时使用（NMS），在非极大值抑制（<strong>NMS</strong>）中，为了去掉重复框，模型会：按置信度从高到低排序，保留最“自信”的框，去掉重叠度高的（IoU高）低置信度框</p>
 <h3 id="4-Precision（精度）"><a href="#4-Precision（精度）" class="headerlink" title="4.Precision（精度）"></a>4.Precision（精度）</h3><p>$$\text{Precision} &#x3D; \frac{TP}{TP + FP}$$</p>
 <p>预测为正的里面有多少是真的。</p>
 <h3 id="5-Recall（召回率）"><a href="#5-Recall（召回率）" class="headerlink" title="5. Recall（召回率）"></a>5. Recall（召回率）</h3><p>$$\text{Recall} &#x3D; \frac{TP}{TP + FN}$$</p>
 <p>所有正样本中被预测出来了多少。</p>
-<h3 id="6-PR-曲线"><a href="#6-PR-曲线" class="headerlink" title="6.PR 曲线"></a>6.PR 曲线</h3><p>通过<strong>调整置信度阈值</strong>，会得到一组 Precision 和 Recall 值，对这些点画图就得到了 <strong>PR 曲线</strong>。<br>• 高置信度：Precision 高，Recall 低<br>• 低置信度：Recall 高，Precision 低</p>
-<img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250410145622.png" width="400"/>
-
-<h3 id="7-AP（Average-Precision）"><a href="#7-AP（Average-Precision）" class="headerlink" title="7.AP（Average Precision）"></a>7.AP（Average Precision）</h3><p>PR 曲线下的面积，也可以理解为对这条曲线的“积分”。<br>不同的任务对 AP 的计算方法略有不同（见 VOC 和 COCO）。</p>
+<h3 id="6-PR-曲线"><a href="#6-PR-曲线" class="headerlink" title="6.PR 曲线"></a>6.PR 曲线</h3><p>通过<strong>调整置信度阈值</strong>，会得到一组 Precision 和 Recall 值，对这些点画图就得到了 <strong>PR 曲线</strong>。<br>高置信度：Precision 高，Recall 低，低置信度：Recall 高，Precision 低。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250410145622.png" width="400"/></p>
+<h3 id="7-AP（Average-Precision）"><a href="#7-AP（Average-Precision）" class="headerlink" title="7.AP（Average Precision）"></a>7.AP（Average Precision）</h3><p>PR 曲线下的面积，也可以理解为对这条曲线的“积分”。不同的任务对 AP 的计算方法略有不同（见 VOC 和 COCO）。</p>
 <img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250410145729.png" width="400"/>
 
-<h3 id="8-mAP（mean-Average-Precision）"><a href="#8-mAP（mean-Average-Precision）" class="headerlink" title="8.mAP（mean Average Precision）"></a>8.mAP（mean Average Precision）</h3><p>平均的 AP：<br>• 对每一个类别算一个 AP<br>• mAP 就是所有类别的 AP 的平均值</p>
+<h3 id="8-mAP（mean-Average-Precision）"><a href="#8-mAP（mean-Average-Precision）" class="headerlink" title="8.mAP（mean Average Precision）"></a>8.mAP（mean Average Precision）</h3><p>平均的AP，AP是对每一个类别算一个 AP，mAP 就是所有类别的 AP 的平均值</p>
 <h3 id="9-评估标准（VOC-COCO）"><a href="#9-评估标准（VOC-COCO）" class="headerlink" title="9.评估标准（VOC &#x2F; COCO）"></a>9.评估标准（VOC &#x2F; COCO）</h3><h4 id="1-PASCAL-VOC（早期标准）"><a href="#1-PASCAL-VOC（早期标准）" class="headerlink" title="1. PASCAL VOC（早期标准）"></a>1. PASCAL VOC（早期标准）</h4><p>来自 PASCAL VOC 挑战赛（2007 ~ 2012），经典但相对简单</p>
 <h4 id="2-COCO（更严格的现代标准）"><a href="#2-COCO（更严格的现代标准）" class="headerlink" title="2.COCO（更严格的现代标准）"></a>2.COCO（更严格的现代标准）</h4><p>来自 Microsoft 的 COCO 数据集。2015 后成为主流评估标准（比如 YOLOv5 默认用 COCO）</p>
 <p>VOC vs COCO：</p>
@@ -394,7 +392,7 @@
 <td>当前工业&#x2F;学术主流（如 YOLO 系列）</td>
 </tr>
 </tbody></table>
-<h3 id="10-举个例子"><a href="#10-举个例子" class="headerlink" title="10.举个例子"></a>10.举个例子</h3><h4 id="1-示例场景"><a href="#1-示例场景" class="headerlink" title="1.示例场景"></a>1.示例场景</h4><p>一张图中有 2 只猫（Ground Truth），使用VOC评估<br>模型预测了 3 个框，带有类别和置信度：</p>
+<h3 id="10-举个例子"><a href="#10-举个例子" class="headerlink" title="10.举个例子"></a>10.举个例子</h3><h4 id="1-示例场景"><a href="#1-示例场景" class="headerlink" title="1.示例场景"></a>1.示例场景</h4><p>一张图中有 2 只猫（Ground Truth），使用VOC评估，模型预测了 3 个框，带有类别和置信度：</p>
 <table>
 <thead>
 <tr>
@@ -457,20 +455,13 @@
 </ol>
 <p>将这些点连接起来形成 <strong>PR 曲线</strong><br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-04-10_15-29-57.jpg" width="600"/></p>
 <h4 id="5-计算-AP-和-mAP"><a href="#5-计算-AP-和-mAP" class="headerlink" title="5.计算 AP 和 mAP"></a>5.计算 AP 和 mAP</h4><p>对这条 PR 曲线下的面积求和，就是这张图“猫”这一类的 <strong>AP</strong>，如果还有“狗”“人”等类别，每个类别都算一个 AP，再平均得到 <strong>mAP</strong>。</p>
-<h4 id="6-VOC-vs-COCO"><a href="#6-VOC-vs-COCO" class="headerlink" title="6.VOC vs COCO"></a>6.VOC vs COCO</h4><p>在 VOC 中，IoU &gt; 0.5 就算 TP，所以我们这里算的是 <strong><a href="mailto:&#65;&#80;&#x40;&#48;&#46;&#x35;">AP@0.5</a></strong>，在 COCO 中，还会算 <a href="mailto:&#x41;&#80;&#64;&#x30;&#46;&#x35;">AP@0.5</a>、<a href="mailto:&#65;&#x50;&#64;&#x30;&#x2e;&#x37;&#53;">AP@0.75</a>、<a href="mailto:&#x41;&#x50;&#x40;&#48;&#46;&#x39;&#53;">AP@0.95</a> 等，再平均得到更严格的 mAP。</p>
+<h4 id="6-VOC-vs-COCO"><a href="#6-VOC-vs-COCO" class="headerlink" title="6.VOC vs COCO"></a>6.VOC vs COCO</h4><p>在 VOC 中，IoU &gt; 0.5 就算 TP，所以我们这里算的是 <code>AP@0.5</code>，在 COCO 中，还会算<code>AP@0.5</code>、<code>AP@0.75</code>、<code>AP@0.95</code>等，再平均得到更严格的 mAP。</p>
 <h2 id="2-YOLO-V1"><a href="#2-YOLO-V1" class="headerlink" title="2.YOLO-V1"></a>2.YOLO-V1</h2><h3 id="1-目标检测方法"><a href="#1-目标检测方法" class="headerlink" title="1.目标检测方法"></a>1.目标检测方法</h3><h4 id="1-两阶段检测（Two-Stage）​"><a href="#1-两阶段检测（Two-Stage）​" class="headerlink" title="1.两阶段检测（Two-Stage）​"></a>1.两阶段检测（Two-Stage）​</h4><p>​代表模型​：Faster R-CNN、Mask R-CNN<br>​核心思想​：​<strong>​“先粗选再精修”​</strong>，像选秀节目：</p>
 <ol>
-<li>​<strong>海选阶段（Region Proposal）​</strong>​：<ul>
-<li>用RPN（Region Proposal Network）快速生成约2k个候选框（可能含物体的区域）。</li>
-<li>特点：高召回率（宁可多选不错过），但框不准。</li>
-</ul>
-</li>
-<li>​<strong>决赛阶段（RoI分类与回归）​</strong>​：<ul>
-<li>对每个候选框精细调整位置，并分类（如“猫”“狗”）。</li>
-<li>特点：计算量大但精度高。<br>​<strong>优点</strong>​：<br>✅ 精度高（适合复杂场景，如小物体或密集目标）。<br>✅ 适合需要实例分割的任务（如Mask R-CNN）。<br>​<strong>缺点</strong>​：<br>❌ 速度慢（通常5~20 FPS）。<br>❌ 训练流程复杂（分阶段训练或端到端调参难）。<br>​<strong>典型应用</strong>​：</li>
-</ul>
-</li>
+<li>​<strong>海选阶段（Region Proposal）​</strong>​，用RPN（Region Proposal Network）快速生成约2k个候选框（可能含物体的区域）。特点是高召回率（宁可多选不错过），但框不准。</li>
+<li>​<strong>决赛阶段（RoI分类与回归）​</strong>​，对每个候选框精细调整位置，并分类（如“猫”“狗”）。特点是计算量大但精度高。<br>​<strong>优点</strong>​：<br> ✅ 精度高（适合复杂场景，如小物体或密集目标）<br> ✅ 适合需要实例分割的任务（如Mask R-CNN）<br>​<strong>缺点</strong>​：<br> ❌ 速度慢（通常5~20 FPS）<br> ❌ 训练流程复杂（分阶段训练或端到端调参难）</li>
 </ol>
+<p>​<strong>典型应用</strong>​：</p>
 <ul>
 <li>医学影像分析（肿瘤检测需高精度）</li>
 <li>自动驾驶（高精度3D检测）</li>
@@ -478,12 +469,9 @@
 </ul>
 <h4 id="2-单阶段检测（One-Stage）​​"><a href="#2-单阶段检测（One-Stage）​​" class="headerlink" title="2. 单阶段检测（One-Stage）​​"></a>2. 单阶段检测（One-Stage）​​</h4><p>​代表模型​：YOLO系列、SSD、RetinaNet<br>​核心思想​：​<strong>​“一步到位”​</strong>，像快餐点单：</p>
 <ol>
-<li>​<strong>直接输出</strong>​：<ul>
-<li>对图像网格化，每个格子同时预测边界框和类别（无候选框步骤）。</li>
-<li><em>特点</em>：速度快但易漏检小物体。<br>​<strong>优点</strong>​：<br>✅ 速度快（YOLOv8可达100+ FPS）。<br>✅ 部署简单（适合端侧设备如手机、无人机）。<br>​<strong>缺点</strong>​：<br>❌ 精度略低（尤其小物体检测）。<br>❌ 密集物体易重叠（如人群中的个体）。<br>​<strong>典型应用</strong>​：</li>
-</ul>
-</li>
+<li>​<strong>直接输出</strong>​，对图像网格化，每个格子同时预测边界框和类别（无候选框步骤）。特点是速度快但易漏检小物体。<br>​<strong>优点</strong>​：<br> ✅ 速度快（YOLOv8可达100+ FPS）。<br> ✅ 部署简单（适合端侧设备如手机、无人机）<br>​<strong>缺点</strong>​：<br> ❌ 精度略低（尤其小物体检测）<br> ❌ 密集物体易重叠（如人群中的个体）</li>
 </ol>
+<p>​<strong>典型应用</strong>​：</p>
 <ul>
 <li>实时视频分析（安防监控、直播质检）</li>
 <li>移动端APP（手机AR贴纸、扫商品）</li>
@@ -491,24 +479,24 @@
 </ul>
 <h4 id="3-技术演进趋势​"><a href="#3-技术演进趋势​" class="headerlink" title="3.技术演进趋势​"></a>3.技术演进趋势​</h4><ul>
 <li>​<strong>两阶段的改进</strong>​：<ul>
-<li>更高效的候选框生成（如Cascade R-CNN）。</li>
+<li>更高效的候选框生成（如Cascade R-CNN）</li>
 </ul>
 </li>
 <li>​<strong>单阶段的突破</strong>​：<ul>
-<li>提升小物体检测（YOLOv5的FPN+PAN结构）。</li>
-<li>动态标签分配（如OTA策略）。</li>
+<li>提升小物体检测（YOLOv5的FPN+PAN结构）</li>
+<li>动态标签分配（如OTA策略）</li>
 </ul>
 </li>
 <li>​<strong>跨界融合</strong>​：<ul>
-<li>单阶段模型通过蒸馏技术逼近两阶段精度（如YOLOv7）。</li>
+<li>单阶段模型通过蒸馏技术逼近两阶段精度（如YOLOv7）</li>
 </ul>
 </li>
 </ul>
 <h3 id="2-YOLO产生背景"><a href="#2-YOLO产生背景" class="headerlink" title="2.YOLO产生背景"></a>2.YOLO产生背景</h3><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/202504102311.jpg" width="600"/>
 在 YOLO 出现之前，目标检测主流方法是两阶段的，例如：
-	• **R-CNN（2013）**：通过选择性搜索（Selective Search）生成候选框，然后再用 CNN 对每个框分类，mAP 为 58.5，但速度慢。
-	• **Fast R-CNN（2015）**：引入 ROI Pooling 提高效率，但候选框还是靠外部生成（如选择性搜索），mAP 提升到 70，但 FPS 仍只有 0.5。
-	• **Faster R-CNN（2015）**：引入 Region Proposal Network（RPN），第一次实现了端到端训练，mAP 达到 73.2，速度提升到 7 FPS。
+	• R-CNN（2013）：通过选择性搜索（Selective Search）生成候选框，然后再用 CNN 对每个框分类，mAP 为 58.5，但速度慢
+	• Fast R-CNN（2015）：引入 ROI Pooling 提高效率，但候选框还是靠外部生成（如选择性搜索），mAP 提升到 70，但 FPS 仍只有 0.5
+	• Faster R-CNN（2015）：引入 Region Proposal Network（RPN），第一次实现了端到端训练，mAP 达到 73.2，速度提升到 7 FPS
 
 <p>这些方法虽然精度高，但速度较慢，难以应对实时场景。</p>
 <p>YOLO（You Only Look Once）于 2015 年提出，核心思想是将目标检测转化为一个 <strong>回归问题</strong>，在一张图上直接预测边界框和类别：<br>特点：</p>
@@ -523,7 +511,7 @@
 <h4 id="1-图像划分"><a href="#1-图像划分" class="headerlink" title="1.图像划分"></a>1.图像划分</h4><p>如上左图将输入图像划分为 <strong>S × S 的网格</strong>（例如 S&#x3D;7）。每个网格只负责预测其内部中心点落入该网格的物体。</p>
 <h4 id="2-预测多个边界框"><a href="#2-预测多个边界框" class="headerlink" title="2.预测多个边界框"></a>2.预测多个边界框</h4><p>每个网格单元预测 <strong>B 个边界框</strong>（通常 B&#x3D;2），每个框包含：<br>• 坐标信息 (x, y, w, h)<br>• 置信度（confidence）&#x3D; 物体存在概率 × IOU（预测框与真实框的重合程度）<br>上图中上部分显示了所有网格预测的大量框 + confidence。</p>
 <h4 id="3-预测概率"><a href="#3-预测概率" class="headerlink" title="3.预测概率"></a>3.预测概率</h4><p>每个网格预测一个<strong>类别概率分布</strong>，即 C 个类别的概率（如图中下方的彩色 class map）。这些类别概率是与该网格是否包含物体无关的<strong>条件概率</strong>。</p>
-<h4 id="4-输出组合（Final-Prediction）"><a href="#4-输出组合（Final-Prediction）" class="headerlink" title="4.输出组合（Final Prediction）"></a>4.输出组合（Final Prediction）</h4><p>• 对每个预测框，其最终得分 &#x3D; 类别概率 × 置信度。<br>• 最后利用 <strong>非极大值抑制（NMS）</strong> 去除冗余框，得到最终检测结果（如图最右侧）。</p>
+<h4 id="4-输出组合（Final-Prediction）"><a href="#4-输出组合（Final-Prediction）" class="headerlink" title="4.输出组合（Final Prediction）"></a>4.输出组合（Final Prediction）</h4><p>对每个预测框，其最终得分 &#x3D; 类别概率 × 置信度。最后利用 <strong>非极大值抑制（NMS）</strong> 去除冗余框，得到最终检测结果（如图最右侧）。</p>
 <blockquote>
 <p>NMS（Non-Maximum Suppression）是目标检测中的一种后处理算法，用于<strong>从多个重叠的预测框中选择最靠谱的一个</strong>，去掉冗余和低质量的框。</p>
 </blockquote>
