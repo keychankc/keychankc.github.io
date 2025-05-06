@@ -23,24 +23,26 @@
 
     <meta name="description" content="1.基本使用1.YOLOv5整体概述YOLOv5本质上是一个经过大量优化的工程项目，不像前几代那样有对应的学术论文。它主要是在YOLOv4的基础上做了更实用的工程改进，让使用者能更轻松地应用到实际场景中。主要有以下特点：  ​工程优化为主​ 没有官方论文，核心改进在于代码实现，比如训练效率、代码可读性 相比YOLOv4，工程结构更简洁，配置更直观，适合直接拿来训练自己的数据   ​使用体验升级​">
 <meta property="og:type" content="website">
-<meta property="og:title" content="KeyChan&#39;s blog">
+<meta property="og:title" content="[YOLO系列③] YOLOv5源码解析">
 <meta property="og:url" content="https://keychankc.github.io/reserve/014-yolo-yolov5-code-detail.html">
 <meta property="og:site_name" content="KeyChan&#39;s blog">
 <meta property="og:description" content="1.基本使用1.YOLOv5整体概述YOLOv5本质上是一个经过大量优化的工程项目，不像前几代那样有对应的学术论文。它主要是在YOLOv4的基础上做了更实用的工程改进，让使用者能更轻松地应用到实际场景中。主要有以下特点：  ​工程优化为主​ 没有官方论文，核心改进在于代码实现，比如训练效率、代码可读性 相比YOLOv4，工程结构更简洁，配置更直观，适合直接拿来训练自己的数据   ​使用体验升级​">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2025-05-03T00:41:37.112Z">
-<meta property="article:modified_time" content="2025-05-03T00:19:52.549Z">
+<meta property="article:published_time" content="2025-05-05T23:50:12.000Z">
+<meta property="article:modified_time" content="2025-05-06T03:11:37.762Z">
 <meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="计算机视觉">
+<meta property="article:tag" content="目标检测">
 <meta name="twitter:card" content="summary">
 
 
 <link rel="canonical" href="https://keychankc.github.io/reserve/014-yolo-yolov5-code-detail">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":false,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/reserve/014-yolo-yolov5-code-detail.html","path":"reserve/014-yolo-yolov5-code-detail.html","title":""}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":false,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/reserve/014-yolo-yolov5-code-detail.html","path":"reserve/014-yolo-yolov5-code-detail.html","title":"[YOLO系列③] YOLOv5源码解析"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title> | KeyChan's blog
+<title>[YOLO系列③] YOLOv5源码解析 | KeyChan's blog
 </title>
   
 
@@ -141,7 +143,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8"><span class="nav-text">1.基本使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-YOLOv5%E6%95%B4%E4%BD%93%E6%A6%82%E8%BF%B0"><span class="nav-text">1.YOLOv5整体概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E8%AE%AD%E7%BB%83%E8%87%AA%E5%AE%9A%E4%B9%89%E6%95%B0%E6%8D%AE%E9%9B%86"><span class="nav-text">2.训练自定义数据集</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E6%A8%A1%E5%9E%8B%E7%BB%93%E6%9E%84"><span class="nav-text">2.模型结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86"><span class="nav-text">3.数据处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E8%AE%AD%E7%BB%83%E7%BB%86%E8%8A%82"><span class="nav-text">4.训练细节</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E9%83%A8%E7%BD%B2%E7%9B%B8%E5%85%B3"><span class="nav-text">5.部署相关</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8"><span class="nav-text">1.基本使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-YOLOv5%E6%95%B4%E4%BD%93%E6%A6%82%E8%BF%B0"><span class="nav-text">1.YOLOv5整体概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E8%AE%AD%E7%BB%83%E8%87%AA%E5%AE%9A%E4%B9%89%E6%95%B0%E6%8D%AE%E9%9B%86"><span class="nav-text">2.训练自定义数据集</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E4%B8%8B%E8%BD%BD%E9%A2%84%E8%AE%AD%E7%BB%83%E6%A8%A1%E5%9E%8B%E4%B8%8E%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0"><span class="nav-text">2.下载预训练模型与配置参数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86"><span class="nav-text">2.数据处理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%95%B0%E6%8D%AE%E5%8A%A0%E8%BD%BD%E4%B8%8E%E5%A2%9E%E5%BC%BA%E6%A8%A1%E5%9D%97"><span class="nav-text">1.数据加载与增强模块</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E7%BD%91%E7%BB%9C%E7%BB%93%E6%9E%84"><span class="nav-text">3.网络结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E8%AE%AD%E7%BB%83%E6%B5%81%E7%A8%8B%E4%B8%8E%E7%AD%96%E7%95%A5"><span class="nav-text">4.训练流程与策略</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E6%A8%A1%E5%9E%8B%E7%BB%93%E6%9E%84"><span class="nav-text">2.模型结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86"><span class="nav-text">3.数据处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E8%AE%AD%E7%BB%83%E7%BB%86%E8%8A%82"><span class="nav-text">4.训练细节</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E9%83%A8%E7%BD%B2%E7%9B%B8%E5%85%B3"><span class="nav-text">5.部署相关</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -205,7 +207,7 @@
     
     <div class="post-block" lang="zh-CN"><header class="post-header">
 
-<h1 class="post-title" itemprop="name headline">
+<h1 class="post-title" itemprop="name headline">[YOLO系列③] YOLOv5源码解析
 </h1>
 
 <div class="post-meta-container">
@@ -217,7 +219,7 @@
       
       
       <div class="post-body">
-          <h2 id="1-基本使用"><a href="#1-基本使用" class="headerlink" title="1.基本使用"></a>1.基本使用</h2><h3 id="1-YOLOv5整体概述"><a href="#1-YOLOv5整体概述" class="headerlink" title="1.YOLOv5整体概述"></a>1.YOLOv5整体概述</h3><p>YOLOv5本质上是一个经过大量优化的工程项目，不像前几代那样有对应的学术论文。它主要是在YOLOv4的基础上做了更实用的工程改进，让使用者能更轻松地应用到实际场景中。主要有以下特点：</p>
+          <h2 id="1-基本使用"><a href="#1-基本使用" class="headerlink" title="1.基本使用"></a>1.基本使用</h2><h3 id="1-YOLOv5整体概述"><a href="#1-YOLOv5整体概述" class="headerlink" title="1.YOLOv5整体概述"></a>1.YOLOv5整体概述</h3><p>YOLOv5本质上是一个经过大量优化的<strong>工程项目</strong>，不像前几代那样有对应的学术论文。它主要是在YOLOv4的基础上做了更实用的工程改进，让使用者能更轻松地应用到实际场景中。主要有以下特点：</p>
 <ol>
 <li>​<strong>工程优化为主</strong>​<ul>
 <li>没有官方论文，核心改进在于代码实现，比如训练效率、代码可读性</li>
@@ -236,11 +238,134 @@
 </li>
 <li>​<strong>代码简洁</strong>​<ul>
 <li>相比YOLOv3&#x2F;v4的“堆料式”代码，V5的代码结构清晰，模块化程度高，容易二次开发</li>
-<li>项目文档实用，从安装到训练、测试都有现成指令，能快速上手</li>
+<li>项目文档详细，从安装到训练、测试都有现成指令，能快速上手</li>
 </ul>
 </li>
 </ol>
-<h3 id="2-训练自定义数据集"><a href="#2-训练自定义数据集" class="headerlink" title="2.训练自定义数据集"></a>2.训练自定义数据集</h3><h2 id="2-模型结构"><a href="#2-模型结构" class="headerlink" title="2.模型结构"></a>2.模型结构</h2><h2 id="3-数据处理"><a href="#3-数据处理" class="headerlink" title="3.数据处理"></a>3.数据处理</h2><h2 id="4-训练细节"><a href="#4-训练细节" class="headerlink" title="4.训练细节"></a>4.训练细节</h2><h2 id="5-部署相关"><a href="#5-部署相关" class="headerlink" title="5.部署相关"></a>5.部署相关</h2>
+<p>YOLOv5 的代码量虽然庞大，但设计非常细致、实用，并且持续更新维护，不同于很多“一发论文就停止维护”的学术项目。</p>
+<h3 id="2-训练自定义数据集"><a href="#2-训练自定义数据集" class="headerlink" title="2.训练自定义数据集"></a>2.训练自定义数据集</h3><p>如何训练自定义数据集，可分为三步：</p>
+<ol>
+<li>下载标注好的数据集</li>
+<li>按指定文件夹结构存放</li>
+<li>改配置文件里的路径和类别数</li>
+</ol>
+<p>训练数据可以从<a target="_blank" rel="noopener" href="https://public.roboflow.com/">Roboflow</a>上下载，<strong>Roboflow</strong>​ 是一个面向开发者和企业的端到端计算机视觉（CV）开发平台，可以帮助用户高效构建、训练、部署和管理AI视觉模型，上面也有多个轻量级的目标检测数据集（如手写数字、象棋、扑克牌、口罩等），比较适合单机或低配置训练。</p>
+<p>我们选择<a target="_blank" rel="noopener" href="https://public.roboflow.com/object-detection/mask-wearing/4">口罩数据集</a>，下载的时候选择格式为 <strong>YOLOv5 PyTorch</strong>（.txt 标签格式），下载后将数据集解压到与 YOLOv5 源码（如 yolov5-master）同级目录下，例如：mask_wearing_data。</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mask<span class="emphasis">_wearing_</span>data/</span><br><span class="line">├── train/</span><br><span class="line">│   ├── images/  # 训练图片</span><br><span class="line">│   └── labels/  # 对应txt标注文件</span><br><span class="line">├── valid/       # 验证集（结构同train）</span><br><span class="line">├── test/        # 测试集（结构同train）</span><br><span class="line">└── data.yaml    # 配置文件（改路径和类别数就用它）</span><br></pre></td></tr></table></figure>
+<p>配置文件（data.yaml）需要指定图像路径、标签路径、类别数（如口罩数据集为2类：戴口罩 &#x2F; 未戴口罩）。    </p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">train:</span> <span class="string">../mask_wearing_data/train/images</span></span><br><span class="line"><span class="attr">val:</span> <span class="string">../mask_wearing_data/valid/images</span></span><br><span class="line"><span class="attr">test:</span> <span class="string">../mask_wearing_data/test/images</span></span><br><span class="line"><span class="attr">nc:</span> <span class="number">2</span></span><br><span class="line"><span class="attr">names:</span> [<span class="string">&#x27;mask&#x27;</span>, <span class="string">&#x27;no-mask&#x27;</span>]</span><br></pre></td></tr></table></figure>
+<p>标签为 .txt 格式，第一列是类别编号，后四列是归一化后的边框坐标（YOLO格式）。标签文件需与图片文件名对应，如果想定义自己的数据集可以参考这个数据格式。</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">126202-untitled-design-13_jpg.rf.baa3d2e55d469ae5d5d4cd81c4603e1d.txt</span><br><span class="line"></span><br><span class="line">0 0.855119825708061 0.18280632411067194 0.15250544662309368 0.3458498023715415</span><br><span class="line">0 0.6726579520697168 0.48023715415019763 0.21895424836601307 0.5612648221343873</span><br><span class="line">0 0.48257080610021785 0.35276679841897235 0.1895424836601307 0.44861660079051385</span><br><span class="line">0 0.2587145969498911 0.5632411067193676 0.17973856209150327 0.41106719367588934</span><br><span class="line">0 0.09477124183006536 0.41699604743083 0.18082788671023964 0.5217391304347826</span><br></pre></td></tr></table></figure>
+<p>YOLOv5 会在训练时自动生成缓存文件（如 .cache），提高后续训练速度。</p>
+<h3 id="2-下载预训练模型与配置参数"><a href="#2-下载预训练模型与配置参数" class="headerlink" title="2.下载预训练模型与配置参数"></a>2.下载预训练模型与配置参数</h3><p>YOLOv5给我们提供了很多预训练模型，这些模型在参数量、计算量和性能上都有所区别，主要面向不同的应用场景和硬件需求。模型名称后缀越大，参数量越多，精度越高，但速度越慢：</p>
+<ul>
+<li>​<strong>YOLOv5n</strong>​（Nano）<ul>
+<li>参数量：约 1.9M</li>
+<li>计算量：约 4.5 GFLOPs</li>
+<li>适用场景：​<strong>移动端&#x2F;嵌入式设备</strong>​（如 Jetson Nano、树莓派）或对实时性要求极高的场景。</li>
+</ul>
+</li>
+<li>​<strong>YOLOv5s</strong>​（Small）<ul>
+<li>参数量：约 7.2M</li>
+<li>计算量：约 16.5 GFLOPs</li>
+<li>适用场景：​<strong>轻量级通用检测</strong>，平衡速度与精度，适合边缘计算设备（如 Jetson TX2）。</li>
+</ul>
+</li>
+<li>​<strong>YOLOv5m</strong>​（Medium）<ul>
+<li>参数量：约 21.2M</li>
+<li>计算量：约 49.0 GFLOPs</li>
+<li>适用场景：​<strong>通用场景下的实时检测</strong>​（如视频监控、无人机航拍）。</li>
+</ul>
+</li>
+<li>​<strong>YOLOv5l</strong>​（Large）<ul>
+<li>参数量：约 46.5M</li>
+<li>计算量：约 109.1 GFLOPs</li>
+<li>适用场景：​<strong>服务器端或高性能 GPU</strong>，对精度要求较高的任务。</li>
+</ul>
+</li>
+<li>​<strong>YOLOv5x</strong>​（X-Large）<ul>
+<li>参数量：约 86.7M</li>
+<li>计算量：约 205.7 GFLOPs</li>
+<li>适用场景：​<strong>研究或高精度需求场景</strong>​（如医学图像分析、卫星图像检测）。</li>
+</ul>
+</li>
+</ul>
+<p>一般我们在学习和测试的时候建议先用 yolov5s，主要是小模型、十几 MB，训练速度快一些。</p>
+<p>使用<code>train.py</code>训练当前自定义数据集<code>mask_wearing_data</code>命令，命令在运行的时候会判断如果指定模型结构还没有下载预训练模型会自动下载</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python train.py --data ../mask_wearing_data/data.yaml --cfg models/yolov5s.yaml --weights yolov5s.pt --batch-size 16 --freeze 10 --epochs 10    </span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--data</code></td>
+<td>指定数据配置文件 <code>data.yaml</code>，描述数据集路径、类别数、类别名称等信息</td>
+</tr>
+<tr>
+<td><code>--cfg</code></td>
+<td>指定模型结构配置文件 <code>yolov5s.yaml</code>，定义 YOLOv5s 的网络结构</td>
+</tr>
+<tr>
+<td><code>--weight</code></td>
+<td>使用yolov5s预训练权重，可加速收敛并提升精度</td>
+</tr>
+<tr>
+<td><code>--batch-size</code></td>
+<td>设置每个批次的样本数为 16，影响训练速度和显存占用</td>
+</tr>
+<tr>
+<td><code>--freeze</code></td>
+<td>冻结骨干网络的前 10 层，减少计算量</td>
+</tr>
+<tr>
+<td><code>--epochs</code></td>
+<td>训练轮数</td>
+</tr>
+<tr>
+<td>最后的一个Epoch+summary日志：</td>
+<td></td>
+</tr>
+<tr>
+<td>![[Pasted image 20250503142232.png]]</td>
+<td></td>
+</tr>
+<tr>
+<td>输出结果在<code>runs/train/exp4</code>目录下:</td>
+<td></td>
+</tr>
+</tbody></table>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">├── F1_curve.png # F1 分数随阈值变化的曲线</span><br><span class="line">├── PR_curve.png # Precision-Recall 曲线，用于衡量模型在不同阈值下的性能</span><br><span class="line">├── P_curve.png # Precision（查准率）随置信度阈值的变化曲线</span><br><span class="line">├── R_curve.png # Recall（查全率）曲线</span><br><span class="line">├── confusion_matrix.png # 混淆矩阵图，用于展示不同类别的预测混淆情况（分类任务中常用）</span><br><span class="line">├── events.out.tfevents.xxx.xx # TensorBoard 记录文件</span><br><span class="line">├── hyp.yaml # 训练超参数（如学习率、IoU 阈值、损失权重等）</span><br><span class="line">├── labels.jpg # 展示训练集中标注框的分布情况</span><br><span class="line">├── labels_correlogram.jpg # 类别之间的相关性热力图（适合多标签任务）</span><br><span class="line">├── opt.yaml # 训练过程中的各种配置参数（命令行参数的备份）</span><br><span class="line">├── results.csv # 每个epoch的指标记录表格</span><br><span class="line">├── results.png # 包含loss、mAP、Precision、Recall等关键训练指标随epoch变化的曲线图</span><br><span class="line">├── train_batch0.jpg # 训练集中部分图片及其标注框预览图</span><br><span class="line">├── train_batch1.jpg # 训练集中部分图片及其标注框预览图</span><br><span class="line">├── train_batch2.jpg # 训练集中部分图片及其标注框预览图</span><br><span class="line">├── val_batch0_labels.jpg # 验证集图像及其真实标签框</span><br><span class="line">├── val_batch0_pred.jpg # 验证集图像的模型预测结果</span><br><span class="line">└── weights # 用于保存模型权重文件</span><br><span class="line">    ├── best.pt # 验证集上效果最好的模型权重（val_loss 最低的）</span><br><span class="line">    └── last.pt # 训练过程中最后一次保存的模型权重（最后一个 epoch）</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-数据处理"><a href="#2-数据处理" class="headerlink" title="2.数据处理"></a>2.数据处理</h2><p>如何加载数据集， 数据增强特别是 Mosaic 的实现逻辑，最终返回可用于训练的数据与标签</p>
+<h3 id="1-数据加载与增强模块"><a href="#1-数据加载与增强模块" class="headerlink" title="1.数据加载与增强模块"></a>1.数据加载与增强模块</h3><p> <code>utils/dataloaders.py</code> 文件是 YOLOv5 的数据加载和处理模块，支持多种训练和推理场景，大致包含以下主要功能：</p>
+<ol>
+<li>​<strong>数据加载器</strong>​：支持图像&#x2F;视频文件、实时视频流、屏幕截图及分类数据集的加载（<code>LoadImages</code>&#x2F;<code>LoadStreams</code>&#x2F;<code>LoadImagesAndLabels</code>等）</li>
+<li>​<strong>预处理与增强</strong>​：包含图像缩放、填充、Mosaic&#x2F;MixUp增强、随机透视变换、HSV调整等，支持训练时动态数据增强</li>
+<li>​<strong>视频处理</strong>​：多线程处理本地视频、YouTube流和IP摄像头，实现高效帧读取</li>
+<li>​<strong>数据集管理</strong>​：提供缓存机制、数据集验证、自动分割（训练&#x2F;验证&#x2F;测试）及统计信息生成（<code>HUBDatasetStats</code>）</li>
+<li>​<strong>分布式训练支持</strong>​：通过<code>SmartDistributedSampler</code>实现多GPU数据分配，确保数据加载与并行训练协调</li>
+<li>​<strong>格式转换工具</strong>​：自动转换图像路径到标签路径、处理EXIF信息、验证数据合法性（<code>verify_image_label</code>）</li>
+<li>​<strong>性能优化</strong>​：采用内存&#x2F;磁盘缓存、多线程加载、批处理优化（如四合一拼接）加速数据流水线</li>
+<li>​<strong>错误处理</strong>​：检测损坏图像&#x2F;标签，记录异常并跳过无效数据，保障训练稳定性</li>
+<li>​<strong>分类任务扩展</strong>​：专用<code>ClassificationDataset</code>支持图像分类数据加载与增强</li>
+<li>​<strong>导出与兼容性</strong>​：支持数据集压缩、格式转换及统计报告生成，便于模型部署和迁移</li>
+</ol>
+<p>来看看<code>create_dataloader</code>的各个参数</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line">utils/dataloaders.py</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">create_dataloader</span>(<span class="params">  </span></span><br><span class="line"><span class="params">    path,  <span class="comment"># 数据集路径</span></span></span><br><span class="line"><span class="params">    imgsz,  <span class="comment"># 输入图像的尺寸（如640表示图像会被调整为 640x640）</span></span></span><br><span class="line"><span class="params">    batch_size,  <span class="comment"># 每个批次的样本数量</span></span></span><br><span class="line"><span class="params">    stride,  <span class="comment"># 模型的下采样步长（用于调整标签尺寸）</span></span></span><br><span class="line"><span class="params">    single_cls=<span class="literal">False</span>,  <span class="comment"># 是否将所有类别视为同一类别（用于单类别任务）</span></span></span><br><span class="line"><span class="params">    hyp=<span class="literal">None</span>,  <span class="comment"># 超参数字典（包含数据增强相关的参数）</span></span></span><br><span class="line"><span class="params">    augment=<span class="literal">False</span>,  <span class="comment"># 是否启用数据增强</span></span></span><br><span class="line"><span class="params">    cache=<span class="literal">False</span>,  <span class="comment"># 是否缓存图像到内存或磁盘（加速后续加载）</span></span></span><br><span class="line"><span class="params">    pad=<span class="number">0.0</span>,  <span class="comment"># 图像填充比例（用于矩形训练）</span></span></span><br><span class="line"><span class="params">    rect=<span class="literal">False</span>,  <span class="comment"># 是否使用矩形批次（非方形图像，减少填充）</span></span></span><br><span class="line"><span class="params">    rank=-<span class="number">1</span>,  <span class="comment"># 分布式训练的进程排名（-1表示非分布式）</span></span></span><br><span class="line"><span class="params">    workers=<span class="number">8</span>,  <span class="comment"># 数据加载的子进程数</span></span></span><br><span class="line"><span class="params">    image_weights=<span class="literal">False</span>,  <span class="comment"># 是否根据类别分布对图像进行加权采样</span></span></span><br><span class="line"><span class="params">    quad=<span class="literal">False</span>,  <span class="comment"># 是否使用四合一拼接的数据加载（用于更大的批次）</span></span></span><br><span class="line"><span class="params">    prefix=<span class="string">&quot;&quot;</span>,  <span class="comment"># 日志信息的前缀（用于调试）</span></span></span><br><span class="line"><span class="params">    shuffle=<span class="literal">False</span>,  <span class="comment"># 是否打乱数据顺序</span></span></span><br><span class="line"><span class="params">    seed=<span class="number">0</span>,  <span class="comment"># 随机种子</span></span></span><br><span class="line"><span class="params"></span>):  </span><br><span class="line">    <span class="string">&quot;&quot;&quot;Creates and returns a configured DataLoader instance for loading and processing image datasets.&quot;&quot;&quot;</span>  </span><br><span class="line">    <span class="keyword">if</span> rect <span class="keyword">and</span> shuffle:</span><br><span class="line">        LOGGER.warning(<span class="string">&quot;WARNING ⚠️ --rect is incompatible with DataLoader shuffle, setting shuffle=False&quot;</span>)  </span><br><span class="line">        <span class="comment"># 如果启用矩形训练（rect=True），则强制关闭shuffle（因为矩形批次需要固定顺序）</span></span><br><span class="line">        shuffle = <span class="literal">False</span>  </span><br><span class="line">    <span class="comment">#  确保在分布式训练中，数据集缓存（如.cache文件）只由rank=0的进程生成一次</span></span><br><span class="line">    <span class="keyword">with</span> torch_distributed_zero_first(rank):</span><br><span class="line">	    <span class="comment"># 负责加载图像和标签，支持数据增强、缓存、矩形训练等功能，内部会解析标签文件（如 YOLO 格式的.txt），调整图像尺寸，并应用增强（如旋转、缩放等）</span></span><br><span class="line">        dataset = LoadImagesAndLabels(  </span><br><span class="line">            path,  </span><br><span class="line">            imgsz,  </span><br><span class="line">            batch_size,  </span><br><span class="line">            augment=augment,  <span class="comment"># augmentation  </span></span><br><span class="line">            hyp=hyp,  <span class="comment"># hyperparameters  </span></span><br><span class="line">            rect=rect,  <span class="comment"># rectangular batches  </span></span><br><span class="line">            cache_images=cache,  </span><br><span class="line">            single_cls=single_cls,  </span><br><span class="line">            stride=<span class="built_in">int</span>(stride),  </span><br><span class="line">            pad=pad,  </span><br><span class="line">            image_weights=image_weights,  </span><br><span class="line">            prefix=prefix,  </span><br><span class="line">            rank=rank,  </span><br><span class="line">        )  </span><br><span class="line">  </span><br><span class="line">    batch_size = <span class="built_in">min</span>(batch_size, <span class="built_in">len</span>(dataset))  </span><br><span class="line">    nd = torch.cuda.device_count()  <span class="comment"># number of CUDA devices  </span></span><br><span class="line">    <span class="comment"># 计算实际使用的子进程数nw，考虑 CPU 核心数、GPU 数量和批次大小</span></span><br><span class="line">    nw = <span class="built_in">min</span>([os.cpu_count() // <span class="built_in">max</span>(nd, <span class="number">1</span>), batch_size <span class="keyword">if</span> batch_size &gt; <span class="number">1</span> <span class="keyword">else</span> <span class="number">0</span>, workers])</span><br><span class="line">    <span class="comment"># ​配置分布式采样器，分布式训练支持​，如果rank != -1（分布式训练），使用 SmartDistributedSampler 分配数据到各进程；否则不使用采样器</span></span><br><span class="line">    sampler = <span class="literal">None</span> <span class="keyword">if</span> rank == -<span class="number">1</span> <span class="keyword">else</span> SmartDistributedSampler(dataset, shuffle=shuffle)  </span><br><span class="line">    <span class="comment"># 选择DataLoader类型，使用标准DataLoader（支持动态权重更新）；否则使用InfiniteDataLoader（无限循环迭代数据）</span></span><br><span class="line">    loader = DataLoader <span class="keyword">if</span> image_weights <span class="keyword">else</span> InfiniteDataLoader</span><br><span class="line">    <span class="comment"># 通过generator控制数据加载的随机性，确保实验可复现</span></span><br><span class="line">    generator = torch.Generator()  </span><br><span class="line">    generator.manual_seed(<span class="number">6148914691236517205</span> + seed + RANK)  </span><br><span class="line">    <span class="keyword">return</span> loader(  </span><br><span class="line">        dataset,  </span><br><span class="line">        batch_size=batch_size,  </span><br><span class="line">        shuffle=shuffle <span class="keyword">and</span> sampler <span class="keyword">is</span> <span class="literal">None</span>,  </span><br><span class="line">        num_workers=nw,  </span><br><span class="line">        sampler=sampler,  </span><br><span class="line">        <span class="comment"># 是否丢弃不完整的批次（quad时启用）</span></span><br><span class="line">        drop_last=quad,  </span><br><span class="line">        <span class="comment"># 是否将数据固定到内存（加速 GPU 传输）</span></span><br><span class="line">        pin_memory=PIN_MEMORY,  </span><br><span class="line">        <span class="comment"># 处理批次数据的函数（quad时使用四合一拼接的collate_fn4）</span></span><br><span class="line">        collate_fn=LoadImagesAndLabels.collate_fn4 <span class="keyword">if</span> quad <span class="keyword">else</span> LoadImagesAndLabels.collate_fn,</span><br><span class="line">        <span class="comment"># 进程的初始化函数（seed_worker 设置子进程的随机种子）</span></span><br><span class="line">        worker_init_fn=seed_worker,  </span><br><span class="line">        generator=generator,  </span><br><span class="line">    ), dataset</span><br></pre></td></tr></table></figure>
+
+<p>返回值：</p>
+<ol>
+<li><strong>loader</strong>:  配置好的 DataLoader 实例，用于迭代训练数据</li>
+<li>​<strong>dataset</strong>:  数据集对象，可用于获取样本数、类别数等元信息</li>
+</ol>
+<h2 id="3-网络结构"><a href="#3-网络结构" class="headerlink" title="3.网络结构"></a>3.网络结构</h2><p>从输入层到输出层，讲解网络各层及结构的逻辑 会用清晰的“主线逻辑”串联复杂结构</p>
+<h2 id="4-训练流程与策略"><a href="#4-训练流程与策略" class="headerlink" title="4.训练流程与策略"></a>4.训练流程与策略</h2><p>包括训练策略、损失计算、模型保存、指标评估等</p>
+<hr>
+<h2 id="2-模型结构"><a href="#2-模型结构" class="headerlink" title="2.模型结构"></a>2.模型结构</h2><h2 id="3-数据处理"><a href="#3-数据处理" class="headerlink" title="3.数据处理"></a>3.数据处理</h2><h2 id="4-训练细节"><a href="#4-训练细节" class="headerlink" title="4.训练细节"></a>4.训练细节</h2><h2 id="5-部署相关"><a href="#5-部署相关" class="headerlink" title="5.部署相关"></a>5.部署相关</h2>
       </div>
       
       
