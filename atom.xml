@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-05-07T09:48:58.133Z</updated>
+  <updated>2025-05-13T07:30:19.467Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -15,6 +15,31 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>基于Transformer的detr目标检测算法思路分析</title>
+    <link href="https://keychankc.github.io/2025/05/13/015-transformer-to-detr/"/>
+    <id>https://keychankc.github.io/2025/05/13/015-transformer-to-detr/</id>
+    <published>2025-05-13T07:50:12.000Z</published>
+    <updated>2025-05-13T07:30:19.467Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-Transformer&quot;&gt;&lt;a href=&quot;#1-Transformer&quot; class=&quot;headerlink&quot; title=&quot;1. Transformer&quot;&gt;&lt;/a&gt;1. Transformer&lt;/h2&gt;&lt;p&gt;我们可以尝试用一个例子来理解 Transformer 的各个概念。学生在课堂上进行小组讨论写作文：一个班级里有一群学生，每个学生负责贡献一句话来完成一篇作文。他们必须交流彼此的观点（信息），形成一篇通顺的文章。这就像 Transformer 处理一个序列（比如一句话）时的过程。&lt;/p&gt;
+&lt;h3 id=&quot;1-输入嵌入（Input-Embedding）&quot;&gt;&lt;a href=&quot;#1-输入嵌入（Input-Embedding）&quot; class=&quot;headerlink&quot; title=&quot;1. 输入嵌入（Input Embedding）&quot;&gt;&lt;/a&gt;1. 输入嵌入（Input Embedding）&lt;/h3&gt;&lt;p&gt;将原始的输入（如词、图像特征等）映射到一个高维向量空间中，便于 Transformer 网络进行后续处理。&lt;/p&gt;
+&lt;p&gt;就像每个学生都先写好一句话的草稿，用于后续讨论。每句话被转成一个有意义的表达——每个词转成向量。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    <category term="detr" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/detr/"/>
+    
+    
+    <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
+    
+    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
+    
+  </entry>
   
   <entry>
     <title>[YOLO系列④] YOLOv5模型训练与流程解析</title>
@@ -415,9 +440,9 @@
     
     <category term="模型训练" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83/"/>
     
-    <category term="卷积神经网络" scheme="https://keychankc.github.io/tags/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
-    
     <category term="matplotlib" scheme="https://keychankc.github.io/tags/matplotlib/"/>
+    
+    <category term="卷积神经网络" scheme="https://keychankc.github.io/tags/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
     
     <category term="迁移学习" scheme="https://keychankc.github.io/tags/%E8%BF%81%E7%A7%BB%E5%AD%A6%E4%B9%A0/"/>
     
