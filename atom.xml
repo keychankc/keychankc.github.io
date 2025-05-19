@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-05-13T07:30:19.467Z</updated>
+  <updated>2025-05-19T09:54:45.755Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -17,11 +17,38 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>图像分割与U-Net系列模型解析</title>
+    <link href="https://keychankc.github.io/2025/05/19/016-image-segmentation-u-net/"/>
+    <id>https://keychankc.github.io/2025/05/19/016-image-segmentation-u-net/</id>
+    <published>2025-05-19T09:54:12.000Z</published>
+    <updated>2025-05-19T09:54:45.755Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-图像分割&quot;&gt;&lt;a href=&quot;#1-图像分割&quot; class=&quot;headerlink&quot; title=&quot;1.图像分割&quot;&gt;&lt;/a&gt;1.图像分割&lt;/h2&gt;&lt;p&gt;虽然图像分割（Image Segmentation）与目标检测（Object Detection）都属于计算机视觉中的视觉识别任务，但它们的目标、输出形式和应用场景各不相同：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;目标检测（Object Detection）&lt;/strong&gt;：找出图像中有哪些物体，并框出每个物体的位置，比如说检测行人、车辆，以边界框 + 类别标签为输出形式。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;图像分割（Image Segmentation）&lt;/strong&gt;：精确地标出图像中每个像素属于哪个类别，以每个像素的类别标签为输出形式。&lt;/li&gt;
+&lt;/ul&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    <category term="U-Net" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/U-Net/"/>
+    
+    
+    <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
+    
+    <category term="目标分割" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/"/>
+    
+  </entry>
+  
+  <entry>
     <title>基于Transformer的detr目标检测算法思路分析</title>
     <link href="https://keychankc.github.io/2025/05/13/015-transformer-to-detr/"/>
     <id>https://keychankc.github.io/2025/05/13/015-transformer-to-detr/</id>
     <published>2025-05-13T07:50:12.000Z</published>
-    <updated>2025-05-13T07:30:19.467Z</updated>
+    <updated>2025-05-13T07:44:52.547Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-Transformer&quot;&gt;&lt;a href=&quot;#1-Transformer&quot; class=&quot;headerlink&quot; title=&quot;1. Transformer&quot;&gt;&lt;/a&gt;1. Transformer&lt;/h2&gt;&lt;p&gt;我们可以尝试用一个例子来理解 Transformer 的各个概念。学生在课堂上进行小组讨论写作文：一个班级里有一群学生，每个学生负责贡献一句话来完成一篇作文。他们必须交流彼此的观点（信息），形成一篇通顺的文章。这就像 Transformer 处理一个序列（比如一句话）时的过程。&lt;/p&gt;
@@ -176,9 +203,9 @@
     
     <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
     
-    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
-    
     <category term="目标追踪" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA/"/>
+    
+    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
     
     <category term="dlib" scheme="https://keychankc.github.io/tags/dlib/"/>
     
@@ -219,9 +246,9 @@
     
     <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
     
-    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
-    
     <category term="目标追踪" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA/"/>
+    
+    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
     
     <category term="dlib" scheme="https://keychankc.github.io/tags/dlib/"/>
     
