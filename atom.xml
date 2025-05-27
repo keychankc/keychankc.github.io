@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-05-19T09:54:45.755Z</updated>
+  <updated>2025-05-27T08:41:27.693Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -15,6 +15,34 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>基于U-Net++的细胞分割代码实现</title>
+    <link href="https://keychankc.github.io/2025/05/28/017-unet-cell-segmentation/"/>
+    <id>https://keychankc.github.io/2025/05/28/017-unet-cell-segmentation/</id>
+    <published>2025-05-28T09:54:12.000Z</published>
+    <updated>2025-05-27T08:41:27.693Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;下面我们以一个医学图像实例分割任务为例，来介绍在 PyTorch 框架下如何使用 U-Net++ 网络。U-Net++ 是在经典 U-Net 基础上进行改进的语义分割网络，它通过引入密集跳跃连接和深层监督机制，增强了特征融合能力与梯度传播效果，特别适用于医学图像中边界模糊、结构复杂的分割任务。&lt;/p&gt;
+&lt;h2 id=&quot;1-数据预处理&quot;&gt;&lt;a href=&quot;#1-数据预处理&quot; class=&quot;headerlink&quot; title=&quot;1.数据预处理&quot;&gt;&lt;/a&gt;1.数据预处理&lt;/h2&gt;&lt;h3 id=&quot;1-数据集介绍&quot;&gt;&lt;a href=&quot;#1-数据集介绍&quot; class=&quot;headerlink&quot; title=&quot;1.数据集介绍&quot;&gt;&lt;/a&gt;1.数据集介绍&lt;/h3&gt;&lt;p&gt;这个数据集是一些细胞图像，我们的目标是做前景背景分离，对每一个细胞做实例分割。数据集有以下特点：&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    <category term="U-Net" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/U-Net/"/>
+    
+    
+    <category term="Python" scheme="https://keychankc.github.io/tags/Python/"/>
+    
+    <category term="PyTorch" scheme="https://keychankc.github.io/tags/PyTorch/"/>
+    
+    <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
+    
+    <category term="目标分割" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/"/>
+    
+  </entry>
   
   <entry>
     <title>图像分割与U-Net系列模型解析</title>
@@ -203,9 +231,9 @@
     
     <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
     
-    <category term="目标追踪" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA/"/>
-    
     <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
+    
+    <category term="目标追踪" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA/"/>
     
     <category term="dlib" scheme="https://keychankc.github.io/tags/dlib/"/>
     
@@ -246,9 +274,9 @@
     
     <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
     
-    <category term="目标追踪" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA/"/>
-    
     <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
+    
+    <category term="目标追踪" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA/"/>
     
     <category term="dlib" scheme="https://keychankc.github.io/tags/dlib/"/>
     
