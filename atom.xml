@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-05-27T08:41:27.693Z</updated>
+  <updated>2025-05-27T08:46:46.222Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -18,10 +18,10 @@
   
   <entry>
     <title>基于U-Net++的细胞分割代码实现</title>
-    <link href="https://keychankc.github.io/2025/05/28/017-unet-cell-segmentation/"/>
-    <id>https://keychankc.github.io/2025/05/28/017-unet-cell-segmentation/</id>
-    <published>2025-05-28T09:54:12.000Z</published>
-    <updated>2025-05-27T08:41:27.693Z</updated>
+    <link href="https://keychankc.github.io/2025/05/27/017-unet-cell-segmentation/"/>
+    <id>https://keychankc.github.io/2025/05/27/017-unet-cell-segmentation/</id>
+    <published>2025-05-27T09:54:12.000Z</published>
+    <updated>2025-05-27T08:46:46.222Z</updated>
     
     
     <summary type="html">&lt;p&gt;下面我们以一个医学图像实例分割任务为例，来介绍在 PyTorch 框架下如何使用 U-Net++ 网络。U-Net++ 是在经典 U-Net 基础上进行改进的语义分割网络，它通过引入密集跳跃连接和深层监督机制，增强了特征融合能力与梯度传播效果，特别适用于医学图像中边界模糊、结构复杂的分割任务。&lt;/p&gt;
@@ -495,9 +495,9 @@
     
     <category term="模型训练" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83/"/>
     
-    <category term="matplotlib" scheme="https://keychankc.github.io/tags/matplotlib/"/>
-    
     <category term="卷积神经网络" scheme="https://keychankc.github.io/tags/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
+    
+    <category term="matplotlib" scheme="https://keychankc.github.io/tags/matplotlib/"/>
     
     <category term="迁移学习" scheme="https://keychankc.github.io/tags/%E8%BF%81%E7%A7%BB%E5%AD%A6%E4%B9%A0/"/>
     
