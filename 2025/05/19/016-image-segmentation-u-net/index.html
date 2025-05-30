@@ -34,7 +34,7 @@
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250516135607.png">
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250516135710.png">
 <meta property="article:published_time" content="2025-05-19T09:54:12.000Z">
-<meta property="article:modified_time" content="2025-05-29T14:32:02.516Z">
+<meta property="article:modified_time" content="2025-05-30T02:20:11.142Z">
 <meta property="article:author" content="KeyChan">
 <meta property="article:tag" content="计算机视觉">
 <meta property="article:tag" content="目标分割">
@@ -288,14 +288,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>4.3k</span>
+      <span>4.6k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>16 分钟</span>
+      <span>17 分钟</span>
     </span>
 </div>
 
@@ -395,13 +395,25 @@
 <li>卷积后输出：<strong>568×568×64</strong>（因为 3×3 卷积没有 padding）</li>
 <li>然后 max pooling：下采样为 <strong>284×284×64</strong></li>
 </ul>
+<p>下采样（编码器）的作用：逐层抽象全局轮廓**​</p>
+<ul>
+<li>​<strong>感受野扩大</strong>​：通过池化&#x2F;卷积步长降低分辨率，每个神经元能覆盖更大图像区域，捕获整体结构（如器官形状、物体位置）</li>
+<li>​<strong>高级语义提取</strong>​：深层网络识别抽象特征（如”这是肺部CT”而非像素级纹理），类似人类先看”大致轮廓”</li>
+<li>​<strong>抗噪声干扰</strong>​：压缩空间信息后，对小位移和噪声更鲁棒</li>
+</ul>
 <h4 id="2-解码器（Expansive-Path）"><a href="#2-解码器（Expansive-Path）" class="headerlink" title="2.解码器（Expansive Path）"></a>2.解码器（Expansive Path）</h4><p>解码器的主要作用是<strong>上采样恢复原图尺寸 + 分割掩码生成</strong>。每个阶段是一次<strong>转置卷积</strong>（绿色箭头）进行上采样，然后将对应分辨率的特征图拼接（灰色箭头），再做两个 3 $\times$ 3 卷积（蓝色箭头）。<br>使用转置卷积（或上采样）逐步还原分辨率，每次上采样后，都把<strong>对应的编码器特征“跳跃连接”过来</strong>，拼接后再卷积。这样能<strong>结合深层的语义信息</strong>和<strong>浅层的位置信息</strong>。<br>示例：</p>
 <ul>
 <li>中间最底部是 <strong>28×28×1024</strong></li>
 <li>上采样为 <strong>56×56×512</strong>，拼接编码器的 <strong>64×64×512</strong></li>
 <li>然后卷积、ReLU 处理，输出通道逐渐减小</li>
 </ul>
-<h4 id="3-跳跃连接（Skip-Connection）"><a href="#3-跳跃连接（Skip-Connection）" class="headerlink" title="3.跳跃连接（Skip Connection）"></a>3.跳跃连接（Skip Connection）</h4><p>每下采样一次，保留当前的特征图，解码时，把<strong>对应分辨率的编码特征图复制并拼接</strong>到解码器中。这一步也叫：<strong>copy and crop</strong>。目的：<br>防止上采样过程丢失空间信息，补充原始的细节和边缘特征。比如编码器在 128x128 层的特征，会跳到解码器的同尺寸上一起用。防止丢失空间细节，<strong>补回精细轮廓和边缘信息</strong>。</p>
+<p>上采样（解码器）的作用：逐步恢复空间细节​</p>
+<ul>
+<li>​<strong>定位精细化</strong>​：通过转置卷积&#x2F;插值逐步放大特征图，结合跳跃连接（skip connection）注入编码器的底层细节（如边缘、纹理）</li>
+<li>​<strong>多尺度特征融合</strong>​：跳跃连接将高层语义（”这是什么”）与底层细节（”边界在哪”）拼接，实现”轮廓指导细节”的分割</li>
+<li>​<strong>分辨率恢复</strong>​：最终输出与输入同分辨率，实现像素级预测</li>
+</ul>
+<h4 id="3-跳跃连接（Skip-Connection）"><a href="#3-跳跃连接（Skip-Connection）" class="headerlink" title="3.跳跃连接（Skip Connection）"></a>3.跳跃连接（Skip Connection）</h4><p>每下采样一次，保留当前的特征图，解码时，把<strong>对应分辨率的编码特征图复制并拼接</strong>到解码器中。这一步也叫：<strong>copy and crop</strong>。目的是防止上采样过程丢失空间信息，补充原始的细节和边缘特征。比如编码器在 128x128 层的特征，会跳到解码器的同尺寸上一起用。防止丢失空间细节，<strong>补回精细轮廓和边缘信息</strong>。</p>
 <h4 id="4-最后一层输出（右上角）"><a href="#4-最后一层输出（右上角）" class="headerlink" title="4.最后一层输出（右上角）"></a>4.最后一层输出（右上角）</h4><p>使用一个 <strong>1×1 卷积（青色箭头）</strong> 将通道数变为类别数（图中为 2 类）。最终输出尺寸为：<strong>388×388×2</strong>（每个像素对应两个类别的概率）。</p>
 <p>为啥尺寸变小了？（572→388）<br>因为卷积操作没有使用 padding，每次 3×3 卷积会减少 2 个像素，两次卷积减少 4 个像素，每层下采样都会累计空间损失，所以最终输出图比输入图小（用 crop 来对齐）。</p>
 <h2 id="5-U-Net-的特征融合"><a href="#5-U-Net-的特征融合" class="headerlink" title="5.U-Net 的特征融合"></a>5.U-Net 的特征融合</h2><h3 id="1-为什么要做特征融合？"><a href="#1-为什么要做特征融合？" class="headerlink" title="1. 为什么要做特征融合？"></a>1. 为什么要做特征融合？</h3><p>在深度学习做视觉任务时，总会强调“<strong>特征融合</strong>”。什么是特征融合？就是把不同层级（深浅不同）的特征信息整合起来，既有<strong>局部细节</strong>，也有<strong>全局语义</strong>。在 U-Net 结构中，典型的融合方式就是从左侧编码器（下采样路径）拿出浅层特征，传到右侧解码器（上采样路径）对应位置进行融合。如下图。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250516135607.png"></p>
@@ -417,7 +429,7 @@
 <blockquote>
 <p>深层特征语义强但空间信息模糊，浅层特征保留边缘细节但语义弱。跳跃连接能<strong>组合两者优点</strong>，形成精准分割。</p>
 </blockquote>
-<h4 id="3-拼接-卷积融合（Concat-Conv）"><a href="#3-拼接-卷积融合（Concat-Conv）" class="headerlink" title="3.拼接 + 卷积融合（Concat + Conv）"></a>3.拼接 + 卷积融合（Concat + Conv）</h4><p>在执行上采样操作后，U-Net 会把，当前上采样结果，对应的跳跃特征图，进行 <strong>通道维度的拼接（concatenate）</strong>，再通过卷积融合，生成新的特征图。<br>$$X^{2,2} &#x3D; Conv([Up(X^{3,1}) ⊕ X^{2,0}])$$<br>把解码路径中的上采样结果和编码路径中的浅层特征拼接，<strong>再交给卷积融合</strong>。这一步实现了真正的“融合”。</p>
+<h4 id="3-拼接-卷积融合（Concat-Conv）"><a href="#3-拼接-卷积融合（Concat-Conv）" class="headerlink" title="3.拼接 + 卷积融合（Concat + Conv）"></a>3.拼接 + 卷积融合（Concat + Conv）</h4><p>在执行上采样操作后，U-Net 会把，当前上采样结果，对应的跳跃特征图，进行 <strong>通道维度的拼接（concatenate）</strong>，再通过卷积融合，生成新的特征图。<br>$$X^{2,2} &#x3D; Conv([Up(X^{3,1}) ⊕ X^{2,0}])$$<br>把解码路径中的上采样结果和编码路径中的浅层特征拼接，<strong>再交给卷积融合</strong>，这一步实现了真正的“融合”。</p>
 <h4 id="4-多尺度融合（层层递进）"><a href="#4-多尺度融合（层层递进）" class="headerlink" title="4. 多尺度融合（层层递进）"></a>4. 多尺度融合（层层递进）</h4><p>从图中可见，最终输出 $X^{0,4}$ 是逐层融合浅层和深层特征得到的。每一级都融合了不同语义层级的特征，最终形成一个<strong>丰富多尺度信息的特征图</strong>。</p>
 <p>类比理解：</p>
 <blockquote>
@@ -428,16 +440,12 @@
 <li>下采样（Down-sampling）：通过卷积步长为2的方式，将特征图尺寸逐步减半（例如：96 → 48 → 24 → 12 → 6）</li>
 <li>上采样（Up-sampling）：使用插值（如最近邻或双线性）将特征图尺寸恢复（例如：6 → 12 → 24 → 48 → 96）</li>
 </ul>
-<h4 id="2-跳跃连接与特征融合"><a href="#2-跳跃连接与特征融合" class="headerlink" title="2. 跳跃连接与特征融合"></a>2. 跳跃连接与特征融合</h4><ul>
-<li>不仅连接当前层与对应的对称上采样层（如传统U-Net），还连接同一层级的多个历史特征图</li>
-<li>每一层的输出可能融合了来自多个深度和广度的特征——<strong>类似 DenseNet 的密集连接思想</strong></li>
-<li>表现形式上是：“当前节点 &#x3D; 上采样特征 + 所有前层同级别节点的融合”</li>
-</ul>
+<h4 id="2-跳跃连接与特征融合"><a href="#2-跳跃连接与特征融合" class="headerlink" title="2. 跳跃连接与特征融合"></a>2. 跳跃连接与特征融合</h4><p>不仅连接当前层与对应的对称上采样层（如传统U-Net），还连接同一层级的多个历史特征图。每一层的输出可能融合了来自多个深度和广度的特征——<strong>类似 DenseNet 的密集连接思想</strong>，表现形式上是：<br>“当前节点 &#x3D; 上采样特征 + 所有前层同级别节点的融合”。</p>
 <h3 id="2-网络结构核心思想：深度特征融合"><a href="#2-网络结构核心思想：深度特征融合" class="headerlink" title="2.网络结构核心思想：深度特征融合"></a>2.网络结构核心思想：深度特征融合</h3><h4 id="1-融合机制"><a href="#1-融合机制" class="headerlink" title="1.融合机制"></a>1.融合机制</h4><p>所有能拼接的特征图都尽可能进行融合，提高特征表达的丰富性，增强网络学习能力。类似 2017 CVPR Best Paper 中提出的 DenseNet 结构。</p>
 <h4 id="2-U-Net-的特征融合方式"><a href="#2-U-Net-的特征融合方式" class="headerlink" title="2. U-Net++ 的特征融合方式"></a>2. U-Net++ 的特征融合方式</h4><p>类似于“多个路径、跨层连接、分支拼接”的机制，多层次、多尺度的特征信息被汇聚到一起。</p>
-<h3 id="3-辅助监督机制：多层损失引导训练"><a href="#3-辅助监督机制：多层损失引导训练" class="headerlink" title="3.辅助监督机制：多层损失引导训练"></a>3.辅助监督机制：多层损失引导训练</h3><h4 id="1-中间监督（Deep-Supervision）"><a href="#1-中间监督（Deep-Supervision）" class="headerlink" title="1.中间监督（Deep Supervision）"></a>1.中间监督（Deep Supervision）</h4><p>网络训练时，不只在最后输出层加损失函数，而是所有输出尺寸一致的位置都可以加损失函数（例如多个 96x96 大小的节点）。<br>并且每个阶段都加以监督，因为这样有利于梯度传播、加速收敛、提升中间层质量。</p>
-<p>类比：不是只看最终是否考上大学，而是每一个阶段（小学、初中、高中）都要尽力做到最好，才能最终成功。同理，网络中每一个中间输出都应该被优化，才能提升整体性能。</p>
-<p>U-Net++ 是 U-Net 的增强版本，在分割、检测等 CV 任务中应用广泛，结构通用、效果优秀，主要改进在于：</p>
+<h3 id="3-辅助监督机制：多层损失引导训练"><a href="#3-辅助监督机制：多层损失引导训练" class="headerlink" title="3.辅助监督机制：多层损失引导训练"></a>3.辅助监督机制：多层损失引导训练</h3><h4 id="1-中间监督（Deep-Supervision）"><a href="#1-中间监督（Deep-Supervision）" class="headerlink" title="1.中间监督（Deep Supervision）"></a>1.中间监督（Deep Supervision）</h4><p>网络训练时，不只在最后输出层加损失函数，而是所有输出尺寸一致的位置都可以加损失函数（例如多个 96x96 大小的节点）。并且每个阶段都加以监督，因为这样有利于梯度传播、加速收敛、提升中间层质量。</p>
+<p>就像看人不是只看最终是否考上大学，而是每一个阶段（小学、初中、高中）都要尽力做到最好，才能最终成功。同理，网络中每一个中间输出都应该被优化，才能提升整体性能。</p>
+<p>U-Net++ 作为 U-Net 的增强版本，在分割、检测等 CV 任务中应用广泛，结构通用、效果优秀，主要改进在于：</p>
 <ul>
 <li><strong>多级跳跃连接和特征融合机制</strong>，强化了跨层信息的整合</li>
 <li><strong>多损失辅助监督机制</strong>，提高了模型的训练效率与精度</li>
@@ -579,7 +587,7 @@
       <i class="fa fa-chart-line"></i>
     </span>
       <span>站点总字数：</span>
-    <span title="站点总字数">77k</span>
+    <span title="站点总字数">78k</span>
   </span>
 </div>
 <div class="busuanzi-count">
