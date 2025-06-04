@@ -281,27 +281,6 @@
   </url>
   
   <url>
-    <loc>https://keychankc.github.io/tags/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/</loc>
-    <lastmod>2025-06-04</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://keychankc.github.io/tags/TensorBoard/</loc>
-    <lastmod>2025-06-04</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://keychankc.github.io/tags/LSTM/</loc>
-    <lastmod>2025-06-04</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://keychankc.github.io/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/</loc>
     <lastmod>2025-06-04</lastmod>
     <changefreq>weekly</changefreq>
@@ -323,6 +302,20 @@
   </url>
   
   <url>
+    <loc>https://keychankc.github.io/tags/OpenCV/</loc>
+    <lastmod>2025-06-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA/</loc>
+    <lastmod>2025-06-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
     <loc>https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/</loc>
     <lastmod>2025-06-04</lastmod>
     <changefreq>weekly</changefreq>
@@ -330,7 +323,35 @@
   </url>
   
   <url>
-    <loc>https://keychankc.github.io/tags/OpenCV/</loc>
+    <loc>https://keychankc.github.io/tags/dlib/</loc>
+    <lastmod>2025-06-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://keychankc.github.io/tags/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/</loc>
+    <lastmod>2025-06-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://keychankc.github.io/tags/TensorBoard/</loc>
+    <lastmod>2025-06-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://keychankc.github.io/tags/LSTM/</loc>
+    <lastmod>2025-06-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://keychankc.github.io/tags/%E4%BA%BA%E8%84%B8%E6%A3%80%E6%B5%8B/</loc>
     <lastmod>2025-06-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -351,20 +372,6 @@
   </url>
   
   <url>
-    <loc>https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA/</loc>
-    <lastmod>2025-06-04</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://keychankc.github.io/tags/dlib/</loc>
-    <lastmod>2025-06-04</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://keychankc.github.io/tags/YOLO/</loc>
     <lastmod>2025-06-04</lastmod>
     <changefreq>weekly</changefreq>
@@ -372,28 +379,7 @@
   </url>
   
   <url>
-    <loc>https://keychankc.github.io/tags/%E4%BA%BA%E8%84%B8%E6%A3%80%E6%B5%8B/</loc>
-    <lastmod>2025-06-04</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://keychankc.github.io/tags/detr/</loc>
-    <lastmod>2025-06-04</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/</loc>
-    <lastmod>2025-06-04</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://keychankc.github.io/tags/U-Net/</loc>
     <lastmod>2025-06-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -408,6 +394,20 @@
   
   <url>
     <loc>https://keychankc.github.io/tags/%E6%98%BE%E8%91%97%E6%80%A7%E6%A3%80%E6%B5%8B/</loc>
+    <lastmod>2025-06-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/</loc>
+    <lastmod>2025-06-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://keychankc.github.io/tags/U-Net/</loc>
     <lastmod>2025-06-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
