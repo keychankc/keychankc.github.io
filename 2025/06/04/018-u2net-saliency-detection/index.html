@@ -32,7 +32,7 @@
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250604103241.png">
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250530150316.png">
 <meta property="article:published_time" content="2025-06-04T09:01:12.000Z">
-<meta property="article:modified_time" content="2025-06-04T09:40:52.360Z">
+<meta property="article:modified_time" content="2025-06-04T09:45:04.917Z">
 <meta property="article:author" content="KeyChan">
 <meta property="article:tag" content="Python">
 <meta property="article:tag" content="PyTorch">
@@ -305,11 +305,11 @@
     
     <div class="post-body" itemprop="articleBody"><h2 id="1-U²-Net介绍与应用"><a href="#1-U²-Net介绍与应用" class="headerlink" title="1.U²-Net介绍与应用"></a>1.U²-Net介绍与应用</h2><p>之前 <a href="https://keychankc.github.io/2025/05/19/016-image-segmentation-u-net/">图像分割与U-Net系列模型解析</a> 和 <a href="https://keychankc.github.io/2025/05/27/017-unet-cell-segmentation/">基于U-Net++的细胞分割代码实现</a>中讲了 U-Net系列网络模型，而 <a target="_blank" rel="noopener" href="https://github.com/xuebinqin/U-2-Net">U²-Net</a> 虽然是一个U-Net的变体版本，原本用于显著性检测任务，但由于其优异的前景提取能力，逐渐被广泛用于抠图、图像编辑、人像分割等任务中。</p>
 <h3 id="1-U²-Net-概述"><a href="#1-U²-Net-概述" class="headerlink" title="1.U²-Net 概述"></a>1.U²-Net 概述</h3><p>U²-Net 属于“显著性检测”任务中的网络结构，其核心目标是从图像中识别出前景区域，即显著目标（Salient Object Detection, SOD）。从任务定义来看，它本质上和语义分割非常接近，将图像划分为前景和背景，只是语义标签通常只有两类。</p>
+<span id="more"></span>
 <blockquote>
 <p>显著性检测（Salient Object Detection）指的是从一幅图像中识别出“最引人注意的”区域，通常即为前景区域。模型的输入是一张图像，输出是一张二值或灰度图，其中白色表示前景（显著区域），黑色表示背景。<br>例如：一只狗在草地上跑动，狗即为显著对象；一群人站在海滩上，人是前景，海滩是背景。</p>
 </blockquote>
 <h3 id="2-应用"><a href="#2-应用" class="headerlink" title="2.应用"></a>2.应用</h3><p>如下图，在肖像素描任务生成中，输入是一张彩色人像图像，输出则像是一幅素描画，纹理和细节都能够得到很好的保留，效果相比很多图像生成或风格转换方法更为自然一些，甚至比一些 GAN 模型生成的还要好，特别是人脸细节部分，U²-Net 在轮廓、皱纹、发丝等区域的提取的也非常准确。</p>
-<span id="more"></span>
 <p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250604103139.png"></p>
 <p>除此之外，U²-Net 在抠图（前景分离）任务中也有不错的效果，无论背景复杂与否，它都能较好地将人物主体从图像中分离出来，这在直播、虚拟背景替换、美颜等应用场景中有着非常广泛的应用价值。例如在某些直播中，主播本来需要一张绿幕才能实现实时背景替换，而利用U²-Net这一类模型就可以做到“无绿幕”抠图，显著提升了便捷性和效果稳定性。</p>
 <p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250604103241.png"></p>

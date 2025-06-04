@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-06-04T09:40:52.360Z</updated>
+  <updated>2025-06-04T09:45:04.917Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -21,15 +21,11 @@
     <link href="https://keychankc.github.io/2025/06/04/018-u2net-saliency-detection/"/>
     <id>https://keychankc.github.io/2025/06/04/018-u2net-saliency-detection/</id>
     <published>2025-06-04T09:01:12.000Z</published>
-    <updated>2025-06-04T09:40:52.360Z</updated>
+    <updated>2025-06-04T09:45:04.917Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-U²-Net介绍与应用&quot;&gt;&lt;a href=&quot;#1-U²-Net介绍与应用&quot; class=&quot;headerlink&quot; title=&quot;1.U²-Net介绍与应用&quot;&gt;&lt;/a&gt;1.U²-Net介绍与应用&lt;/h2&gt;&lt;p&gt;之前 &lt;a href=&quot;https://keychankc.github.io/2025/05/19/016-image-segmentation-u-net/&quot;&gt;图像分割与U-Net系列模型解析&lt;/a&gt; 和 &lt;a href=&quot;https://keychankc.github.io/2025/05/27/017-unet-cell-segmentation/&quot;&gt;基于U-Net++的细胞分割代码实现&lt;/a&gt;中讲了 U-Net系列网络模型，而 &lt;a href=&quot;https://github.com/xuebinqin/U-2-Net&quot;&gt;U²-Net&lt;/a&gt; 虽然是一个U-Net的变体版本，原本用于显著性检测任务，但由于其优异的前景提取能力，逐渐被广泛用于抠图、图像编辑、人像分割等任务中。&lt;/p&gt;
-&lt;h3 id=&quot;1-U²-Net-概述&quot;&gt;&lt;a href=&quot;#1-U²-Net-概述&quot; class=&quot;headerlink&quot; title=&quot;1.U²-Net 概述&quot;&gt;&lt;/a&gt;1.U²-Net 概述&lt;/h3&gt;&lt;p&gt;U²-Net 属于“显著性检测”任务中的网络结构，其核心目标是从图像中识别出前景区域，即显著目标（Salient Object Detection, SOD）。从任务定义来看，它本质上和语义分割非常接近，将图像划分为前景和背景，只是语义标签通常只有两类。&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;显著性检测（Salient Object Detection）指的是从一幅图像中识别出“最引人注意的”区域，通常即为前景区域。模型的输入是一张图像，输出是一张二值或灰度图，其中白色表示前景（显著区域），黑色表示背景。&lt;br&gt;例如：一只狗在草地上跑动，狗即为显著对象；一群人站在海滩上，人是前景，海滩是背景。&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;h3 id=&quot;2-应用&quot;&gt;&lt;a href=&quot;#2-应用&quot; class=&quot;headerlink&quot; title=&quot;2.应用&quot;&gt;&lt;/a&gt;2.应用&lt;/h3&gt;&lt;p&gt;如下图，在肖像素描任务生成中，输入是一张彩色人像图像，输出则像是一幅素描画，纹理和细节都能够得到很好的保留，效果相比很多图像生成或风格转换方法更为自然一些，甚至比一些 GAN 模型生成的还要好，特别是人脸细节部分，U²-Net 在轮廓、皱纹、发丝等区域的提取的也非常准确。&lt;/p&gt;</summary>
+&lt;h3 id=&quot;1-U²-Net-概述&quot;&gt;&lt;a href=&quot;#1-U²-Net-概述&quot; class=&quot;headerlink&quot; title=&quot;1.U²-Net 概述&quot;&gt;&lt;/a&gt;1.U²-Net 概述&lt;/h3&gt;&lt;p&gt;U²-Net 属于“显著性检测”任务中的网络结构，其核心目标是从图像中识别出前景区域，即显著目标（Salient Object Detection, SOD）。从任务定义来看，它本质上和语义分割非常接近，将图像划分为前景和背景，只是语义标签通常只有两类。&lt;/p&gt;</summary>
     
     
     
@@ -487,11 +483,11 @@
     
     <category term="模型训练" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83/"/>
     
+    <category term="卷积神经网络" scheme="https://keychankc.github.io/tags/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
+    
     <category term="循环神经网络" scheme="https://keychankc.github.io/tags/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
     
     <category term="TensorBoard" scheme="https://keychankc.github.io/tags/TensorBoard/"/>
-    
-    <category term="卷积神经网络" scheme="https://keychankc.github.io/tags/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
     
     <category term="LSTM" scheme="https://keychankc.github.io/tags/LSTM/"/>
     
