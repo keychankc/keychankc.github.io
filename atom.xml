@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-06-06T01:51:07.542Z</updated>
+  <updated>2025-06-07T07:38:31.486Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="https://keychankc.github.io/2025/06/05/000-deep-learning-concepts/"/>
     <id>https://keychankc.github.io/2025/06/05/000-deep-learning-concepts/</id>
     <published>2025-06-05T12:47:48.076Z</published>
-    <updated>2025-06-06T01:51:07.542Z</updated>
+    <updated>2025-06-07T07:38:31.486Z</updated>
     
     
     <summary type="html">深度学习因为涉及大量的专业术语和复杂概念，系统性地整理这些内容非常有必要。这不仅有助于构建清晰的知识框架，还能避免理解偏差，让沟通更顺畅。同时，随着技术的快速发展，定期梳理这些新概念也能帮助我们及时跟上领域前沿。</summary>
@@ -278,9 +278,9 @@
     
     <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
     
-    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
-    
     <category term="OpenCV" scheme="https://keychankc.github.io/tags/OpenCV/"/>
+    
+    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
     
     <category term="目标追踪" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA/"/>
     
@@ -321,9 +321,9 @@
     
     <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
     
-    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
-    
     <category term="OpenCV" scheme="https://keychankc.github.io/tags/OpenCV/"/>
+    
+    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
     
     <category term="目标追踪" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA/"/>
     
@@ -463,9 +463,9 @@
     
     <category term="图像识别" scheme="https://keychankc.github.io/tags/%E5%9B%BE%E5%83%8F%E8%AF%86%E5%88%AB/"/>
     
-    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
-    
     <category term="OpenCV" scheme="https://keychankc.github.io/tags/OpenCV/"/>
+    
+    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
     
   </entry>
   
