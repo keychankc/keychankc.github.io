@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-06-08T01:52:42.436Z</updated>
+  <updated>2025-06-08T08:25:41.326Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="https://keychankc.github.io/2025/06/05/000-deep-learning-concepts/"/>
     <id>https://keychankc.github.io/2025/06/05/000-deep-learning-concepts/</id>
     <published>2025-06-05T12:47:48.076Z</published>
-    <updated>2025-06-08T01:52:42.436Z</updated>
+    <updated>2025-06-08T08:25:41.326Z</updated>
     
     
     <summary type="html">深度学习因为涉及大量的专业术语和复杂概念，系统性地整理这些内容非常有必要。这不仅有助于构建清晰的知识框架，还能避免理解偏差，让沟通更顺畅。同时，随着技术的快速发展，定期梳理这些新概念也能帮助我们及时跟上领域前沿。</summary>
@@ -544,9 +544,9 @@
     
     <category term="模型训练" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83/"/>
     
-    <category term="卷积神经网络" scheme="https://keychankc.github.io/tags/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
-    
     <category term="matplotlib" scheme="https://keychankc.github.io/tags/matplotlib/"/>
+    
+    <category term="卷积神经网络" scheme="https://keychankc.github.io/tags/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
     
     <category term="迁移学习" scheme="https://keychankc.github.io/tags/%E8%BF%81%E7%A7%BB%E5%AD%A6%E4%B9%A0/"/>
     

@@ -29,7 +29,7 @@
 <meta property="og:description" content="深度学习因为涉及大量的专业术语和复杂概念，系统性地整理这些内容非常有必要。这不仅有助于构建清晰的知识框架，还能避免理解偏差，让沟通更顺畅。同时，随着技术的快速发展，定期梳理这些新概念也能帮助我们及时跟上领域前沿。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-06-05T12:47:48.076Z">
-<meta property="article:modified_time" content="2025-06-08T01:52:42.436Z">
+<meta property="article:modified_time" content="2025-06-08T08:25:41.326Z">
 <meta property="article:author" content="KeyChan">
 <meta property="article:tag" content="概念">
 <meta name="twitter:card" content="summary">
@@ -141,7 +141,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%A0%E9%87%8F%EF%BC%88Tensor%EF%BC%89"><span class="nav-text">张量（Tensor）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88Neural-Network%EF%BC%89"><span class="nav-text">神经网络（Neural Network）</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%A0%E9%87%8F%EF%BC%88Tensor%EF%BC%89"><span class="nav-text">张量（Tensor）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88Neural-Network%EF%BC%89"><span class="nav-text">神经网络（Neural Network）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9D%83%E9%87%8D%EF%BC%88Weight%EF%BC%89"><span class="nav-text">权重（Weight）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%81%8F%E7%BD%AE%EF%BC%88Bias%EF%BC%89"><span class="nav-text">偏置（Bias）</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -244,7 +244,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-06-08 09:52:42" itemprop="dateModified" datetime="2025-06-08T09:52:42+08:00">2025-06-08</time>
+      <time title="修改时间：2025-06-08 16:25:41" itemprop="dateModified" datetime="2025-06-08T16:25:41+08:00">2025-06-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -284,14 +284,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>1.3k</span>
+      <span>2.5k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>5 分钟</span>
+      <span>9 分钟</span>
     </span>
 </div>
 
@@ -439,6 +439,122 @@
 <td>CNN、预训练模型</td>
 </tr>
 </tbody></table>
+<hr>
+<h4 id="权重（Weight）"><a href="#权重（Weight）" class="headerlink" title="权重（Weight）"></a>权重（Weight）</h4><p>权重是连接神经元之间的系数，表示一个输入对输出的重要程度。换句话说，<strong>权重是模型学习的参数</strong>，它决定了每个输入特征对预测结果的影响。</p>
+<p>权重本质上是一个张量，存储在神经元之间（输入层→隐藏层、隐藏层→隐藏层、隐藏层→输出层）的连线上，量化上游神经元信号对下游神经元的<strong>影响程度</strong>。其初始值常随机设置（如正态分布），训练过程通过优化算法（如SGD&#x2F;Adam）基于损失函数反馈动态调整。</p>
+<p>核心机制</p>
+<ol>
+<li>​<strong>线性变换</strong>​：在神经元激活前执行 加权求和 操作（即输入特征向量 $X$ 与权重向量 $W$ 的点积）：  输出 &#x3D; $w1x1 + w2x2 + … + wnxn$+ 偏置项</li>
+<li>​<strong>特征重要性学习</strong>​：网络通过反向传播调整权重：<ul>
+<li>正权重​ → 增强信号 → 正向关联特征</li>
+<li>​负权重​ → 抑制信号 → 负向关联特征</li>
+<li>​近似零权重​ → 屏蔽无效特征</li>
+</ul>
+</li>
+<li>​<strong>知识载体</strong>​：训练后稳定的权重矩阵编码了模型从数据中学习到的核心内在逻辑（如边缘检测器、语义特征提取器）。</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th><strong>用法场景</strong></th>
+<th><strong>描述</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>前向传播</td>
+<td>决定输入特征对输出的贡献</td>
+</tr>
+<tr>
+<td>模型训练</td>
+<td>通过梯度下降不断更新</td>
+</tr>
+<tr>
+<td>模型存储</td>
+<td>训练完成后模型参数即为权重和偏置集合</td>
+</tr>
+<tr>
+<td>迁移学习</td>
+<td>已训练模型的权重可用于新任务，作为预训练参数</td>
+</tr>
+</tbody></table>
+<hr>
+<h4 id="偏置（Bias）"><a href="#偏置（Bias）" class="headerlink" title="偏置（Bias）"></a>偏置（Bias）</h4><p>偏置（Bias）​​ 是神经网络的另一类核心可学习参数，与权重协同工作，为模型提供<strong>灵活性</strong>和<strong>表达能力</strong>。<br>偏置本质是一个张量，​是独立于输入特征的存在，它对神经元的加权求和结果 （$z &#x3D; W·X$）进行<strong>平移操作</strong>​：  $输出 &#x3D; z + b &#x3D; W·X + b$，一般与权重同步优化，初始值常设为0或较小值（如0.01）。</p>
+<p>核心机制</p>
+<ol>
+<li><strong>打破原点对称性</strong>​：若无偏置，所有神经元的计算起点强制为原点（$X&#x3D;0 → z&#x3D;0$），这就限制了模型的表达能力。偏置允许决策边界（或特征空间划分面）​<strong>自由平移</strong>，突破坐标原点的束缚，使得模型拟合能力提高。</li>
+<li>​<strong>阈值调节器</strong>​：可以在激活函数前调整信号的基准位置（以Sigmoid为例）：<ul>
+<li>$b &gt; 0$ ➔ 加权输出 $z$ 整体右移，这样更易激活神经元</li>
+<li>$b &lt; 0$ ➔ $z$ 整体左移，这样使得神经元更难激活</li>
+</ul>
+</li>
+<li><strong>补偿数据偏差</strong>​：学习数据中的系统偏移（如所有样本的标签存在固定偏移量）。比如预测房价时，即便所有输入特征为0（如零面积房屋），房价也不应为0，偏置可学习该基准值。</li>
+</ol>
+<p>用法场景</p>
+<table>
+<thead>
+<tr>
+<th><strong>应用场景</strong></th>
+<th><strong>是否使用偏置</strong></th>
+<th><strong>作用与说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>全连接层（Dense &#x2F; Linear）</strong></td>
+<td>默认使用</td>
+<td>提供输出的可调“起点”，允许模型学习数据的平移特性</td>
+</tr>
+<tr>
+<td><strong>卷积层（Conv2d &#x2F; Conv1d &#x2F; Conv3d）</strong></td>
+<td>默认使用</td>
+<td>给每个卷积核增加偏置，有助于处理背景亮度或全局偏移等问题</td>
+</tr>
+<tr>
+<td><strong>循环神经网络（RNN、LSTM、GRU）</strong></td>
+<td>使用多个偏置项</td>
+<td>控制不同门（输入门、遗忘门、输出门等）的激活偏移，提高时序建模能力</td>
+</tr>
+<tr>
+<td><strong>Transformer 中的注意力机制（Attention）</strong></td>
+<td>一般在线性变换时使用</td>
+<td>在生成 Query、Key、Value 向量时常通过含偏置的线性层增强表达力</td>
+</tr>
+<tr>
+<td><strong>批归一化（BatchNorm）之后</strong></td>
+<td>常关闭偏置</td>
+<td>因为 BatchNorm 自带偏移与缩放参数（γ 与 β），原始层的 bias 可省略</td>
+</tr>
+<tr>
+<td><strong>激活函数之前（如 ReLU、Sigmoid）</strong></td>
+<td>使用偏置</td>
+<td>通过加偏置调整输入激活值范围，使得激活函数在有效区间工作</td>
+</tr>
+<tr>
+<td><strong>AutoEncoder（自编码器）</strong></td>
+<td>编码器与解码器中的线性层都使用</td>
+<td>提高压缩与重构能力</td>
+</tr>
+<tr>
+<td><strong>生成对抗网络（GAN）</strong></td>
+<td>生成器和判别器都常含偏置</td>
+<td>增强网络表达能力</td>
+</tr>
+<tr>
+<td><strong>图神经网络（GNN）</strong></td>
+<td>在图卷积层中常包含</td>
+<td>保证节点在无邻居输入时仍有输出可能</td>
+</tr>
+<tr>
+<td><strong>深度残差网络（ResNet）</strong></td>
+<td>通常保留偏置</td>
+<td>残差块内的卷积层默认使用偏置，提升表示能力</td>
+</tr>
+<tr>
+<td><strong>迁移学习（Fine-tune）</strong></td>
+<td>或冻结偏置</td>
+<td>在微调阶段可能保留或冻结偏置，看任务需求而定</td>
+</tr>
+</tbody></table>
+<hr>
 
     </div>
 
@@ -526,7 +642,7 @@
       <i class="fa fa-chart-line"></i>
     </span>
       <span>站点总字数：</span>
-    <span title="站点总字数">83k</span>
+    <span title="站点总字数">85k</span>
   </span>
 </div>
 <div class="busuanzi-count">
