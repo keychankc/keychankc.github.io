@@ -34,7 +34,7 @@
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250609150455.png">
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250609150956.png">
 <meta property="article:published_time" content="2025-06-10T08:01:12.000Z">
-<meta property="article:modified_time" content="2025-06-11T01:45:08.465Z">
+<meta property="article:modified_time" content="2025-06-17T02:25:59.856Z">
 <meta property="article:author" content="KeyChan">
 <meta property="article:tag" content="Python">
 <meta property="article:tag" content="PyTorch">
@@ -166,7 +166,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-count">21</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -254,7 +254,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-06-11 09:45:08" itemprop="dateModified" datetime="2025-06-11T09:45:08+08:00">2025-06-11</time>
+      <time title="修改时间：2025-06-17 10:25:59" itemprop="dateModified" datetime="2025-06-17T10:25:59+08:00">2025-06-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -316,21 +316,21 @@
 <span id="more"></span>
 <p><strong>DeepLab (V3+)​</strong>适合对自动驾驶场景理解（Cityscapes 等）、可以用在通用场景分割（PASCAL VOC, ADE20K）、街景分割、实时分割等，它对<strong>多尺度物体识别鲁棒性强</strong>、擅长处理<strong>复杂场景和背景</strong>、在利用强大的骨干网络预训练时优势明显、并且在<strong>大规模自然场景数据集</strong>上能有不错的精度（尤其对大型物体）、推理速度（尤其使用轻量骨干时）也有优势。</p>
 <p><strong>U-Net</strong>适用的任务有个显著特点是目标较小，我们可以将这些小目标看作是在整张图像中的局部区域，在此类任务中，仅依赖图像的局部特征往往就足以完成分割任务。而<strong>DeepLab</strong> 所面向的多为真实世界中的语义分割任务，在这些任务中，目标往往尺寸较大（如整个人体、一辆汽车），同时，这些目标还可能存在复杂的背景干扰、遮挡关系等，因此，仅凭局部特征已难以获得准确的分割结果，而这其中的实现原理不得不提一个概念<strong>感受野（Receptive Field）</strong>。</p>
-<h3 id="2-感受野（Receptive-Field）"><a href="#2-感受野（Receptive-Field）" class="headerlink" title="2.感受野（Receptive Field）"></a>2.感受野（Receptive Field）</h3><p><strong>感受野（Receptive Field，RF）</strong> 描述的是网络中某一层某个特征图上的一个像素点所“看到”或“感受”到的输入图像上的区域大小。简单来说就是特征图上的一个点，是由输入图像上多大范围的像素计算出来的？这个输入图像上的范围就是感受野。</p>
-<p>为什么感受野重要？<br>因为感受野决定了神经元能够捕获信息的<strong>空间范围</strong>，小的感受野关注局部细节（如边缘、纹理），大的感受野能理解更广阔的区域甚至全局结构（如物体、场景）。通过堆叠卷积层（或池化层），网络可以在较深的层获得更大的感受野，从而整合更大范围内的信息，但深度越深计算开销会越大。</p>
-<h3 id="3-深层网络的局限性"><a href="#3-深层网络的局限性" class="headerlink" title="3.深层网络的局限性"></a>3.深层网络的局限性</h3><p>增大感受野，常见的做法是加深网络结构，堆叠更多的卷积层，同时再辅以池化（Pooling）操作。然而这种方式虽然扩大了感受野，却也带来了副作用：<strong>特征图的空间分辨率逐渐降低</strong>，导致部分精细信息的丢失，这在语义分割等任务中是一个非常重要的问题，因为准确的像素级定位对于分割质量至关重要。</p>
-<p>以 U-Net 为例，其采用<strong>下采样—上采样</strong>结构，试图在恢复高分辨率的同时保留上下文语义信息，但这种方法在处理大目标、复杂结构时仍显不足，尤其是在更深层次的特征图中，细节信息容易丢失。为了解决这个问题，DeepLab 系列算法引入了一个关键技术：空洞卷积（Dilated Convolution）。</p>
-<h2 id="2-空洞卷积（Dilated-Convolution）"><a href="#2-空洞卷积（Dilated-Convolution）" class="headerlink" title="2.空洞卷积（Dilated Convolution）"></a>2.空洞卷积（Dilated Convolution）</h2><p>空洞卷积（Dilated Convolution），也称为<strong>膨胀卷积</strong>或<strong>扩张卷积</strong>，是卷积神经网络中一种在不增加参数量或计算量的前提下，显著扩大感受野（Receptive Field）的关键技术。它通过在标准卷积核的权重之间插入“空洞”（零值）来实现的。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250609140911.png"></p>
+<h3 id="2-感受野（Receptive-Field）"><a href="#2-感受野（Receptive-Field）" class="headerlink" title="2.感受野（Receptive Field）"></a>2.感受野（Receptive Field）</h3><p><strong>感受野（Receptive Field，RF）</strong> 描述的是网络中某一层某个特征图上的一个点所“看到”或“感受”到的输入图像上的区域大小。简单来说就是特征图上的一个点，是由输入图像上多大范围的像素计算出来的？这个输入图像上的范围就是感受野。</p>
+<p>为什么感受野重要？<br>因为感受野决定了神经元能够捕获信息的<strong>空间范围</strong>，小的感受野关注局部细节（如边缘、纹理），大的感受野能理解更广阔的区域甚至全局结构（如物体、场景）。通过堆叠卷积层（或池化层），网络可以在较深的层获得更大的感受野，从而整合更大范围内的信息，但深度越深计算开销也会越大。</p>
+<h3 id="3-深层网络的局限性"><a href="#3-深层网络的局限性" class="headerlink" title="3.深层网络的局限性"></a>3.深层网络的局限性</h3><p>增大感受野，常见的做法是加深网络结构，堆叠更多的卷积层，同时再辅以池化（Pooling）操作。然而这种方式虽然扩大了感受野，却还会带来其它副作用：<strong>特征图的空间分辨率逐渐降低</strong>，导致部分精细信息的丢失，这在语义分割等任务中是一个非常需要关注的问题，因为准确的像素级定位对于分割质量至关重要。</p>
+<p>以 U-Net 为例，其采用<strong>下采样—上采样</strong>结构，试图在恢复高分辨率的同时保留上下文语义信息，但这种方法在处理大目标、复杂结构时仍有不足，尤其是在更深层次的特征图中，细节信息容易丢失。为了解决这个问题，DeepLab 系列算法引入了一个关键技术：空洞卷积（Dilated Convolution）。</p>
+<h2 id="2-空洞卷积（Dilated-Convolution）"><a href="#2-空洞卷积（Dilated-Convolution）" class="headerlink" title="2.空洞卷积（Dilated Convolution）"></a>2.空洞卷积（Dilated Convolution）</h2><p>空洞卷积（Dilated Convolution），也称为<strong>膨胀卷积</strong>或<strong>扩张卷积</strong>，是卷积神经网络中一种在不增加参数量或计算量的前提下，显著扩大感受野（Receptive Field）的关键技术，它通过在标准卷积核的权重之间插入“空洞”（零值）来实现的。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250609140911.png"></p>
 <h3 id="1-标准卷积（Standard-Convolution）​​"><a href="#1-标准卷积（Standard-Convolution）​​" class="headerlink" title="1.标准卷积（Standard Convolution）​​"></a>1.标准卷积（Standard Convolution）​​</h3><p>标准卷积是最基础的卷积操作，其核心特点是卷积核在输入特征图上<strong>连续滑动</strong>进行计算。具体而言，每个输出像素是通过卷积核与输入特征图中对应的<strong>连续局部区域</strong>​（例如3×3的相邻像素块）进行逐元素相乘并求和得到的。</p>
 <h4 id="​1-特点与适用场景​"><a href="#​1-特点与适用场景​" class="headerlink" title="​1.特点与适用场景​"></a>​1.特点与适用场景​</h4><ul>
 <li>​<strong>连续采样</strong>​：卷积核的权重作用于相邻像素，能够有效捕捉局部细节特征</li>
 <li>​<strong>有限感受野</strong>​：每个特征点仅能感知输入图像中的小范围区域（如3×3的局部窗口）</li>
-<li>​<strong>适用场景</strong>​：在需要精细局部特征的任务中表现优异，例如<strong>小目标检测</strong>​（如医学图像中的细胞、显微结构）或<strong>局部特征提取</strong></li>
-<li>​<strong>局限性</strong>​：由于感受野较小，在处理<strong>大尺度目标</strong>或<strong>复杂场景</strong>时，难以捕获足够的上下文信息，可能限制模型的全局建模能力</li>
+<li>​<strong>适用场景</strong>​：在需要精细局部特征的任务中有不错的表现，例如<strong>小目标检测</strong>​（如医学图像中的细胞、显微结构）或<strong>局部特征提取</strong></li>
+<li>​<strong>局限性</strong>​：由于感受野较小，在处理<strong>大尺度目标</strong>或<strong>复杂场景</strong>时，难以捕获足够的上下文信息，这会限制模型的全局建模能力</li>
 </ul>
 <h4 id="2-小卷积核VS大卷积核"><a href="#2-小卷积核VS大卷积核" class="headerlink" title="2.小卷积核VS大卷积核"></a>2.小卷积核VS大卷积核</h4><p>既然3×3的感受野偏小，为什么我们倾向于堆叠多个小卷积核而非使用大卷积核？</p>
-<p>主要原因有：<br>​1.<strong>参数效率更高​</strong>：三层3×3卷积(27C²参数)相比单个7×7卷积(49C²参数)，在实现相同7×7感受野的情况下，参数量减少45%，可以显著降低模型复杂度，有效控制过拟合风险。</p>
-<p>​2.<strong>表达能力更强</strong>：每个小卷积层后都包含BN和ReLU等非线性操作，三层3×3卷积提供三次非线性变换，而单个7×7卷积仅有一次，这样可以使模型具备更强的特征抽象能力。<br>	​<br>3.<strong>训练更稳定</strong>：​小卷积核更容易初始化，梯度传播更稳定，收敛过程更平滑。当然这种设计也更灵活，便于集成到残差连接、注意力机制等各种模块中。</p>
+<p>主要原因有：<br>​1.<strong>参数效率更高​</strong>：三层3×3卷积(27C²参数)相比单个7×7卷积(49C²参数)，在实现同样7×7感受野的情况下，参数量减少45%，可以显著降低模型复杂度，有效控制过拟合风险。</p>
+<p>​2.<strong>表达能力更强</strong>：每个小卷积层后都包含BN和ReLU等非线性操作，三层3×3卷积提供三次非线性变换，而单个7×7卷积仅有一次，这样可以使模型具备更强的特征抽象能力。<br>	​<br>3.<strong>训练更稳定</strong>：​小卷积核更容易初始化，梯度传播更稳定，收敛过程更平滑，当然这种设计也更灵活，便于集成到残差连接、注意力机制等各种模块中。</p>
 <p>​4.<strong>计算更高效</strong>​：虽然总计算量相近，但小卷积核更利于并行计算，更适合现代GPU架构，在实际部署中往往具有更优的推理速度。</p>
 <p>这种设计理念已在VGGNet、ResNet等经典网络中得到验证，体现了”分解大问题为多个小问题”的核心思想。虽然在早期网络层或特殊任务中，大卷积核仍有一定优势，但小卷积核堆叠已成为大多数场景的更优选择。</p>
 <h3 id="​2-空洞卷积（Dilated-Convolution）​​"><a href="#​2-空洞卷积（Dilated-Convolution）​​" class="headerlink" title="​2.空洞卷积（Dilated Convolution）​​"></a>​2.空洞卷积（Dilated Convolution）​​</h3><p>空洞卷积是对标准卷积的改进，通过引入<strong>膨胀率（dilation rate）​</strong>参数，在卷积核元素之间插入固定间隔的空洞，使得采样位置变为<strong>非连续</strong>。这一设计能够在<strong>不增加参数量</strong>的前提下，显著扩大感受野。</p>
@@ -522,8 +522,8 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2025/06/05/000-deep-learning-concepts/" rel="prev" title="深度学习的概念们">
-                  <i class="fa fa-angle-left"></i> 深度学习的概念们
+                <a href="/2025/06/10/020-deepdab3-with-pascal-voc2012/" rel="prev" title="​DeepLabv3+语义分割代码解析">
+                  <i class="fa fa-angle-left"></i> ​DeepLabv3+语义分割代码解析
                 </a>
             </div>
             <div class="post-nav-item">
