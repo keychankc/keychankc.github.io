@@ -29,7 +29,7 @@
 <meta property="og:description" content="深度学习因为涉及大量的专业术语和复杂概念，系统性地整理这些内容非常有必要。这不仅有助于构建清晰的知识框架，还能避免理解偏差，让沟通更顺畅。同时，随着技术的快速发展，定期梳理这些概念也能帮助我们及时跟上领域前沿。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-06-05T12:47:48.076Z">
-<meta property="article:modified_time" content="2025-06-17T05:31:49.484Z">
+<meta property="article:modified_time" content="2025-06-18T09:02:18.514Z">
 <meta property="article:author" content="KeyChan">
 <meta property="article:tag" content="概念">
 <meta name="twitter:card" content="summary">
@@ -141,7 +141,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%A0%E9%87%8F%EF%BC%88Tensor%EF%BC%89"><span class="nav-text">张量（Tensor）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88Neural-Network%EF%BC%89"><span class="nav-text">神经网络（Neural Network）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9D%83%E9%87%8D%EF%BC%88Weight%EF%BC%89"><span class="nav-text">权重（Weight）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%81%8F%E7%BD%AE%EF%BC%88Bias%EF%BC%89"><span class="nav-text">偏置（Bias）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%89%8D%E5%90%91%E4%BC%A0%E6%92%AD%EF%BC%88Forward-Propagation%EF%BC%89"><span class="nav-text">前向传播（Forward Propagation）</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%A0%E9%87%8F%EF%BC%88Tensor%EF%BC%89"><span class="nav-text">张量（Tensor）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88Neural-Network%EF%BC%89"><span class="nav-text">神经网络（Neural Network）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9D%83%E9%87%8D%EF%BC%88Weight%EF%BC%89"><span class="nav-text">权重（Weight）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%81%8F%E7%BD%AE%EF%BC%88Bias%EF%BC%89"><span class="nav-text">偏置（Bias）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E5%90%91%E4%BC%A0%E6%92%AD%EF%BC%88Forward-Pass%EF%BC%89"><span class="nav-text">前向传播（Forward Pass）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%8D%E5%90%91%E4%BC%A0%E6%92%AD%EF%BC%88Backward-Pass%EF%BC%89"><span class="nav-text">反向传播（Backward Pass）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%EF%BC%88Loss-Function%EF%BC%89"><span class="nav-text">损失函数（Loss Function）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A2%AF%E5%BA%A6%EF%BC%88Gradient%EF%BC%89"><span class="nav-text">梯度（Gradient）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D%EF%BC%88Gradient-Descent%EF%BC%89"><span class="nav-text">梯度下降（Gradient Descent）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%A6%E4%B9%A0%E7%8E%87%EF%BC%88Learning-Rate%EF%BC%89"><span class="nav-text">学习率（Learning Rate）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BC%98%E5%8C%96%E5%99%A8%EF%BC%88Optimizer%EF%BC%89"><span class="nav-text">优化器（Optimizer）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BF%80%E6%B4%BB%E5%87%BD%E6%95%B0%EF%BC%88Activation-Function%EF%BC%89"><span class="nav-text">激活函数（Activation Function）</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -244,7 +244,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-06-17 13:31:49" itemprop="dateModified" datetime="2025-06-17T13:31:49+08:00">2025-06-17</time>
+      <time title="修改时间：2025-06-18 17:02:18" itemprop="dateModified" datetime="2025-06-18T17:02:18+08:00">2025-06-18</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -284,14 +284,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>2.8k</span>
+      <span>6.7k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>10 分钟</span>
+      <span>24 分钟</span>
     </span>
 </div>
 
@@ -301,7 +301,7 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><h4 id="张量（Tensor）"><a href="#张量（Tensor）" class="headerlink" title="张量（Tensor）"></a>张量（Tensor）</h4><p>张量是深度学习中用于存储和计算数据的基本数据结构，可以把它理解为高维数组的泛化。</p>
+    <div class="post-body" itemprop="articleBody"><h2 id="张量（Tensor）"><a href="#张量（Tensor）" class="headerlink" title="张量（Tensor）"></a>张量（Tensor）</h2><p>张量是深度学习中用于存储和计算数据的基本数据结构，可以把它理解为高维数组的泛化。</p>
 <p>定义和结构</p>
 <p>张量是一个带有形状（shape）和数值（data）的多维数组结构，0 维张量是标量，1 维张量是向量，2 维张量是矩阵，高阶张量就是三维及以上。</p>
 <table>
@@ -372,7 +372,7 @@
 </tr>
 </tbody></table>
 <hr>
-<h4 id="神经网络（Neural-Network）"><a href="#神经网络（Neural-Network）" class="headerlink" title="神经网络（Neural Network）"></a>神经网络（Neural Network）</h4><p>神经网络是一个由大量简单计算单元（称为“人工神经元“或“节点”）​​分层互联而成的计算模型。</p>
+<h2 id="神经网络（Neural-Network）"><a href="#神经网络（Neural-Network）" class="headerlink" title="神经网络（Neural Network）"></a>神经网络（Neural Network）</h2><p>神经网络是一个由大量简单计算单元（称为“人工神经元“或“节点”）​​分层互联而成的计算模型。</p>
 <p>基本组成单元（神经元&#x2F;节点）</p>
 <ul>
 <li><strong>输入：</strong> 接收来自前一层或其他源的数据（<strong>特征</strong>）和<strong>权重</strong></li>
@@ -440,7 +440,7 @@
 </tr>
 </tbody></table>
 <hr>
-<h4 id="权重（Weight）"><a href="#权重（Weight）" class="headerlink" title="权重（Weight）"></a>权重（Weight）</h4><p>权重是连接神经元之间的系数，表示一个输入对输出的重要程度。换句话说，<strong>权重是模型学习的参数</strong>，它决定了每个输入特征对预测结果的影响。</p>
+<h2 id="权重（Weight）"><a href="#权重（Weight）" class="headerlink" title="权重（Weight）"></a>权重（Weight）</h2><p>权重是连接神经元之间的系数，表示一个输入对输出的重要程度。换句话说，<strong>权重是模型学习的参数</strong>，它决定了每个输入特征对预测结果的影响。</p>
 <p>权重本质上是一个张量，存储在神经元之间（输入层→隐藏层、隐藏层→隐藏层、隐藏层→输出层）的连线上，量化上游神经元信号对下游神经元的<strong>影响程度</strong>。其初始值常随机设置（如正态分布），训练过程通过优化算法（如SGD&#x2F;Adam）基于损失函数反馈动态调整。</p>
 <p>核心机制</p>
 <ol>
@@ -479,7 +479,7 @@
 </tr>
 </tbody></table>
 <hr>
-<h4 id="偏置（Bias）"><a href="#偏置（Bias）" class="headerlink" title="偏置（Bias）"></a>偏置（Bias）</h4><p>偏置（Bias）​​ 是神经网络的另一类核心可学习参数，与权重协同工作，为模型提供<strong>灵活性</strong>和<strong>表达能力</strong>。<br>偏置本质是一个张量，​是独立于输入特征的存在，它对神经元的加权求和结果 （$z &#x3D; W·X$）进行<strong>平移操作</strong>​：  $输出 &#x3D; z + b &#x3D; W·X + b$，一般与权重同步优化，初始值常设为0或较小值（如0.01）。</p>
+<h2 id="偏置（Bias）"><a href="#偏置（Bias）" class="headerlink" title="偏置（Bias）"></a>偏置（Bias）</h2><p>偏置（Bias）​​ 是神经网络的另一类核心可学习参数，与权重协同工作，为模型提供<strong>灵活性</strong>和<strong>表达能力</strong>。<br>偏置本质是一个张量，​是独立于输入特征的存在，它对神经元的加权求和结果 （$z &#x3D; W·X$）进行<strong>平移操作</strong>​：  $输出 &#x3D; z + b &#x3D; W·X + b$，一般与权重同步优化，初始值常设为0或较小值（如0.01）。</p>
 <p>核心机制</p>
 <ol>
 <li><strong>打破原点对称性</strong>​：若无偏置，所有神经元的计算起点强制为原点（$X&#x3D;0 → z&#x3D;0$），这就限制了模型的表达能力。偏置允许决策边界（或特征空间划分面）​<strong>自由平移</strong>，突破坐标原点的束缚，使得模型拟合能力提高。</li>
@@ -556,7 +556,7 @@
 </tr>
 </tbody></table>
 <hr>
-<h4 id="前向传播（Forward-Propagation）"><a href="#前向传播（Forward-Propagation）" class="headerlink" title="前向传播（Forward Propagation）"></a>前向传播（Forward Propagation）</h4><p>前向传播是神经网络的<strong>数据加工流水线</strong>​，将原始输入数据从输入层逐层向前流动，通过加权计算与非线性变换，最终在输出层生成预测结果。这也是神经网络进行<strong>特征抽象</strong>的核心过程。</p>
+<h2 id="前向传播（Forward-Pass）"><a href="#前向传播（Forward-Pass）" class="headerlink" title="前向传播（Forward Pass）"></a>前向传播（Forward Pass）</h2><p>前向传播是神经网络的<strong>数据加工流水线</strong>​，将原始输入数据从输入层逐层向前流动，通过加权计算与非线性变换，最终在输出层生成预测结果。这也是神经网络进行<strong>特征抽象</strong>的核心过程。</p>
 <p>运行原理<br>神经元视角：<code>输出 = 激活函数(权重x输入 + 偏置)</code>，就像流水线上的加工站，接收原料（输入），用特定工具（权重）加工，质检员（激活函数）决定是否放行。<br>网络层视角：<code>输入层 → 隐藏层₁ → ... → 隐藏层ₙ → 输出层</code>  ，类似工厂装配线：</p>
 <ol>
 <li>初级车间：提取边缘&#x2F;颜色特征（浅层网络）</li>
@@ -571,6 +571,669 @@
 <li><strong>计算损失</strong>：前向传播的结果与真实标签比较，得到损失值</li>
 <li><strong>反向传播的基础</strong>：只有先完成前向传播，才能基于损失计算梯度，执行反向传播和参数更新</li>
 </ol>
+<hr>
+<h2 id="反向传播（Backward-Pass）"><a href="#反向传播（Backward-Pass）" class="headerlink" title="反向传播（Backward Pass）"></a>反向传播（Backward Pass）</h2><p>反向传播（Back Propagation）是训练神经网络的核心算法，它通过<strong>从输出层向输入层反向传递误差信号</strong>来计算网络中每个参数的梯度，从而用梯度下降法优化参数。</p>
+<p>工作流程：</p>
+<ol>
+<li><strong>前向传播（Forward Pass）</strong>：输入数据经过网络一层层传播，得到预测结果。</li>
+<li><strong>计算损失</strong>：使用损失函数评估预测值与真实值之间的误差。</li>
+<li><strong>反向传播（Backward Pass）</strong>：<ul>
+<li>从输出层开始，计算损失函数对输出的梯度</li>
+<li>利用链式法则，逐层向前计算每个参数的梯度（即损失函数对各层参数的导数）</li>
+</ul>
+</li>
+<li><strong>参数更新</strong>：使用梯度下降等优化算法，根据计算出的梯度对每个参数进行更新。</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th><strong>用法场景</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>模型训练过程中的参数更新</strong></td>
+<td>与优化器配合，自动计算并更新网络中每一层的权重和偏置</td>
+</tr>
+<tr>
+<td><strong>计算梯度信息</strong></td>
+<td>使模型能够感知“如何调整”才能减小误差</td>
+</tr>
+<tr>
+<td><strong>实现自动微分（autograd）机制</strong></td>
+<td>如 PyTorch &#x2F; TensorFlow 内部都基于反向传播自动求导</td>
+</tr>
+<tr>
+<td><strong>调试模型收敛问题</strong></td>
+<td>通过监控梯度是否为0、是否爆炸&#x2F;消失，判断训练是否正常</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="损失函数（Loss-Function）"><a href="#损失函数（Loss-Function）" class="headerlink" title="损失函数（Loss Function）"></a>损失函数（Loss Function）</h2><p>损失函数是训练过程中的“评价器”，它衡量模型预测结果与真实值之间的差距，核心组成如下：</p>
+<table>
+<thead>
+<tr>
+<th><strong>组成部分</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>预测值（Output &#x2F; Logits）</strong></td>
+<td>模型输出的结果（可能是分数、概率或回归值）</td>
+</tr>
+<tr>
+<td><strong>真实标签（Ground Truth）</strong></td>
+<td>数据集中真实的目标值，用于监督学习</td>
+</tr>
+<tr>
+<td><strong>误差度量方式（Metric）</strong></td>
+<td>衡量“预测值”和“真实值”之间距离的方法，如L1、L2、交叉熵等</td>
+</tr>
+<tr>
+<td><strong>可微性设计</strong></td>
+<td>损失函数需具备可导性，以便参与反向传播计算梯度</td>
+</tr>
+</tbody></table>
+<p>工作原理<br>损失函数的核心机制是<strong>将模型的“预测结果”转化为“可以优化的标量反馈”</strong>，从而驱动神经网络更新参数。</p>
+<ol>
+<li><strong>前向传播阶段</strong>：<ul>
+<li>模型对输入数据做出预测，输出结果如 $\hat{y}$</li>
+<li>损失函数将 $\hat{y}$ 与真实值 $y$ 比较，计算出一个损失值 $L(\hat{y}, y)$</li>
+</ul>
+</li>
+<li><strong>反向传播阶段</strong>：<ul>
+<li>利用损失值对网络参数反向求导，生成梯度</li>
+<li>梯度引导优化器调整模型参数以最小化损失</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p>损失值越大 → 模型越差，损失值越小 → 模型越接近理想预测</p>
+</blockquote>
+<p>用法：</p>
+<table>
+<thead>
+<tr>
+<th><strong>用法场景</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>指导模型学习方向</strong></td>
+<td>通过损失函数提供反馈，让模型知道哪些预测是错误的、需要纠正的</td>
+</tr>
+<tr>
+<td><strong>计算梯度的起点</strong></td>
+<td>所有参数的梯度都基于损失函数的导数进行计算</td>
+</tr>
+<tr>
+<td><strong>衡量模型性能变化趋势</strong></td>
+<td>训练过程中，监控 loss 能帮助判断是否收敛、是否过拟合等</td>
+</tr>
+<tr>
+<td><strong>任务定制</strong></td>
+<td>分类、回归、分割等任务使用不同类型的损失函数（如交叉熵、MSE、Dice Loss）</td>
+</tr>
+<tr>
+<td><strong>多目标训练</strong></td>
+<td>可组合多个损失函数进行加权，用于多任务学习或辅助任务引导训练</td>
+</tr>
+</tbody></table>
+<p>常见的损失函数：</p>
+<table>
+<thead>
+<tr>
+<th><strong>任务类型</strong></th>
+<th><strong>常见损失函数</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>分类</strong></td>
+<td>交叉熵损失（Cross Entropy）</td>
+</tr>
+<tr>
+<td><strong>回归</strong></td>
+<td>均方误差（MSE）、平均绝对误差（MAE）</td>
+</tr>
+<tr>
+<td><strong>分割 &#x2F; 检测</strong></td>
+<td>Dice Loss、IoU Loss、Focal Loss</td>
+</tr>
+<tr>
+<td><strong>对比学习</strong></td>
+<td>Triplet Loss、Contrastive Loss</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="梯度（Gradient）"><a href="#梯度（Gradient）" class="headerlink" title="梯度（Gradient）"></a>梯度（Gradient）</h2><p>梯度是模型学习方向的“指南针”，是告诉每个参数“往哪走才能更好”的关键信息。梯度的本质是一个向量，它反映了<strong>损失函数对模型参数的偏导数</strong>，从组成上看，梯度涉及以下要素：</p>
+<table>
+<thead>
+<tr>
+<th><strong>组成部分</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>损失函数（Loss）</strong></td>
+<td>衡量预测值与真实值之间的误差，是梯度的“源头”</td>
+</tr>
+<tr>
+<td><strong>模型参数（权重、偏置）</strong></td>
+<td>需要被优化的目标，是梯度的“作用对象”</td>
+</tr>
+<tr>
+<td><strong>偏导数（Partial Derivative）</strong></td>
+<td>描述损失在每个参数维度上的变化率</td>
+</tr>
+<tr>
+<td><strong>梯度向量</strong></td>
+<td>多维参数对应多个偏导，整体形成一个方向性的向量</td>
+</tr>
+</tbody></table>
+<p>工作原理<br>梯度是<strong>指明函数在当前点上最陡峭上升（或下降）的方向和速率</strong>。<br>在深度学习中，我们关心的是如何<strong>减小损失函数的值</strong>，因此会反向使用梯度信息：</p>
+<ol>
+<li><strong>梯度的方向</strong>：告诉我们如果参数朝哪个方向微调，损失会变大。</li>
+<li><strong>负梯度方向</strong>：我们采用负梯度方向作为更新方向，以减少损失。</li>
+<li><strong>梯度大小</strong>：决定了更新步长的大小（配合学习率使用）。</li>
+</ol>
+<blockquote>
+<p>举个例子：若某个参数的梯度是 0.5，就表示该参数若增加一点，损失会相应增加（损失函数对该参数是“上升”趋势），所以我们要朝“反方向”调整它。</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th><strong>用法场景</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>参数更新</strong></td>
+<td>梯度用于指导优化器（如 SGD、Adam）更新每一层的参数</td>
+</tr>
+<tr>
+<td><strong>误差传播（反向传播）</strong></td>
+<td>反向传播过程的核心计算就是梯度链式相乘</td>
+</tr>
+<tr>
+<td><strong>调试训练过程</strong></td>
+<td>梯度消失&#x2F;爆炸等问题是训练失败的重要信号</td>
+</tr>
+<tr>
+<td><strong>自动求导</strong></td>
+<td>框架（如 PyTorch）通过自动微分机制计算每个参数的梯度</td>
+</tr>
+<tr>
+<td><strong>神经网络学习机制的本质体现</strong></td>
+<td>训练的全部过程，其实就是围绕着“计算并利用梯度”展开的</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="梯度下降（Gradient-Descent）"><a href="#梯度下降（Gradient-Descent）" class="headerlink" title="梯度下降（Gradient Descent）"></a>梯度下降（Gradient Descent）</h2><p>梯度下降是一种“聪明的试错”方法，通过沿着误差减少的方向不断微调参数，使模型逐步逼近最优性能。它由以下几个核心要素构成：</p>
+<table>
+<thead>
+<tr>
+<th><strong>组成部分</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>模型参数</strong>（如权重 W、偏置 b）</td>
+<td>需要被优化的变量</td>
+</tr>
+<tr>
+<td><strong>损失函数</strong> $\mathcal{L}$</td>
+<td>衡量预测结果与真实值之间的误差</td>
+</tr>
+<tr>
+<td><strong>梯度</strong> $\nabla \mathcal{L}$</td>
+<td>损失函数对每个参数的导数，表示误差随参数变化的趋势</td>
+</tr>
+<tr>
+<td><strong>学习率</strong> $\eta$</td>
+<td>控制每次参数更新的步长，决定收敛速度和稳定性</td>
+</tr>
+</tbody></table>
+<p>工作原理<br>在当前点上，计算损失函数对参数的梯度，朝梯度反方向移动参数，减小损失。<br>具体步骤如下：</p>
+<ol>
+<li><strong>前向传播</strong>：模型对输入数据生成预测结果；</li>
+<li><strong>计算损失</strong>：通过损失函数得到预测误差；</li>
+<li><strong>反向传播</strong>：计算损失函数对每个参数的梯度；</li>
+<li><strong>参数更新</strong>：按以下公式更新每个参数：<br> $\theta \leftarrow \theta - \eta \cdot \nabla_\theta \mathcal{L}$    $\theta$：待更新的参数  $\eta$：学习率  $\nabla_\theta \mathcal{L}$：该参数的梯度<br>这个过程持续进行，直到损失函数收敛或达到设定轮数。</li>
+</ol>
+<p>梯度下降广泛应用于深度学习模型训练，是模型“学习”的基础：</p>
+<table>
+<thead>
+<tr>
+<th><strong>用法场景</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>神经网络训练的核心优化方法</strong></td>
+<td>所有模型参数的更新都依赖梯度下降</td>
+</tr>
+<tr>
+<td><strong>与反向传播结合</strong></td>
+<td>梯度由反向传播计算，梯度下降据此更新参数</td>
+</tr>
+<tr>
+<td><strong>支持多种变体</strong></td>
+<td>包括批量（Batch）、小批量（Mini-batch）、随机（SGD）三种方式</td>
+</tr>
+<tr>
+<td><strong>可与高级优化器结合</strong></td>
+<td>如 Adam、RMSProp、Momentum 等都基于梯度下降改进</td>
+</tr>
+<tr>
+<td><strong>调节学习率以控制训练过程</strong></td>
+<td>过小 → 学得慢；过大 → 震荡或发散；可配合调度策略如余弦退火、Warmup等</td>
+</tr>
+</tbody></table>
+<p>梯度下降三种常见形式</p>
+<table>
+<thead>
+<tr>
+<th><strong>类型</strong></th>
+<th><strong>特点</strong></th>
+<th><strong>适用场景</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>批量梯度下降</strong></td>
+<td>每轮使用全部数据，计算精确，但慢</td>
+<td>小数据集</td>
+</tr>
+<tr>
+<td><strong>随机梯度下降（SGD）</strong></td>
+<td>每个样本单独更新，波动大但快</td>
+<td>大数据训练、在线学习</td>
+</tr>
+<tr>
+<td><strong>小批量梯度下降</strong></td>
+<td>每次使用部分样本，速度与稳定性兼顾</td>
+<td>实际最常用</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="学习率（Learning-Rate）"><a href="#学习率（Learning-Rate）" class="headerlink" title="学习率（Learning Rate）"></a>学习率（Learning Rate）</h2><p>学习率（Learning Rate）是梯度下降等优化算法中的一个关键超参数，控制着每次模型参数更新的“步长”</p>
+<table>
+<thead>
+<tr>
+<th><strong>组成部分</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>学习率值（η 或 lr）</strong></td>
+<td>一个标量，表示每一步更新沿梯度方向移动的幅度</td>
+</tr>
+<tr>
+<td><strong>优化器</strong></td>
+<td>学习率是优化器（如SGD、Adam等）的输入</td>
+</tr>
+<tr>
+<td><strong>梯度信息</strong></td>
+<td>与学习率配合决定参数的实际更新量</td>
+</tr>
+<tr>
+<td><strong>动态调整策略（可选）</strong></td>
+<td>可以采用学习率调度器根据训练进度动态变化</td>
+</tr>
+</tbody></table>
+<p>工作原理：</p>
+<blockquote>
+<p><strong>决定梯度更新的“步长”大小，直接影响模型收敛速度和稳定性。</strong></p>
+</blockquote>
+<p>在参数更新中，学习率控制了“走多远”：<br>$\theta \leftarrow \theta - \eta \cdot \nabla_\theta \mathcal{L}$</p>
+<table>
+<thead>
+<tr>
+<th><strong>情况</strong></th>
+<th><strong>影响</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>学习率太大</td>
+<td>更新过猛，可能震荡或发散，无法收敛</td>
+</tr>
+<tr>
+<td>学习率太小</td>
+<td>收敛速度慢，训练效率低，容易陷入局部最优或提前停止</td>
+</tr>
+</tbody></table>
+<p>用法<br>学习率是训练过程中必须设置的重要超参数，使用方式包括：</p>
+<table>
+<thead>
+<tr>
+<th><strong>用法场景</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>固定学习率训练</strong></td>
+<td>设置一个固定值，适用于简单问题或短时间训练</td>
+</tr>
+<tr>
+<td><strong>逐步衰减（Step Decay）</strong></td>
+<td>每隔一定epoch将学习率缩小，比如除以10</td>
+</tr>
+<tr>
+<td><strong>余弦退火（Cosine Annealing）</strong></td>
+<td>学习率按余弦函数周期变化，有利于跳出局部最优</td>
+</tr>
+<tr>
+<td><strong>Warm-up</strong></td>
+<td>在训练开始阶段先用较小学习率“热身”，避免初始梯度爆炸</td>
+</tr>
+<tr>
+<td><strong>自适应学习率（如Adam）</strong></td>
+<td>优化器内部根据梯度历史动态调整每个参数的学习率</td>
+</tr>
+<tr>
+<td><strong>手动调参</strong></td>
+<td>可视化 loss 曲线和验证指标，手动调整学习率以优化训练表现</td>
+</tr>
+</tbody></table>
+<p>学习率常见设置技巧</p>
+<table>
+<thead>
+<tr>
+<th><strong>训练目标</strong></th>
+<th><strong>建议策略</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>模型初期不稳定</td>
+<td>使用 warm-up 或较小初始学习率</td>
+</tr>
+<tr>
+<td>模型收敛缓慢</td>
+<td>适当调大学习率或改用带动量的优化器</td>
+</tr>
+<tr>
+<td>模型震荡或 loss 上下跳动</td>
+<td>适当降低学习率</td>
+</tr>
+<tr>
+<td>训练中后期精调</td>
+<td>使用调度器降低学习率以精细收敛</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>学习率就像“油门”，踩得太猛容易翻车，踩得太轻走不动，只有控制得当，模型训练才能又快又稳。</strong></p>
+</blockquote>
+<hr>
+<h2 id="优化器（Optimizer）"><a href="#优化器（Optimizer）" class="headerlink" title="优化器（Optimizer）"></a>优化器（Optimizer）</h2><p>优化器是神经网络训练中用于<strong>更新模型参数</strong>的模块，它基于<strong>梯度信息</strong>，决定每次如何调整参数以减小损失函数。</p>
+<table>
+<thead>
+<tr>
+<th><strong>组成部分</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>模型参数</strong>（weights &#x2F; biases）</td>
+<td>需要被优化的变量</td>
+</tr>
+<tr>
+<td><strong>损失函数的梯度</strong> $\nabla \mathcal{L}$</td>
+<td>通过反向传播计算得到</td>
+</tr>
+<tr>
+<td><strong>学习率（Learning Rate）</strong></td>
+<td>决定每次更新的步长</td>
+</tr>
+<tr>
+<td><strong>动量 &#x2F; 累积项</strong>（某些优化器有）</td>
+<td>如 SGD with Momentum、Adam 等，引入历史信息增强稳定性</td>
+</tr>
+<tr>
+<td><strong>优化规则</strong></td>
+<td>每种优化器都有自己独特的参数更新公式和机制</td>
+</tr>
+</tbody></table>
+<p>工作原理</p>
+<blockquote>
+<p><strong>利用损失函数的梯度信息，按一定规则更新参数，以使损失函数逐步下降，模型性能不断提升。</strong></p>
+</blockquote>
+<p>以最基础的梯度下降法为例：<br>$\theta \leftarrow \theta - \eta \cdot \nabla_\theta \mathcal{L}$</p>
+<p>不同的优化器在此基础上会加入各种机制来提高训练效率与稳定性：</p>
+<table>
+<thead>
+<tr>
+<th><strong>优化器</strong></th>
+<th><strong>关键机制</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>SGD（随机梯度下降）</strong></td>
+<td>使用当前样本或小批量样本的梯度</td>
+</tr>
+<tr>
+<td><strong>SGD + Momentum</strong></td>
+<td>引入“惯性”，缓解震荡，增强方向感</td>
+</tr>
+<tr>
+<td><strong>RMSProp</strong></td>
+<td>自动调整每个参数的学习率，抑制震荡</td>
+</tr>
+<tr>
+<td><strong>Adam</strong></td>
+<td>综合 Momentum 和 RMSProp，自适应调整每个参数的更新步长</td>
+</tr>
+</tbody></table>
+<p>用法：</p>
+<table>
+<thead>
+<tr>
+<th><strong>用法场景</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>训练神经网络</strong></td>
+<td>反向传播后由优化器根据梯度更新模型参数</td>
+</tr>
+<tr>
+<td><strong>选择合适优化器</strong></td>
+<td>小模型可用 SGD，大模型推荐 Adam；分类任务多用 Adam 或 AdamW</td>
+</tr>
+<tr>
+<td><strong>调整学习率</strong></td>
+<td>大多数优化器需手动设置初始学习率，必要时配合调度器</td>
+</tr>
+<tr>
+<td><strong>支持参数分组</strong></td>
+<td>可为不同层设置不同学习率、权重衰减等超参数（如 param_groups）</td>
+</tr>
+<tr>
+<td><strong>结合正则化</strong></td>
+<td>优化器常配合 L2 正则（weight decay）防止过拟合</td>
+</tr>
+</tbody></table>
+<p>常用优化器对比表</p>
+<table>
+<thead>
+<tr>
+<th><strong>优化器</strong></th>
+<th><strong>是否使用动量</strong></th>
+<th><strong>是否自适应学习率</strong></th>
+<th><strong>特点</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SGD</td>
+<td>否</td>
+<td>否</td>
+<td>简单、高效，适合小规模数据</td>
+</tr>
+<tr>
+<td>SGD + Momentum</td>
+<td>是</td>
+<td>否</td>
+<td>更平稳、更快收敛</td>
+</tr>
+<tr>
+<td>RMSProp</td>
+<td>否</td>
+<td>是</td>
+<td>更适合非平稳目标或循环网络</td>
+</tr>
+<tr>
+<td>Adam</td>
+<td>是</td>
+<td>是</td>
+<td>默认首选，适用于大多数任务</td>
+</tr>
+<tr>
+<td>AdamW</td>
+<td>是</td>
+<td>是</td>
+<td>Adam 的改进版，更适合 Transformer 类模型（如 BERT、ViT）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>优化器是训练的“驾驶员”，它读取梯度信息，控制模型参数沿着“更优方向”前进，让模型不断逼近理想状态。</strong></p>
+</blockquote>
+<hr>
+<h2 id="激活函数（Activation-Function）"><a href="#激活函数（Activation-Function）" class="headerlink" title="激活函数（Activation Function）"></a>激活函数（Activation Function）</h2><p>激活函数是<strong>神经网络中每个神经元内部的非线性变换函数</strong>，它决定了每一层输出的形式，控制信息的传播和模型的表达能力。</p>
+<table>
+<thead>
+<tr>
+<th><strong>组成部分</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>输入信号</strong>（一般为线性加权和）</td>
+<td>来自前一层的输出，即 $z &#x3D; w^\top x + b$</td>
+</tr>
+<tr>
+<td><strong>激活函数本体</strong></td>
+<td>将输入信号变换为非线性输出，如 ReLU、Sigmoid、Tanh 等</td>
+</tr>
+<tr>
+<td><strong>输出结果</strong></td>
+<td>作为当前神经元的输出传递给下一层</td>
+</tr>
+</tbody></table>
+<p>工作原理</p>
+<blockquote>
+<p><strong>对神经元的线性输出进行非线性映射，从而打破神经网络的线性性，使模型能学习复杂、高阶的表示。</strong></p>
+</blockquote>
+<p>没有激活函数的神经网络，哪怕有多层，整体仍是线性函数，无法解决实际问题中的非线性关系。</p>
+<p>常见激活函数及机制特点：</p>
+<table>
+<thead>
+<tr>
+<th><strong>函数</strong></th>
+<th><strong>表达式</strong></th>
+<th><strong>机制说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>ReLU</strong></td>
+<td>$f(x) &#x3D; \max(0, x)$</td>
+<td>保留正值，抑制负值，收敛快，简洁高效</td>
+</tr>
+<tr>
+<td><strong>Sigmoid</strong></td>
+<td>$f(x) &#x3D; \frac{1}{1 + e^{-x}}$</td>
+<td>输出范围(0, 1)，适用于概率建模，但梯度容易消失</td>
+</tr>
+<tr>
+<td><strong>Tanh</strong></td>
+<td>$f(x) &#x3D; \tanh(x)$</td>
+<td>输出范围(-1, 1)，比Sigmoid居中，但仍可能梯度消失</td>
+</tr>
+<tr>
+<td><strong>Leaky ReLU</strong></td>
+<td>$f(x) &#x3D; \max(0.01x, x)$</td>
+<td>改进ReLU，允许负值通过，避免神经元“死亡”</td>
+</tr>
+<tr>
+<td><strong>GELU &#x2F; Swish</strong></td>
+<td>更复杂</td>
+<td>新型激活函数，用于BERT、Vision Transformer等</td>
+</tr>
+</tbody></table>
+<p>用法<br>激活函数广泛用于神经网络的各层中，具体用法包括：</p>
+<table>
+<thead>
+<tr>
+<th><strong>应用场景</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>隐藏层激活函数</strong></td>
+<td>通常使用 ReLU 或其变体，提升训练效率和非线性表达能力</td>
+</tr>
+<tr>
+<td><strong>输出层激活函数</strong></td>
+<td>根据任务类型选择：回归 → 无激活 &#x2F; ReLU，二分类 → Sigmoid，多分类 → Softmax</td>
+</tr>
+<tr>
+<td><strong>防止梯度问题</strong></td>
+<td>Tanh&#x2F;Sigmoid 早期常用，但容易梯度消失；ReLU 更常用于深层网络</td>
+</tr>
+<tr>
+<td><strong>搭配正则化使用</strong></td>
+<td>常与 BatchNorm、Dropout 一起增强训练稳定性和泛化能力</td>
+</tr>
+<tr>
+<td><strong>注意选择位置</strong></td>
+<td>激活函数通常在每层线性操作（Linear &#x2F; Conv）之后使用：</td>
+</tr>
+</tbody></table>
+<p>激活函数的对比简表：</p>
+<table>
+<thead>
+<tr>
+<th><strong>函数</strong></th>
+<th><strong>非线性</strong></th>
+<th><strong>导数计算</strong></th>
+<th><strong>是否零均值</strong></th>
+<th><strong>是否抗梯度消失</strong></th>
+<th><strong>常用位置</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ReLU</td>
+<td>✅</td>
+<td>简单</td>
+<td>否</td>
+<td>✅</td>
+<td>隐藏层</td>
+</tr>
+<tr>
+<td>Tanh</td>
+<td>✅</td>
+<td>复杂</td>
+<td>✅</td>
+<td>一定程度✅</td>
+<td>RNN 中常用</td>
+</tr>
+<tr>
+<td>Sigmoid</td>
+<td>✅</td>
+<td>复杂</td>
+<td>否</td>
+<td>❌</td>
+<td>输出层（二分类）</td>
+</tr>
+<tr>
+<td>Softmax</td>
+<td>✅</td>
+<td>稍复杂</td>
+<td>-</td>
+<td>-</td>
+<td>输出层（多分类）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>激活函数是神经网络的“灵魂”，它赋予网络理解非线性世界的能力，使模型不仅能加减乘除，更能思考弯弯绕绕。</strong></p>
+</blockquote>
 <hr>
 
     </div>
@@ -662,7 +1325,7 @@
       <i class="fa fa-chart-line"></i>
     </span>
       <span>站点总字数：</span>
-    <span title="站点总字数">97k</span>
+    <span title="站点总字数">101k</span>
   </span>
 </div>
 <div class="busuanzi-count">
