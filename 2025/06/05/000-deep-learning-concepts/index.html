@@ -29,7 +29,7 @@
 <meta property="og:description" content="深度学习因为涉及大量的专业术语和复杂概念，系统性地整理这些内容非常有必要。这不仅有助于构建清晰的知识框架，还能避免理解偏差，让沟通更顺畅。同时，随着技术的快速发展，定期梳理这些概念也能帮助我们及时跟上领域前沿。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-06-05T09:03:25.000Z">
-<meta property="article:modified_time" content="2025-06-27T08:35:10.806Z">
+<meta property="article:modified_time" content="2025-06-30T09:01:04.104Z">
 <meta property="article:author" content="KeyChan">
 <meta property="article:tag" content="概念">
 <meta name="twitter:card" content="summary">
@@ -141,7 +141,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%A0%E9%87%8F%EF%BC%88Tensor%EF%BC%89"><span class="nav-text">张量（Tensor）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88Neural-Network%EF%BC%89"><span class="nav-text">神经网络（Neural Network）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9D%83%E9%87%8D%EF%BC%88Weight%EF%BC%89"><span class="nav-text">权重（Weight）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%81%8F%E7%BD%AE%EF%BC%88Bias%EF%BC%89"><span class="nav-text">偏置（Bias）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E5%90%91%E4%BC%A0%E6%92%AD%EF%BC%88Forward-Pass%EF%BC%89"><span class="nav-text">前向传播（Forward Pass）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%8D%E5%90%91%E4%BC%A0%E6%92%AD%EF%BC%88Backward-Pass%EF%BC%89"><span class="nav-text">反向传播（Backward Pass）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%EF%BC%88Loss-Function%EF%BC%89"><span class="nav-text">损失函数（Loss Function）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A2%AF%E5%BA%A6%EF%BC%88Gradient%EF%BC%89"><span class="nav-text">梯度（Gradient）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D%EF%BC%88Gradient-Descent%EF%BC%89"><span class="nav-text">梯度下降（Gradient Descent）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%A6%E4%B9%A0%E7%8E%87%EF%BC%88Learning-Rate%EF%BC%89"><span class="nav-text">学习率（Learning Rate）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BC%98%E5%8C%96%E5%99%A8%EF%BC%88Optimizer%EF%BC%89"><span class="nav-text">优化器（Optimizer）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BF%80%E6%B4%BB%E5%87%BD%E6%95%B0%EF%BC%88Activation-Function%EF%BC%89"><span class="nav-text">激活函数（Activation Function）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BD%92%E4%B8%80%E5%8C%96%EF%BC%88Normalization%EF%BC%89"><span class="nav-text">归一化（Normalization）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AD%A3%E5%88%99%E5%8C%96%EF%BC%88Regularization%EF%BC%89"><span class="nav-text">正则化（Regularization）</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%A0%E9%87%8F%EF%BC%88Tensor%EF%BC%89"><span class="nav-text">张量（Tensor）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88Neural-Network%EF%BC%89"><span class="nav-text">神经网络（Neural Network）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9D%83%E9%87%8D%EF%BC%88Weight%EF%BC%89"><span class="nav-text">权重（Weight）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%81%8F%E7%BD%AE%EF%BC%88Bias%EF%BC%89"><span class="nav-text">偏置（Bias）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E5%90%91%E4%BC%A0%E6%92%AD%EF%BC%88Forward-Pass%EF%BC%89"><span class="nav-text">前向传播（Forward Pass）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%8D%E5%90%91%E4%BC%A0%E6%92%AD%EF%BC%88Backward-Pass%EF%BC%89"><span class="nav-text">反向传播（Backward Pass）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%EF%BC%88Loss-Function%EF%BC%89"><span class="nav-text">损失函数（Loss Function）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A2%AF%E5%BA%A6%EF%BC%88Gradient%EF%BC%89"><span class="nav-text">梯度（Gradient）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D%EF%BC%88Gradient-Descent%EF%BC%89"><span class="nav-text">梯度下降（Gradient Descent）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%A6%E4%B9%A0%E7%8E%87%EF%BC%88Learning-Rate%EF%BC%89"><span class="nav-text">学习率（Learning Rate）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BC%98%E5%8C%96%E5%99%A8%EF%BC%88Optimizer%EF%BC%89"><span class="nav-text">优化器（Optimizer）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BF%80%E6%B4%BB%E5%87%BD%E6%95%B0%EF%BC%88Activation-Function%EF%BC%89"><span class="nav-text">激活函数（Activation Function）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BD%92%E4%B8%80%E5%8C%96%EF%BC%88Normalization%EF%BC%89"><span class="nav-text">归一化（Normalization）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AD%A3%E5%88%99%E5%8C%96%EF%BC%88Regularization%EF%BC%89"><span class="nav-text">正则化（Regularization）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8A%A8%E9%87%8F%EF%BC%88Momentum%EF%BC%89"><span class="nav-text">动量（Momentum）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8B%AC%E7%83%AD%E7%BC%96%E7%A0%81%EF%BC%88One-Hot-Encoding%EF%BC%89"><span class="nav-text">独热编码（One-Hot Encoding）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B1%A0%E5%8C%96%EF%BC%88Pooling%EF%BC%89"><span class="nav-text">池化（Pooling）</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -244,7 +244,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-06-27 16:35:10" itemprop="dateModified" datetime="2025-06-27T16:35:10+08:00">2025-06-27</time>
+      <time title="修改时间：2025-06-30 17:01:04" itemprop="dateModified" datetime="2025-06-30T17:01:04+08:00">2025-06-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -284,14 +284,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>8.3k</span>
+      <span>10k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>30 分钟</span>
+      <span>38 分钟</span>
     </span>
 </div>
 
@@ -1312,6 +1312,182 @@
 <li>​<strong>超参数调节：​</strong>​ 正则化强度（如 λ, Dropout Rate, 数据增强强度）需要通过验证集仔细调整</li>
 </ul>
 <hr>
+<h2 id="动量（Momentum）"><a href="#动量（Momentum）" class="headerlink" title="动量（Momentum）"></a>动量（Momentum）</h2><p><strong>动量（Momentum）​</strong>​ 是一种优化算法，用于加速梯度下降过程并减少振荡。其核心思想是引入历史梯度信息的加权平均，模拟物理中的“动量”概念，帮助参数更新在正确方向上积累速度，从而更快收敛并逃离局部极小值或鞍点。</p>
+<p>核心机制​</p>
+<ol>
+<li>​<strong>历史梯度的累积</strong>​<br> 每次更新时，不仅考虑当前梯度，还加入之前更新方向的加权值，形成“惯性”：<br> $$v_t &#x3D; \beta v_{t-1} + (1 - \beta) \nabla_\theta J(\theta_t)$$<ul>
+<li>$v_t$：当前动量（更新方向）</li>
+<li>$\beta$：动量系数（通常取0.9），控制历史信息的权重</li>
+<li>$\nabla_\theta J(\theta_t)$：当前梯度</li>
+</ul>
+</li>
+<li>​<strong>参数更新</strong>​<br> 使用动量项替代原始梯度更新参数：<br> $$ \theta_{t+1} &#x3D; \theta_t - \alpha v_t $$<ul>
+<li>$\alpha$：学习率</li>
+</ul>
+</li>
+</ol>
+<p>解决的问题</p>
+<ol>
+<li>​<strong>梯度振荡</strong>​<br> 在损失函数的狭窄山谷中，传统SGD会因梯度方向反复变化而振荡。动量通过累积同方向梯度，平滑更新路径，加速穿过平坦区域。<blockquote>
+<p>​<strong>示例</strong>​：山谷中，梯度在两侧来回震荡，动量使其沿谷底方向加速。</p>
+</blockquote>
+</li>
+<li>​<strong>局部极小值与鞍点</strong>​<br> 动量提供的“惯性”帮助跳出局部极小值或缓慢穿越鞍点（梯度接近零的区域）。</li>
+<li>​<strong>噪声鲁棒性</strong>​<br> 对小批量（mini-batch）的梯度噪声具有平滑作用，提升稳定性。</li>
+</ol>
+<p>物理类比​<br>想象一个球从山坡滚下：</p>
+<ul>
+<li>​<strong>传统SGD</strong>​：球每一步只根据当前坡度调整方向，容易卡在局部凹坑</li>
+<li>​<strong>动量法</strong>​：球拥有“速度”，下坡时加速，遇到反向坡度时速度逐渐衰减而非立刻转向，更易越过小障碍</li>
+</ul>
+<p>超参数选择​</p>
+<ul>
+<li>​<strong>动量系数</strong> $\beta$：<ul>
+<li>常用值：​<strong>0.9</strong>​（保留90%历史梯度方向）</li>
+<li>$\beta \uparrow$：对历史依赖更强，更新更平滑，但可能过度惯性</li>
+<li>$\beta \downarrow$：更依赖当前梯度，振荡可能增加</li>
+</ul>
+</li>
+<li>​<strong>学习率</strong> $\alpha$​​：<br>  通常需略高于标准SGD（因动量加速收敛），但需调优避免发散</li>
+</ul>
+<p>使用场景</p>
+<ul>
+<li>​<strong>训练加速</strong>​：在卷积网络（CNN）、循环网络（RNN）中常见，收敛速度显著提升</li>
+<li>​<strong>振荡抑制</strong>​：在病态条件（如不同特征尺度差异大）的问题中表现更稳定</li>
+<li>​<strong>与自适应方法结合</strong>​：如Adam（融合动量与RMSProp），成为主流优化器之一</li>
+</ul>
+<hr>
+<h2 id="独热编码（One-Hot-Encoding）"><a href="#独热编码（One-Hot-Encoding）" class="headerlink" title="独热编码（One-Hot Encoding）"></a>独热编码（One-Hot Encoding）</h2><p><strong>独热编码（One-Hot Encoding）​</strong>​ 是将分类变量转换为数值形式的标准化技术，使算法能够正确处理非数值特征（如颜色、国家、类别）。其核心思想是为每个类别生成一个<strong>二元向量</strong>​（仅包含0和1），长度等于类别总数，且仅在对应类别位置为1。</p>
+<p>核心机制<br><strong>编码过程</strong>​ ：假设一个特征有 <code>k</code> 个类别，创建一个全零向量 <code>[0, 0, ..., 0]</code>，长度为 <code>k</code>。将该特征对应的类别位置设为 <code>1</code>。<br>​<strong>示例</strong>​：颜色特征包含 <code>[红, 绿, 蓝]</code> 三个类别：    </p>
+<ul>
+<li>红 → <code>[1, 0, 0]</code></li>
+<li>绿 → <code>[0, 1, 0]</code></li>
+<li>蓝 → <code>[0, 0, 1]</code></li>
+</ul>
+<p>解决的问题</p>
+<ol>
+<li>​<strong>分类特征的数值化</strong>​：机器学习模型（如神经网络、SVM）只能处理数值输入，无法直接处理“颜色&#x3D;红”等文本信息。</li>
+<li>​<strong>避免数值陷阱</strong>​：若直接赋值（如红&#x3D;1、绿&#x3D;2、蓝&#x3D;3），模型可能错误认为：数值大小反映重要性（如蓝&gt;红），类别间存在线性关系（如（红+蓝）&#x2F;2&#x3D;绿）。独热编码通过<strong>等距表示</strong>消除此类偏差。</li>
+</ol>
+<p>应用场景​</p>
+<ul>
+<li>​<strong>结构化数据</strong>​：处理表格中的分类列（如性别、产品类型）</li>
+<li>​<strong>自然语言处理（NLP）​</strong>​：将词转换为向量（词袋模型的基础）</li>
+<li>​<strong>推荐系统</strong>​：用户或物品的类别特征编码</li>
+</ul>
+<p>局限性​</p>
+<table>
+<thead>
+<tr>
+<th>​<strong>问题</strong>​</th>
+<th>​<strong>原因</strong>​</th>
+<th>​<strong>解决方案</strong>​</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>​<strong>维度爆炸</strong>​</td>
+<td>类别数 <code>k</code> 过大时，编码后特征维度急剧增加（如国家有200类 → 200列）</td>
+<td>嵌入层（Embedding）、特征哈希（Hashing）</td>
+</tr>
+<tr>
+<td>​<strong>数据稀疏性</strong>​</td>
+<td>矩阵中大量0值，存储计算效率低</td>
+<td>使用稀疏矩阵格式存储（如<code>scipy.sparse</code>）</td>
+</tr>
+<tr>
+<td>​<strong>类别信息丢失</strong>​</td>
+<td>忽略类别间潜在关系（如“动物”与“植物”的距离）</td>
+<td>嵌入表示（如Word2Vec）、目标编码</td>
+</tr>
+<tr>
+<td>​<strong>新类别处理</strong>​</td>
+<td>测试集出现训练时未见的类别（如训练集无“紫”，测试出现“紫”）</td>
+<td>统一预留“未知”类别位或舍弃该特征</td>
+</tr>
+</tbody></table>
+<p>替代方案​</p>
+<ol>
+<li>​<strong>标签编码（Label Encoding）​</strong>：​直接分配数值标签（如红→0, 绿→1, 蓝→2），​<strong>仅适用于有序类别</strong>​（如学历：小学&lt;中学&lt;大学）。  <strong>风险</strong>​：无序类别引入虚假顺序关系（如“红&lt;绿”无意义）。  </li>
+<li>​<strong>嵌入（Embedding）​</strong>​  ：用低维稠密向量表示类别（如将1000个国家映射为16维向量），可学习类别间语义关系。</li>
+<li>​<strong>特征哈希（Hashing Trick）​</strong>​：用哈希函数压缩维度（固定输出维度），牺牲少量精度以换取效率。</li>
+</ol>
+<hr>
+<h2 id="池化（Pooling）"><a href="#池化（Pooling）" class="headerlink" title="池化（Pooling）"></a>池化（Pooling）</h2><p><strong>池化（Pooling）​</strong>​ 是卷积神经网络（CNN）中的核心操作，通过对局部区域进行<strong>降采样</strong>​（downsampling），逐步减少特征图的空间尺寸，从而压缩信息并增强特征的鲁棒性。其本质是<strong>保留显著特征，抑制冗余细节</strong>，类似于人眼忽略细节、关注整体轮廓的认知机制。</p>
+<p>核心目的​</p>
+<ol>
+<li>​<strong>降低维度</strong>​：减少特征图尺寸（如将224×224变为112×112），​<strong>显著降低计算量和参数量</strong>。</li>
+<li>​<strong>平移不变性（Invariance）​</strong>：​使模型对微小位置变化不敏感（如猫的耳朵在图像中移动几个像素仍能被识别）。</li>
+<li>​<strong>特征层次化</strong>​：逐层抽象，浅层保留边缘等细节，深层提取语义特征（如“猫脸”）。</li>
+<li>​<strong>防止过拟合</strong>：​压缩信息减少模型容量，抑制噪声干扰。</li>
+</ol>
+<p>主要类型与操作方式​</p>
+<ol>
+<li><strong>最大池化（Max Pooling）​</strong> ：保留最显著特征（如纹理、边缘），适用于特征识别任务（如图像分类）<br> ​<strong>操作</strong>​：取局部窗口内的最大值  $\text{Output} &#x3D; \max(\text{Region})$</li>
+<li><strong>平均池化（Average Pooling）</strong>  ：平滑区域特征，抑制极端值，适用于需要保留整体信息的任务（如生成模型）<br> <strong>操作</strong>​：取局部窗口内的平均值  $\text{Output} &#x3D; \frac{1}{N} \sum_{i&#x3D;1}^{N} x_i$</li>
+<li><strong>全局池化（Global Pooling）</strong>：​​代替全连接层，直接输出分类概率，减少参数量（如ResNet、Inception中使用）。<br> <strong>操作</strong>​：对整个特征图进行池化（取全局最大值或平均值）</li>
+</ol>
+<p>关键参数与计算</p>
+<ul>
+<li>​<strong>池化窗口（Kernel Size）​</strong>​：一般为2×2或3×3</li>
+<li>​<strong>步长（Stride）​</strong>​：通常等于窗口大小（如2×2窗口步长为2）</li>
+<li>​<strong>填充（Padding）​</strong>​：通常设为0（<code>valid</code>模式）</li>
+</ul>
+<p>​输出尺寸公式​：<br>$$<br>\text{Output Size} &#x3D; \left\lfloor \frac{\text{Input Size} - \text{Kernel Size}}{\text{Stride}} + 1 \right\rfloor<br>$$</p>
+<p>与卷积层的区别​</p>
+<table>
+<thead>
+<tr>
+<th>​<strong>特性</strong>​</th>
+<th>​<strong>卷积层</strong>​</th>
+<th>​<strong>池化层</strong>​</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>​<strong>参数</strong>​</td>
+<td>有权重（可学习）</td>
+<td>无权重（固定操作）</td>
+</tr>
+<tr>
+<td>​<strong>作用</strong>​</td>
+<td>特征提取（主动学习）</td>
+<td>特征压缩（被动降维）</td>
+</tr>
+<tr>
+<td>​<strong>通道处理</strong>​</td>
+<td>跨通道融合</td>
+<td>各通道独立操作</td>
+</tr>
+<tr>
+<td>​<strong>信息保留</strong>​</td>
+<td>保留细节</td>
+<td>保留最显著特征</td>
+</tr>
+</tbody></table>
+<p>局限性与现代替代方案​</p>
+<ol>
+<li>​<strong>信息丢失问题</strong>​：池化会丢弃非最大值信息，可能导致细节损失（如小物体检测）。<br> ​<strong>解决方案</strong>​：<ul>
+<li>​<strong>步长卷积（Strided Convolution）​</strong>​：用步长&gt;1的卷积代替池化（如VGG16）</li>
+<li>​<strong>空洞卷积（Dilated Convolution）​</strong>​：扩大感受野且不降采样</li>
+</ul>
+</li>
+<li>​<strong>位置信息破坏</strong>：​平移不变性可能损害需要位置的任务（如目标检测）。<br> ​<strong>解决方案</strong>​：<ul>
+<li>减少池化层数量（如YOLO仅用1次最大池化）</li>
+<li>使用可学习池化（如<strong>LPPool</strong>、<strong>SoftPool</strong>）</li>
+</ul>
+</li>
+<li>​<strong>全局信息缺失</strong>​：浅层池化丢失长距离依赖。<br> ​<strong>解决方案</strong>​：​<strong>自注意力机制</strong>​（如Transformer）</li>
+</ol>
+<p>用法​</p>
+<ol>
+<li>​<strong>基础架构</strong>​：CNN浅层优先使用<strong>最大池化</strong>​（保留强特征），深层可尝试<strong>全局池化</strong>替代全连接层。</li>
+<li>​<strong>尺寸控制</strong>​：避免频繁池化导致特征图过小（如小于4×4时停止池化）。</li>
+<li>​<strong>任务适配</strong>​：<ul>
+<li>​<strong>分类任务</strong>​：池化提升平移不变性</li>
+<li>​<strong>检测&#x2F;分割任务</strong>​：减少池化层或使用步长卷积保留位置信息</li>
+</ul>
+</li>
+</ol>
+<hr>
 
     </div>
 
@@ -1402,7 +1578,7 @@
       <i class="fa fa-chart-line"></i>
     </span>
       <span>站点总字数：</span>
-    <span title="站点总字数">110k</span>
+    <span title="站点总字数">112k</span>
   </span>
 </div>
 <div class="busuanzi-count">
