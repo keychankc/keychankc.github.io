@@ -28,11 +28,13 @@
 <meta property="og:site_name" content="KeyChan&#39;s blog">
 <meta property="og:description" content="1.ViT概述在上一篇文章中主要讲了 Transformer 的基本原理，尤其是在自然语言处理（NLP）任务中的应用，包括编码器和解码器的主要功能和注意力机制的具体实现。但这些内容大多基于 NLP 领域的示例，本篇我们看看在计算机视觉（CV）领域，Transformer 在图像任务中的使用方式。 1.在视觉领域的发展背景">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250626163939.png">
 <meta property="article:published_time" content="2025-07-02T06:53:12.000Z">
-<meta property="article:modified_time" content="2025-07-02T02:10:50.130Z">
+<meta property="article:modified_time" content="2025-07-02T02:15:54.201Z">
 <meta property="article:author" content="KeyChan">
 <meta property="article:tag" content="Transformer">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250626163939.png">
 
 
 <link rel="canonical" href="https://keychankc.github.io/2025/07/02/022-vision-transformer/">
@@ -238,7 +240,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2025-07-02 14:53:12 / 修改时间：10:10:50" itemprop="dateCreated datePublished" datetime="2025-07-02T14:53:12+08:00">2025-07-02</time>
+      <time title="创建时间：2025-07-02 14:53:12 / 修改时间：10:15:54" itemprop="dateCreated datePublished" datetime="2025-07-02T14:53:12+08:00">2025-07-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -314,7 +316,7 @@
 <li><strong>分类任务</strong>：通常使用一个特殊的 [CLS] token 来聚合所有 patch 信息，或对所有位置的向量进行池化，得到全图的表征向量，接分类头输出预测结果。</li>
 <li><strong>目标检测、图像分割</strong>：输出的序列会进一步送入解码模块或其他结构中，用于生成 bounding box、mask 或语义标签。</li>
 </ul>
-<h2 id="2-ViT整体实现架构"><a href="#2-ViT整体实现架构" class="headerlink" title="2.ViT整体实现架构"></a>2.ViT整体实现架构</h2><p>![[image_20250626163939.png]]<br>这张图是 <strong>Vision Transformer (ViT)</strong> 的整体结构示意图，左边是 ViT 的整体流程，右边是每一个 <strong>Transformer Encoder</strong> 的内部结构。</p>
+<h2 id="2-ViT整体实现架构"><a href="#2-ViT整体实现架构" class="headerlink" title="2.ViT整体实现架构"></a>2.ViT整体实现架构</h2><p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250626163939.png"><br>这张图是 <strong>Vision Transformer (ViT)</strong> 的整体结构示意图，左边是 ViT 的整体流程，右边是每一个 <strong>Transformer Encoder</strong> 的内部结构。</p>
 <h3 id="1-ViT-的整体流程"><a href="#1-ViT-的整体流程" class="headerlink" title="1.ViT 的整体流程"></a>1.ViT 的整体流程</h3><h4 id="1-输入图像切分成Patch"><a href="#1-输入图像切分成Patch" class="headerlink" title="1.输入图像切分成Patch"></a>1.输入图像切分成Patch</h4><p>原始图像会被均匀地切成多个固定大小的图像块（patches），比如 $16 \times 16$ 像素一块。图中最底下显示了将整幅图像切成了 9 个 patch。</p>
 <h4 id="2-每个-patch-展平-线性投影"><a href="#2-每个-patch-展平-线性投影" class="headerlink" title="2. 每个 patch 展平 + 线性投影"></a>2. 每个 patch 展平 + 线性投影</h4><p>每个 patch 被展平成一个向量（Flatten），比如形状 [3, 16, 16]（RGB通道）展平成 3×16×16 &#x3D; 768 维。然后通过一个线性变换（Linear Projection）投影成固定维度，比如 D &#x3D; 768，作为 token 向量。</p>
 <h4 id="3-加上位置编码Position-Embedding"><a href="#3-加上位置编码Position-Embedding" class="headerlink" title="3.加上位置编码Position Embedding"></a>3.加上位置编码Position Embedding</h4><p>因为 Transformer 本身不理解顺序，所以每个 patch 都要加上对应的 <strong>位置编码</strong>（可学习的向量），告诉模型“这是第几个 patch”。<br>同时，图中还有一个额外的 * patch —— <strong>可学习的 [class] token</strong>，用来代表整张图像的全局信息（类似 BERT 的 [CLS] token），最终用于分类。</p>
