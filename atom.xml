@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-07-02T02:19:04.099Z</updated>
+  <updated>2025-07-02T02:24:06.318Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="https://keychankc.github.io/2025/07/02/022-vision-transformer/"/>
     <id>https://keychankc.github.io/2025/07/02/022-vision-transformer/</id>
     <published>2025-07-02T06:53:12.000Z</published>
-    <updated>2025-07-02T02:19:04.099Z</updated>
+    <updated>2025-07-02T02:24:06.318Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-ViT概述&quot;&gt;&lt;a href=&quot;#1-ViT概述&quot; class=&quot;headerlink&quot; title=&quot;1.ViT概述&quot;&gt;&lt;/a&gt;1.ViT概述&lt;/h2&gt;&lt;p&gt;在上一篇文章中主要讲了 &lt;a href=&quot;https://keychankc.github.io/2025/06/25/021-transformer/&quot;&gt;Transformer 的基本原理&lt;/a&gt;，尤其是在自然语言处理（NLP）任务中的应用，包括编码器和解码器的主要功能和注意力机制的具体实现。但这些内容大多基于 NLP 领域的示例，本篇我们看看在计算机视觉（CV）领域，Transformer 在图像任务中的使用方式。&lt;/p&gt;
@@ -373,9 +373,9 @@
     
     <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
     
-    <category term="OpenCV" scheme="https://keychankc.github.io/tags/OpenCV/"/>
-    
     <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
+    
+    <category term="OpenCV" scheme="https://keychankc.github.io/tags/OpenCV/"/>
     
     <category term="目标追踪" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA/"/>
     
@@ -416,9 +416,9 @@
     
     <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
     
-    <category term="OpenCV" scheme="https://keychankc.github.io/tags/OpenCV/"/>
-    
     <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
+    
+    <category term="OpenCV" scheme="https://keychankc.github.io/tags/OpenCV/"/>
     
     <category term="目标追踪" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA/"/>
     
@@ -558,9 +558,9 @@
     
     <category term="图像识别" scheme="https://keychankc.github.io/tags/%E5%9B%BE%E5%83%8F%E8%AF%86%E5%88%AB/"/>
     
-    <category term="OpenCV" scheme="https://keychankc.github.io/tags/OpenCV/"/>
-    
     <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
+    
+    <category term="OpenCV" scheme="https://keychankc.github.io/tags/OpenCV/"/>
     
   </entry>
   
@@ -639,9 +639,9 @@
     
     <category term="模型训练" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83/"/>
     
-    <category term="卷积神经网络" scheme="https://keychankc.github.io/tags/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
-    
     <category term="matplotlib" scheme="https://keychankc.github.io/tags/matplotlib/"/>
+    
+    <category term="卷积神经网络" scheme="https://keychankc.github.io/tags/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
     
     <category term="迁移学习" scheme="https://keychankc.github.io/tags/%E8%BF%81%E7%A7%BB%E5%AD%A6%E4%B9%A0/"/>
     
