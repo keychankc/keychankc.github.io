@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-07-02T02:24:06.318Z</updated>
+  <updated>2025-07-02T02:31:43.574Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="https://keychankc.github.io/2025/07/02/022-vision-transformer/"/>
     <id>https://keychankc.github.io/2025/07/02/022-vision-transformer/</id>
     <published>2025-07-02T06:53:12.000Z</published>
-    <updated>2025-07-02T02:24:06.318Z</updated>
+    <updated>2025-07-02T02:31:43.574Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-ViT概述&quot;&gt;&lt;a href=&quot;#1-ViT概述&quot; class=&quot;headerlink&quot; title=&quot;1.ViT概述&quot;&gt;&lt;/a&gt;1.ViT概述&lt;/h2&gt;&lt;p&gt;在上一篇文章中主要讲了 &lt;a href=&quot;https://keychankc.github.io/2025/06/25/021-transformer/&quot;&gt;Transformer 的基本原理&lt;/a&gt;，尤其是在自然语言处理（NLP）任务中的应用，包括编码器和解码器的主要功能和注意力机制的具体实现。但这些内容大多基于 NLP 领域的示例，本篇我们看看在计算机视觉（CV）领域，Transformer 在图像任务中的使用方式。&lt;/p&gt;
@@ -31,6 +31,8 @@
     
     <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
+    
+    <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
     
     <category term="Transformer" scheme="https://keychankc.github.io/tags/Transformer/"/>
     
