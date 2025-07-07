@@ -614,21 +614,16 @@
     <link href="https://keychankc.github.io/2025/03/07/004-cnn-identify-flowers/"/>
     <id>https://keychankc.github.io/2025/03/07/004-cnn-identify-flowers/</id>
     <published>2025-03-07T07:16:35.000Z</published>
-    <updated>2025-03-26T08:58:23.653Z</updated>
+    <updated>2025-07-07T03:48:15.707Z</updated>
     
     
-    <summary type="html">&lt;h2 id=&quot;1-迁移学习&quot;&gt;&lt;a href=&quot;#1-迁移学习&quot; class=&quot;headerlink&quot; title=&quot;1.迁移学习&quot;&gt;&lt;/a&gt;1.迁移学习&lt;/h2&gt;&lt;p&gt;用&lt;strong&gt;CNN&lt;/strong&gt;做图像识别是不是每次都意味着要自己定义模型，确定好 &lt;strong&gt;卷积层&lt;/strong&gt;、&lt;strong&gt;池化层&lt;/strong&gt; 和 &lt;strong&gt;全连接层&lt;/strong&gt;，然后从0开始训练？不同类型的图像数据集会不会有通用的特征？如果训练样本比较少怎么办？（例如本次花卉识别训练图片只有六千多张）是不是可以有那种已经训练好的模型，拿过来稍微改改就可以用的？&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;迁移学习（Transfer Learning）&lt;/strong&gt; 就是这种可以将已有模型的知识迁移到新任务的学习方法，有以下特点&lt;/p&gt;
+    <summary type="html">&lt;h2 id=&quot;1-迁移学习&quot;&gt;&lt;a href=&quot;#1-迁移学习&quot; class=&quot;headerlink&quot; title=&quot;1.迁移学习&quot;&gt;&lt;/a&gt;1.迁移学习&lt;/h2&gt;&lt;p&gt;做图像识别是不是每次都意味着要自定义模型，确定好 &lt;strong&gt;卷积层&lt;/strong&gt;、&lt;strong&gt;池化层&lt;/strong&gt; 和 &lt;strong&gt;全连接层&lt;/strong&gt;，然后从0开始训练？不同类型的图像数据集会不会有通用的特征？如果训练样本比较少怎么办？是不是可以把已经训练好的模型，拿过来稍微改改就可以使用的？&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;迁移学习（Transfer Learning）&lt;/strong&gt; 就是这种可以将已有模型的知识迁移到新任务的学习方法，具有以下特点：&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;适合数据量比较少的任务，有预训练知识无需从头训练深度神经网络&lt;/li&gt;
+&lt;li&gt;适合数据量比较少的任务，但是有预训练知识，无需从头训练深度神经网络&lt;/li&gt;
 &lt;li&gt;更快的训练速度和更少的资源消耗&lt;/li&gt;
-&lt;li&gt;避免过拟合效果更好，预训练的模型已经在大数据集上学到了&lt;strong&gt;通用特征&lt;/strong&gt;（如边缘、形状、颜色）&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;迁移学习常见的使用方式：&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;冻结预训练模型的大部分参数，仅训练全连接层（FC 层）,优点是训练快，适合小数据集，缺点是预训练模型的特征可能不完全适用于新任务&lt;/li&gt;
-&lt;li&gt;解冻部分或全部预训练层，使其适应新任务，优点是特征提取灵活，能学到更多任务相关的特征，缺点是训练时间长，需要手动调节学习率&lt;/li&gt;
-&lt;/ol&gt;</summary>
+&lt;li&gt;避免过拟合，训练效果更好，预训练的模型已经在大数据集上学到了&lt;strong&gt;通用特征&lt;/strong&gt;（如边缘、形状、颜色）&lt;/li&gt;
+&lt;/ul&gt;</summary>
     
     
     

@@ -1315,7 +1315,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-03-26 16:58:23" itemprop="dateModified" datetime="2025-03-26T16:58:23+08:00">2025-03-26</time>
+      <time title="修改时间：2025-07-07 11:48:15" itemprop="dateModified" datetime="2025-07-07T11:48:15+08:00">2025-07-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1354,18 +1354,13 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="1-迁移学习"><a href="#1-迁移学习" class="headerlink" title="1.迁移学习"></a>1.迁移学习</h2><p>用<strong>CNN</strong>做图像识别是不是每次都意味着要自己定义模型，确定好 <strong>卷积层</strong>、<strong>池化层</strong> 和 <strong>全连接层</strong>，然后从0开始训练？不同类型的图像数据集会不会有通用的特征？如果训练样本比较少怎么办？（例如本次花卉识别训练图片只有六千多张）是不是可以有那种已经训练好的模型，拿过来稍微改改就可以用的？</p>
-<p><strong>迁移学习（Transfer Learning）</strong> 就是这种可以将已有模型的知识迁移到新任务的学习方法，有以下特点</p>
+          <h2 id="1-迁移学习"><a href="#1-迁移学习" class="headerlink" title="1.迁移学习"></a>1.迁移学习</h2><p>做图像识别是不是每次都意味着要自定义模型，确定好 <strong>卷积层</strong>、<strong>池化层</strong> 和 <strong>全连接层</strong>，然后从0开始训练？不同类型的图像数据集会不会有通用的特征？如果训练样本比较少怎么办？是不是可以把已经训练好的模型，拿过来稍微改改就可以使用的？</p>
+<p><strong>迁移学习（Transfer Learning）</strong> 就是这种可以将已有模型的知识迁移到新任务的学习方法，具有以下特点：</p>
 <ul>
-<li>适合数据量比较少的任务，有预训练知识无需从头训练深度神经网络</li>
+<li>适合数据量比较少的任务，但是有预训练知识，无需从头训练深度神经网络</li>
 <li>更快的训练速度和更少的资源消耗</li>
-<li>避免过拟合效果更好，预训练的模型已经在大数据集上学到了<strong>通用特征</strong>（如边缘、形状、颜色）</li>
+<li>避免过拟合，训练效果更好，预训练的模型已经在大数据集上学到了<strong>通用特征</strong>（如边缘、形状、颜色）</li>
 </ul>
-<p>迁移学习常见的使用方式：</p>
-<ol>
-<li>冻结预训练模型的大部分参数，仅训练全连接层（FC 层）,优点是训练快，适合小数据集，缺点是预训练模型的特征可能不完全适用于新任务</li>
-<li>解冻部分或全部预训练层，使其适应新任务，优点是特征提取灵活，能学到更多任务相关的特征，缺点是训练时间长，需要手动调节学习率</li>
-</ol>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2025/03/07/004-cnn-identify-flowers/#more" rel="contents">

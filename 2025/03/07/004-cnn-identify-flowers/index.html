@@ -21,18 +21,18 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"keychankc.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="1.迁移学习用CNN做图像识别是不是每次都意味着要自己定义模型，确定好 卷积层、池化层 和 全连接层，然后从0开始训练？不同类型的图像数据集会不会有通用的特征？如果训练样本比较少怎么办？（例如本次花卉识别训练图片只有六千多张）是不是可以有那种已经训练好的模型，拿过来稍微改改就可以用的？ 迁移学习（Transfer Learning） 就是这种可以将已有模型的知识迁移到新任务的学习方法，有以下特点">
+    <meta name="description" content="1.迁移学习做图像识别是不是每次都意味着要自定义模型，确定好 卷积层、池化层 和 全连接层，然后从0开始训练？不同类型的图像数据集会不会有通用的特征？如果训练样本比较少怎么办？是不是可以把已经训练好的模型，拿过来稍微改改就可以使用的？ 迁移学习（Transfer Learning） 就是这种可以将已有模型的知识迁移到新任务的学习方法，具有以下特点：  适合数据量比较少的任务，但是有预训练知识，无需">
 <meta property="og:type" content="article">
 <meta property="og:title" content="基于迁移学习(ResNet-18)的花卉识别">
 <meta property="og:url" content="https://keychankc.github.io/2025/03/07/004-cnn-identify-flowers/index.html">
 <meta property="og:site_name" content="KeyChan&#39;s blog">
-<meta property="og:description" content="1.迁移学习用CNN做图像识别是不是每次都意味着要自己定义模型，确定好 卷积层、池化层 和 全连接层，然后从0开始训练？不同类型的图像数据集会不会有通用的特征？如果训练样本比较少怎么办？（例如本次花卉识别训练图片只有六千多张）是不是可以有那种已经训练好的模型，拿过来稍微改改就可以用的？ 迁移学习（Transfer Learning） 就是这种可以将已有模型的知识迁移到新任务的学习方法，有以下特点">
+<meta property="og:description" content="1.迁移学习做图像识别是不是每次都意味着要自定义模型，确定好 卷积层、池化层 和 全连接层，然后从0开始训练？不同类型的图像数据集会不会有通用的特征？如果训练样本比较少怎么办？是不是可以把已经训练好的模型，拿过来稍微改改就可以使用的？ 迁移学习（Transfer Learning） 就是这种可以将已有模型的知识迁移到新任务的学习方法，具有以下特点：  适合数据量比较少的任务，但是有预训练知识，无需">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250306163312.png">
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250306171732.png">
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250307155124.png">
 <meta property="article:published_time" content="2025-03-07T07:16:35.000Z">
-<meta property="article:modified_time" content="2025-03-26T08:58:23.653Z">
+<meta property="article:modified_time" content="2025-07-07T03:48:15.707Z">
 <meta property="article:author" content="KeyChan">
 <meta property="article:tag" content="Python">
 <meta property="article:tag" content="PyTorch">
@@ -253,7 +253,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-03-26 16:58:23" itemprop="dateModified" datetime="2025-03-26T16:58:23+08:00">2025-03-26</time>
+      <time title="修改时间：2025-07-07 11:48:15" itemprop="dateModified" datetime="2025-07-07T11:48:15+08:00">2025-07-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -310,20 +310,20 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><h2 id="1-迁移学习"><a href="#1-迁移学习" class="headerlink" title="1.迁移学习"></a>1.迁移学习</h2><p>用<strong>CNN</strong>做图像识别是不是每次都意味着要自己定义模型，确定好 <strong>卷积层</strong>、<strong>池化层</strong> 和 <strong>全连接层</strong>，然后从0开始训练？不同类型的图像数据集会不会有通用的特征？如果训练样本比较少怎么办？（例如本次花卉识别训练图片只有六千多张）是不是可以有那种已经训练好的模型，拿过来稍微改改就可以用的？</p>
-<p><strong>迁移学习（Transfer Learning）</strong> 就是这种可以将已有模型的知识迁移到新任务的学习方法，有以下特点</p>
+    <div class="post-body" itemprop="articleBody"><h2 id="1-迁移学习"><a href="#1-迁移学习" class="headerlink" title="1.迁移学习"></a>1.迁移学习</h2><p>做图像识别是不是每次都意味着要自定义模型，确定好 <strong>卷积层</strong>、<strong>池化层</strong> 和 <strong>全连接层</strong>，然后从0开始训练？不同类型的图像数据集会不会有通用的特征？如果训练样本比较少怎么办？是不是可以把已经训练好的模型，拿过来稍微改改就可以使用的？</p>
+<p><strong>迁移学习（Transfer Learning）</strong> 就是这种可以将已有模型的知识迁移到新任务的学习方法，具有以下特点：</p>
 <ul>
-<li>适合数据量比较少的任务，有预训练知识无需从头训练深度神经网络</li>
+<li>适合数据量比较少的任务，但是有预训练知识，无需从头训练深度神经网络</li>
 <li>更快的训练速度和更少的资源消耗</li>
-<li>避免过拟合效果更好，预训练的模型已经在大数据集上学到了<strong>通用特征</strong>（如边缘、形状、颜色）</li>
+<li>避免过拟合，训练效果更好，预训练的模型已经在大数据集上学到了<strong>通用特征</strong>（如边缘、形状、颜色）</li>
 </ul>
+<span id="more"></span>
 <p>迁移学习常见的使用方式：</p>
 <ol>
-<li>冻结预训练模型的大部分参数，仅训练全连接层（FC 层）,优点是训练快，适合小数据集，缺点是预训练模型的特征可能不完全适用于新任务</li>
-<li>解冻部分或全部预训练层，使其适应新任务，优点是特征提取灵活，能学到更多任务相关的特征，缺点是训练时间长，需要手动调节学习率</li>
+<li>冻结预训练模型的大部分参数，仅训练全连接层（FC 层），这样做的优点是训练快，适合小数据集，缺点是预训练模型的特征可能不完全适用于新任务。</li>
+<li>解冻部分或全部预训练层，使其适应新任务，优点是特征提取灵活，能学到更多任务相关的特征，缺点是训练时间长，需要手动调节学习率。</li>
 </ol>
-<span id="more"></span>
-
+<p>下面通过一个小样本的花卉识别来介绍一下迁移学习的训练流程。</p>
 <h2 id="2-数据处理"><a href="#2-数据处理" class="headerlink" title="2.数据处理"></a>2.数据处理</h2><h3 id="1-数据结构"><a href="#1-数据结构" class="headerlink" title="1.数据结构"></a>1.数据结构</h3><p>训练集和验证集都是图片，每一个类型的花放在一个文件夹中，文件夹的名称可以通过<code>cat_to_name.json</code>文件匹配对应的花名称。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250306163312.png" alt="训练集和验证集结构" width="300"></p>
 <h3 id="2-数据加载与预处理"><a href="#2-数据加载与预处理" class="headerlink" title="2.数据加载与预处理"></a>2.数据加载与预处理</h3><p>由于本次任务训练集数据比较少，为了提高模型的泛化能力和训练效果，需要在做数据预处理的时候做下增强操作。<br>预处理：</p>
 <ul>
@@ -357,7 +357,7 @@
 <li><code>nn.Linear(model_ft.fc.in_features, num_classes)</code>：修改 ResNet 的最后一层，让它适应新的分类任务，因为当前训练集是102分类，<code>num_classes</code>为102，表示最后全连接层输出102个类别</li>
 <li><code>model_ft.to(get_device())</code>:让模型运行在 GPU 或 CPU上</li>
 </ul>
-<p>经过这样自定义后， ResNet-18模型只会训练最后的全连接层</p>
+<p>经过这样自定义后， ResNet-18模型只会训练最后的全连接层。</p>
 <h3 id="3-优化器"><a href="#3-优化器" class="headerlink" title="3.优化器"></a>3.优化器</h3><p>优化器还是使用<code>Adam</code></p>
 <blockquote>
 <p><strong>Adam</strong> 是一种常用的优化算法，全名为 <strong>Adaptive Moment Estimation</strong>，它结合了 <strong>Momentum</strong> 和 <strong>RMSprop</strong> 的优点，能够自动调整学习率来提高训练效果，Adam 优化器会通过计算一阶矩（梯度的均值）和二阶矩（梯度的平方均值）来动态调整每个参数的学习率，从而提高训练的效率和稳定性。  </p>
@@ -380,7 +380,7 @@
 <h2 id="4-模型训练和评估"><a href="#4-模型训练和评估" class="headerlink" title="4.模型训练和评估"></a>4.模型训练和评估</h2><h3 id="1-训练"><a href="#1-训练" class="headerlink" title="1.训练"></a>1.训练</h3><p><code>train_one_epoch</code>方法定义了一个完整的<strong>训练轮次（epoch）</strong>，包括 <strong>前向传播、损失计算、反向传播、参数更新</strong>，并计算 <strong>训练损失和准确率</strong></p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">train_one_epoch</span>(<span class="params">_model, dataloader, optimizer, _criterion, device, _scheduler</span>):  </span><br><span class="line">    <span class="string">&quot;&quot;&quot;  </span></span><br><span class="line"><span class="string">    训练一个 epoch</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span>    </span><br><span class="line">    _model.train()  <span class="comment"># 设置为训练模式  </span></span><br><span class="line">    running_loss = <span class="number">0.0</span>  <span class="comment"># 累计 batch 损失值</span></span><br><span class="line">    running_corrects = <span class="number">0</span>  <span class="comment"># 累计正确预测的样本数</span></span><br><span class="line">  </span><br><span class="line">    <span class="keyword">for</span> inputs, labels <span class="keyword">in</span> dataloader:  <span class="comment"># 遍历每个batch（批量数据）</span></span><br><span class="line">        inputs, labels = inputs.to(device), labels.to(device)  <span class="comment"># 转移到GPU/CPU，加速训练  </span></span><br><span class="line">  </span><br><span class="line">        optimizer.zero_grad()  <span class="comment"># 清空梯度  </span></span><br><span class="line">        outputs = _model(inputs)  <span class="comment"># 模型前向传播计算输出  </span></span><br><span class="line">        _, predicted = torch.<span class="built_in">max</span>(outputs, <span class="number">1</span>)  <span class="comment"># 取最大概率的类别作为预测值 </span></span><br><span class="line">        loss = _criterion(outputs, labels)  <span class="comment"># 计算损失  </span></span><br><span class="line">  </span><br><span class="line">        loss.backward()  <span class="comment"># 计算梯度（反向传播） </span></span><br><span class="line">        optimizer.step()  <span class="comment"># 更新模型参数 </span></span><br><span class="line">  </span><br><span class="line">        running_loss += loss.item() * inputs.size(<span class="number">0</span>)  <span class="comment"># batch损失*batch_size</span></span><br><span class="line">	    running_corrects += torch.<span class="built_in">sum</span>((predicted == labels).<span class="built_in">int</span>())  <span class="comment"># 统计正确预测的个数</span></span><br><span class="line">    epoch_loss = running_loss / <span class="built_in">len</span>(dataloader.dataset)  <span class="comment"># 平均损失（总损失/样本数）</span></span><br><span class="line">    epoch_acc = running_corrects / <span class="built_in">len</span>(dataloader.dataset)  <span class="comment"># 准确率（正确预测数/总样本数）</span></span><br><span class="line">    <span class="keyword">return</span> epoch_loss, epoch_acc</span><br></pre></td></tr></table></figure>
 
-<h3 id="2-评估"><a href="#2-评估" class="headerlink" title="2.评估"></a>2.评估</h3><p><code>validate_one_epoch</code> 方法 执行了一次完整的验证（evaluation），其核心功能是 <strong>前向传播、计算损失、计算准确率</strong>，但不会进行 <strong>反向传播和参数更新</strong></p>
+<h3 id="2-评估"><a href="#2-评估" class="headerlink" title="2.评估"></a>2.评估</h3><p><code>validate_one_epoch</code> 方法 执行了一次完整的验证（evaluation），其核心功能是 <strong>前向传播、计算损失、计算准确率</strong>，但不会进行 <strong>反向传播和参数更新</strong>。</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">validate_one_epoch</span>(<span class="params">_model, dataloader, _criterion, device</span>):  </span><br><span class="line">    <span class="string">&quot;&quot;&quot;  </span></span><br><span class="line"><span class="string">    进行一个 epoch 的验证  </span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span>    </span><br><span class="line">    _model.<span class="built_in">eval</span>()  <span class="comment"># 设置为评估模式  </span></span><br><span class="line">    running_loss = <span class="number">0.0</span>  <span class="comment"># 累计 batch 损失值</span></span><br><span class="line">    running_corrects = <span class="number">0</span>  <span class="comment"># 累计正确预测的样本数</span></span><br><span class="line">  </span><br><span class="line">    <span class="keyword">with</span> torch.no_grad():  <span class="comment"># 不计算梯度，加速计算  </span></span><br><span class="line">        <span class="keyword">for</span> inputs, labels <span class="keyword">in</span> dataloader:  <span class="comment"># 遍历每个batch（批量数据）</span></span><br><span class="line">            inputs, labels = inputs.to(device), labels.to(device)  <span class="comment"># 转移到GPU/CPU，加速训练</span></span><br><span class="line">            outputs = _model(inputs)  <span class="comment"># 模型前向计算输出</span></span><br><span class="line">            _, predicted = torch.<span class="built_in">max</span>(outputs, <span class="number">1</span>)  <span class="comment"># 取最大概率的类别作为预测值</span></span><br><span class="line">            loss = _criterion(outputs, labels)  <span class="comment"># 计算损失</span></span><br><span class="line">  </span><br><span class="line">            running_loss += loss.item() * inputs.size(<span class="number">0</span>)  <span class="comment"># batch损失*batch_size</span></span><br><span class="line">            running_corrects += torch.<span class="built_in">sum</span>((predicted == labels).<span class="built_in">int</span>())  <span class="comment"># 统计正确预测的个数 </span></span><br><span class="line">  </span><br><span class="line">    epoch_loss = running_loss / <span class="built_in">len</span>(dataloader.dataset)  <span class="comment"># 平均损失（总损失/样本数）</span></span><br><span class="line">    epoch_acc = running_corrects / <span class="built_in">len</span>(dataloader.dataset)  <span class="comment"># 准确率（正确预测数/总样本数）</span></span><br><span class="line">    <span class="keyword">return</span> epoch_loss, epoch_acc</span><br></pre></td></tr></table></figure>
 <h3 id="3-筛选与保存"><a href="#3-筛选与保存" class="headerlink" title="3.筛选与保存"></a>3.筛选与保存</h3><p><code>train_model</code>方法就是一个完整的模型训练过程了，包括</p>
 <ul>
@@ -420,7 +420,7 @@
 <li>微调（解冻全部参数，降低学习率）</li>
 <li>可视化预测结果，检查分类准确率</li>
 </ol>
-<h2 id="7-模型优化"><a href="#7-模型优化" class="headerlink" title="7.模型优化"></a>7.模型优化</h2><p>八张图片中有两张识别错误，模型的识别准确率还有提升的空间，那如何进一步提高准确率呢？<br>查了一下，大致可以有以下几种方法：</p>
+<h2 id="7-模型优化"><a href="#7-模型优化" class="headerlink" title="7.模型优化"></a>7.模型优化</h2><p>八张图片中有两张识别错误，模型的识别准确率还有提升的空间，如何要进一步提高准确率该怎样做？查了一下，大致可以有以下几种方法：</p>
 <ol>
 <li>使用ResNet-50，ResNet-50由于参数更多，可以学习更复杂的特征，分类效果通常更好</li>
 <li>采用更好的优化器，例如<strong>AdamW</strong>（更稳定，L2 正则化）、<strong>SGD + Momentum</strong>（更适合 Fine-tuning）等</li>
@@ -431,7 +431,6 @@
 <li>使用混合精度训练（加速 + 提高泛化能力）</li>
 <li>使用 Early Stopping，训练更久的同时还能防止过拟合</li>
 </ol>
-<p>留待以后扩展用</p>
 <h2 id="8-备注"><a href="#8-备注" class="headerlink" title="8.备注"></a>8.备注</h2><p>环境：</p>
 <ul>
 <li>mac: 15.2</li>
