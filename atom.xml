@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-07-02T02:31:43.574Z</updated>
+  <updated>2025-07-08T02:16:51.965Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -15,6 +15,31 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>从像素到区域：MaskFormer 系列详解</title>
+    <link href="https://keychankc.github.io/2025/07/08/023-segmentation-mask2former/"/>
+    <id>https://keychankc.github.io/2025/07/08/023-segmentation-mask2former/</id>
+    <published>2025-07-08T05:54:12.000Z</published>
+    <updated>2025-07-08T02:16:51.965Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-MaskFormer概述&quot;&gt;&lt;a href=&quot;#1-MaskFormer概述&quot; class=&quot;headerlink&quot; title=&quot;1.MaskFormer概述&quot;&gt;&lt;/a&gt;1.MaskFormer概述&lt;/h2&gt;&lt;h3 id=&quot;1-背景&quot;&gt;&lt;a href=&quot;#1-背景&quot; class=&quot;headerlink&quot; title=&quot;1.背景&quot;&gt;&lt;/a&gt;1.背景&lt;/h3&gt;&lt;p&gt;在图像分割任务中，传统方法如 U-Net、DeepLab 系列通常采用“逐像素点分类”的策略：模型需要判断图像中每一个像素所属的类别。这种方式在语义分割中表现出色，但在实例分割场景下却存在明显的局限性。例如，同一类别的多个实例往往难以区分，因此仅靠逐像素分类很难准确完成实例级的区域划分。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="Python" scheme="https://keychankc.github.io/tags/Python/"/>
+    
+    <category term="PyTorch" scheme="https://keychankc.github.io/tags/PyTorch/"/>
+    
+    <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
+    
+    <category term="目标分割" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/"/>
+    
+  </entry>
   
   <entry>
     <title>ViT — Transformer在视觉领域应用代码解析</title>
@@ -606,41 +631,6 @@
     <category term="TensorBoard" scheme="https://keychankc.github.io/tags/TensorBoard/"/>
     
     <category term="LSTM" scheme="https://keychankc.github.io/tags/LSTM/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>基于迁移学习(ResNet-18)的花卉识别</title>
-    <link href="https://keychankc.github.io/2025/03/07/004-cnn-identify-flowers/"/>
-    <id>https://keychankc.github.io/2025/03/07/004-cnn-identify-flowers/</id>
-    <published>2025-03-07T07:16:35.000Z</published>
-    <updated>2025-07-07T03:48:15.707Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-迁移学习&quot;&gt;&lt;a href=&quot;#1-迁移学习&quot; class=&quot;headerlink&quot; title=&quot;1.迁移学习&quot;&gt;&lt;/a&gt;1.迁移学习&lt;/h2&gt;&lt;p&gt;做图像识别是不是每次都意味着要自定义模型，确定好 &lt;strong&gt;卷积层&lt;/strong&gt;、&lt;strong&gt;池化层&lt;/strong&gt; 和 &lt;strong&gt;全连接层&lt;/strong&gt;，然后从0开始训练？不同类型的图像数据集会不会有通用的特征？如果训练样本比较少怎么办？是不是可以把已经训练好的模型，拿过来稍微改改就可以使用的？&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;迁移学习（Transfer Learning）&lt;/strong&gt; 就是这种可以将已有模型的知识迁移到新任务的学习方法，具有以下特点：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;适合数据量比较少的任务，但是有预训练知识，无需从头训练深度神经网络&lt;/li&gt;
-&lt;li&gt;更快的训练速度和更少的资源消耗&lt;/li&gt;
-&lt;li&gt;避免过拟合，训练效果更好，预训练的模型已经在大数据集上学到了&lt;strong&gt;通用特征&lt;/strong&gt;（如边缘、形状、颜色）&lt;/li&gt;
-&lt;/ul&gt;</summary>
-    
-    
-    
-    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
-    
-    
-    <category term="Python" scheme="https://keychankc.github.io/tags/Python/"/>
-    
-    <category term="PyTorch" scheme="https://keychankc.github.io/tags/PyTorch/"/>
-    
-    <category term="模型训练" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83/"/>
-    
-    <category term="matplotlib" scheme="https://keychankc.github.io/tags/matplotlib/"/>
-    
-    <category term="卷积神经网络" scheme="https://keychankc.github.io/tags/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
-    
-    <category term="迁移学习" scheme="https://keychankc.github.io/tags/%E8%BF%81%E7%A7%BB%E5%AD%A6%E4%B9%A0/"/>
     
   </entry>
   
