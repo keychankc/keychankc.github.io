@@ -68,10 +68,10 @@
     <link href="https://keychankc.github.io/2025/06/25/021-transformer/"/>
     <id>https://keychankc.github.io/2025/06/25/021-transformer/</id>
     <published>2025-06-25T06:53:12.000Z</published>
-    <updated>2025-07-01T02:40:53.982Z</updated>
+    <updated>2025-07-10T02:11:51.268Z</updated>
     
     
-    <summary type="html">&lt;h2 id=&quot;1-循环神经网络&quot;&gt;&lt;a href=&quot;#1-循环神经网络&quot; class=&quot;headerlink&quot; title=&quot;1.循环神经网络&quot;&gt;&lt;/a&gt;1.循环神经网络&lt;/h2&gt;&lt;p&gt;前文有实现过一个&lt;a href=&quot;https://keychankc.github.io/2025/03/14/005-rnn-classification-text/&quot;&gt;基于循环神经网络的文本分类实践&lt;/a&gt;任务，循环神经网络（&lt;strong&gt;Recurrent Neural Network, RNN&lt;/strong&gt;）也叫递归神经网络，是专门处理&lt;strong&gt;序列数据&lt;/strong&gt;的神经网络架构，其核心思想是通过&lt;strong&gt;循环连接&lt;/strong&gt;使网络具备“记忆”能力，从而构建序列中时序之间的依赖关系。而处理具有&lt;strong&gt;时序或顺序关系&lt;/strong&gt;的数据（如语言、语音、基因序列等），其核心挑战是&lt;strong&gt;理解序列中的上下文依赖关系&lt;/strong&gt;，这就涉及到序列建模问题。&lt;/p&gt;</summary>
+    <summary type="html">&lt;h2 id=&quot;1-循环神经网络&quot;&gt;&lt;a href=&quot;#1-循环神经网络&quot; class=&quot;headerlink&quot; title=&quot;1.循环神经网络&quot;&gt;&lt;/a&gt;1.循环神经网络&lt;/h2&gt;&lt;p&gt;前文有实现过一个&lt;a href=&quot;https://keychankc.github.io/2025/03/14/005-rnn-classification-text/&quot;&gt;基于循环神经网络的文本分类实践&lt;/a&gt;任务，循环神经网络（&lt;strong&gt;Recurrent Neural Network, RNN&lt;/strong&gt;）也叫递归神经网络，是专门处理&lt;strong&gt;序列数据&lt;/strong&gt;的神经网络架构，其核心思想是通过&lt;strong&gt;循环连接&lt;/strong&gt;使网络具备“记忆”能力，从而构建序列中时序之间的依赖关系。而处理具有&lt;strong&gt;时序或顺序关系&lt;/strong&gt;的数据（如语言、语音、基因序列等）的核心挑战是&lt;strong&gt;理解序列中的上下文依赖关系&lt;/strong&gt;，这就涉及到序列建模问题。&lt;/p&gt;</summary>
     
     
     
@@ -400,11 +400,11 @@
     
     <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
     
-    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
-    
     <category term="OpenCV" scheme="https://keychankc.github.io/tags/OpenCV/"/>
     
     <category term="目标追踪" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA/"/>
+    
+    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
     
     <category term="dlib" scheme="https://keychankc.github.io/tags/dlib/"/>
     
@@ -443,11 +443,11 @@
     
     <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
     
-    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
-    
     <category term="OpenCV" scheme="https://keychankc.github.io/tags/OpenCV/"/>
     
     <category term="目标追踪" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA/"/>
+    
+    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
     
     <category term="dlib" scheme="https://keychankc.github.io/tags/dlib/"/>
     
@@ -585,9 +585,9 @@
     
     <category term="图像识别" scheme="https://keychankc.github.io/tags/%E5%9B%BE%E5%83%8F%E8%AF%86%E5%88%AB/"/>
     
-    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
-    
     <category term="OpenCV" scheme="https://keychankc.github.io/tags/OpenCV/"/>
+    
+    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
     
   </entry>
   
@@ -596,10 +596,10 @@
     <link href="https://keychankc.github.io/2025/03/14/005-rnn-classification-text/"/>
     <id>https://keychankc.github.io/2025/03/14/005-rnn-classification-text/</id>
     <published>2025-03-14T08:32:25.000Z</published>
-    <updated>2025-03-31T08:27:44.396Z</updated>
+    <updated>2025-07-10T02:22:49.294Z</updated>
     
     
-    <summary type="html">&lt;h2 id=&quot;1-循环神经网络-RNN&quot;&gt;&lt;a href=&quot;#1-循环神经网络-RNN&quot; class=&quot;headerlink&quot; title=&quot;1.循环神经网络(RNN)&quot;&gt;&lt;/a&gt;1.循环神经网络(RNN)&lt;/h2&gt;&lt;p&gt;RNN有&lt;strong&gt;隐藏状态（hidden state）&lt;/strong&gt;，可以保留和传递之前时刻的信息，也就是有记忆功能，从而可实现&lt;strong&gt;时间依赖性&lt;/strong&gt;的数据处理，比较适用于处理序列数据（如时间序列、文本、语音等）。&lt;br&gt;通俗一点就像是人在读一句话：&lt;/p&gt;
+    <summary type="html">&lt;h2 id=&quot;1-循环神经网络-RNN&quot;&gt;&lt;a href=&quot;#1-循环神经网络-RNN&quot; class=&quot;headerlink&quot; title=&quot;1.循环神经网络(RNN)&quot;&gt;&lt;/a&gt;1.循环神经网络(RNN)&lt;/h2&gt;&lt;p&gt;环神经网络（&lt;strong&gt;Recurrent Neural Network, RNN&lt;/strong&gt;）也叫递归神经网络，是专门处理&lt;strong&gt;序列数据&lt;/strong&gt;的神经网络架构，其核心思想是通过&lt;strong&gt;循环连接&lt;/strong&gt;使网络具备“记忆”能力，从而构建序列中时序之间的依赖关系。而处理具有&lt;strong&gt;时序或顺序关系&lt;/strong&gt;的数据（如语言、语音、基因序列等）的核心挑战是&lt;strong&gt;理解序列中的上下文依赖关系&lt;/strong&gt;。&lt;br&gt;RNN有&lt;strong&gt;隐藏状态（hidden state）&lt;/strong&gt;，可以保留和传递之前时刻的信息，也就是有记忆功能，从而可实现有&lt;strong&gt;上下文依赖性&lt;/strong&gt;的数据处理：&lt;br&gt;通俗一点就像是人在读一句话：&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;读到 “我” → 记住&lt;/li&gt;
 &lt;li&gt;读到 “今天” → 结合前面的信息&lt;/li&gt;
