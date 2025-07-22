@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-07-14T10:01:42.901Z</updated>
+  <updated>2025-07-22T03:28:06.692Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -17,11 +17,32 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>强化学习：试错、策略与长期奖励</title>
+    <title>强化学习 — PPO策略优化算法</title>
+    <link href="https://keychankc.github.io/2025/07/22/025-reinforcement-learning-ppo/"/>
+    <id>https://keychankc.github.io/2025/07/22/025-reinforcement-learning-ppo/</id>
+    <published>2025-07-22T03:40:12.000Z</published>
+    <updated>2025-07-22T03:28:06.692Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-PPO-算法概述&quot;&gt;&lt;a href=&quot;#1-PPO-算法概述&quot; class=&quot;headerlink&quot; title=&quot;1.PPO 算法概述&quot;&gt;&lt;/a&gt;1.PPO 算法概述&lt;/h2&gt;&lt;h3 id=&quot;1-PPO-的提出背景&quot;&gt;&lt;a href=&quot;#1-PPO-的提出背景&quot; class=&quot;headerlink&quot; title=&quot;1.PPO 的提出背景&quot;&gt;&lt;/a&gt;1.PPO 的提出背景&lt;/h3&gt;&lt;p&gt;我们还是以智能体如何控制飞船落地的小游戏为例，智能体的目标是通过一系列操作（如向左移动或向右移动）实现平稳着陆。在训练初期，智能体并不知道应该如何操作，它需要通过反复的试探操作，从环境中不断获得反馈并调整策略，最终掌握一套“高奖励”操作方式。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="强化学习" scheme="https://keychankc.github.io/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="策略优化" scheme="https://keychankc.github.io/tags/%E7%AD%96%E7%95%A5%E4%BC%98%E5%8C%96/"/>
+    
+    <category term="PPO" scheme="https://keychankc.github.io/tags/PPO/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>强化学习 — 试错、策略与长期奖励</title>
     <link href="https://keychankc.github.io/2025/07/14/024-reinforcement-learning-start/"/>
     <id>https://keychankc.github.io/2025/07/14/024-reinforcement-learning-start/</id>
     <published>2025-07-14T09:40:12.000Z</published>
-    <updated>2025-07-14T10:01:42.901Z</updated>
+    <updated>2025-07-22T03:16:48.345Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-强化学习：从试错中学习策略&quot;&gt;&lt;a href=&quot;#1-强化学习：从试错中学习策略&quot; class=&quot;headerlink&quot; title=&quot;1.强化学习：从试错中学习策略&quot;&gt;&lt;/a&gt;1.强化学习：从试错中学习策略&lt;/h2&gt;&lt;p&gt;我们先从一个轻松的生活片段切入：某天夜里，小明肚子咕咕叫，他想去找点吃的，但房间漆黑一片，他不敢开灯，只能凭借记忆和感知，一步一步摸索前进，一开始他撞到了桌角，又不小心踩到了猫，猫的尖叫声还吓了他一跳（负反馈），他又调整方向，继续摸索。他记住了这个方向有桌子不能走，那个方向可能有猫，不断的修正自己的路线，最终摸到了冰箱，找到了食物（正反馈）。这就是强化学习（Reinforcement Learning, RL）核心思想的具象呈现：&lt;/p&gt;
@@ -424,9 +445,9 @@
     
     <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
     
-    <category term="OpenCV" scheme="https://keychankc.github.io/tags/OpenCV/"/>
-    
     <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
+    
+    <category term="OpenCV" scheme="https://keychankc.github.io/tags/OpenCV/"/>
     
     <category term="目标追踪" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA/"/>
     
@@ -467,9 +488,9 @@
     
     <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
     
-    <category term="OpenCV" scheme="https://keychankc.github.io/tags/OpenCV/"/>
-    
     <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
+    
+    <category term="OpenCV" scheme="https://keychankc.github.io/tags/OpenCV/"/>
     
     <category term="目标追踪" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA/"/>
     
@@ -508,11 +529,11 @@
     
     <category term="图像识别" scheme="https://keychankc.github.io/tags/%E5%9B%BE%E5%83%8F%E8%AF%86%E5%88%AB/"/>
     
+    <category term="OpenCV" scheme="https://keychankc.github.io/tags/OpenCV/"/>
+    
     <category term="图像分割" scheme="https://keychankc.github.io/tags/%E5%9B%BE%E5%83%8F%E5%88%86%E5%89%B2/"/>
     
     <category term="keras" scheme="https://keychankc.github.io/tags/keras/"/>
-    
-    <category term="OpenCV" scheme="https://keychankc.github.io/tags/OpenCV/"/>
     
   </entry>
   
@@ -564,48 +585,6 @@
     <category term="图像识别" scheme="https://keychankc.github.io/tags/%E5%9B%BE%E5%83%8F%E8%AF%86%E5%88%AB/"/>
     
     <category term="OpenCV" scheme="https://keychankc.github.io/tags/OpenCV/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>OpenCV之信用卡卡号识别</title>
-    <link href="https://keychankc.github.io/2025/03/18/006-opencv-credit-card-ocr/"/>
-    <id>https://keychankc.github.io/2025/03/18/006-opencv-credit-card-ocr/</id>
-    <published>2025-03-18T08:23:32.000Z</published>
-    <updated>2025-07-14T02:11:53.514Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-OpenCV概述&quot;&gt;&lt;a href=&quot;#1-OpenCV概述&quot; class=&quot;headerlink&quot; title=&quot;1.OpenCV概述&quot;&gt;&lt;/a&gt;1.OpenCV概述&lt;/h2&gt;&lt;p&gt;OpenCV（Open Source Computer Vision Library）是一个开源的计算机视觉和图像处理库，主要用于 &lt;strong&gt;图像处理、视频分析、机器视觉、深度学习&lt;/strong&gt; 等领域。它最初由 Intel 研发，现在由 &lt;strong&gt;OpenCV 组织&lt;/strong&gt; 维护，目前支持 C++、Python、Java 等多种语言。擅长领域有：&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;图像处理&lt;ul&gt;
-&lt;li&gt;去噪：去掉照片上的噪点，让图像更清晰&lt;/li&gt;
-&lt;li&gt;平滑 &amp;amp; 锐化：模糊处理（比如美颜相机的磨皮）、增强边缘（让模糊的字变得更清楚）&lt;/li&gt;
-&lt;li&gt;颜色调整：可以把彩色图转换成黑白图（灰度化），或者增强对比度&lt;/li&gt;
-&lt;li&gt;图像分割：把图片中的不同区域分开，比如把人的头像从背景中抠出来（绿幕抠像）&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;物体检测与识别&lt;ul&gt;
-&lt;li&gt;人脸检测：找到照片或视频里的人脸，并画出边框（Haar 级联分类器、DNN）&lt;/li&gt;
-&lt;li&gt;车牌识别：用于交通监控，自动读取车牌号码&lt;/li&gt;
-&lt;li&gt;目标检测：找出图片中的特定物体，比如识别商店里的商品、扫描条形码等&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ol&gt;</summary>
-    
-    
-    
-    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
-    
-    
-    <category term="图像处理" scheme="https://keychankc.github.io/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/"/>
-    
-    <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
-    
-    <category term="图像识别" scheme="https://keychankc.github.io/tags/%E5%9B%BE%E5%83%8F%E8%AF%86%E5%88%AB/"/>
-    
-    <category term="OpenCV" scheme="https://keychankc.github.io/tags/OpenCV/"/>
-    
-    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
     
   </entry>
   
