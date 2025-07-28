@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-07-22T03:28:06.692Z</updated>
+  <updated>2025-07-28T09:23:35.197Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="https://keychankc.github.io/2025/07/22/025-reinforcement-learning-ppo/"/>
     <id>https://keychankc.github.io/2025/07/22/025-reinforcement-learning-ppo/</id>
     <published>2025-07-22T03:40:12.000Z</published>
-    <updated>2025-07-22T03:28:06.692Z</updated>
+    <updated>2025-07-28T09:23:35.197Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-PPO-算法概述&quot;&gt;&lt;a href=&quot;#1-PPO-算法概述&quot; class=&quot;headerlink&quot; title=&quot;1.PPO 算法概述&quot;&gt;&lt;/a&gt;1.PPO 算法概述&lt;/h2&gt;&lt;h3 id=&quot;1-PPO-的提出背景&quot;&gt;&lt;a href=&quot;#1-PPO-的提出背景&quot; class=&quot;headerlink&quot; title=&quot;1.PPO 的提出背景&quot;&gt;&lt;/a&gt;1.PPO 的提出背景&lt;/h3&gt;&lt;p&gt;我们还是以智能体如何控制飞船落地的小游戏为例，智能体的目标是通过一系列操作（如向左移动或向右移动）实现平稳着陆。在训练初期，智能体并不知道应该如何操作，它需要通过反复的试探操作，从环境中不断获得反馈并调整策略，最终掌握一套“高奖励”操作方式。&lt;/p&gt;</summary>
@@ -149,9 +149,9 @@
     
     <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
     
-    <category term="目标分割" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/"/>
-    
     <category term="DeepLab" scheme="https://keychankc.github.io/tags/DeepLab/"/>
+    
+    <category term="目标分割" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/"/>
     
   </entry>
   
@@ -177,9 +177,9 @@
     
     <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
     
-    <category term="目标分割" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/"/>
-    
     <category term="DeepLab" scheme="https://keychankc.github.io/tags/DeepLab/"/>
+    
+    <category term="目标分割" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/"/>
     
   </entry>
   
