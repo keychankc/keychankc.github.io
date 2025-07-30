@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-07-28T09:23:35.197Z</updated>
+  <updated>2025-07-30T07:21:17.773Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -15,6 +15,35 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>PPO算法在连续与离散动作空间中的案例实践</title>
+    <link href="https://keychankc.github.io/2025/07/30/026-rl-ppo-discrete-continuous-case/"/>
+    <id>https://keychankc.github.io/2025/07/30/026-rl-ppo-discrete-continuous-case/</id>
+    <published>2025-07-30T03:40:12.000Z</published>
+    <updated>2025-07-30T07:21:17.773Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-PPO算法与动作空间类型概览&quot;&gt;&lt;a href=&quot;#1-PPO算法与动作空间类型概览&quot; class=&quot;headerlink&quot; title=&quot;1.PPO算法与动作空间类型概览&quot;&gt;&lt;/a&gt;1.PPO算法与动作空间类型概览&lt;/h2&gt;&lt;h3 id=&quot;1-PPO（Proximal-Policy-Optimization）简介&quot;&gt;&lt;a href=&quot;#1-PPO（Proximal-Policy-Optimization）简介&quot; class=&quot;headerlink&quot; title=&quot;1.PPO（Proximal Policy Optimization）简介&quot;&gt;&lt;/a&gt;1.PPO（Proximal Policy Optimization）简介&lt;/h3&gt;&lt;p&gt;PPO（近端策略优化）是OpenAI于2017年提出的强化学习算法，通过创新的”剪切目标函数”设计，在保证训练稳定性的同时实现高效策略优化。其核心思想是&lt;strong&gt;通过约束策略更新幅度，防止策略突变导致的性能崩溃，解决了传统策略梯度方法（如TRPO）的工程实现复杂性问题&lt;/strong&gt;。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="强化学习" scheme="https://keychankc.github.io/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/"/>
+    
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="PyTorch" scheme="https://keychankc.github.io/tags/PyTorch/"/>
+    
+    <category term="策略优化" scheme="https://keychankc.github.io/tags/%E7%AD%96%E7%95%A5%E4%BC%98%E5%8C%96/"/>
+    
+    <category term="PPO" scheme="https://keychankc.github.io/tags/PPO/"/>
+    
+    <category term="离散动作" scheme="https://keychankc.github.io/tags/%E7%A6%BB%E6%95%A3%E5%8A%A8%E4%BD%9C/"/>
+    
+    <category term="连续动作" scheme="https://keychankc.github.io/tags/%E8%BF%9E%E7%BB%AD%E5%8A%A8%E4%BD%9C/"/>
+    
+  </entry>
   
   <entry>
     <title>强化学习 — PPO策略优化算法</title>
@@ -149,9 +178,9 @@
     
     <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
     
-    <category term="DeepLab" scheme="https://keychankc.github.io/tags/DeepLab/"/>
-    
     <category term="目标分割" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/"/>
+    
+    <category term="DeepLab" scheme="https://keychankc.github.io/tags/DeepLab/"/>
     
   </entry>
   
@@ -177,9 +206,9 @@
     
     <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
     
-    <category term="DeepLab" scheme="https://keychankc.github.io/tags/DeepLab/"/>
-    
     <category term="目标分割" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/"/>
+    
+    <category term="DeepLab" scheme="https://keychankc.github.io/tags/DeepLab/"/>
     
   </entry>
   
@@ -534,57 +563,6 @@
     <category term="图像分割" scheme="https://keychankc.github.io/tags/%E5%9B%BE%E5%83%8F%E5%88%86%E5%89%B2/"/>
     
     <category term="keras" scheme="https://keychankc.github.io/tags/keras/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>OpenCV之全景图像拼接</title>
-    <link href="https://keychankc.github.io/2025/03/24/007-opencv-image-stitching/"/>
-    <id>https://keychankc.github.io/2025/03/24/007-opencv-image-stitching/</id>
-    <published>2025-03-24T02:29:12.000Z</published>
-    <updated>2025-05-30T06:43:42.153Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-实现流程&quot;&gt;&lt;a href=&quot;#1-实现流程&quot; class=&quot;headerlink&quot; title=&quot;1.实现流程&quot;&gt;&lt;/a&gt;1.实现流程&lt;/h2&gt;&lt;p&gt;通过提取图像中的特征点并匹配这些特征点来找到图像间的对应关系，再通过透视变换（Homography）将两幅图像拼接成一幅完整的图像，大致流程：&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;特征点检测与描述&lt;ul&gt;
-&lt;li&gt;使用 &lt;strong&gt;SIFT&lt;/strong&gt; 算法检测两张图像中的关键点，并计算特征描述子（局部特征向量）&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;特征匹配&lt;ul&gt;
-&lt;li&gt;采用 &lt;strong&gt;KNN 近邻匹配&lt;/strong&gt;（k&amp;#x3D;2）找到两张图像间的最佳匹配点对&lt;/li&gt;
-&lt;li&gt;使用 &lt;strong&gt;比值测试（ratio test）&lt;/strong&gt; 过滤掉低质量的匹配点，减少误匹配&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;单应性矩阵计算&lt;ul&gt;
-&lt;li&gt;通过 &lt;strong&gt;RANSAC 算法&lt;/strong&gt; 计算 &lt;strong&gt;单应性矩阵 (Homography, H)&lt;/strong&gt;，剔除误匹配点&lt;/li&gt;
-&lt;li&gt;单应性矩阵用于 &lt;strong&gt;透视变换&lt;/strong&gt;，使一张图像对齐另一张图像&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;图像变换与拼接&lt;ul&gt;
-&lt;li&gt;利用 cv2.warpPerspective() &lt;strong&gt;对图像A进行透视变换&lt;/strong&gt;，使其尽可能与图像B对齐&lt;/li&gt;
-&lt;li&gt;将&lt;strong&gt;图像B放入最终结果中&lt;/strong&gt;，合成拼接图像&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;可视化匹配结果&lt;ul&gt;
-&lt;li&gt;在两张图像上绘制匹配点连线，帮助观察特征匹配的效果&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2 id=&quot;2-相关算法&quot;&gt;&lt;a href=&quot;#2-相关算法&quot; class=&quot;headerlink&quot; title=&quot;2.相关算法&quot;&gt;&lt;/a&gt;2.相关算法&lt;/h2&gt;&lt;h3 id=&quot;1-SIFT（尺度不变特征变换）&quot;&gt;&lt;a href=&quot;#1-SIFT（尺度不变特征变换）&quot; class=&quot;headerlink&quot; title=&quot;1.SIFT（尺度不变特征变换）&quot;&gt;&lt;/a&gt;1.SIFT（尺度不变特征变换）&lt;/h3&gt;&lt;p&gt;SIFT (&lt;strong&gt;Scale-Invariant Feature Transform&lt;/strong&gt;) 是一种 &lt;strong&gt;关键点检测和描述算法&lt;/strong&gt;，能够在 &lt;strong&gt;不同尺度、旋转、光照变化&lt;/strong&gt; 下仍然保持稳定的特征匹配。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
-    
-    
-    <category term="图像处理" scheme="https://keychankc.github.io/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/"/>
-    
-    <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
-    
-    <category term="图像识别" scheme="https://keychankc.github.io/tags/%E5%9B%BE%E5%83%8F%E8%AF%86%E5%88%AB/"/>
-    
-    <category term="OpenCV" scheme="https://keychankc.github.io/tags/OpenCV/"/>
     
   </entry>
   
