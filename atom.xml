@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-07-30T07:21:17.773Z</updated>
+  <updated>2025-08-06T01:38:44.495Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="https://keychankc.github.io/2025/07/30/026-rl-ppo-discrete-continuous-case/"/>
     <id>https://keychankc.github.io/2025/07/30/026-rl-ppo-discrete-continuous-case/</id>
     <published>2025-07-30T03:40:12.000Z</published>
-    <updated>2025-07-30T07:21:17.773Z</updated>
+    <updated>2025-08-06T01:38:44.495Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-PPO算法与动作空间类型概览&quot;&gt;&lt;a href=&quot;#1-PPO算法与动作空间类型概览&quot; class=&quot;headerlink&quot; title=&quot;1.PPO算法与动作空间类型概览&quot;&gt;&lt;/a&gt;1.PPO算法与动作空间类型概览&lt;/h2&gt;&lt;h3 id=&quot;1-PPO（Proximal-Policy-Optimization）简介&quot;&gt;&lt;a href=&quot;#1-PPO（Proximal-Policy-Optimization）简介&quot; class=&quot;headerlink&quot; title=&quot;1.PPO（Proximal Policy Optimization）简介&quot;&gt;&lt;/a&gt;1.PPO（Proximal Policy Optimization）简介&lt;/h3&gt;&lt;p&gt;PPO（近端策略优化）是OpenAI于2017年提出的强化学习算法，通过创新的”剪切目标函数”设计，在保证训练稳定性的同时实现高效策略优化。其核心思想是&lt;strong&gt;通过约束策略更新幅度，防止策略突变导致的性能崩溃，解决了传统策略梯度方法（如TRPO）的工程实现复杂性问题&lt;/strong&gt;。&lt;/p&gt;</summary>
