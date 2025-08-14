@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-08-06T01:38:44.495Z</updated>
+  <updated>2025-08-14T07:43:24.851Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -15,6 +15,34 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>DQN(Deep Q-Network)系列算法解析与实践</title>
+    <link href="https://keychankc.github.io/2025/08/14/027-rl-dqn-case/"/>
+    <id>https://keychankc.github.io/2025/08/14/027-rl-dqn-case/</id>
+    <published>2025-08-14T05:40:12.000Z</published>
+    <updated>2025-08-14T07:43:24.851Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-任务与背景介绍&quot;&gt;&lt;a href=&quot;#1-任务与背景介绍&quot; class=&quot;headerlink&quot; title=&quot;1. 任务与背景介绍&quot;&gt;&lt;/a&gt;1. 任务与背景介绍&lt;/h2&gt;&lt;p&gt;在 Gym&amp;#x2F;Gymnasium 的 &lt;strong&gt;MountainCar-v0&lt;/strong&gt; 环境中，有这样一个场景：一辆小车被困在两个山坡之间，目标是到达右侧山坡顶端的红旗位置。&lt;/p&gt;
+&lt;p&gt;乍一看，这似乎只需要踩油门往右冲就行，但现实并非如此，小车的发动机动力不足，单次加速无法直接登顶，它会在半途滑落回谷底。正确的策略是先向左加速爬上左坡，然后顺势向右冲下去，再反复摆动、积累动能，最终才能冲上右侧山顶。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="强化学习" scheme="https://keychankc.github.io/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/"/>
+    
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="神经网络" scheme="https://keychankc.github.io/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
+    
+    <category term="PyTorch" scheme="https://keychankc.github.io/tags/PyTorch/"/>
+    
+    <category term="目标网络" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E7%BD%91%E7%BB%9C/"/>
+    
+    <category term="经验回放" scheme="https://keychankc.github.io/tags/%E7%BB%8F%E9%AA%8C%E5%9B%9E%E6%94%BE/"/>
+    
+  </entry>
   
   <entry>
     <title>PPO算法在连续与离散动作空间中的案例实践</title>
@@ -524,45 +552,6 @@
     <category term="目标追踪" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA/"/>
     
     <category term="dlib" scheme="https://keychankc.github.io/tags/dlib/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>OpenCV之停车场车位识别</title>
-    <link href="https://keychankc.github.io/2025/03/31/008-opencv-park/"/>
-    <id>https://keychankc.github.io/2025/03/31/008-opencv-park/</id>
-    <published>2025-03-31T02:29:12.000Z</published>
-    <updated>2025-05-30T06:44:07.066Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-实现流程&quot;&gt;&lt;a href=&quot;#1-实现流程&quot; class=&quot;headerlink&quot; title=&quot;1.实现流程&quot;&gt;&lt;/a&gt;1.实现流程&lt;/h2&gt;&lt;ol&gt;
-&lt;li&gt;训练基于VGG16的迁移学习图像分类模型，使其能够分类每个车位有车或者没车&lt;/li&gt;
-&lt;li&gt;通过OpenCV处理停车场图片，分割成单个车位图像数据&lt;/li&gt;
-&lt;li&gt;基于训练模型识别并绘制出空车位&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2 id=&quot;2-模型训练&quot;&gt;&lt;a href=&quot;#2-模型训练&quot; class=&quot;headerlink&quot; title=&quot;2.模型训练&quot;&gt;&lt;/a&gt;2.模型训练&lt;/h2&gt;&lt;h3 id=&quot;1-VGG16&quot;&gt;&lt;a href=&quot;#1-VGG16&quot; class=&quot;headerlink&quot; title=&quot;1.VGG16&quot;&gt;&lt;/a&gt;1.VGG16&lt;/h3&gt;&lt;p&gt;&lt;strong&gt;VGG16&lt;/strong&gt; 是由牛津大学 Visual Geometry Group（VGG）在 2014 年提出的经典卷积神经网络（CNN）模型，主要用于图像分类任务。其核心特点是：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;​&lt;strong&gt;结构简单但深度大&lt;/strong&gt;：由 ​&lt;strong&gt;16 层&lt;/strong&gt;​（13 个卷积层 + 3 个全连接层）组成，使用 ​&lt;strong&gt;3x3 小卷积核堆叠&lt;/strong&gt;​（通过多层小卷积核模拟大感受野）。&lt;/li&gt;
-&lt;li&gt;​&lt;strong&gt;ImageNet 竞赛的里程碑&lt;/strong&gt;：在 2014 年 ImageNet 大规模视觉识别挑战赛（ILSVRC）中取得第二名（Top-5 错误率 7.3%），证明了深度网络对视觉任务的重要性。&lt;/li&gt;
-&lt;li&gt;​&lt;strong&gt;标准化设计&lt;/strong&gt;：所有卷积层使用相同配置（3x3 卷积核，步长 1，填充 same），全连接层统一为 4096 个神经元。&lt;/li&gt;
-&lt;/ul&gt;</summary>
-    
-    
-    
-    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
-    
-    
-    <category term="图像处理" scheme="https://keychankc.github.io/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/"/>
-    
-    <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
-    
-    <category term="图像识别" scheme="https://keychankc.github.io/tags/%E5%9B%BE%E5%83%8F%E8%AF%86%E5%88%AB/"/>
-    
-    <category term="OpenCV" scheme="https://keychankc.github.io/tags/OpenCV/"/>
-    
-    <category term="图像分割" scheme="https://keychankc.github.io/tags/%E5%9B%BE%E5%83%8F%E5%88%86%E5%89%B2/"/>
-    
-    <category term="keras" scheme="https://keychankc.github.io/tags/keras/"/>
     
   </entry>
   
