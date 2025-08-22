@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-08-15T06:00:24.642Z</updated>
+  <updated>2025-08-22T16:13:21.781Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -15,6 +15,35 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>A3C 算法原理与马里奥实践（上）</title>
+    <link href="https://keychankc.github.io/2025/08/22/028-rl-ac-a3c-mario-case-1/"/>
+    <id>https://keychankc.github.io/2025/08/22/028-rl-ac-a3c-mario-case-1/</id>
+    <published>2025-08-22T05:40:12.000Z</published>
+    <updated>2025-08-22T16:13:21.781Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;h2 id=&quot;1-AC-算法&quot;&gt;&lt;a href=&quot;#1-AC-算法&quot; class=&quot;headerlink&quot; title=&quot;1. AC 算法&quot;&gt;&lt;/a&gt;1. AC 算法&lt;/h2&gt;&lt;h3 id=&quot;1-1-策略梯度&quot;&gt;&lt;a href=&quot;#1-1-策略梯度&quot;</summary>
+        
+      
+    
+    
+    
+    <category term="强化学习" scheme="https://keychankc.github.io/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/"/>
+    
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="神经网络" scheme="https://keychankc.github.io/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
+    
+    <category term="PyTorch" scheme="https://keychankc.github.io/tags/PyTorch/"/>
+    
+  </entry>
   
   <entry>
     <title>DQN(Deep Q-Network)系列算法解析与实践</title>
@@ -502,56 +531,15 @@
     
     <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
     
-    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
-    
     <category term="OpenCV" scheme="https://keychankc.github.io/tags/OpenCV/"/>
+    
+    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
     
     <category term="目标追踪" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA/"/>
     
     <category term="dlib" scheme="https://keychankc.github.io/tags/dlib/"/>
     
     <category term="人脸检测" scheme="https://keychankc.github.io/tags/%E4%BA%BA%E8%84%B8%E6%A3%80%E6%B5%8B/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>OpenCV之目标追踪</title>
-    <link href="https://keychankc.github.io/2025/04/08/009-opencv-tracking/"/>
-    <id>https://keychankc.github.io/2025/04/08/009-opencv-tracking/</id>
-    <published>2025-04-08T14:29:12.000Z</published>
-    <updated>2025-05-30T06:44:12.927Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-目标追踪&quot;&gt;&lt;a href=&quot;#1-目标追踪&quot; class=&quot;headerlink&quot; title=&quot;1.目标追踪&quot;&gt;&lt;/a&gt;1.目标追踪&lt;/h2&gt;&lt;p&gt;目标追踪（Object Tracking）是指在视频序列中持续追踪目标的位置，这是计算机视觉中的核心难点，其核心挑战包括遮挡、光照变化和快速运动。在视频分析、自动驾驶、智能监控、人机交互等领域中应用广泛。&lt;/p&gt;
-&lt;h3 id=&quot;1-按任务类型分类&quot;&gt;&lt;a href=&quot;#1-按任务类型分类&quot; class=&quot;headerlink&quot; title=&quot;1.按任务类型分类&quot;&gt;&lt;/a&gt;1.按任务类型分类&lt;/h3&gt;&lt;ol&gt;
-&lt;li&gt;单目标追踪（SOT, Single Object Tracking）：只追踪一个初始帧中给定的目标，典型方法如：&lt;ol&gt;
-&lt;li&gt;Siamese-based Tracking（孪生网络）&lt;/li&gt;
-&lt;li&gt;Transformer-based Tracking&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/li&gt;
-&lt;li&gt;多目标追踪（MOT, Multi-Object Tracking）：同时追踪多个目标，通常包括目标检测与数据关联两个阶段，典型方法如：&lt;ol&gt;
-&lt;li&gt;基于检测的跟踪（Tracking-by-Detection）&lt;/li&gt;
-&lt;li&gt;端到端方法&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/li&gt;
-&lt;li&gt;多摄像头追踪（MTMC, Multi-Camera Multi-Object Tracking）：跨视角数据关联，更复杂的特征匹配，常结合ReID、时空建模、图神经网络等&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2 id=&quot;2-传统目标追踪算法&quot;&gt;&lt;a href=&quot;#2-传统目标追踪算法&quot; class=&quot;headerlink&quot; title=&quot;2.传统目标追踪算法&quot;&gt;&lt;/a&gt;2.传统目标追踪算法&lt;/h2&gt;&lt;p&gt;除了基于深度学习的追踪算法，还有依赖传统的机器学习的目标追踪算法，它们适用于某些轻量级、实时或资源受限的场景（如嵌入式设备）。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
-    
-    
-    <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
-    
-    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
-    
-    <category term="OpenCV" scheme="https://keychankc.github.io/tags/OpenCV/"/>
-    
-    <category term="目标追踪" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA/"/>
-    
-    <category term="dlib" scheme="https://keychankc.github.io/tags/dlib/"/>
     
   </entry>
   
