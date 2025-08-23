@@ -221,7 +221,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/08/22/028-rl-ac-a3c-mario-case-1/" class="post-title-link" itemprop="url">A3C 算法原理与马里奥实践（上）</a>
+          <a href="/2025/08/22/028-rl-ac-a3c-mario-case-1/" class="post-title-link" itemprop="url">A3C 算法原理与超级马里奥实践（上）</a>
         </h2>
 
         <div class="post-meta-container">
@@ -239,7 +239,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-08-23 00:13:21" itemprop="dateModified" datetime="2025-08-23T00:13:21+08:00">2025-08-23</time>
+      <time title="修改时间：2025-08-23 10:05:56" itemprop="dateModified" datetime="2025-08-23T10:05:56+08:00">2025-08-23</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -391,8 +391,12 @@
 </ol>
 <p>A3C 就像多个小队同时在不同战场打仗，各自收集战况（数据），把战况汇报给总部（全局网络）更新策略。Critic 提供参考评分（优势函数），n-step 回报让评分更稳，熵正则保证队伍不太偏激。</p>
 <h2 id="4-A3C-整体架构"><a href="#4-A3C-整体架构" class="headerlink" title="4. A3C 整体架构"></a>4. A3C 整体架构</h2><h3 id="4-1-与-AC-的关系"><a href="#4-1-与-AC-的关系" class="headerlink" title="4.1 与 AC 的关系"></a>4.1 与 AC 的关系</h3><ul>
-<li><strong>AC（Actor-Critic）</strong>：单线程版本，Actor 负责策略 $π$，Critic 负责状态价值 $V(s)$</li>
-<li><strong>A3C（Asynchronous AC）</strong>：在 AC 的基础上引入 <strong>多线程异步更新</strong>，也就是同时启动多个 <strong>本地 Actor-Critic</strong> 线程，每个线程在自己环境里采集数据，然后异步更新全局网络。</li>
+<li><strong>AC（Actor-Critic）</strong>：单线程版本，Actor 负责策略 $π$，Critic 负责状态价值 $V(s)$。</li>
+<li><strong>A3C（Asynchronous Advantage Actor-Critic）</strong>：在 AC 的基础上有两个关键增强：<ol>
+<li><strong>Asynchronous（异步）</strong>：引入多线程异步更新，同时启动多个 <strong>本地 Actor-Critic</strong> 线程，每个线程在自己环境里采集数据，然后把梯度异步更新到全局网络；</li>
+<li><strong>Advantage（优势函数）</strong>：不用直接学习 $Q(s,a)$，而是通过 $A(s,a) &#x3D; Q(s,a) - V(s)$ 来衡量动作相对好坏，从而降低方差、提升训练稳定性。</li>
+</ol>
+</li>
 </ul>
 <p>A3C &#x3D; “多人同时玩游戏，每个人自己练，同时把经验汇报给总部”，而 AC 只能一个人玩。</p>
 <h3 id="4-2-全局网络-vs-本地网络"><a href="#4-2-全局网络-vs-本地网络" class="headerlink" title="4.2 全局网络 vs 本地网络"></a>4.2 全局网络 vs 本地网络</h3><p>A3C 有两个层次的网络：</p>
