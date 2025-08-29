@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-08-29T10:20:30.343Z</updated>
+  <updated>2025-08-29T15:31:46.062Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="https://keychankc.github.io/2025/08/29/029-rl-ac-a3c-mario-case-2/"/>
     <id>https://keychankc.github.io/2025/08/29/029-rl-ac-a3c-mario-case-2/</id>
     <published>2025-08-29T05:40:12.000Z</published>
-    <updated>2025-08-29T10:20:30.343Z</updated>
+    <updated>2025-08-29T15:31:46.062Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-项目背景与目标&quot;&gt;&lt;a href=&quot;#1-项目背景与目标&quot; class=&quot;headerlink&quot; title=&quot;1. 项目背景与目标&quot;&gt;&lt;/a&gt;1. 项目背景与目标&lt;/h2&gt;&lt;h3 id=&quot;1-1-为什么选择-A3C-来玩超级马里奥？&quot;&gt;&lt;a href=&quot;#1-1-为什么选择-A3C-来玩超级马里奥？&quot; class=&quot;headerlink&quot; title=&quot;1.1 为什么选择 A3C 来玩超级马里奥？&quot;&gt;&lt;/a&gt;1.1 为什么选择 A3C 来玩超级马里奥？&lt;/h3&gt;&lt;p&gt;超级马里奥是一个经典的横版过关游戏，玩法是简单，但是环境比较复杂：玩家要面对敌人、陷阱、跳跃平台，还要在有限时间内快速决策。&lt;br&gt;所以在强化学习中，它被认为是一个很好的 &lt;strong&gt;实验case&lt;/strong&gt;：&lt;/p&gt;
@@ -168,9 +168,9 @@
     <category term="强化学习" scheme="https://keychankc.github.io/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/"/>
     
     
-    <category term="策略梯度" scheme="https://keychankc.github.io/tags/%E7%AD%96%E7%95%A5%E6%A2%AF%E5%BA%A6/"/>
-    
     <category term="非马尔可夫环境" scheme="https://keychankc.github.io/tags/%E9%9D%9E%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E7%8E%AF%E5%A2%83/"/>
+    
+    <category term="策略梯度" scheme="https://keychankc.github.io/tags/%E7%AD%96%E7%95%A5%E6%A2%AF%E5%BA%A6/"/>
     
   </entry>
   
