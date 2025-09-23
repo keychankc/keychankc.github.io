@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"keychankc.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="1.实现流程通过提取图像中的特征点并匹配这些特征点来找到图像间的对应关系，再通过透视变换（Homography）将两幅图像拼接成一幅完整的图像，大致流程：  特征点检测与描述 使用 SIFT 算法检测两张图像中的关键点，并计算特征描述子（局部特征向量）   特征匹配 采用 KNN 近邻匹配（k&#x3D;2）找到两张图像间的最佳匹配点对 使用 比值测试（ratio test） 过滤掉低质量的匹配点">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OpenCV之全景图像拼接">
+<meta property="og:url" content="https://keychankc.github.io/2025/03/24/007-opencv-image-stitching/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s blog">
+<meta property="og:description" content="1.实现流程通过提取图像中的特征点并匹配这些特征点来找到图像间的对应关系，再通过透视变换（Homography）将两幅图像拼接成一幅完整的图像，大致流程：  特征点检测与描述 使用 SIFT 算法检测两张图像中的关键点，并计算特征描述子（局部特征向量）   特征匹配 采用 KNN 近邻匹配（k&#x3D;2）找到两张图像间的最佳匹配点对 使用 比值测试（ratio test） 过滤掉低质量的匹配点">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-38-47.jpg">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-32-12.jpg">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-31-22.jpg">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-31-40.jpg">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-31-56.jpg">
+<meta property="article:published_time" content="2025-03-24T02:29:12.000Z">
+<meta property="article:modified_time" content="2025-09-21T12:04:48.537Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="图像处理">
+<meta property="article:tag" content="计算机视觉">
+<meta property="article:tag" content="图像识别">
+<meta property="article:tag" content="OpenCV">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-38-47.jpg">
+
+
+<link rel="canonical" href="https://keychankc.github.io/2025/03/24/007-opencv-image-stitching/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/2025/03/24/007-opencv-image-stitching/","path":"2025/03/24/007-opencv-image-stitching/","title":"OpenCV之全景图像拼接"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>OpenCV之全景图像拼接 | KeyChan's blog</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.mengyajia.com">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's blog" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E5%AE%9E%E7%8E%B0%E6%B5%81%E7%A8%8B"><span class="nav-text">1.实现流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E7%9B%B8%E5%85%B3%E7%AE%97%E6%B3%95"><span class="nav-text">2.相关算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-SIFT%EF%BC%88%E5%B0%BA%E5%BA%A6%E4%B8%8D%E5%8F%98%E7%89%B9%E5%BE%81%E5%8F%98%E6%8D%A2%EF%BC%89"><span class="nav-text">1.SIFT（尺度不变特征变换）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-KNN-%E8%BF%91%E9%82%BB%E5%8C%B9%E9%85%8D"><span class="nav-text">2.KNN 近邻匹配</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-RANSAC%EF%BC%88%E9%9A%8F%E6%9C%BA%E6%8A%BD%E6%A0%B7%E4%B8%80%E8%87%B4%E6%80%A7%E7%AE%97%E6%B3%95%EF%BC%89"><span class="nav-text">3.RANSAC（随机抽样一致性算法）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E9%80%8F%E8%A7%86%E5%8F%98%E6%8D%A2%EF%BC%88Homography%EF%BC%89"><span class="nav-text">4.透视变换（Homography）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E5%AE%9E%E7%8E%B0%E8%BF%87%E7%A8%8B"><span class="nav-text">3.实现过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E8%8E%B7%E5%8F%96%E7%89%B9%E5%BE%81%E7%82%B9"><span class="nav-text">1.获取特征点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%8C%B9%E9%85%8D%E7%89%B9%E5%BE%81%E7%82%B9"><span class="nav-text">2.匹配特征点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%9B%BE%E5%83%8F%E6%8B%BC%E6%8E%A5"><span class="nav-text">3.图像拼接</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E8%B0%83%E7%94%A8"><span class="nav-text">4.调用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E6%80%BB%E7%BB%93"><span class="nav-text">4.总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E5%A4%87%E6%B3%A8"><span class="nav-text">5.备注</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%EF%BC%9A"><span class="nav-text">环境：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B5%84%E6%BA%90%E5%92%8C%E4%BB%A3%E7%A0%81%EF%BC%9A"><span class="nav-text">资源和代码：</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">30</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">39</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/keychankc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://keychankc.github.io/2025/03/24/007-opencv-image-stitching/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's blog">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="OpenCV之全景图像拼接 | KeyChan's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          OpenCV之全景图像拼接
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-24 10:29:12" itemprop="dateCreated datePublished" datetime="2025-03-24T10:29:12+08:00">2025-03-24</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-09-21 20:04:48" itemprop="dateModified" datetime="2025-09-21T20:04:48+08:00">2025-09-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2025/03/24/007-opencv-image-stitching/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2025/03/24/007-opencv-image-stitching/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>2.2k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>8 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="1-实现流程"><a href="#1-实现流程" class="headerlink" title="1.实现流程"></a>1.实现流程</h2><p>通过提取图像中的特征点并匹配这些特征点来找到图像间的对应关系，再通过透视变换（Homography）将两幅图像拼接成一幅完整的图像，大致流程：</p>
+<ol>
+<li>特征点检测与描述<ul>
+<li>使用 <strong>SIFT</strong> 算法检测两张图像中的关键点，并计算特征描述子（局部特征向量）</li>
+</ul>
+</li>
+<li>特征匹配<ul>
+<li>采用 <strong>KNN 近邻匹配</strong>（k&#x3D;2）找到两张图像间的最佳匹配点对</li>
+<li>使用 <strong>比值测试（ratio test）</strong> 过滤掉低质量的匹配点，减少误匹配</li>
+</ul>
+</li>
+<li>单应性矩阵计算<ul>
+<li>通过 <strong>RANSAC 算法</strong> 计算 <strong>单应性矩阵 (Homography, H)</strong>，剔除误匹配点</li>
+<li>单应性矩阵用于 <strong>透视变换</strong>，使一张图像对齐另一张图像</li>
+</ul>
+</li>
+<li>图像变换与拼接<ul>
+<li>利用 cv2.warpPerspective() <strong>对图像A进行透视变换</strong>，使其尽可能与图像B对齐</li>
+<li>将<strong>图像B放入最终结果中</strong>，合成拼接图像</li>
+</ul>
+</li>
+<li>可视化匹配结果<ul>
+<li>在两张图像上绘制匹配点连线，帮助观察特征匹配的效果</li>
+</ul>
+</li>
+</ol>
+<h2 id="2-相关算法"><a href="#2-相关算法" class="headerlink" title="2.相关算法"></a>2.相关算法</h2><h3 id="1-SIFT（尺度不变特征变换）"><a href="#1-SIFT（尺度不变特征变换）" class="headerlink" title="1.SIFT（尺度不变特征变换）"></a>1.SIFT（尺度不变特征变换）</h3><p>SIFT (<strong>Scale-Invariant Feature Transform</strong>) 是一种 <strong>关键点检测和描述算法</strong>，能够在 <strong>不同尺度、旋转、光照变化</strong> 下仍然保持稳定的特征匹配。</p>
+<span id="more"></span>
+<p><strong>主要步骤</strong>：</p>
+<ol>
+<li><strong>尺度空间构造</strong>：<ul>
+<li>采用 <strong>高斯模糊（Gaussian Blur）</strong> 生成不同尺度的图像（高斯金字塔）</li>
+<li>计算 <strong>DoG（Difference of Gaussian, 差分高斯）</strong> 以找到特征点</li>
+</ul>
+</li>
+<li><strong>关键点检测与精细定位</strong>：<ul>
+<li>通过 <strong>极值检测</strong> 在不同尺度下找到潜在特征点</li>
+<li>过滤掉低对比度点和边缘响应点，提高鲁棒性</li>
+</ul>
+</li>
+<li><strong>方向分配</strong>：<ul>
+<li>计算特征点周围的 <strong>梯度方向直方图</strong>，分配主要方向，使其具备<strong>旋转不变性</strong></li>
+</ul>
+</li>
+<li><strong>特征描述</strong>：<ul>
+<li>计算每个关键点周围的 <strong>梯度直方图</strong>，形成 <strong>128 维特征向量</strong>（局部描述子）</li>
+<li>这些特征向量用于匹配不同图像中的关键点</li>
+</ul>
+</li>
+</ol>
+<p><strong>特点</strong>：</p>
+<ul>
+<li><strong>尺度、旋转、光照不变性</strong>：可用于不同大小、旋转角度和亮度变化的图像匹配</li>
+<li><strong>抗噪性强</strong>：在复杂背景下仍能准确提取关键点</li>
+<li><strong>计算复杂度高</strong>：比其他方法（如 ORB）慢，但匹配效果更稳定</li>
+</ul>
+<h3 id="2-KNN-近邻匹配"><a href="#2-KNN-近邻匹配" class="headerlink" title="2.KNN 近邻匹配"></a>2.KNN 近邻匹配</h3><p>KNN (<strong>K-Nearest Neighbors</strong>) 是一种用于 <strong>特征点匹配</strong> 的方法，它基于<strong>欧几里得距离</strong>计算两个图像之间的相似特征点</p>
+<p><strong>工作原理</strong>：</p>
+<ol>
+<li><strong>计算欧几里得距离</strong>：<ul>
+<li>计算图像A中的每个特征点与图像B中所有特征点的<strong>欧几里得距离</strong>，找到最相似的 K 个点（通常 K&#x3D;2）</li>
+</ul>
+</li>
+<li><strong>比值测试（Ratio Test）</strong>：<ul>
+<li>计算最近邻 D1 和次近邻 D2 之间的距离比 D1&#x2F;D2</li>
+<li>如果 D1&#x2F;D2 &lt; 设定阈值（通常 0.75），则认为匹配有效，否则丢弃该匹配点</li>
+<li>这样可以过滤掉误匹配点，提高匹配精度</li>
+</ul>
+</li>
+</ol>
+<p><strong>特点</strong>：</p>
+<ul>
+<li><strong>简单高效</strong>：直接基于欧几里得距离计算匹配点</li>
+<li><strong>容易受噪声干扰</strong>：误匹配点较多，因此需要 <strong>比值测试</strong> 或 <strong>RANSAC</strong> 进行筛选</li>
+</ul>
+<h3 id="3-RANSAC（随机抽样一致性算法）"><a href="#3-RANSAC（随机抽样一致性算法）" class="headerlink" title="3.RANSAC（随机抽样一致性算法）"></a>3.RANSAC（随机抽样一致性算法）</h3><p>RANSAC (<strong>RANdom SAmple Consensus, 随机抽样一致算法</strong>) 是一种 <strong>鲁棒的误匹配去除方法</strong>，用于筛选正确的匹配点，提高拼接精度</p>
+<p><strong>工作原理</strong>：</p>
+<ol>
+<li><strong>随机采样</strong>：<ul>
+<li>在匹配点集中 <strong>随机选取 4 对匹配点</strong>，计算一个变换模型（如单应性矩阵 H）。</li>
+</ul>
+</li>
+<li><strong>计算内点数</strong>：<ul>
+<li>通过该变换模型，将所有匹配点进行投影，并计算它们与目标点的误差。</li>
+<li>误差小于阈值（如 4 像素）的点称为 <strong>内点（Inliers）</strong>。</li>
+</ul>
+</li>
+<li><strong>重复迭代</strong>：<ul>
+<li>反复进行 <strong>随机抽样+计算内点数</strong> 的过程，找到拥有最多内点的模型。</li>
+<li>最终使用这些内点 <strong>重新计算一个更精确的变换矩阵</strong>。</li>
+</ul>
+</li>
+</ol>
+<p><strong>特点</strong>：</p>
+<ul>
+<li><strong>能够过滤掉错误匹配点</strong>，提高拼接的精度。</li>
+<li><strong>适用于特征匹配、物体识别、立体视觉</strong>等任务。</li>
+<li><strong>计算复杂度较高</strong>，但效果很好。</li>
+</ul>
+<h3 id="4-透视变换（Homography）"><a href="#4-透视变换（Homography）" class="headerlink" title="4.透视变换（Homography）"></a>4.透视变换（Homography）</h3><p>透视变换 (<strong>Homography Transformation</strong>) 主要用于<strong>将一张图像变换到与另一张图像对齐的视角</strong>，从而实现图像拼接。</p>
+<p><strong>数学模型</strong>：<br>透视变换矩阵 H 是一个 <strong>3×3 矩阵</strong>，用于描述两张图像之间的映射关系：</p>
+<p>$\begin{bmatrix} x{\prime} \ y{\prime} \ w{\prime} \end{bmatrix} &#x3D; H \cdot \begin{bmatrix} x \ y \ 1 \end{bmatrix}$</p>
+<p>其中：</p>
+<ul>
+<li>$(x, y)$是原始图像中的坐标。</li>
+<li>$(x{\prime}, y{\prime})$ 是变换后图像的坐标。</li>
+<li>cv2.findHomography() 通过匹配点计算 H，并用 cv2.warpPerspective() 对图像进行变换。</li>
+</ul>
+<p><strong>特点</strong>：</p>
+<ul>
+<li><strong>适用于拼接、增强现实（AR）、目标跟踪</strong> 等任务。</li>
+<li>需要 <strong>至少 4 对匹配点</strong> 才能计算出 H 矩阵。</li>
+<li>如果匹配点不够准确，会导致变换失败。</li>
+</ul>
+<h2 id="3-实现过程"><a href="#3-实现过程" class="headerlink" title="3.实现过程"></a>3.实现过程</h2><h3 id="1-获取特征点"><a href="#1-获取特征点" class="headerlink" title="1.获取特征点"></a>1.获取特征点</h3><p>检测图像中的特征点并计算这些特征点的描述子，使用 <strong>SIFT</strong> 算法来实现</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_detect_describe</span>(<span class="params">image</span>):  </span><br><span class="line">    <span class="comment"># 创建SIFT特征检测器  </span></span><br><span class="line">    descriptor = cv2.SIFT_create()  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 寻找图像中的特征点，计算这些关键点的特征描述子，用于后续的匹配</span></span><br><span class="line">    <span class="comment"># kps 包含图像中所有关键点的信息（例如位置、尺度等）</span></span><br><span class="line">    <span class="comment"># features 每个关键点的描述子，它用于描述关键点的外观特征</span></span><br><span class="line">    (kps, features) = descriptor.detectAndCompute(image, <span class="literal">None</span>)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 关键点的坐标（x, y）</span></span><br><span class="line">    num_kps = np.float32([kp.pt <span class="keyword">for</span> kp <span class="keyword">in</span> kps])  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 关键点的坐标，关键点的描述子，关键点对象  </span></span><br><span class="line">    <span class="keyword">return</span> num_kps, features, kps  </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-匹配特征点"><a href="#2-匹配特征点" class="headerlink" title="2.匹配特征点"></a>2.匹配特征点</h3><p>用于匹配两幅图像的特征点，使用暴力匹配器（BFMatcher）和 k 最近邻（KNN）算法来找到两幅图像之间的特征点对应关系</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_match_key_points</span>(<span class="params">kpsA, kpsB, featuresA, featuresB, ratio, reprojThresh</span>):  </span><br><span class="line">    <span class="comment"># 创建暴力匹配器，基于欧几里得距离来进行特征点匹配</span></span><br><span class="line">    matcher = cv2.BFMatcher()  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 为每个特征点找到两个最接近的匹配点（最近邻和次最近邻） </span></span><br><span class="line">    raw_matches = matcher.knnMatch(featuresA, featuresB, <span class="number">2</span>)  </span><br><span class="line">  </span><br><span class="line">    matches = []  </span><br><span class="line">    <span class="keyword">for</span> m <span class="keyword">in</span> raw_matches:  </span><br><span class="line">        <span class="comment"># 检查最近的匹配点与次近的匹配点的距离比是否满足ratio阈值</span></span><br><span class="line">        <span class="comment"># 如果是，则认为这两个特征点匹配成功</span></span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(m) == <span class="number">2</span> <span class="keyword">and</span> m[<span class="number">0</span>].distance &lt; m[<span class="number">1</span>].distance * ratio:  </span><br><span class="line">            <span class="comment"># 存储两个点在featuresA, featuresB中的索引值  </span></span><br><span class="line">            matches.append((m[<span class="number">0</span>].trainIdx, m[<span class="number">0</span>].queryIdx))  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 当筛选后的匹配对大于4时，计算视角变换矩阵  </span></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(matches) &gt; <span class="number">4</span>:  </span><br><span class="line">        <span class="comment"># 获取匹配对的点坐标  </span></span><br><span class="line">        pts_a = np.float32([kpsA[i] <span class="keyword">for</span> (_, i) <span class="keyword">in</span> matches])  </span><br><span class="line">        pts_b = np.float32([kpsB[i] <span class="keyword">for</span> (i, _) <span class="keyword">in</span> matches])  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 通过RANSAC筛选出更准确的匹配点对，减少误匹配的影响  </span></span><br><span class="line">        (H, status) = cv2.findHomography(pts_a, pts_b, cv2.RANSAC, reprojThresh) </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 返回结果  </span></span><br><span class="line">        <span class="keyword">return</span> matches, H, status  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 如果匹配对小于4时，返回None  </span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">None</span>  </span><br></pre></td></tr></table></figure>
+
+<h3 id="3-图像拼接"><a href="#3-图像拼接" class="headerlink" title="3.图像拼接"></a>3.图像拼接</h3><p>这里将两张图片横向拼接，并在匹配点之间绘制红色直线，帮助可视化匹配效果  </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_draw_matches</span>(<span class="params">imageA, imageB, kpsA, kpsB, matches, status</span>):  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 初始化可视化图片，将A、B图左右连接到一起  </span></span><br><span class="line">    (hA, wA) = imageA.shape[:<span class="number">2</span>]  </span><br><span class="line">    (hB, wB) = imageB.shape[:<span class="number">2</span>]  </span><br><span class="line">    vis = np.zeros((<span class="built_in">max</span>(hA, hB), wA + wB, <span class="number">3</span>), dtype=<span class="string">&quot;uint8&quot;</span>)  </span><br><span class="line">    vis[<span class="number">0</span>:hA, <span class="number">0</span>:wA] = imageA  </span><br><span class="line">    vis[<span class="number">0</span>:hB, wA:] = imageB  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 联合遍历，画出匹配对  </span></span><br><span class="line">    <span class="keyword">for</span> ((trainIdx, queryIdx), s) <span class="keyword">in</span> <span class="built_in">zip</span>(matches, status):  </span><br><span class="line">        <span class="comment"># 当点对匹配成功时，画到可视化图上  </span></span><br><span class="line">        <span class="keyword">if</span> s == <span class="number">1</span>:  </span><br><span class="line">            pt_a = (<span class="built_in">int</span>(kpsA[queryIdx].pt[<span class="number">0</span>]), <span class="built_in">int</span>(kpsA[queryIdx].pt[<span class="number">1</span>]))  </span><br><span class="line">            pt_b = (<span class="built_in">int</span>(kpsB[trainIdx].pt[<span class="number">0</span>]) + wA, <span class="built_in">int</span>(kpsB[trainIdx].pt[<span class="number">1</span>]))</span><br><span class="line">            <span class="comment"># 在两幅图像之间的匹配特征点之间绘制红色线段，便于查看哪些点在两幅图像中是匹配的  </span></span><br><span class="line">            cv2.line(vis, pt_a, pt_b, (<span class="number">0</span>, <span class="number">0</span>, <span class="number">255</span>), <span class="number">1</span>)  </span><br><span class="line">    <span class="keyword">return</span> vis  </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="4-调用"><a href="#4-调用" class="headerlink" title="4.调用"></a>4.调用</h3><p>原图<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-38-47.jpg"><br>最终效果<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-32-12.jpg"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">stitch</span>(<span class="params">imageB, imageA, ratio=<span class="number">0.75</span>, reprojThresh=<span class="number">4.0</span></span>):  </span><br><span class="line">    <span class="comment"># 提取SIFT特征：对两张图像分别检测特征点和计算描述子  </span></span><br><span class="line">    (num_kpsA, featuresA, kpsA) = _detect_describe(imageA)  </span><br><span class="line">    (num_kpsB, featuresB, kpsB) = _detect_describe(imageB)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 找到匹配点对，并计算 单应性矩阵 H    </span></span><br><span class="line">    m = _match_key_points(num_kpsA, num_kpsB, featuresA, featuresB, ratio, reprojThresh)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 如果返回结果为空，没有匹配成功的特征点，退出算法  </span></span><br><span class="line">    <span class="keyword">if</span> m <span class="keyword">is</span> <span class="literal">None</span>:  </span><br><span class="line">        <span class="keyword">return</span> <span class="literal">None</span>  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># H是3x3视角变换矩阵  </span></span><br><span class="line">    (matches, H, status) = m  </span><br><span class="line">    <span class="comment"># 透视变换，使两张图像对齐</span></span><br><span class="line">    result = cv2.warpPerspective(imageA, H, (imageA.shape[<span class="number">1</span>] + imageB.shape[<span class="number">1</span>], imageA.shape[<span class="number">0</span>])) </span><br><span class="line">    utils.cv_show(<span class="string">&#x27;result imageA&#x27;</span>, result) <span class="comment"># 如下图</span></span><br><span class="line">    <span class="comment"># 将图片B传入result图片最左端，最终形成一张拼接后的大图</span></span><br><span class="line">    result[<span class="number">0</span>:imageB.shape[<span class="number">0</span>], <span class="number">0</span>:imageB.shape[<span class="number">1</span>]] = imageB  </span><br><span class="line">    utils.cv_show(<span class="string">&#x27;result imageB&#x27;</span>, result) <span class="comment"># 如下图</span></span><br><span class="line">    <span class="comment"># 生成匹配图片  </span></span><br><span class="line">    vis = _draw_matches(imageA, imageB, kpsA, kpsB, matches, status)  </span><br><span class="line">    utils.cv_show(<span class="string">&#x27;draw matches&#x27;</span>, vis)  <span class="comment"># 如下图</span></span><br><span class="line">    <span class="keyword">return</span> result</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-31-22.jpg"></p>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-31-40.jpg"></p>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-24_11-31-56.jpg"></p>
+<h2 id="4-总结"><a href="#4-总结" class="headerlink" title="4.总结"></a>4.总结</h2><p>关键步骤包括：</p>
+<ol>
+<li>检测并描述图像中的特征点    </li>
+<li>匹配特征点并计算单应性矩阵</li>
+<li>通过透视变换将图像对齐，并拼接成一张新图像</li>
+</ol>
+<h2 id="5-备注"><a href="#5-备注" class="headerlink" title="5.备注"></a>5.备注</h2><h3 id="环境："><a href="#环境：" class="headerlink" title="环境："></a>环境：</h3><ul>
+<li>mac: 15.2</li>
+<li>python: 3.12.4</li>
+<li>numpy: 1.26.4</li>
+<li>opencv-python: 4.11.0.86</li>
+</ul>
+<h3 id="资源和代码："><a href="#资源和代码：" class="headerlink" title="资源和代码："></a>资源和代码：</h3><pre><code>https://github.com/keychankc/dl_code_for_blog/tree/main/007_opencv_image_stitching
+</code></pre>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://keychankc.github.io/2025/03/24/007-opencv-image-stitching/" title="OpenCV之全景图像拼接">https://keychankc.github.io/2025/03/24/007-opencv-image-stitching/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/" rel="tag"># 图像处理</a>
+              <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/" rel="tag"># 计算机视觉</a>
+              <a href="/tags/%E5%9B%BE%E5%83%8F%E8%AF%86%E5%88%AB/" rel="tag"># 图像识别</a>
+              <a href="/tags/OpenCV/" rel="tag"># OpenCV</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/03/18/006-opencv-credit-card-ocr/" rel="prev" title="OpenCV之信用卡卡号识别">
+                  <i class="fa fa-angle-left"></i> OpenCV之信用卡卡号识别
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/03/31/008-opencv-park/" rel="next" title="OpenCV之停车场车位识别">
+                  OpenCV之停车场车位识别 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">166k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.mengyajia.com","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2025/03/24/007-opencv-image-stitching/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>

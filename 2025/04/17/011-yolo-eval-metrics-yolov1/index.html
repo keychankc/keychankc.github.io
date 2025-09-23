@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"keychankc.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="1.物体检测评估指标1.TP &#x2F; FP &#x2F; FN &#x2F; TN这四个指标是分类任务的基础：• TP（True Positive）：预测为正，且是真正的正样本（比如检测到了一个人，且确实是人）• FP（False Positive）：预测为正，但实际上是负样本（检测到了人，但其实是背景或别的物体）• FN（False Negative）：实际是正样本，但没检测出来（图里有人">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[YOLO系列①] 物体检测评估指标和YOLO-v1实现思路">
+<meta property="og:url" content="https://keychankc.github.io/2025/04/17/011-yolo-eval-metrics-yolov1/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s blog">
+<meta property="og:description" content="1.物体检测评估指标1.TP &#x2F; FP &#x2F; FN &#x2F; TN这四个指标是分类任务的基础：• TP（True Positive）：预测为正，且是真正的正样本（比如检测到了一个人，且确实是人）• FP（False Positive）：预测为正，但实际上是负样本（检测到了人，但其实是背景或别的物体）• FN（False Negative）：实际是正样本，但没检测出来（图里有人">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250410142350.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250410145622.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250410145729.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-04-10_15-29-57.jpg">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/202504102311.jpg">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/202504102312.jpg">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/202504102313.jpg">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/202504102315.jpg">
+<meta property="article:published_time" content="2025-04-17T04:29:12.000Z">
+<meta property="article:modified_time" content="2025-09-21T12:04:48.538Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="计算机视觉">
+<meta property="article:tag" content="目标检测">
+<meta property="article:tag" content="YOLO">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250410142350.png">
+
+
+<link rel="canonical" href="https://keychankc.github.io/2025/04/17/011-yolo-eval-metrics-yolov1/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/2025/04/17/011-yolo-eval-metrics-yolov1/","path":"2025/04/17/011-yolo-eval-metrics-yolov1/","title":"[YOLO系列①] 物体检测评估指标和YOLO-v1实现思路"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>[YOLO系列①] 物体检测评估指标和YOLO-v1实现思路 | KeyChan's blog</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.mengyajia.com">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's blog" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E7%89%A9%E4%BD%93%E6%A3%80%E6%B5%8B%E8%AF%84%E4%BC%B0%E6%8C%87%E6%A0%87"><span class="nav-text">1.物体检测评估指标</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-TP-FP-FN-TN"><span class="nav-text">1.TP &#x2F; FP &#x2F; FN &#x2F; TN</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-IoU%EF%BC%88Intersection-over-Union%EF%BC%89"><span class="nav-text">2.IoU（Intersection over Union）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Confidence%EF%BC%88%E7%BD%AE%E4%BF%A1%E5%BA%A6%EF%BC%89"><span class="nav-text">3.Confidence（置信度）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-Precision%EF%BC%88%E7%B2%BE%E5%BA%A6%EF%BC%89"><span class="nav-text">4.Precision（精度）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-Recall%EF%BC%88%E5%8F%AC%E5%9B%9E%E7%8E%87%EF%BC%89"><span class="nav-text">5. Recall（召回率）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-PR-%E6%9B%B2%E7%BA%BF"><span class="nav-text">6.PR 曲线</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-AP%EF%BC%88Average-Precision%EF%BC%89"><span class="nav-text">7.AP（Average Precision）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-mAP%EF%BC%88mean-Average-Precision%EF%BC%89"><span class="nav-text">8.mAP（mean Average Precision）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-%E8%AF%84%E4%BC%B0%E6%A0%87%E5%87%86%EF%BC%88VOC-COCO%EF%BC%89"><span class="nav-text">9.评估标准（VOC &#x2F; COCO）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-PASCAL-VOC%EF%BC%88%E6%97%A9%E6%9C%9F%E6%A0%87%E5%87%86%EF%BC%89"><span class="nav-text">1. PASCAL VOC（早期标准）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-COCO%EF%BC%88%E6%9B%B4%E4%B8%A5%E6%A0%BC%E7%9A%84%E7%8E%B0%E4%BB%A3%E6%A0%87%E5%87%86%EF%BC%89"><span class="nav-text">2.COCO（更严格的现代标准）</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-%E4%B8%BE%E4%B8%AA%E4%BE%8B%E5%AD%90"><span class="nav-text">10.举个例子</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E7%A4%BA%E4%BE%8B%E5%9C%BA%E6%99%AF"><span class="nav-text">1.示例场景</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E5%85%88%E7%AE%97-IoU%EF%BC%8C%E5%88%A4%E6%96%AD-TP-FP-FN"><span class="nav-text">2.先算 IoU，判断 TP &#x2F; FP &#x2F; FN</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E8%AE%A1%E7%AE%97-Precision-%E5%92%8C-Recall"><span class="nav-text">3.计算 Precision 和 Recall</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-PR%E6%9B%B2%E7%BA%BF"><span class="nav-text">4.PR曲线</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-%E8%AE%A1%E7%AE%97-AP-%E5%92%8C-mAP"><span class="nav-text">5.计算 AP 和 mAP</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-VOC-vs-COCO"><span class="nav-text">6.VOC vs COCO</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-YOLO-V1"><span class="nav-text">2.YOLO-V1</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E6%96%B9%E6%B3%95"><span class="nav-text">1.目标检测方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E4%B8%A4%E9%98%B6%E6%AE%B5%E6%A3%80%E6%B5%8B%EF%BC%88Two-Stage%EF%BC%89%E2%80%8B"><span class="nav-text">1.两阶段检测（Two-Stage）​</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E5%8D%95%E9%98%B6%E6%AE%B5%E6%A3%80%E6%B5%8B%EF%BC%88One-Stage%EF%BC%89%E2%80%8B%E2%80%8B"><span class="nav-text">2. 单阶段检测（One-Stage）​​</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E6%8A%80%E6%9C%AF%E6%BC%94%E8%BF%9B%E8%B6%8B%E5%8A%BF%E2%80%8B"><span class="nav-text">3.技术演进趋势​</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-YOLO%E4%BA%A7%E7%94%9F%E8%83%8C%E6%99%AF"><span class="nav-text">2.YOLO产生背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3"><span class="nav-text">2.核心思想</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%9B%BE%E5%83%8F%E5%88%92%E5%88%86"><span class="nav-text">1.图像划分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E9%A2%84%E6%B5%8B%E5%A4%9A%E4%B8%AA%E8%BE%B9%E7%95%8C%E6%A1%86"><span class="nav-text">2.预测多个边界框</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E9%A2%84%E6%B5%8B%E6%A6%82%E7%8E%87"><span class="nav-text">3.预测概率</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E8%BE%93%E5%87%BA%E7%BB%84%E5%90%88%EF%BC%88Final-Prediction%EF%BC%89"><span class="nav-text">4.输出组合（Final Prediction）</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%A8%A1%E5%9E%8B%E7%BB%93%E6%9E%84"><span class="nav-text">3.模型结构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E8%BE%93%E5%85%A5%E5%9B%BE%E5%83%8F"><span class="nav-text">1.输入图像</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E7%BD%91%E7%BB%9C%EF%BC%88Backbone%EF%BC%89"><span class="nav-text">2.特征提取网络（Backbone）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E5%85%A8%E8%BF%9E%E6%8E%A5%E5%B1%82-%E8%BE%93%E5%87%BA%E5%B1%82"><span class="nav-text">3.全连接层 + 输出层</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E5%90%8E%E5%A4%84%E7%90%86%EF%BC%88Post-processing%EF%BC%89"><span class="nav-text">4.后处理（Post-processing）</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0"><span class="nav-text">4.损失函数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E4%BD%8D%E7%BD%AE%E8%AF%AF%E5%B7%AE%EF%BC%88%E5%9D%90%E6%A0%87%E6%8D%9F%E5%A4%B1%EF%BC%89"><span class="nav-text">1.位置误差（坐标损失）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E7%BD%AE%E4%BF%A1%E5%BA%A6%E8%AF%AF%E5%B7%AE%EF%BC%88%E5%90%AB%E6%9C%89-object-%E7%9A%84%EF%BC%89"><span class="nav-text">2.置信度误差（含有 object 的）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E7%BD%AE%E4%BF%A1%E5%BA%A6%E8%AF%AF%E5%B7%AE%EF%BC%88%E4%B8%8D%E5%90%AB-object-%E7%9A%84%EF%BC%89"><span class="nav-text">3.置信度误差（不含 object 的）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E5%88%86%E7%B1%BB%E8%AF%AF%E5%B7%AE"><span class="nav-text">4.分类误差</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E6%80%BB%E7%BB%93"><span class="nav-text">3.总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E7%89%A9%E4%BD%93%E6%A3%80%E6%B5%8B%E8%AF%84%E4%BC%B0%E6%8C%87%E6%A0%87%E6%80%BB%E7%BB%93"><span class="nav-text">1.物体检测评估指标总结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-YOLO-V1%E6%A0%B8%E5%BF%83%E8%A7%A3%E6%9E%90"><span class="nav-text">2.YOLO-V1核心解析</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">30</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">39</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/keychankc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://keychankc.github.io/2025/04/17/011-yolo-eval-metrics-yolov1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's blog">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="[YOLO系列①] 物体检测评估指标和YOLO-v1实现思路 | KeyChan's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          [YOLO系列①] 物体检测评估指标和YOLO-v1实现思路
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-04-17 12:29:12" itemprop="dateCreated datePublished" datetime="2025-04-17T12:29:12+08:00">2025-04-17</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-09-21 20:04:48" itemprop="dateModified" datetime="2025-09-21T20:04:48+08:00">2025-09-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2025/04/17/011-yolo-eval-metrics-yolov1/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2025/04/17/011-yolo-eval-metrics-yolov1/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>4.1k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>15 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="1-物体检测评估指标"><a href="#1-物体检测评估指标" class="headerlink" title="1.物体检测评估指标"></a>1.物体检测评估指标</h2><h3 id="1-TP-FP-FN-TN"><a href="#1-TP-FP-FN-TN" class="headerlink" title="1.TP &#x2F; FP &#x2F; FN &#x2F; TN"></a>1.TP &#x2F; FP &#x2F; FN &#x2F; TN</h3><p>这四个指标是分类任务的基础：<br>• <strong>TP（True Positive）</strong>：预测为正，且是真正的正样本（比如检测到了一个人，且确实是人）<br>• <strong>FP（False Positive）</strong>：预测为正，但实际上是负样本（检测到了人，但其实是背景或别的物体）<br>• <strong>FN（False Negative）</strong>：实际是正样本，但没检测出来（图里有人，模型没发现）<br>• <strong>TN（True Negative）</strong>：负样本预测为负（对物体检测来说，通常不关注 TN）</p>
+<p>举个例子</p>
+<span id="more"></span>
+
+<table>
+<thead>
+<tr>
+<th><strong>名称</strong></th>
+<th><strong>含义</strong></th>
+<th><strong>举例（检测“猫”）</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>TP</strong></td>
+<td>正确地检测出了一个猫</td>
+<td>模型框住了图中的一只猫</td>
+</tr>
+<tr>
+<td><strong>FP</strong></td>
+<td>错误地检测出一个猫（其实没有猫）</td>
+<td>背景被误判为猫</td>
+</tr>
+<tr>
+<td><strong>FN</strong></td>
+<td>有猫但模型没检测出来</td>
+<td>图里明明有猫，但模型漏掉了</td>
+</tr>
+<tr>
+<td><strong>TN</strong></td>
+<td>正确地没检测出负样本</td>
+<td>背景没有猫，模型也没检测到</td>
+</tr>
+</tbody></table>
+<p>为何对物体检测来说，通常不关注 TN？<br>因为背景太多了，一张图中，除了少数目标区域，剩下都是背景（负样本）。比如整张图只有2只猫，剩下的几百万像素都是“不是猫”。所以 TN 的数量巨大无比，关注TN就没啥意义。</p>
+<p>所以在物体检测中，正因为背景（负样本）太多且没明确边界，所以我们更关注的是<strong>检测出来的东西是否准确（TP &#x2F; FP）</strong>，和<strong>有没有漏检（FN）</strong>。</p>
+<h3 id="2-IoU（Intersection-over-Union）"><a href="#2-IoU（Intersection-over-Union）" class="headerlink" title="2.IoU（Intersection over Union）"></a>2.IoU（Intersection over Union）</h3><p>预测框与真实框的重叠程度，<strong>IoU &gt; 某个阈值（比如 0.5）</strong> 就认为检测成功（TP），否则认为是误报（FP）或漏检（FN）。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250410142350.png" width="400"/></p>
+<h3 id="3-Confidence（置信度）"><a href="#3-Confidence（置信度）" class="headerlink" title="3.Confidence（置信度）"></a>3.Confidence（置信度）</h3><p>模型对<strong>这个框里确实有物体</strong>的信心程度，通常是一个介于 <strong>0 到 1</strong> 之间的小数，是模型对检测框中存在目标物体及其预测类别准确性的综合评判指标。</p>
+<p>物体检测输出是：[类名, 置信度, 边界框坐标]。</p>
+<p>作用：<br>	1. 控制预测数量（过滤阈值），我们通常会设置一个阈值，比如 confidence &gt; 0.5，只保留“自信”的预测。低于这个阈值的预测会被忽略，减少 FP（误报）<br>	2. 用来画 PR 曲线、计算 AP，通过调整置信度阈值，我们会得到不同的：TP &#x2F; FP &#x2F; FN &#x2F; Precision &#x2F; Recall，画出 PR 曲线后还可以求AP（PR 曲线下的面积）<br>	3. 排序时使用非极大值抑制，在非极大值抑制（<strong>NMS</strong>）中，为了去掉重复框，模型会：按置信度从高到低排序，保留最“自信”的框，去掉重叠度高的（IoU高）低置信度框</p>
+<h3 id="4-Precision（精度）"><a href="#4-Precision（精度）" class="headerlink" title="4.Precision（精度）"></a>4.Precision（精度）</h3><p>$$\text{Precision} &#x3D; \frac{TP}{TP + FP}$$</p>
+<p>预测为正的里面有多少是真的。</p>
+<h3 id="5-Recall（召回率）"><a href="#5-Recall（召回率）" class="headerlink" title="5. Recall（召回率）"></a>5. Recall（召回率）</h3><p>$$\text{Recall} &#x3D; \frac{TP}{TP + FN}$$</p>
+<p>所有正样本中被预测出来了多少。</p>
+<h3 id="6-PR-曲线"><a href="#6-PR-曲线" class="headerlink" title="6.PR 曲线"></a>6.PR 曲线</h3><p>通过<strong>调整置信度阈值</strong>，会得到一组 Precision 和 Recall 值，对这些点画图就得到了 <strong>PR 曲线</strong>。<br>高置信度：Precision 高，Recall 低，低置信度：Recall 高，Precision 低。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250410145622.png" width="400"/></p>
+<h3 id="7-AP（Average-Precision）"><a href="#7-AP（Average-Precision）" class="headerlink" title="7.AP（Average Precision）"></a>7.AP（Average Precision）</h3><p>PR 曲线下的面积，也可以理解为对这条曲线的“积分”。不同的任务对 AP 的计算方法略有不同（见 VOC 和 COCO）。</p>
+<img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250410145729.png" width="400"/>
+
+<h3 id="8-mAP（mean-Average-Precision）"><a href="#8-mAP（mean-Average-Precision）" class="headerlink" title="8.mAP（mean Average Precision）"></a>8.mAP（mean Average Precision）</h3><p>平均的AP，AP是对每一个类别算一个 AP，mAP 就是所有类别的 AP 的平均值</p>
+<h3 id="9-评估标准（VOC-COCO）"><a href="#9-评估标准（VOC-COCO）" class="headerlink" title="9.评估标准（VOC &#x2F; COCO）"></a>9.评估标准（VOC &#x2F; COCO）</h3><h4 id="1-PASCAL-VOC（早期标准）"><a href="#1-PASCAL-VOC（早期标准）" class="headerlink" title="1. PASCAL VOC（早期标准）"></a>1. PASCAL VOC（早期标准）</h4><p>来自 PASCAL VOC 挑战赛（2007 ~ 2012），经典但相对简单</p>
+<h4 id="2-COCO（更严格的现代标准）"><a href="#2-COCO（更严格的现代标准）" class="headerlink" title="2.COCO（更严格的现代标准）"></a>2.COCO（更严格的现代标准）</h4><p>来自 Microsoft 的 COCO 数据集。2015 后成为主流评估标准（比如 YOLOv5 默认用 COCO）</p>
+<p>VOC vs COCO：</p>
+<table>
+<thead>
+<tr>
+<th><strong>特性</strong></th>
+<th><strong>VOC</strong></th>
+<th><strong>COCO</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>IoU 阈值</td>
+<td>固定 0.5</td>
+<td>0.5 ~ 0.95（步长 0.05）</td>
+</tr>
+<tr>
+<td>AP 计算</td>
+<td>简单插值</td>
+<td>更精细插值</td>
+</tr>
+<tr>
+<td>小物体评估</td>
+<td>不考虑</td>
+<td>特别考虑小&#x2F;中&#x2F;大物体性能</td>
+</tr>
+<tr>
+<td>难度</td>
+<td>相对简单</td>
+<td>更严格全面</td>
+</tr>
+<tr>
+<td>应用</td>
+<td>早期模型测试</td>
+<td>当前工业&#x2F;学术主流（如 YOLO 系列）</td>
+</tr>
+</tbody></table>
+<h3 id="10-举个例子"><a href="#10-举个例子" class="headerlink" title="10.举个例子"></a>10.举个例子</h3><h4 id="1-示例场景"><a href="#1-示例场景" class="headerlink" title="1.示例场景"></a>1.示例场景</h4><p>一张图中有 2 只猫（Ground Truth），使用VOC评估，模型预测了 3 个框，带有类别和置信度：</p>
+<table>
+<thead>
+<tr>
+<th><strong>预测编号</strong></th>
+<th><strong>预测框位置</strong></th>
+<th><strong>类别</strong></th>
+<th><strong>置信度</strong></th>
+<th><strong>IoU with GT</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>P1</td>
+<td>猫1的位置</td>
+<td>猫</td>
+<td>0.9</td>
+<td>0.75</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>猫2的位置</td>
+<td>猫</td>
+<td>0.7</td>
+<td>0.55</td>
+</tr>
+<tr>
+<td>P3</td>
+<td>没有猫的区域</td>
+<td>猫</td>
+<td>0.8</td>
+<td>0.2（背景）</td>
+</tr>
+</tbody></table>
+<h4 id="2-先算-IoU，判断-TP-FP-FN"><a href="#2-先算-IoU，判断-TP-FP-FN" class="headerlink" title="2.先算 IoU，判断 TP &#x2F; FP &#x2F; FN"></a>2.先算 IoU，判断 TP &#x2F; FP &#x2F; FN</h4><p>• P1：IoU 0.75 &gt; 0.5 → <strong>TP</strong><br>• P2：IoU 0.55 &gt; 0.5 → <strong>TP</strong><br>• P3：IoU 0.2 &lt; 0.5 → <strong>FP</strong><br>还有 Ground Truth 2 只猫都被命中，所以 <strong>FN &#x3D; 0</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>指标</strong></th>
+<th><strong>值</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>TP</td>
+<td>2</td>
+</tr>
+<tr>
+<td>FP</td>
+<td>1</td>
+</tr>
+<tr>
+<td>FN</td>
+<td>0</td>
+</tr>
+</tbody></table>
+<h4 id="3-计算-Precision-和-Recall"><a href="#3-计算-Precision-和-Recall" class="headerlink" title="3.计算 Precision 和 Recall"></a>3.计算 Precision 和 Recall</h4><p>$$\text{Precision} &#x3D; \frac{2}{2 + 1} &#x3D; \frac{2}{3} \approx 0.67$$</p>
+<p>$$\text{Recall} &#x3D; \frac{2}{2 + 0} &#x3D; 1.0$$</p>
+<h4 id="4-PR曲线"><a href="#4-PR曲线" class="headerlink" title="4.PR曲线"></a>4.PR曲线</h4><ol>
+<li>只保留置信度 &gt; 0.85 → 只有 P1：TP&#x3D;1, FP&#x3D;0 → P&#x3D;1.0, R&#x3D;0.5</li>
+<li>置信度 &gt; 0.65 → P1+P2：TP&#x3D;2, FP&#x3D;0 → P&#x3D;1.0, R&#x3D;1.0</li>
+<li>置信度 &gt; 0.6 → P1+P2+P3：TP&#x3D;2, FP&#x3D;1 → P&#x3D;2&#x2F;3, R&#x3D;1.0</li>
+</ol>
+<p>将这些点连接起来形成 <strong>PR 曲线</strong><br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-04-10_15-29-57.jpg" width="600"/></p>
+<h4 id="5-计算-AP-和-mAP"><a href="#5-计算-AP-和-mAP" class="headerlink" title="5.计算 AP 和 mAP"></a>5.计算 AP 和 mAP</h4><p>对这条 PR 曲线下的面积求和，就是这张图“猫”这一类的 <strong>AP</strong>，如果还有“狗”“人”等类别，每个类别都算一个 AP，再平均得到 <strong>mAP</strong>。</p>
+<h4 id="6-VOC-vs-COCO"><a href="#6-VOC-vs-COCO" class="headerlink" title="6.VOC vs COCO"></a>6.VOC vs COCO</h4><p>在 VOC 中，IoU &gt; 0.5 就算 TP，所以我们这里算的是 <code>AP@0.5</code>，在 COCO 中，还会算<code>AP@0.5</code>、<code>AP@0.75</code>、<code>AP@0.95</code>等，再平均得到更严格的 mAP。</p>
+<h2 id="2-YOLO-V1"><a href="#2-YOLO-V1" class="headerlink" title="2.YOLO-V1"></a>2.YOLO-V1</h2><h3 id="1-目标检测方法"><a href="#1-目标检测方法" class="headerlink" title="1.目标检测方法"></a>1.目标检测方法</h3><h4 id="1-两阶段检测（Two-Stage）​"><a href="#1-两阶段检测（Two-Stage）​" class="headerlink" title="1.两阶段检测（Two-Stage）​"></a>1.两阶段检测（Two-Stage）​</h4><p>​代表模型​：Faster R-CNN、Mask R-CNN<br>​核心思想​：​<strong>​“先粗选再精修”​</strong>，就像选秀节目：</p>
+<ol>
+<li>​<strong>海选阶段（Region Proposal）​</strong>​，用RPN（Region Proposal Network）快速生成约2k个候选框（可能含物体的区域）。特点是高召回率（宁可多选不错过），但框不准。</li>
+<li>​<strong>决赛阶段（RoI分类与回归）​</strong>​，对每个候选框精细调整位置，并分类（如“猫”“狗”）。<br>​优点​是精度高（适合复杂场景，如小物体或密集目标），适合需要实例分割的任务（如Mask R-CNN），​缺点是​计算量大，速度慢（通常5~20 FPS），训练流程复杂（分阶段训练或端到端调参难）。典型应用​有医学影像分析（肿瘤检测需高精度）、自动驾驶（高精度3D检测）、竞赛刷榜（COCO数据集冠军常客）等。</li>
+</ol>
+<h4 id="2-单阶段检测（One-Stage）​​"><a href="#2-单阶段检测（One-Stage）​​" class="headerlink" title="2. 单阶段检测（One-Stage）​​"></a>2. 单阶段检测（One-Stage）​​</h4><p>​代表模型​：YOLO系列、SSD、RetinaNet<br>​核心思想​：​<strong>​“一步到位”​</strong>，像快餐点单：</p>
+<ol>
+<li>​<strong>直接输出</strong>​，对图像网格化，每个格子同时预测边界框和类别（无候选框步骤）。特点是速度快（YOLOv8可达100+ FPS）但易漏检小物体，部署简单（适合端侧设备如手机、无人机）。缺点是​精度略低（尤其小物体检测），密集物体易重叠（如人群中的个体）。典型应用有实时视频分析（安防监控、直播质检）、移动端APP（手机AR贴纸、扫商品）、工业质检（快速检测缺陷）等。</li>
+</ol>
+<h4 id="3-技术演进趋势​"><a href="#3-技术演进趋势​" class="headerlink" title="3.技术演进趋势​"></a>3.技术演进趋势​</h4><ul>
+<li>​<strong>两阶段的改进</strong>​：<ul>
+<li>更高效的候选框生成（如Cascade R-CNN）</li>
+</ul>
+</li>
+<li>​<strong>单阶段的突破</strong>​：<ul>
+<li>提升小物体检测（YOLOv5的FPN+PAN结构）</li>
+<li>动态标签分配（如OTA策略）</li>
+</ul>
+</li>
+<li>​<strong>跨界融合</strong>​：<ul>
+<li>单阶段模型通过蒸馏技术逼近两阶段精度（如YOLOv7）</li>
+</ul>
+</li>
+</ul>
+<h3 id="2-YOLO产生背景"><a href="#2-YOLO产生背景" class="headerlink" title="2.YOLO产生背景"></a>2.YOLO产生背景</h3><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/202504102311.jpg" width="600"/>
+
+<p>在 YOLO 出现之前，目标检测主流方法是两阶段的，例如<br>	• <strong>R-CNN（2013）</strong>：通过选择性搜索（Selective Search）生成候选框，然后再用 CNN 对每个框分类，mAP可达58.5，但速度慢<br>	• <strong>Fast R-CNN（2015）</strong>：引入 ROI Pooling 提高效率，但候选框还是靠外部生成（如选择性搜索），mAP 提升到 70，但 FPS 只有 0.5<br>	• <strong>Faster R-CNN（2015）</strong>：引入 Region Proposal Network（RPN），第一次实现了端到端训练，mAP 达到 73.2，速度提升到 7 FPS</p>
+<p>这些方法虽然精度高，但速度较慢，难以应对实时场景。</p>
+<p>YOLO（You Only Look Once）于 2015 年提出，核心思想是将目标检测转化为一个 <strong>回归问题</strong>，在一张图上直接预测边界框和类别：<br>特点：</p>
+<ol>
+<li><strong>单阶段、端到端架构</strong>：无需外部提议区域，整个检测过程一次完成</li>
+<li><strong>统一模型结构</strong>：整个网络是一个神经网络，直接从图像输入到边界框和类别输出</li>
+<li><strong>速度快</strong>：达到了 <strong>45 FPS</strong>，远高于前代方法，首次真正实现“实时目标检测”</li>
+<li><strong>简化流程</strong>：不依赖选择性搜索等复杂的预处理</li>
+</ol>
+<p>虽然 YOLO-v1 的精度不如 Faster R-CNN，但胜在<strong>速度极快、部署简单</strong>，特别适合实时系统（如自动驾驶、监控等）</p>
+<h3 id="2-核心思想"><a href="#2-核心思想" class="headerlink" title="2.核心思想"></a>2.核心思想</h3><p>YOLOv1的核心思想是将目标检测问题转化为一个单一的回归问题，一次性预测图像中所有目标的位置和类别，又叫一张图只看一次（You Only Look Once），也是YOLO名称的由来。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/202504102312.jpg" width="600"/></p>
+<h4 id="1-图像划分"><a href="#1-图像划分" class="headerlink" title="1.图像划分"></a>1.图像划分</h4><p>如上左图将输入图像划分为 <strong>S × S 的网格</strong>（例如 S&#x3D;7）。每个网格只负责预测其内部中心点落入该网格的物体。</p>
+<h4 id="2-预测多个边界框"><a href="#2-预测多个边界框" class="headerlink" title="2.预测多个边界框"></a>2.预测多个边界框</h4><p>每个网格单元预测 <strong>B 个边界框</strong>（通常 B&#x3D;2），每个框包含：<br>• 坐标信息 (x, y, w, h)<br>• 置信度（confidence）&#x3D; 物体存在概率 × IOU（预测框与真实框的重合程度）<br>上图中上部分显示了所有网格预测的大量框 + confidence。</p>
+<h4 id="3-预测概率"><a href="#3-预测概率" class="headerlink" title="3.预测概率"></a>3.预测概率</h4><p>每个网格预测一个<strong>类别概率分布</strong>，即 C 个类别的概率（如图中下方的彩色 class map）。这些类别概率是与该网格是否包含物体无关的<strong>条件概率</strong>。</p>
+<h4 id="4-输出组合（Final-Prediction）"><a href="#4-输出组合（Final-Prediction）" class="headerlink" title="4.输出组合（Final Prediction）"></a>4.输出组合（Final Prediction）</h4><p>对每个预测框，其最终得分 &#x3D; 类别概率 × 置信度。最后利用 <strong>非极大值抑制（NMS）</strong> 去除冗余框，得到最终检测结果（如图最右侧）。</p>
+<blockquote>
+<p>NMS（Non-Maximum Suppression）是目标检测中的一种后处理算法，用于<strong>从多个重叠的预测框中选择最靠谱的一个</strong>，去掉冗余和低质量的框。</p>
+</blockquote>
+<h3 id="3-模型结构"><a href="#3-模型结构" class="headerlink" title="3.模型结构"></a>3.模型结构</h3><p>YOLOv1 架构由一个基于 GoogLeNet 的深层卷积网络 + 全连接层组成，最终将目标检测任务转化为一个 <strong>7×7×30 的张量预测问题</strong>，实现端到端的快速检测。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/202504102313.jpg" width="600"/></p>
+<h4 id="1-输入图像"><a href="#1-输入图像" class="headerlink" title="1.输入图像"></a>1.输入图像</h4><p>输入尺寸为 <strong>448 × 448 × 3</strong> 的彩色图像</p>
+<h4 id="2-特征提取网络（Backbone）"><a href="#2-特征提取网络（Backbone）" class="headerlink" title="2.特征提取网络（Backbone）"></a>2.特征提取网络（Backbone）</h4><p>• 使用了修改后的 <strong>GoogLeNet（Inception）结构</strong>，共 <strong>24 个卷积层 + 2 个全连接层</strong>，图中简化了<br>• 每个 “C, R” 代表一组卷积 + ReLU（激活）操作，特征图尺寸逐渐减小。<br>• 输出特征图尺寸为 <strong>7 × 7 × 1024</strong>。</p>
+<h4 id="3-全连接层-输出层"><a href="#3-全连接层-输出层" class="headerlink" title="3.全连接层 + 输出层"></a>3.全连接层 + 输出层</h4><p>• 接上两个全连接层（如图所示）：<br>• 第一个 FC 层：4096 单元<br>• 第二个 FC 层输出 <strong>1470 个值</strong>（对应 7×7×30）</p>
+<p>YOLOv1 最终输出为一个大小为 <strong>7 × 7 × 30</strong> 的张量：每个 <strong>7×7 的网格单元</strong>（grid cell）输出 <strong>30 个值</strong>，具体为：</p>
+<ol>
+<li>每个 grid cell 预测 <strong>2 个边界框</strong>（bounding box）</li>
+<li>每个 bounding box 含有 <strong>5 个值</strong>：中心位置 (x, y)、宽高 (w, h)、置信度</li>
+<li>每个 cell 还预测图像中包含各类别的概率，共 <strong>20 个类（Pascal VOC）</strong></li>
+</ol>
+<h4 id="4-后处理（Post-processing）"><a href="#4-后处理（Post-processing）" class="headerlink" title="4.后处理（Post-processing）"></a>4.后处理（Post-processing）</h4><p>将输出 reshape 为 7×7×30 后，使用 <strong>置信度 × 类别概率</strong> 得出每个 box 的最终得分，最后进行 <strong>Non-Maximum Suppression（非极大值抑制）</strong> 来去重并得到最终检测结果。</p>
+<h3 id="4-损失函数"><a href="#4-损失函数" class="headerlink" title="4.损失函数"></a>4.损失函数</h3><p>YOLOv1 的损失函数是用在训练模型的时候，需要确保：</p>
+<ul>
+<li>​<strong>合理置信度</strong>​（预测的置信度反映框内是否有物体）</li>
+<li>​<strong>准确定位</strong>​（预测框的 <code>x, y, w, h</code> 接近真实框）</li>
+<li>​<strong>正确分类</strong>​（预测的类别概率匹配真实标签）</li>
+</ul>
+<p>通俗一点就是，你得准确地告诉我哪有东西（有置信度），框得要准（坐标误差小），别瞎说哪有东西（背景区域别胡说），而且你得看得出来这是只狗，不是猫（分类准确）。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/202504102315.jpg" width="600"/><br>大致可以拆分为四部分，分别对应于：</p>
+<h4 id="1-位置误差（坐标损失）"><a href="#1-位置误差（坐标损失）" class="headerlink" title="1.位置误差（坐标损失）"></a>1.位置误差（坐标损失）</h4><p>只对负责某个 object 的那个 <strong>bbox</strong>（bounding box）进行惩罚</p>
+<ul>
+<li>仅对<strong>有物体</strong>的 cell 中，<strong>负责预测的那个 bbox</strong> 计算位置误差</li>
+<li>用了 $\sqrt{w}$ 和 $\sqrt{h}$ 来降低大尺寸物体的影响</li>
+<li>$\lambda_{\text{coord}}$ 是位置损失的权重系数（论文中设为 5）</li>
+</ul>
+<p>位置误差主要作用就是看框得准不准，框的位置和真实位置差多少。如果模型说「猫在这里」，那就要检查它预测的位置(x, y)、宽高(w, h)和真实的差多少。注意一点，位置误差只对真正有东西的格子负责。比如，猫在左下角，我预测在右上角，那我就要被扣分。</p>
+<h4 id="2-置信度误差（含有-object-的）"><a href="#2-置信度误差（含有-object-的）" class="headerlink" title="2.置信度误差（含有 object 的）"></a>2.置信度误差（含有 object 的）</h4><p>仅对包含目标的 cell 中，负责的 bbox 的置信度损失</p>
+<ul>
+<li>$C_i$ 是预测置信度，$\hat{C}_i$ 是 ground truth 的 IOU（即真实的）</li>
+</ul>
+<p>如果格子里真的有东西（比如狗），你要给出一个高的「我很确定这有东西」的分数。如果你没信心，说“我不确定”，那也要被惩罚。</p>
+<h4 id="3-置信度误差（不含-object-的）"><a href="#3-置信度误差（不含-object-的）" class="headerlink" title="3.置信度误差（不含 object 的）"></a>3.置信度误差（不含 object 的）</h4><p>对没有目标的 cell 的所有 bbox 计算置信度损失</p>
+<ul>
+<li>$\lambda_{\text{noobj}}$ 通常设置为 0.5，防止大量背景区域主导损失</li>
+</ul>
+<p>对于没东西的格子，如果你说「这有只猫」，那就太离谱了，要扣分！所以对于 <strong>背景区域（没目标）</strong>，要特别注意别乱喊有目标。</p>
+<h4 id="4-分类误差"><a href="#4-分类误差" class="headerlink" title="4.分类误差"></a>4.分类误差</h4><p>分类误差只对每个包含目标的 cell 进行，不涉及具体哪个 bbox。如果你预测框里有只猫，结果那是只狗，那也要扣分。所以还要学会看清楚「是猫还是狗」。</p>
+<h2 id="3-总结"><a href="#3-总结" class="headerlink" title="3.总结"></a>3.总结</h2><h3 id="1-物体检测评估指标总结"><a href="#1-物体检测评估指标总结" class="headerlink" title="1.物体检测评估指标总结"></a>1.物体检测评估指标总结</h3><ol>
+<li>​<strong>TP&#x2F;FP&#x2F;FN&#x2F;TN</strong>​：<ul>
+<li>​<strong>TP</strong>​：正确检测到正样本</li>
+<li>​<strong>FP</strong>​：误将负样本检测为正</li>
+<li>​<strong>FN</strong>​：漏检正样本</li>
+<li>​<strong>TN</strong>​：物体检测中通常忽略，因背景像素过多，计算无实际意义</li>
+</ul>
+</li>
+<li>​<strong>IoU</strong>​：<ul>
+<li>预测框与真实框的交并比，IoU≥阈值（如0.5）判定为TP，否则为FP</li>
+</ul>
+</li>
+<li>​<strong>Confidence</strong>​：<ul>
+<li>模型对检测框的置信度，用于过滤低置信预测和NMS排序</li>
+</ul>
+</li>
+<li>​<strong>Precision与Recall</strong>​：<ul>
+<li>​<strong>Precision</strong>​ &#x3D; TP &#x2F; (TP + FP)，衡量预测准确性</li>
+<li>​<strong>Recall</strong>​ &#x3D; TP &#x2F; (TP + FN)，衡量检出率</li>
+</ul>
+</li>
+<li>​<strong>PR曲线与AP</strong>​：<ul>
+<li>调整置信度阈值生成PR曲线，AP为曲线下面积，反映模型综合性能</li>
+</ul>
+</li>
+<li>​<strong>VOC vs COCO</strong>​：<ul>
+<li>​<strong>VOC</strong>​：固定IoU&#x3D;0.5，计算简单</li>
+<li>​<strong>COCO</strong>​：多IoU阈值（0.5-0.95），评估更严格，考虑小&#x2F;中&#x2F;大物体</li>
+</ul>
+</li>
+</ol>
+<h3 id="2-YOLO-V1核心解析"><a href="#2-YOLO-V1核心解析" class="headerlink" title="2.YOLO-V1核心解析"></a>2.YOLO-V1核心解析</h3><ol>
+<li>核心思想​<ul>
+<li>​<strong>单阶段端到端检测</strong>​：将检测转化为回归问题，直接输出边界框和类别</li>
+<li>​<strong>网格划分</strong>​：图像分为7×7网格，每个网格预测2个边界框及20类概率</li>
+<li>​<strong>输出张量</strong>​：7×7×30，其中每网格含：<ul>
+<li>2个边界框（各5参数：x, y, w, h, confidence）</li>
+<li>20类概率（共享于网格内所有框）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>模型结构​<ul>
+<li>​<strong>Backbone</strong>​：基于GoogLeNet的24层卷积+2层全连接</li>
+<li>​<strong>输出层</strong>​：全连接层输出1470节点，重组为7×7×30张量</li>
+</ul>
+</li>
+<li>​损失函数​<ul>
+<li>​<strong>坐标损失</strong>​：仅计算负责物体的框，使用平方误差，λ_coord&#x3D;5平衡权重$λcoord​∑(x−x^)2+(y−y^​)2+(w​−w^​)2+(h​−h^​)2$</li>
+<li>​<strong>置信度损失</strong>​：<ul>
+<li>​<strong>含物体</strong>​：预测置信度接近IoU（平方误差）</li>
+<li>​<strong>不含物体</strong>​：置信度趋近0，λ_noobj&#x3D;0.5降低背景权重</li>
+</ul>
+</li>
+<li>​<strong>分类损失</strong>​：交叉熵损失，确保类别预测正确</li>
+</ul>
+</li>
+<li>局限性​<ul>
+<li>每个网格仅预测固定数量框，密集小物体检测效果差</li>
+<li>全连接层导致空间信息丢失，后续版本改用全卷积结构改进</li>
+</ul>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://keychankc.github.io/2025/04/17/011-yolo-eval-metrics-yolov1/" title="[YOLO系列①] 物体检测评估指标和YOLO-v1实现思路">https://keychankc.github.io/2025/04/17/011-yolo-eval-metrics-yolov1/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/" rel="tag"># 计算机视觉</a>
+              <a href="/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/" rel="tag"># 目标检测</a>
+              <a href="/tags/YOLO/" rel="tag"># YOLO</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/04/15/010-opencv-face-fatigue-detection/" rel="prev" title="OpenCV之人脸疲劳检测">
+                  <i class="fa fa-angle-left"></i> OpenCV之人脸疲劳检测
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/04/21/012-yolo-yolov2/" rel="next" title="[YOLO系列②] YOLOv2十大改进点解析">
+                  [YOLO系列②] YOLOv2十大改进点解析 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">166k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.mengyajia.com","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2025/04/17/011-yolo-eval-metrics-yolov1/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>

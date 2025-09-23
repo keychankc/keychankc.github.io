@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"keychankc.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="1. 项目背景与目标1.1 为什么选择 A3C 来玩超级马里奥？超级马里奥是一个经典的横版过关游戏，玩法是简单，但是环境比较复杂：玩家要面对敌人、陷阱、跳跃平台，还要在有限时间内快速决策。所以在强化学习中，它被认为是一个很好的 实验case：  状态空间是高维的（游戏画面本身就是像素矩阵） 行动结果对未来奖励有长远影响（跳跃错过管道可能直接失败） 游戏场景变化多端，能充分考察智能体的泛化能力">
+<meta property="og:type" content="article">
+<meta property="og:title" content="A3C 算法原理与超级马里奥实践（下）">
+<meta property="og:url" content="https://keychankc.github.io/2025/08/29/029-rl-ac-a3c-mario-case-2/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s blog">
+<meta property="og:description" content="1. 项目背景与目标1.1 为什么选择 A3C 来玩超级马里奥？超级马里奥是一个经典的横版过关游戏，玩法是简单，但是环境比较复杂：玩家要面对敌人、陷阱、跳跃平台，还要在有限时间内快速决策。所以在强化学习中，它被认为是一个很好的 实验case：  状态空间是高维的（游戏画面本身就是像素矩阵） 行动结果对未来奖励有长远影响（跳跃错过管道可能直接失败） 游戏场景变化多端，能充分考察智能体的泛化能力">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/super_mario_frame_0.jpg">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/a3c_train_arch2025-08-29_17-48-21.jpg">
+<meta property="article:published_time" content="2025-08-29T05:40:12.000Z">
+<meta property="article:modified_time" content="2025-09-21T12:04:48.542Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="神经网络">
+<meta property="article:tag" content="策略梯度">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/super_mario_frame_0.jpg">
+
+
+<link rel="canonical" href="https://keychankc.github.io/2025/08/29/029-rl-ac-a3c-mario-case-2/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/2025/08/29/029-rl-ac-a3c-mario-case-2/","path":"2025/08/29/029-rl-ac-a3c-mario-case-2/","title":"A3C 算法原理与超级马里奥实践（下）"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>A3C 算法原理与超级马里奥实践（下） | KeyChan's blog</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.mengyajia.com">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's blog" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E9%A1%B9%E7%9B%AE%E8%83%8C%E6%99%AF%E4%B8%8E%E7%9B%AE%E6%A0%87"><span class="nav-text">1. 项目背景与目标</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%80%89%E6%8B%A9-A3C-%E6%9D%A5%E7%8E%A9%E8%B6%85%E7%BA%A7%E9%A9%AC%E9%87%8C%E5%A5%A5%EF%BC%9F"><span class="nav-text">1.1 为什么选择 A3C 来玩超级马里奥？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-%E9%A9%AC%E9%87%8C%E5%A5%A5%E7%8E%AF%E5%A2%83%E4%B8%AD%E7%9A%84%E9%9A%BE%E7%82%B9"><span class="nav-text">1.2 马里奥环境中的难点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-%E6%9C%80%E7%BB%88%E7%9B%AE%E6%A0%87"><span class="nav-text">1.3 最终目标</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E6%B8%B8%E6%88%8F%E7%8E%AF%E5%A2%83%E5%B0%81%E8%A3%85"><span class="nav-text">2. 游戏环境封装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E7%8E%AF%E5%A2%83%E4%BB%8B%E7%BB%8D"><span class="nav-text">2.1 环境介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-%E5%A5%96%E5%8A%B1%E5%A1%91%E5%BD%A2"><span class="nav-text">2.2 奖励塑形</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-%E7%8A%B6%E6%80%81%E9%A2%84%E5%A4%84%E7%90%86"><span class="nav-text">2.3 状态预处理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E6%A8%A1%E5%9E%8B%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1"><span class="nav-text">3. 模型架构设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-CNN-%E6%8F%90%E5%8F%96%E7%89%B9%E5%BE%81"><span class="nav-text">3.1 CNN 提取特征</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-LSTM-%E6%97%B6%E5%BA%8F%E5%BB%BA%E6%A8%A1"><span class="nav-text">3.2 LSTM 时序建模</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-%E8%BE%93%E5%87%BA%E5%A4%B4Actor-Critic"><span class="nav-text">3.3 输出头Actor + Critic</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-%E6%9D%83%E9%87%8D%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-text">3.4 权重初始化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E5%A4%9A%E8%BF%9B%E7%A8%8B%E8%AE%AD%E7%BB%83"><span class="nav-text">4. 多进程训练</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-train-%E5%87%BD%E6%95%B0"><span class="nav-text">4.1 train()函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E5%8D%95%E4%B8%AA%E8%BF%9B%E7%A8%8B%E7%9A%84%E8%AE%AD%E7%BB%83"><span class="nav-text">4.2 单个进程的训练</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-%E6%80%BB%E7%BB%93"><span class="nav-text">4.3 总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E4%BC%98%E5%8C%96%E5%99%A8%E5%AE%9E%E7%8E%B0"><span class="nav-text">5. 优化器实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E6%B5%8B%E8%AF%95%E4%B8%8E%E8%AF%84%E4%BC%B0"><span class="nav-text">6. 测试与评估</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E5%AE%9E%E9%99%85%E8%AE%AD%E7%BB%83%E8%A1%A8%E7%8E%B0"><span class="nav-text">7. 实际训练表现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#7-1-%E8%AE%AD%E7%BB%83%E5%85%B3%E5%8D%A1%E7%9A%84%E9%80%89%E6%8B%A9"><span class="nav-text">7.1 训练关卡的选择</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-2-%E8%AE%AD%E7%BB%83%E6%97%B6%E9%97%B4%E4%B8%8E%E8%B5%84%E6%BA%90%E5%BC%80%E9%94%80"><span class="nav-text">7.2 训练时间与资源开销</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-3-%E8%AE%AD%E7%BB%83%E6%88%90%E6%9E%9C"><span class="nav-text">7.3 训练成果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E5%B7%A5%E7%A8%8B%E5%8C%96%E5%AE%9E%E7%8E%B0%E8%A6%81%E7%82%B9"><span class="nav-text">8. 工程化实现要点</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#8-1-LSTM-%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86%EF%BC%9Adetach%E9%81%BF%E5%85%8D%E6%A2%AF%E5%BA%A6%E7%88%86%E7%82%B8"><span class="nav-text">8.1 LSTM 状态管理：detach避免梯度爆炸</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-2-%E5%AE%B9%E9%94%99%E6%9C%BA%E5%88%B6%EF%BC%9A%E7%8E%AF%E5%A2%83%E5%BC%82%E5%B8%B8%E8%87%AA%E5%8A%A8reset"><span class="nav-text">8.2 容错机制：环境异常自动reset</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-3-%E6%A8%A1%E5%9D%97%E5%8C%96%E8%AE%BE%E8%AE%A1"><span class="nav-text">8.3 模块化设计</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E6%8A%80%E5%B7%A7"><span class="nav-text">9. 性能优化技巧</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#9-1-%E5%B8%A7%E8%B7%B3%E8%B7%83-Frame-Skip-%E7%8A%B6%E6%80%81%E5%A0%86%E5%8F%A0-Frame-Stack"><span class="nav-text">9.1 帧跳跃 (Frame Skip) + 状态堆叠 (Frame Stack)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-2-%E5%A5%96%E5%8A%B1%E5%A1%91%E5%BD%A2-Reward-Shaping"><span class="nav-text">9.2 奖励塑形 (Reward Shaping)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-3-%E5%A4%9A%E8%BF%9B%E7%A8%8B%E5%B9%B6%E8%A1%8C-Asynchronous-Workers"><span class="nav-text">9.3 多进程并行 (Asynchronous Workers)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-%E6%89%A9%E5%B1%95%E4%B8%8E%E6%94%B9%E8%BF%9B%E6%96%B9%E5%90%91"><span class="nav-text">10. 扩展与改进方向</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#10-1-%E7%AE%97%E6%B3%95%E6%9B%BF%E6%8D%A2%EF%BC%9A%E6%9B%B4%E5%BC%BA%E5%A4%A7%E7%9A%84%E7%AD%96%E7%95%A5%E4%BC%98%E5%8C%96%E6%96%B9%E6%B3%95"><span class="nav-text">10.1 算法替换：更强大的策略优化方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-2-%E7%BB%93%E6%9E%84%E4%BC%98%E5%8C%96%EF%BC%9A%E8%AE%A9%E6%A8%A1%E5%9E%8B%E6%9B%B4%E8%81%AA%E6%98%8E"><span class="nav-text">10.2 结构优化：让模型更聪明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-3-%E8%AE%AD%E7%BB%83%E7%AD%96%E7%95%A5%EF%BC%9A%E8%AE%A9%E6%99%BA%E8%83%BD%E4%BD%93%E5%AD%A6%E5%BE%97%E6%9B%B4%E5%BF%AB"><span class="nav-text">10.3 训练策略：让智能体学得更快</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-4-%E5%BA%94%E7%94%A8%E6%8B%93%E5%B1%95%EF%BC%9A%E4%BB%8E%E6%B8%B8%E6%88%8F%E5%88%B0%E7%8E%B0%E5%AE%9E"><span class="nav-text">10.4 应用拓展：从游戏到现实</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E6%80%BB%E7%BB%93"><span class="nav-text">11. 总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="nav-text">核心要点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-%E5%A4%87%E6%B3%A8"><span class="nav-text">12.备注</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">30</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">39</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/keychankc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://keychankc.github.io/2025/08/29/029-rl-ac-a3c-mario-case-2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's blog">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="A3C 算法原理与超级马里奥实践（下） | KeyChan's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          A3C 算法原理与超级马里奥实践（下）
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-08-29 13:40:12" itemprop="dateCreated datePublished" datetime="2025-08-29T13:40:12+08:00">2025-08-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-09-21 20:04:48" itemprop="dateModified" datetime="2025-09-21T20:04:48+08:00">2025-09-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">强化学习</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2025/08/29/029-rl-ac-a3c-mario-case-2/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2025/08/29/029-rl-ac-a3c-mario-case-2/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>9k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>33 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="1-项目背景与目标"><a href="#1-项目背景与目标" class="headerlink" title="1. 项目背景与目标"></a>1. 项目背景与目标</h2><h3 id="1-1-为什么选择-A3C-来玩超级马里奥？"><a href="#1-1-为什么选择-A3C-来玩超级马里奥？" class="headerlink" title="1.1 为什么选择 A3C 来玩超级马里奥？"></a>1.1 为什么选择 A3C 来玩超级马里奥？</h3><p>超级马里奥是一个经典的横版过关游戏，玩法是简单，但是环境比较复杂：玩家要面对敌人、陷阱、跳跃平台，还要在有限时间内快速决策。<br>所以在强化学习中，它被认为是一个很好的 <strong>实验case</strong>：</p>
+<ul>
+<li>状态空间是高维的（游戏画面本身就是像素矩阵）</li>
+<li>行动结果对未来奖励有长远影响（跳跃错过管道可能直接失败）</li>
+<li>游戏场景变化多端，能充分考察智能体的泛化能力</li>
+</ul>
+<span id="more"></span>
+<p>因此，我们打算用 <strong>A3C（Asynchronous Advantage Actor-Critic）</strong> 来实现，A3C 是一种经典的深度强化学习算法，能够通过 <strong>多线程并行采样</strong> 加速训练，并且结合 <strong>Actor-Critic 框架</strong> 来提升策略收敛的稳定性，具体可参考<a href="https://keychankc.github.io/2025/08/22/028-rl-ac-a3c-mario-case-1/">上篇</a>。用它来解决马里奥问题，顺便还可以实践强化学习的 <strong>理论价值</strong> 和 <strong>工程落地能力</strong>。</p>
+<h3 id="1-2-马里奥环境中的难点"><a href="#1-2-马里奥环境中的难点" class="headerlink" title="1.2 马里奥环境中的难点"></a>1.2 马里奥环境中的难点</h3><p>在实现过程中，我们需要解决几个关键问题：</p>
+<ol>
+<li><strong>高维状态空间</strong>：输入是 240×256 的彩色像素画面，直接学习难度极高，必须通过卷积网络提取特征，并通过灰度化、缩放、帧堆叠等方式进行状态压缩</li>
+<li><strong>稀疏奖励问题</strong>：游戏的“通关奖励”非常稀疏，大部分时间智能体得不到正向反馈。如果不加引导，智能体可能只会停留在原地或做无意义动作，这时就很需要 <strong>奖励塑形</strong>，例如根据分数、前进距离给予额外奖励</li>
+<li><strong>实时决策与时序依赖</strong>：马里奥游戏是一个典型的 <strong>部分可观测环境</strong>：单帧图像不足以判断状态（如是否在跳跃过程中）。必须引入 <strong>LSTM</strong> 这样的时序模型，来帮助智能体记忆历史信息，做出更合理的决策</li>
+</ol>
+<h3 id="1-3-最终目标"><a href="#1-3-最终目标" class="headerlink" title="1.3 最终目标"></a>1.3 最终目标</h3><p>在这样的背景下，我们的目标还可以更高一些，不仅仅是“让 AI 过关”，而是可以构建一个 <strong>完整的强化学习训练-测试-评估系统</strong>。它应该具备以下特性：</p>
+<ul>
+<li><strong>能学会基本玩法</strong>：通过奖励塑形和多进程训练，让智能体逐渐掌握跳跃、移动、攻击等操作</li>
+<li><strong>能被系统评估</strong>：不仅能通关，还能通过奖励曲线、通关率、视频回放等方式量化表现</li>
+<li><strong>能支持扩展</strong>：模块化设计，便于切换算法、替换模型，甚至迁移到其他游戏环境中</li>
+</ul>
+<h2 id="2-游戏环境封装"><a href="#2-游戏环境封装" class="headerlink" title="2. 游戏环境封装"></a>2. 游戏环境封装</h2><h3 id="2-1-环境介绍"><a href="#2-1-环境介绍" class="headerlink" title="2.1 环境介绍"></a>2.1 环境介绍</h3><p>马里奥环境来自 <strong>gym_super_mario_bros</strong>，它是基于 OpenAI Gym 封装的 <strong>强化学习环境</strong>，在强化学习 (RL) 框架里，环境和智能体的交互遵循一个固定的规则：<strong>智能体选择一个动作 (action)</strong> → <strong>环境返回下一状态 (state)、奖励 (reward)、是否结束 (done)、额外信息 (info)</strong>。</p>
+<img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/super_mario_frame_0.jpg" width="50%"/>
+基于此我们可以尝试用键盘玩马里奥，顺便熟悉一下环境。
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">play</span>():  </span><br><span class="line">    <span class="comment"># ===== (1) 环境初始化 =====</span></span><br><span class="line">    <span class="comment"># 游戏分为8个大关（World1~World8）每个大关里又有4个小关（Stage1~Stage4）</span></span><br><span class="line">    world, stage = <span class="number">1</span>, <span class="number">1</span>  </span><br><span class="line">    <span class="comment"># 加载马里奥游戏的某个关卡</span></span><br><span class="line">    env = gym_super_mario_bros.make(<span class="string">f&quot;SuperMarioBros-<span class="subst">&#123;world&#125;</span>-<span class="subst">&#123;stage&#125;</span>-v0&quot;</span>)  </span><br><span class="line">    </span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    COMPLEX_MOVEMENT = [  </span></span><br><span class="line"><span class="string">	    [&#x27;NOOP&#x27;],            # 0: 什么也不做 (No Operation)    </span></span><br><span class="line"><span class="string">	    [&#x27;right&#x27;],           # 1: 向右走  </span></span><br><span class="line"><span class="string">	    [&#x27;right&#x27;, &#x27;A&#x27;],      # 2: 向右 + 跳  </span></span><br><span class="line"><span class="string">	    [&#x27;right&#x27;, &#x27;B&#x27;],      # 3: 向右 + 加速跑  </span></span><br><span class="line"><span class="string">	    [&#x27;right&#x27;, &#x27;A&#x27;, &#x27;B&#x27;], # 4: 向右 + 跳 + 跑 (助跑跳)  </span></span><br><span class="line"><span class="string">	    [&#x27;A&#x27;],               # 5: 原地跳  </span></span><br><span class="line"><span class="string">	    [&#x27;left&#x27;],            # 6: 向左走  </span></span><br><span class="line"><span class="string">	    [&#x27;left&#x27;, &#x27;A&#x27;],       # 7: 向左 + 跳  </span></span><br><span class="line"><span class="string">	    [&#x27;left&#x27;, &#x27;B&#x27;],       # 8: 向左 + 跑  </span></span><br><span class="line"><span class="string">	    [&#x27;left&#x27;, &#x27;A&#x27;, &#x27;B&#x27;],  # 9: 向左 + 跳 + 跑  </span></span><br><span class="line"><span class="string">	    [&#x27;down&#x27;],            # 10: 下 (蹲下，进水管/趴下)  </span></span><br><span class="line"><span class="string">	    [&#x27;up&#x27;],              # 11: 上 (例如爬藤蔓)  </span></span><br><span class="line"><span class="string">	]</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment"># 把复杂的组合键映射成离散的动作编号，例如 [向右 + 跳 + 跑] → action = 4</span></span><br><span class="line">    env = JoypadSpace(env, COMPLEX_MOVEMENT)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># ===== (2) 初始化pygame窗口 =====</span></span><br><span class="line">    pygame.init()  </span><br><span class="line">    screen = pygame.display.set_mode((<span class="number">256</span>, <span class="number">240</span>))  <span class="comment"># 马里奥原始分辨率</span></span><br><span class="line">    <span class="comment"># 窗口标题</span></span><br><span class="line">    pygame.display.set_caption(<span class="string">&quot;Keyboard Play Super Mario Bros (Complex)&quot;</span>)  </span><br><span class="line">  </span><br><span class="line">    clock = pygame.time.Clock()  </span><br><span class="line">    action = <span class="number">0</span>  <span class="comment"># 默认动作  </span></span><br><span class="line">  </span><br><span class="line">    done = <span class="literal">True</span>  </span><br><span class="line">    state = env.reset()  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># ===== (3) 游戏主循环 =====</span></span><br><span class="line">    running = <span class="literal">True</span>  </span><br><span class="line">    <span class="keyword">while</span> running:  </span><br><span class="line">        <span class="keyword">for</span> event <span class="keyword">in</span> pygame.event.get():  </span><br><span class="line">            <span class="keyword">if</span> event.<span class="built_in">type</span> == pygame.QUIT:  </span><br><span class="line">                running = <span class="literal">False</span>  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># ===== (4) 键盘控制 → 动作编号 =====        </span></span><br><span class="line">        keys = pygame.key.get_pressed()  </span><br><span class="line">        <span class="keyword">if</span> keys[pygame.K_LEFT] <span class="keyword">and</span> keys[pygame.K_SPACE]:  </span><br><span class="line">            action = <span class="number">7</span>   <span class="comment"># 左 + 跳  </span></span><br><span class="line">        <span class="keyword">elif</span> keys[pygame.K_LEFT]:  </span><br><span class="line">            action = <span class="number">6</span>   <span class="comment"># 左  </span></span><br><span class="line">        <span class="keyword">elif</span> keys[pygame.K_RIGHT] <span class="keyword">and</span> keys[pygame.K_SPACE] <span class="keyword">and</span> keys[pygame.K_LSHIFT]:  </span><br><span class="line">            action = <span class="number">4</span>   <span class="comment"># 右 + 跑 + 跳  </span></span><br><span class="line">        <span class="keyword">elif</span> keys[pygame.K_RIGHT] <span class="keyword">and</span> keys[pygame.K_LSHIFT]:  </span><br><span class="line">            action = <span class="number">3</span>   <span class="comment"># 右 + 跑  </span></span><br><span class="line">        <span class="keyword">elif</span> keys[pygame.K_RIGHT] <span class="keyword">and</span> keys[pygame.K_SPACE]:  </span><br><span class="line">            action = <span class="number">2</span>   <span class="comment"># 右 + 跳  </span></span><br><span class="line">        <span class="keyword">elif</span> keys[pygame.K_RIGHT]:  </span><br><span class="line">            action = <span class="number">1</span>   <span class="comment"># 右  </span></span><br><span class="line">        <span class="keyword">elif</span> keys[pygame.K_SPACE]:  </span><br><span class="line">            action = <span class="number">5</span>   <span class="comment"># 单跳  </span></span><br><span class="line">        <span class="keyword">elif</span> keys[pygame.K_DOWN]:  </span><br><span class="line">            action = <span class="number">10</span>  <span class="comment"># 下蹲  </span></span><br><span class="line">        <span class="keyword">else</span>:  </span><br><span class="line">            action = <span class="number">0</span>   <span class="comment"># 不动  </span></span><br><span class="line">  </span><br><span class="line">        <span class="comment"># ===== (5) 执行动作 =====        </span></span><br><span class="line">        state, reward, done, info = env.step(action)  </span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;action: <span class="subst">&#123;action&#125;</span>, reward: <span class="subst">&#123;reward&#125;</span>, done: <span class="subst">&#123;done&#125;</span>, info: <span class="subst">&#123;info&#125;</span>&quot;</span>) </span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">            done: False,               # 回合还没有结束  </span></span><br><span class="line"><span class="string">            reward: 0.0,               # 本次动作得到的即时奖励  </span></span><br><span class="line"><span class="string">            action: 0,                 # 选择的动作编号  </span></span><br><span class="line"><span class="string">            info: &#123;&#x27;coins&#x27;: 0,         # 目前收集的金币数量  </span></span><br><span class="line"><span class="string">                   &#x27;flag_get&#x27;: False,  # 是否成功到达旗子，过关标志  </span></span><br><span class="line"><span class="string">                   &#x27;life&#x27;: 2,          # 当前剩余生命数  </span></span><br><span class="line"><span class="string">                   &#x27;score&#x27;: 0,         # 当前分数（环境内部累计的）  </span></span><br><span class="line"><span class="string">                   &#x27;stage&#x27;: 1,         # 当前关卡序号  </span></span><br><span class="line"><span class="string">                   &#x27;status&#x27;:           # 马里奥的状态，例如 &#x27;small&#x27;、&#x27;big&#x27;、&#x27;fire&#x27;  </span></span><br><span class="line"><span class="string">                   &#x27;time&#x27;: 398,        # 关卡剩余时间  </span></span><br><span class="line"><span class="string">                   &#x27;world&#x27;: 1,         # 当前世界序号  </span></span><br><span class="line"><span class="string">                   &#x27;x_pos&#x27;: 40,        # 横向位置（像素或格子）  </span></span><br><span class="line"><span class="string">                   &#x27;y_pos&#x27;: 79&#125;        # 纵向位置</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        env.render()  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># ===== (6) 回合结束的处理 =====        </span></span><br><span class="line">        <span class="keyword">if</span> done:  </span><br><span class="line">            <span class="keyword">if</span> info.get(<span class="string">&#x27;flag_get&#x27;</span>, <span class="literal">False</span>):  <span class="comment"># 通关自动切下一关  </span></span><br><span class="line">                world, stage = info[<span class="string">&#x27;world&#x27;</span>], info[<span class="string">&#x27;stage&#x27;</span>] + <span class="number">1</span>  </span><br><span class="line">                <span class="comment"># 检查是否有下一关  </span></span><br><span class="line">                <span class="keyword">try</span>:  </span><br><span class="line">                    env.close()  </span><br><span class="line">                    env = gym_super_mario_bros.make(<span class="string">f&quot;SuperMarioBros-<span class="subst">&#123;world&#125;</span>-<span class="subst">&#123;stage&#125;</span>-v0&quot;</span>)  </span><br><span class="line">                    env = JoypadSpace(env, COMPLEX_MOVEMENT)  </span><br><span class="line">                    state = env.reset()  </span><br><span class="line">                    <span class="built_in">print</span>(<span class="string">f&quot;切换到下一关: World <span class="subst">&#123;world&#125;</span>-<span class="subst">&#123;stage&#125;</span>&quot;</span>)  </span><br><span class="line">                <span class="keyword">except</span>:  </span><br><span class="line">                    <span class="built_in">print</span>(<span class="string">&quot;已通关全部关卡！&quot;</span>)  </span><br><span class="line">                    running = <span class="literal">False</span>  </span><br><span class="line">            <span class="keyword">else</span>:  </span><br><span class="line">                state = env.reset()  <span class="comment"># 没通关，重开这一关</span></span><br><span class="line">		</span><br><span class="line">        <span class="comment"># ===== (7) 控制帧率 =====        </span></span><br><span class="line">        clock.tick(<span class="number">60</span>)  <span class="comment"># 保持游戏运行在 60FPS，不然会跑得太快</span></span><br><span class="line">  </span><br><span class="line">    env.close()  </span><br><span class="line">    pygame.quit()  </span><br><span class="line">  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:  </span><br><span class="line">    play()</span><br></pre></td></tr></table></figure>
+
+<p>原始的马里奥游戏提供了几十种按键组合（向左、向右、跳跃、加速、攻击等），这对智能体来说就像让初学者一次学完所有武术招式，难度太大。为了降低学习难度，我们使用 <strong>JoypadSpace</strong> 对动作空间进行简化，只保留最核心的动作，例如：</p>
+<ul>
+<li>[向右走] → action &#x3D; 1</li>
+<li>[向右 + 跳跃] → action &#x3D; 2</li>
+<li>[向右 + 跑] → action &#x3D; 3</li>
+<li>[原地跳] → action &#x3D; 5</li>
+<li>[下蹲] → action &#x3D; 10</li>
+</ul>
+<p>这样，智能体可以专注于 <strong>前进、跳跃和避障</strong>，而不必分心去探索大量无关组合动作。简化后的动作空间不仅降低了探索难度，还显著加快了训练收敛速度。</p>
+<h3 id="2-2-奖励塑形"><a href="#2-2-奖励塑形" class="headerlink" title="2.2 奖励塑形"></a>2.2 奖励塑形</h3><p>在强化学习中，奖励函数决定智能体学习方向。原始马里奥环境的奖励非常稀疏：智能体大部分时间得不到正向反馈（reward更新不及时），可能只会原地乱跳。<br>为此，我们需要 <strong>奖励塑形策略</strong>（自定义reward更新机制）：</p>
+<ul>
+<li><strong>分数奖励</strong>：根据吃金币、击败敌人等行为增加即时奖励</li>
+<li><strong>通关奖励</strong>：成功通关时给大额正奖励，失败（掉坑、超时）则给负奖励</li>
+<li><strong>奖励归一化</strong>：将奖励数值缩放，避免梯度过大导致训练不稳定</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">process_frame</span>(<span class="params">frame</span>):  </span><br><span class="line">    <span class="string">&quot;&quot;&quot;  </span></span><br><span class="line"><span class="string">    把原始游戏画面做预处理，变成适合神经网络输入的数据  </span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">if</span> frame <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:  </span><br><span class="line">        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)  </span><br><span class="line">        frame = cv2.resize(frame, (<span class="number">84</span>, <span class="number">84</span>))[<span class="literal">None</span>, :, :] / <span class="number">255.</span>  </span><br><span class="line">        <span class="keyword">return</span> frame  </span><br><span class="line">    <span class="keyword">else</span>:  </span><br><span class="line">        <span class="keyword">return</span> np.zeros((<span class="number">1</span>, <span class="number">84</span>, <span class="number">84</span>))</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">CustomReward</span>(<span class="title class_ inherited__">Wrapper</span>):  </span><br><span class="line">    <span class="string">&quot;&quot;&quot;  </span></span><br><span class="line"><span class="string">    把环境原始观测处理成灰度 84×84 的输入，同时修改奖励信号，让训练更稳定  </span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span>   </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, env=<span class="literal">None</span>, monitor=<span class="literal">None</span></span>):  </span><br><span class="line">        <span class="built_in">super</span>(CustomReward, <span class="variable language_">self</span>).__init__(env)  </span><br><span class="line">        <span class="comment"># ===== (2.3.3) 灰度化+缩放 =====        </span></span><br><span class="line">        <span class="comment"># 把环境原始观测(240, 256, 3)的彩色帧改成 (84, 84, 1)灰度缩小帧  </span></span><br><span class="line">        <span class="variable language_">self</span>.observation_space = Box(low=<span class="number">0</span>, high=<span class="number">255</span>, shape=(<span class="number">1</span>, <span class="number">84</span>, <span class="number">84</span>))  </span><br><span class="line">        <span class="variable language_">self</span>.curr_score = <span class="number">0</span>  </span><br><span class="line">        <span class="keyword">if</span> monitor:  </span><br><span class="line">            <span class="variable language_">self</span>.monitor = monitor  </span><br><span class="line">        <span class="keyword">else</span>:  </span><br><span class="line">            <span class="variable language_">self</span>.monitor = <span class="literal">None</span>  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">step</span>(<span class="params">self, action</span>):  </span><br><span class="line">        state, reward, done, info = <span class="variable language_">self</span>.env.step(action)  </span><br><span class="line">  </span><br><span class="line">        <span class="keyword">if</span> <span class="variable language_">self</span>.monitor:  </span><br><span class="line">            <span class="variable language_">self</span>.monitor.record(state) <span class="comment"># 录屏  </span></span><br><span class="line">  </span><br><span class="line">        state = process_frame(state) <span class="comment"># 游戏画面预处理  </span></span><br><span class="line">		</span><br><span class="line">        <span class="comment"># ===== (1) 分数奖励 =====        </span></span><br><span class="line">        <span class="comment"># 获取游戏中的分数，每一步奖励增加分数增长的一部分，</span></span><br><span class="line">        <span class="comment"># 这样智能体能在做出有意义行为（如吃金币、踩敌人）时获得即时反馈，提高学习效率      </span></span><br><span class="line">        reward += (info[<span class="string">&quot;score&quot;</span>] - <span class="variable language_">self</span>.curr_score) / <span class="number">40.</span>  </span><br><span class="line">        <span class="variable language_">self</span>.curr_score = info[<span class="string">&quot;score&quot;</span>]  </span><br><span class="line">        <span class="comment"># ===== (2) 通关奖励 =====        </span></span><br><span class="line">        <span class="comment"># 如果成功到达旗子，额外大额奖励 (+50) ，未通关（掉坑或超时）则惩罚 (-50)</span></span><br><span class="line">        <span class="keyword">if</span> done:  </span><br><span class="line">            <span class="keyword">if</span> info[<span class="string">&quot;flag_get&quot;</span>]:  </span><br><span class="line">                reward += <span class="number">50</span>  </span><br><span class="line">            <span class="keyword">else</span>:  </span><br><span class="line">                reward -= <span class="number">50</span>  </span><br><span class="line">        <span class="comment"># ===== (3) 奖励归一化 =====    </span></span><br><span class="line">        <span class="comment"># 奖励数值太大或波动过大会影响梯度更新，导致训练不稳定，</span></span><br><span class="line">        <span class="comment"># 把最终奖励统一缩放，例如除以 10，使其数值在合理范围内    </span></span><br><span class="line">        <span class="keyword">return</span> state, reward / <span class="number">10.</span>, done, info  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">reset</span>(<span class="params">self</span>):  </span><br><span class="line">        <span class="variable language_">self</span>.curr_score = <span class="number">0</span>  </span><br><span class="line">        <span class="keyword">return</span> process_frame(<span class="variable language_">self</span>.env.reset()) <span class="comment"># 返回初始状态</span></span><br></pre></td></tr></table></figure>
+<p>通过奖励塑形，智能体不仅能学到即时可见的动作好坏，还能朝着最终通关的长期目标努力。</p>
+<h3 id="2-3-状态预处理"><a href="#2-3-状态预处理" class="headerlink" title="2.3 状态预处理"></a>2.3 状态预处理</h3><p>游戏原始画面是 240×256 的 RGB 图像，直接作为网络输入计算量大、信息冗余多。我们通过以下方法进行预处理：</p>
+<ol>
+<li><strong>帧跳跃（Frame Skip）</strong> ：每执行一次动作，跳过若干帧（例如 4 帧），减少交互次数，提高训练效率，并避免智能体关注不必要的“微小抖动”。 </li>
+<li><strong>帧堆叠（Frame Stack）</strong>：将连续 4 帧画面堆叠作为状态输入，让智能体能感知运动趋势（例如判断马里奥是上升还是下落）。</li>
+<li><strong>灰度化 + 缩放</strong>： 将彩色图像转为灰度，保留核心信息，减少输入维度，缩放到 84×84 的固定分辨率，更适合卷积网络处理，同时降低计算量。</li>
+</ol>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">CustomSkipFrame</span>(<span class="title class_ inherited__">Wrapper</span>):  </span><br><span class="line">    <span class="string">&quot;&quot;&quot;  </span></span><br><span class="line"><span class="string">    跳帧 + 状态堆叠，让智能体不用每一帧都观察和决策  </span></span><br><span class="line"><span class="string">    1. 跳帧：一个动作连续执行多帧（skip 帧），减少环境计算量，提高训练效率。  </span></span><br><span class="line"><span class="string">    2. 堆叠帧：将多帧图像堆叠起来作为状态输入，使智能体能感知运动方向和速度。  </span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span>    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, env, skip=<span class="number">4</span></span>):  </span><br><span class="line">        <span class="built_in">super</span>(CustomSkipFrame, <span class="variable language_">self</span>).__init__(env)  </span><br><span class="line">        <span class="comment"># 堆叠4帧灰度图像 </span></span><br><span class="line">        <span class="variable language_">self</span>.observation_space = Box(low=<span class="number">0</span>, high=<span class="number">255</span>, shape=(<span class="number">4</span>, <span class="number">84</span>, <span class="number">84</span>)) </span><br><span class="line">        <span class="variable language_">self</span>.skip = skip  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">step</span>(<span class="params">self, action</span>):  </span><br><span class="line">        total_reward = <span class="number">0</span>  </span><br><span class="line">        states = []  </span><br><span class="line">        state, reward, done, info = <span class="variable language_">self</span>.env.step(action)  </span><br><span class="line">        <span class="comment"># ===== 帧跳跃 帧堆叠  =====    </span></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="variable language_">self</span>.skip):  </span><br><span class="line">            <span class="keyword">if</span> <span class="keyword">not</span> done:  </span><br><span class="line">                state, reward, done, info = <span class="variable language_">self</span>.env.step(action)  </span><br><span class="line">                total_reward += reward  <span class="comment"># 多帧累积奖励</span></span><br><span class="line">                states.append(state)  </span><br><span class="line">            <span class="keyword">else</span>:  </span><br><span class="line">                states.append(state)  <span class="comment"># 提前结束用当前帧填充，保证长度固定</span></span><br><span class="line">        <span class="comment"># 堆叠成四通道张量</span></span><br><span class="line">        states = np.concatenate(states, <span class="number">0</span>)[<span class="literal">None</span>, :, :, :]  </span><br><span class="line">        <span class="comment"># states.astype(np.float32) 转换成浮点数，</span></span><br><span class="line">        <span class="keyword">return</span> states.astype(np.float32), reward, done, info  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">reset</span>(<span class="params">self</span>):  </span><br><span class="line">        state = <span class="variable language_">self</span>.env.reset()  </span><br><span class="line">        states = np.concatenate([state <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="variable language_">self</span>.skip)], <span class="number">0</span>)[<span class="literal">None</span>, :, :, :]  </span><br><span class="line">        <span class="keyword">return</span> states.astype(np.float32)</span><br></pre></td></tr></table></figure>
+<p>经过这些处理，原始画面被转化为一个 <strong>4×84×84 的张量</strong>，既保留了时序和关键信息，又方便神经网络高效学习。</p>
+<h2 id="3-模型架构设计"><a href="#3-模型架构设计" class="headerlink" title="3. 模型架构设计"></a>3. 模型架构设计</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ActorCritic</span>(nn.Module):  </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, num_inputs, num_actions</span>):  </span><br><span class="line">        <span class="built_in">super</span>(ActorCritic, <span class="variable language_">self</span>).__init__()  </span><br><span class="line">        </span><br><span class="line">        <span class="comment"># ===== (1) CNN 提取特征 =====      </span></span><br><span class="line">        <span class="comment"># num_inputs为4，也是之前的4帧堆叠  </span></span><br><span class="line">        <span class="variable language_">self</span>.conv1 = nn.Conv2d(num_inputs, <span class="number">32</span>, <span class="number">3</span>, stride=<span class="number">2</span>, padding=<span class="number">1</span>)  </span><br><span class="line">        <span class="variable language_">self</span>.conv2 = nn.Conv2d(<span class="number">32</span>, <span class="number">32</span>, <span class="number">3</span>, stride=<span class="number">2</span>, padding=<span class="number">1</span>)  </span><br><span class="line">        <span class="variable language_">self</span>.conv3 = nn.Conv2d(<span class="number">32</span>, <span class="number">32</span>, <span class="number">3</span>, stride=<span class="number">2</span>, padding=<span class="number">1</span>)  </span><br><span class="line">        <span class="variable language_">self</span>.conv4 = nn.Conv2d(<span class="number">32</span>, <span class="number">32</span>, <span class="number">3</span>, stride=<span class="number">2</span>, padding=<span class="number">1</span>)  </span><br><span class="line">        </span><br><span class="line">        <span class="comment"># ===== (2) LSTM 时序建模 =====        </span></span><br><span class="line">        <span class="variable language_">self</span>.lstm = nn.LSTMCell(<span class="number">32</span> * <span class="number">6</span> * <span class="number">6</span>, <span class="number">512</span>)  </span><br><span class="line">        </span><br><span class="line">        <span class="comment"># ===== (3) 输出头：Actor + Critic =====       </span></span><br><span class="line">        <span class="variable language_">self</span>.critic_linear = nn.Linear(<span class="number">512</span>, <span class="number">1</span>)  </span><br><span class="line">        <span class="variable language_">self</span>.actor_linear = nn.Linear(<span class="number">512</span>, num_actions)  </span><br><span class="line">        </span><br><span class="line">        <span class="variable language_">self</span>._initialize_weights()  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># ===== (4) 权重初始化 =====      </span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">_initialize_weights</span>(<span class="params">self</span>):  </span><br><span class="line">        <span class="keyword">for</span> module <span class="keyword">in</span> <span class="variable language_">self</span>.modules():  </span><br><span class="line">            <span class="keyword">if</span> <span class="built_in">isinstance</span>(module, nn.Conv2d) <span class="keyword">or</span> <span class="built_in">isinstance</span>(module, nn.Linear):  </span><br><span class="line">                nn.init.xavier_uniform_(module.weight)  </span><br><span class="line">                nn.init.constant_(module.bias, <span class="number">0</span>)  </span><br><span class="line">            <span class="keyword">elif</span> <span class="built_in">isinstance</span>(module, nn.LSTMCell):  </span><br><span class="line">                nn.init.constant_(module.bias_ih, <span class="number">0</span>)  </span><br><span class="line">                nn.init.constant_(module.bias_hh, <span class="number">0</span>)  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x, hx, cx</span>):  </span><br><span class="line">        x = F.relu(<span class="variable language_">self</span>.conv1(x))  </span><br><span class="line">        x = F.relu(<span class="variable language_">self</span>.conv2(x))  </span><br><span class="line">        x = F.relu(<span class="variable language_">self</span>.conv3(x))  </span><br><span class="line">        x = F.relu(<span class="variable language_">self</span>.conv4(x))  <span class="comment"># 84 → 42 → 21 → 11 → 6</span></span><br><span class="line">        hx, cx = <span class="variable language_">self</span>.lstm(x.view(x.size(<span class="number">0</span>), -<span class="number">1</span>), (hx, cx))  </span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">self</span>.actor_linear(hx), <span class="variable language_">self</span>.critic_linear(hx), hx, cx</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-1-CNN-提取特征"><a href="#3-1-CNN-提取特征" class="headerlink" title="3.1 CNN 提取特征"></a>3.1 CNN 提取特征</h3><p>输入<code>(num_inputs, 84, 84)</code>，这里 num_inputs&#x3D;4，因为我们前面做了 <strong>4 帧堆叠</strong>，每层卷积核大小 3×3，步长 stride&#x3D;2 → 每过一层，特征图尺寸减半，经过 4 层卷积后，输出 32 × 6 × 6 的特征图。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">84 → 42 → 21 → 11 → 6 </span><br></pre></td></tr></table></figure>
+<p>这部分的作用是把原始像素图压缩成一个抽象的空间表示（比如马里奥在哪、敌人在哪、速度方向），方便后面 LSTM 使用。</p>
+<h3 id="3-2-LSTM-时序建模"><a href="#3-2-LSTM-时序建模" class="headerlink" title="3.2 LSTM 时序建模"></a>3.2 LSTM 时序建模</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable language_">self</span>.lstm = nn.LSTMCell(<span class="number">32</span> * <span class="number">6</span> * <span class="number">6</span>, <span class="number">512</span>)</span><br></pre></td></tr></table></figure>
+<p>输入维度：32 x 6 x 6 &#x3D; 1152，也就是 CNN 压缩出来的特征向量，输出维度：512，表示 LSTM 的隐藏状态大小。</p>
+<p>LSTM 的作用：<br>游戏是一个连续过程，单帧状态不足以做出最优决策（比如马里奥在跳，是往上还是往下？需要时间信息）。LSTM 就可以通过记忆单元 (hx, cx) 维护“历史信息”，建模动作与结果之间的长期依赖。<br>可以理解为：CNN 负责“看清楚这一帧”，LSTM 负责“记住过去几秒发生了啥”。</p>
+<h3 id="3-3-输出头Actor-Critic"><a href="#3-3-输出头Actor-Critic" class="headerlink" title="3.3 输出头Actor + Critic"></a>3.3 输出头Actor + Critic</h3><p><strong>Critic 头</strong>：输出一个标量，估计当前状态的价值 $V(s)$，用来评估 Actor 选择的动作好不好，减少训练的方差。<br><strong>Actor 头</strong>：输出一个 num_actions 维的向量 → softmax 后就是动作概率分布，表示智能体的“策略”。<br>Critic 是“裁判”，Actor 是“决策者”。二者配合就是 A3C 的核心思想。</p>
+<h3 id="3-4-权重初始化"><a href="#3-4-权重初始化" class="headerlink" title="3.4 权重初始化"></a>3.4 权重初始化</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_initialize_weights</span>(<span class="params">self</span>):</span><br><span class="line">    <span class="keyword">for</span> module <span class="keyword">in</span> <span class="variable language_">self</span>.modules():</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">isinstance</span>(module, nn.Conv2d) <span class="keyword">or</span> <span class="built_in">isinstance</span>(module, nn.Linear):</span><br><span class="line">            nn.init.xavier_uniform_(module.weight)</span><br><span class="line">            nn.init.constant_(module.bias, <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">elif</span> <span class="built_in">isinstance</span>(module, nn.LSTMCell):</span><br><span class="line">            nn.init.constant_(module.bias_ih, <span class="number">0</span>)</span><br><span class="line">            nn.init.constant_(module.bias_hh, <span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+
+<p><strong>Xavier 初始化</strong>：保证权重方差在前后层之间保持一致，避免梯度消失&#x2F;爆炸<br><strong>偏置置零</strong>：保证初始时 LSTM 不带偏向，学习过程更稳定</p>
+<p>初始化的好坏，直接决定训练能不能顺利收敛。</p>
+<h2 id="4-多进程训练"><a href="#4-多进程训练" class="headerlink" title="4. 多进程训练"></a>4. 多进程训练</h2><h3 id="4-1-train-函数"><a href="#4-1-train-函数" class="headerlink" title="4.1 train()函数"></a>4.1 train()函数</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 训练入口</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">train</span>(<span class="params">opt</span>):</span><br><span class="line">    torch.manual_seed(<span class="number">123</span>)  <span class="comment"># 固定随机种子，保证可复现</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 如果之前存在日志文件，先清理，重新创建</span></span><br><span class="line">    <span class="keyword">if</span> os.path.isdir(opt.log_path):</span><br><span class="line">        shutil.rmtree(opt.log_path)</span><br><span class="line">    os.makedirs(opt.log_path)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 模型保存目录</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> os.path.isdir(opt.saved_path):</span><br><span class="line">        os.makedirs(opt.saved_path)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 创建多进程环境，采用 &quot;spawn&quot; 启动方式（兼容性更好）</span></span><br><span class="line">    mp = _mp.get_context(<span class="string">&quot;spawn&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 创建训练环境（返回状态维度 num_states 和动作维度 num_actions）</span></span><br><span class="line">    env, num_states, num_actions = create_train_env(opt.world, opt.stage, opt.action_type)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 全局共享模型（所有进程共享这个模型的参数）</span></span><br><span class="line">    global_model = ActorCritic(num_states, num_actions)</span><br><span class="line">    <span class="keyword">if</span> opt.use_gpu:</span><br><span class="line">        global_model.cuda()</span><br><span class="line">    global_model.share_memory()  <span class="comment"># 关键：允许多进程共享这份模型参数</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 如果启用「从上一个关卡加载参数」</span></span><br><span class="line">    <span class="keyword">if</span> opt.load_from_previous_stage:</span><br><span class="line">        <span class="comment"># 1-1 关没法从上一个stage继续，只能从前一个world的4关</span></span><br><span class="line">        <span class="keyword">if</span> opt.stage == <span class="number">1</span>:</span><br><span class="line">            previous_world = opt.world - <span class="number">1</span></span><br><span class="line">            previous_stage = <span class="number">4</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            previous_world = opt.world</span><br><span class="line">            previous_stage = opt.stage - <span class="number">1</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 拼接路径，加载 checkpoint</span></span><br><span class="line">        file_ = <span class="string">&quot;&#123;&#125;/a3c_super_mario_bros_&#123;&#125;_&#123;&#125;&quot;</span>.<span class="built_in">format</span>(opt.saved_path, previous_world, previous_stage)</span><br><span class="line">        <span class="keyword">if</span> os.path.isfile(file_):</span><br><span class="line">            global_model.load_state_dict(torch.load(file_))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 全局优化器（自定义的 Adam，用于多个进程梯度聚合）</span></span><br><span class="line">    optimizer = GlobalAdam(global_model.parameters(), lr=opt.lr)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 启动一个「本地训练进程」和一个「测试进程」</span></span><br><span class="line">    local_train(<span class="number">0</span>, opt, global_model, optimizer, <span class="literal">True</span>)</span><br><span class="line">    local_test(opt.num_processes, opt, global_model)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 启动多个并行训练进程</span></span><br><span class="line">    processes = []</span><br><span class="line">    <span class="keyword">for</span> index <span class="keyword">in</span> <span class="built_in">range</span>(opt.num_processes):</span><br><span class="line">        <span class="keyword">if</span> index == <span class="number">0</span>:</span><br><span class="line">            <span class="comment"># 第 0 号进程：训练时保存模型</span></span><br><span class="line">            process = mp.Process(target=local_train, args=(index, opt, global_model, optimizer, <span class="literal">True</span>))</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="comment"># 其他进程：只训练，不保存</span></span><br><span class="line">            process = mp.Process(target=local_train, args=(index, opt, global_model, optimizer))</span><br><span class="line">        process.start()</span><br><span class="line">        processes.append(process)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 单独启动一个测试进程，评估当前策略表现</span></span><br><span class="line">    process = mp.Process(target=local_test, args=(opt.num_processes, opt, global_model))</span><br><span class="line">    process.start()</span><br><span class="line">    processes.append(process)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 等待所有子进程结束</span></span><br><span class="line">    <span class="keyword">for</span> process <span class="keyword">in</span> processes:</span><br><span class="line">        process.join()</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">create_train_env</span>(<span class="params">world, stage, action_type, output_path=<span class="literal">None</span></span>):  </span><br><span class="line">    env = gym_super_mario_bros.make(<span class="string">&quot;SuperMarioBros-&#123;&#125;-&#123;&#125;-v0&quot;</span>.<span class="built_in">format</span>(world, stage))  </span><br><span class="line">    <span class="keyword">if</span> output_path:  </span><br><span class="line">        <span class="comment"># 把环境的画面录制下来并保存成视频文件</span></span><br><span class="line">        monitor = Monitor(<span class="number">256</span>, <span class="number">240</span>, output_path)  </span><br><span class="line">    <span class="keyword">else</span>:  </span><br><span class="line">        monitor = <span class="literal">None</span>  </span><br><span class="line">    <span class="keyword">if</span> action_type == <span class="string">&quot;right&quot;</span>:  </span><br><span class="line">        actions = RIGHT_ONLY  </span><br><span class="line">    <span class="keyword">elif</span> action_type == <span class="string">&quot;simple&quot;</span>:  </span><br><span class="line">        actions = SIMPLE_MOVEMENT  </span><br><span class="line">    <span class="keyword">else</span>:  </span><br><span class="line">        actions = COMPLEX_MOVEMENT </span><br><span class="line">    <span class="comment"># 把复杂的按钮组合，封装成离散动作编号，方便后续强化学习训练或键盘控制   </span></span><br><span class="line">    env = JoypadSpace(env, actions)</span><br><span class="line">    env = CustomReward(env, monitor) <span class="comment"># 自定义奖励信号  </span></span><br><span class="line">    env = CustomSkipFrame(env) <span class="comment"># 跳帧+状态堆叠  </span></span><br><span class="line">    <span class="keyword">return</span> env, env.observation_space.shape[<span class="number">0</span>], <span class="built_in">len</span>(actions)</span><br></pre></td></tr></table></figure>
+<h3 id="4-2-单个进程的训练"><a href="#4-2-单个进程的训练" class="headerlink" title="4.2 单个进程的训练"></a>4.2 单个进程的训练</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">local_train</span>(<span class="params">index, opt, global_model, optimizer, save=<span class="literal">False</span></span>):</span><br><span class="line">    torch.manual_seed(<span class="number">123</span> + index)  <span class="comment"># 每个进程用不同随机种子，保证探索多样性</span></span><br><span class="line">    <span class="keyword">if</span> save:</span><br><span class="line">        start_time = timeit.default_timer()</span><br><span class="line"></span><br><span class="line">    writer = SummaryWriter(opt.log_path)  <span class="comment"># TensorBoard 记录器</span></span><br><span class="line">    env, num_states, num_actions = create_train_env(opt.world, opt.stage, opt.action_type)</span><br><span class="line">    local_model = ActorCritic(num_states, num_actions)  <span class="comment"># 本地模型（Worker 的拷贝）</span></span><br><span class="line">    <span class="keyword">if</span> opt.use_gpu:</span><br><span class="line">        local_model.cuda()</span><br><span class="line">    local_model.train()</span><br><span class="line"></span><br><span class="line">    state = torch.from_numpy(env.reset())  <span class="comment"># 初始状态</span></span><br><span class="line">    <span class="keyword">if</span> opt.use_gpu:</span><br><span class="line">        state = state.cuda()</span><br><span class="line"></span><br><span class="line">    done = <span class="literal">True</span>  <span class="comment"># episode 结束标志</span></span><br><span class="line">    curr_step = <span class="number">0</span>  <span class="comment"># 全局步数计数器</span></span><br><span class="line">    curr_episode = <span class="number">0</span>  <span class="comment"># episode 计数器</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># =============== 主循环 ===============</span></span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        <span class="comment"># 每个 episode 初始化 LSTM 隐状态</span></span><br><span class="line">        <span class="keyword">if</span> done:</span><br><span class="line">            h_0 = torch.zeros((<span class="number">1</span>, <span class="number">512</span>), dtype=torch.<span class="built_in">float</span>)  <span class="comment"># 隐状态</span></span><br><span class="line">            c_0 = torch.zeros((<span class="number">1</span>, <span class="number">512</span>), dtype=torch.<span class="built_in">float</span>)  <span class="comment"># 记忆单元</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            h_0 = h_0.detach()  <span class="comment"># 上一时刻的状态延续，但不反传梯度</span></span><br><span class="line">            c_0 = c_0.detach()</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> opt.use_gpu:</span><br><span class="line">            h_0, c_0 = h_0.cuda(), c_0.cuda()</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 每次训练前，把全局参数同步到本地</span></span><br><span class="line">        local_model.load_state_dict(global_model.state_dict())</span><br><span class="line"></span><br><span class="line">        log_policies, values, rewards, entropies = [], [], [], []</span><br><span class="line">        episode_reward = <span class="number">0</span></span><br><span class="line">        cleared = <span class="literal">False</span>  <span class="comment"># 是否通关标志（过旗子）</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># ========= 交互 num_local_steps（比如 50 步） =========</span></span><br><span class="line">        <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(opt.num_local_steps):</span><br><span class="line">            curr_step += <span class="number">1</span></span><br><span class="line"></span><br><span class="line">            <span class="comment"># 策略网络前向传播：输出动作分布和状态价值</span></span><br><span class="line">            logits, value, h_0, c_0 = local_model(state, h_0, c_0)</span><br><span class="line">            policy = F.softmax(logits, dim=<span class="number">1</span>)      <span class="comment"># 动作概率分布</span></span><br><span class="line">            log_policy = F.log_softmax(logits, <span class="number">1</span>)  <span class="comment"># 对数概率</span></span><br><span class="line">            entropy = -(policy * log_policy).<span class="built_in">sum</span>(<span class="number">1</span>, keepdim=<span class="literal">True</span>)  <span class="comment"># 策略熵</span></span><br><span class="line"></span><br><span class="line">            <span class="comment"># 按概率采样动作（训练时随机，测试时可选贪婪）</span></span><br><span class="line">            m = Categorical(policy)</span><br><span class="line">            action = m.sample().item()</span><br><span class="line"></span><br><span class="line">            <span class="comment"># 与环境交互</span></span><br><span class="line">            state, reward, done, info = env.step(action)</span><br><span class="line">            state = torch.from_numpy(state)</span><br><span class="line">            <span class="keyword">if</span> opt.use_gpu:</span><br><span class="line">                state = state.cuda()</span><br><span class="line"></span><br><span class="line">            <span class="comment"># ✅ 通关检测</span></span><br><span class="line">            <span class="keyword">if</span> info.get(<span class="string">&#x27;flag_get&#x27;</span>, <span class="literal">False</span>):</span><br><span class="line">                cleared = <span class="literal">True</span></span><br><span class="line">                done = <span class="literal">True</span></span><br><span class="line"></span><br><span class="line">            <span class="comment"># ✅ 达到全局最大步数，强制结束</span></span><br><span class="line">            <span class="keyword">if</span> curr_step &gt; opt.num_global_steps:</span><br><span class="line">                done = <span class="literal">True</span></span><br><span class="line"></span><br><span class="line">            <span class="comment"># ✅ Episode 结束时重置环境</span></span><br><span class="line">            <span class="keyword">if</span> done:</span><br><span class="line">                curr_step = <span class="number">0</span></span><br><span class="line">                state = torch.from_numpy(env.reset())</span><br><span class="line">                <span class="keyword">if</span> opt.use_gpu:</span><br><span class="line">                    state = state.cuda()</span><br><span class="line"></span><br><span class="line">            <span class="comment"># 经验收集</span></span><br><span class="line">            episode_reward += reward</span><br><span class="line">            values.append(value)</span><br><span class="line">            log_policies.append(log_policy[<span class="number">0</span>, action])</span><br><span class="line">            rewards.append(reward)</span><br><span class="line">            entropies.append(entropy)</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> done:  <span class="comment"># episode 结束 → 跳出</span></span><br><span class="line">                <span class="keyword">break</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># ========= 计算损失 =========</span></span><br><span class="line">        <span class="comment"># Bootstrap：如果没结束，用 Critic 估计未来价值</span></span><br><span class="line">        R = torch.zeros((<span class="number">1</span>, <span class="number">1</span>), dtype=torch.<span class="built_in">float</span>)</span><br><span class="line">        <span class="keyword">if</span> opt.use_gpu:</span><br><span class="line">            R = R.cuda()</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> done:</span><br><span class="line">            _, R, _, _ = local_model(state, h_0, c_0)</span><br><span class="line"></span><br><span class="line">        gae = torch.zeros((<span class="number">1</span>, <span class="number">1</span>), dtype=torch.<span class="built_in">float</span>)  <span class="comment"># 广义优势估计（GAE）</span></span><br><span class="line">        <span class="keyword">if</span> opt.use_gpu:</span><br><span class="line">            gae = gae.cuda()</span><br><span class="line"></span><br><span class="line">        actor_loss, critic_loss, entropy_loss = <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span></span><br><span class="line">        next_value = R</span><br><span class="line">        <span class="comment"># 🔁 逆序回溯（从最后一步往前算）</span></span><br><span class="line">        <span class="keyword">for</span> value, log_policy, reward, entropy <span class="keyword">in</span> <span class="built_in">list</span>(<span class="built_in">zip</span>(values, log_policies, rewards, entropies))[::-<span class="number">1</span>]:</span><br><span class="line">            <span class="comment"># GAE 更新：δ + γτ * gae</span></span><br><span class="line">            gae = gae * opt.gamma * opt.tau + reward + opt.gamma * next_value.detach() - value.detach()</span><br><span class="line">            next_value = value</span><br><span class="line">            actor_loss += log_policy * gae  <span class="comment"># 策略梯度</span></span><br><span class="line">            R = R * opt.gamma + reward</span><br><span class="line">            critic_loss += (R - value) ** <span class="number">2</span> / <span class="number">2</span>  <span class="comment"># 值函数回归</span></span><br><span class="line">            entropy_loss += entropy  <span class="comment"># 探索奖励</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 总损失 = 策略损失 + 值函数损失 - 熵奖励</span></span><br><span class="line">        total_loss = -actor_loss + critic_loss - opt.beta * entropy_loss</span><br><span class="line"></span><br><span class="line">        <span class="comment"># ========= TensorBoard 记录 =========</span></span><br><span class="line">        writer.add_scalar(<span class="string">f&quot;Train_<span class="subst">&#123;index&#125;</span>/TotalLoss&quot;</span>, total_loss.item(), curr_episode)</span><br><span class="line">        writer.add_scalar(<span class="string">f&quot;Train_<span class="subst">&#123;index&#125;</span>/ActorLoss&quot;</span>, actor_loss.item(), curr_episode)</span><br><span class="line">        writer.add_scalar(<span class="string">f&quot;Train_<span class="subst">&#123;index&#125;</span>/CriticLoss&quot;</span>, critic_loss.item(), curr_episode)</span><br><span class="line">        writer.add_scalar(<span class="string">f&quot;Train_<span class="subst">&#123;index&#125;</span>/Entropy&quot;</span>, entropy_loss.item(), curr_episode)</span><br><span class="line">        writer.add_scalar(<span class="string">f&quot;Train_<span class="subst">&#123;index&#125;</span>/EpisodeReward&quot;</span>, episode_reward, curr_episode)</span><br><span class="line">        writer.add_scalar(<span class="string">f&quot;Train_<span class="subst">&#123;index&#125;</span>/Cleared&quot;</span>, <span class="built_in">int</span>(cleared), curr_episode)  <span class="comment"># 1=通关, 0=失败</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># ========= 梯度上传到全局模型 =========</span></span><br><span class="line">        optimizer.zero_grad()</span><br><span class="line">        total_loss.backward()</span><br><span class="line">        <span class="keyword">for</span> local_param, global_param <span class="keyword">in</span> <span class="built_in">zip</span>(local_model.parameters(), global_model.parameters()):</span><br><span class="line">            <span class="keyword">if</span> global_param.grad <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">                global_param._grad = local_param.grad  <span class="comment"># 拷贝梯度到全局</span></span><br><span class="line">        optimizer.step()  <span class="comment"># 更新全局参数</span></span><br><span class="line"></span><br><span class="line">        curr_episode += <span class="number">1</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># ========= 日志输出 =========</span></span><br><span class="line">        <span class="built_in">print</span>(</span><br><span class="line">            <span class="string">f&quot;[Process <span class="subst">&#123;index&#125;</span>] Episode <span class="subst">&#123;curr_episode&#125;</span> | &quot;</span></span><br><span class="line">            <span class="string">f&quot;Reward: <span class="subst">&#123;episode_reward:<span class="number">.2</span>f&#125;</span> | &quot;</span></span><br><span class="line">            <span class="string">f&quot;Cleared: <span class="subst">&#123;<span class="string">&#x27;Yes&#x27;</span> <span class="keyword">if</span> cleared <span class="keyword">else</span> <span class="string">&#x27;No&#x27;</span>&#125;</span> | &quot;</span></span><br><span class="line">            <span class="string">f&quot;TotalLoss: <span class="subst">&#123;total_loss.item():<span class="number">.4</span>f&#125;</span> | &quot;</span></span><br><span class="line">            <span class="string">f&quot;ActorLoss: <span class="subst">&#123;actor_loss.item():<span class="number">.4</span>f&#125;</span> | &quot;</span></span><br><span class="line">            <span class="string">f&quot;CriticLoss: <span class="subst">&#123;critic_loss.item():<span class="number">.4</span>f&#125;</span> | &quot;</span></span><br><span class="line">            <span class="string">f&quot;Entropy: <span class="subst">&#123;entropy_loss.item():<span class="number">.4</span>f&#125;</span>&quot;</span></span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">        <span class="comment"># ========= 模型保存 =========</span></span><br><span class="line">        <span class="keyword">if</span> save <span class="keyword">and</span> curr_episode % opt.save_interval == <span class="number">0</span>:</span><br><span class="line">            torch.save(global_model.state_dict(),</span><br><span class="line">                       <span class="string">f&quot;<span class="subst">&#123;opt.saved_path&#125;</span>/a3c_super_mario_bros_<span class="subst">&#123;opt.world&#125;</span>_<span class="subst">&#123;opt.stage&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># ========= 训练结束条件 =========</span></span><br><span class="line">        <span class="keyword">if</span> curr_episode &gt;= <span class="built_in">int</span>(opt.num_global_steps / opt.num_local_steps):</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;Training process <span class="subst">&#123;index&#125;</span> terminated&quot;</span>)</span><br><span class="line">            <span class="keyword">if</span> save:</span><br><span class="line">                end_time = timeit.default_timer()</span><br><span class="line">                <span class="built_in">print</span>(<span class="string">f&#x27;Total training time: <span class="subst">&#123;end_time - start_time:<span class="number">.2</span>f&#125;</span> s&#x27;</span>)</span><br><span class="line">            <span class="keyword">return</span></span><br></pre></td></tr></table></figure>
+<p>训练日志：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[Process 0] Episode 1 | Reward: -0.20 | Cleared: No | TotalLoss: 4.4672 | ActorLoss: -5.1896 | CriticLoss: 0.5195 | Entropy: 124.1912</span><br><span class="line">[Process 0] Episode 2 | Reward: 2.30 | Cleared: No | TotalLoss: 43.5234 | ActorLoss: -40.6037 | CriticLoss: 4.1615 | Entropy: 124.1819</span><br><span class="line">[Process 0] Episode 3 | Reward: 2.50 | Cleared: No | TotalLoss: 55.0827 | ActorLoss: -45.4405 | CriticLoss: 10.8840 | Entropy: 124.1825</span><br><span class="line">[Process 0] Episode 4 | Reward: -1.20 | Cleared: No | TotalLoss: -48.3509 | ActorLoss: 53.7558 | CriticLoss: 6.6465 | Entropy: 124.1659</span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>[Process 0] Episode 1</strong>：来自 <strong>第 0 个 Worker 进程</strong>，这是它的 <strong>第 1 个 episode</strong>（从环境 reset 开始到终止）。</li>
+<li><strong>Reward: -0.20</strong>：本次 episode 的累计奖励是 <strong>-0.20</strong>，表明智能体在第一轮尝试中表现很差（可能掉坑、被怪物碰到，奖励为负），这是正常现象，初期策略接近随机，几乎没有生存能力。</li>
+<li><strong>Cleared: No</strong>：<strong>没有通关</strong>，早期训练阶段几乎所有 episode 都是失败的。</li>
+<li><strong>TotalLoss: 4.4672</strong>：总的训练损失（Actor + Critic - β·Entropy），数值并不是越低越好，而是随着训练过程动态波动。</li>
+<li><strong>ActorLoss: -5.1896</strong>：策略梯度损失（带优势函数的 $log π(a|s)$）。这里是 <strong>负值</strong>，说明模型在尝试调整策略去增加某些动作的概率，在 early stage，负的 actor loss 很常见，因为 GAE 给出的优势值可能是负的。</li>
+<li><strong>CriticLoss: 0.5195</strong>： 价值函数（$V(s)$）的均方误差损失，数值不大，说明 Critic 对部分状态的价值估计已经在收敛。</li>
+<li><strong>Entropy: 124.1912</strong>：策略分布的熵值（衡量探索程度），值很大，表示当前策略接近 <strong>均匀随机</strong>，几乎所有动作的概率差不多。这是好事，说明智能体在初期保持了充分探索，不会过早收敛到坏策略。</li>
+</ul>
+<h3 id="4-3-总结"><a href="#4-3-总结" class="headerlink" title="4.3 总结"></a>4.3 总结</h3><ul>
+<li><strong>train()</strong>：负责环境准备、加载模型、启动多个进程（并行训练 + 测试）</li>
+<li><strong>local_train()</strong>：单个进程的训练逻辑 → 环境交互 → 收集轨迹 → 计算损失 → 梯度上传 → 全局更新</li>
+<li><strong>全局同步</strong>：本地模型参数从全局拉取，训练后梯度上传，保证所有进程共享一份最新策略</li>
+<li><strong>测试流程</strong>：单独起一个 local_test 进程，不采样动作，而是用贪婪策略评估当前表现</li>
+</ul>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/a3c_train_arch2025-08-29_17-48-21.jpg"></p>
+<h2 id="5-优化器实现"><a href="#5-优化器实现" class="headerlink" title="5. 优化器实现"></a>5. 优化器实现</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 继承了 PyTorch 自带的 Adam，保留它的梯度更新规则</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">GlobalAdam</span>(torch.optim.Adam):  </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, params, lr</span>):  </span><br><span class="line">        <span class="comment"># foreach=False 是为了避免新版本API的冲突</span></span><br><span class="line">        <span class="built_in">super</span>(GlobalAdam, <span class="variable language_">self</span>).__init__(params, lr=lr, foreach=<span class="literal">False</span>)</span><br><span class="line">        <span class="keyword">for</span> group <span class="keyword">in</span> <span class="variable language_">self</span>.param_groups:  </span><br><span class="line">            <span class="keyword">for</span> p <span class="keyword">in</span> group[<span class="string">&#x27;params&#x27;</span>]:  </span><br><span class="line">                state = <span class="variable language_">self</span>.state[p]  </span><br><span class="line">  </span><br><span class="line">                <span class="comment"># 初始化状态  </span></span><br><span class="line">                state[<span class="string">&#x27;step&#x27;</span>] = torch.tensor(<span class="number">0.</span>)  <span class="comment"># 记录每个参数更新的步数 t</span></span><br><span class="line">                state[<span class="string">&#x27;exp_avg&#x27;</span>] = torch.zeros_like(p.data)  <span class="comment"># 用于平滑梯度</span></span><br><span class="line">                state[<span class="string">&#x27;exp_avg_sq&#x27;</span>] = torch.zeros_like(p.data)  <span class="comment"># 用于自适应学习率</span></span><br><span class="line">  </span><br><span class="line">                <span class="comment"># 多进程共享，多Worker进程可以同时访问全局优化器状态</span></span><br><span class="line">                <span class="comment"># share_memory_()会把tensor放到共享内存，不同进程都能读写同一个内存区域</span></span><br><span class="line">                <span class="comment"># 这样每个Worker计算出的梯度，都可以正确累加到全局Adam的状态上，而不是各自独立</span></span><br><span class="line">                state[<span class="string">&#x27;step&#x27;</span>].share_memory_()  </span><br><span class="line">                state[<span class="string">&#x27;exp_avg&#x27;</span>].share_memory_()  </span><br><span class="line">                state[<span class="string">&#x27;exp_avg_sq&#x27;</span>].share_memory_()</span><br></pre></td></tr></table></figure>
+<p>GlobalAdam 是为了 <strong>在多进程环境下安全地更新全局模型参数</strong>。它保留了 Adam 的梯度自适应能力，同时保证 <strong>每个 Worker 看到的是同一套动量和步数</strong>，保证 A3C 的训练稳定性，如果没有 <code>share_memory_()</code>，各 Worker 的梯度就只能独立更新本地模型，<strong>全局模型不会正确同步</strong>。</p>
+<h2 id="6-测试与评估"><a href="#6-测试与评估" class="headerlink" title="6. 测试与评估"></a>6. 测试与评估</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">play</span>(<span class="params">opt</span>):  </span><br><span class="line">    torch.manual_seed(<span class="number">123</span>)  </span><br><span class="line">    </span><br><span class="line">    <span class="comment"># ===== (1) 模型加载 =====      </span></span><br><span class="line">    model = ActorCritic(num_states, num_actions)  </span><br><span class="line">    <span class="keyword">if</span> torch.cuda.is_available():  </span><br><span class="line">        model.load_state_dict(torch.load(<span class="string">&quot;&#123;&#125;/a3c_super_mario_bros_&#123;&#125;_&#123;&#125;&quot;</span>.<span class="built_in">format</span>(opt.saved_path, opt.world, opt.stage)))  </span><br><span class="line">        model.cuda()  </span><br><span class="line">    <span class="keyword">else</span>:  </span><br><span class="line">        model.load_state_dict(torch.load(<span class="string">&quot;&#123;&#125;/a3c_super_mario_bros_&#123;&#125;_&#123;&#125;&quot;</span>.<span class="built_in">format</span>(opt.saved_path, opt.world, opt.stage),  </span><br><span class="line">                                         map_location=<span class="keyword">lambda</span> storage, loc: storage))  </span><br><span class="line">    model.<span class="built_in">eval</span>()  </span><br><span class="line">    </span><br><span class="line">    <span class="comment"># ===== (2) 环境准备与状态初始化 =====      </span></span><br><span class="line">    env, num_states, num_actions = create_train_env(opt.world, opt.stage, opt.action_type, <span class="string">&quot;&#123;&#125;/video_&#123;&#125;_&#123;&#125;.mp4&quot;</span>.<span class="built_in">format</span>(opt.output_path, opt.world, opt.stage))  </span><br><span class="line">    state = torch.from_numpy(env.reset())  </span><br><span class="line">    done = <span class="literal">True</span>  </span><br><span class="line">    </span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:  </span><br><span class="line">        <span class="comment"># ===== (3) LSTM 隐状态初始化 =====      </span></span><br><span class="line">        <span class="keyword">if</span> done:  <span class="comment"># 游戏开始或者上一关结束，需要重置 LSTM 的隐藏状态</span></span><br><span class="line">            h_0 = torch.zeros((<span class="number">1</span>, <span class="number">512</span>), dtype=torch.<span class="built_in">float</span>)  </span><br><span class="line">            c_0 = torch.zeros((<span class="number">1</span>, <span class="number">512</span>), dtype=torch.<span class="built_in">float</span>)  </span><br><span class="line">            env.reset()  </span><br><span class="line">        <span class="keyword">else</span>:  <span class="comment"># 游戏进行中，保留上一帧的记忆信息，但 detach 防止梯度回传</span></span><br><span class="line">            h_0 = h_0.detach()  </span><br><span class="line">            c_0 = c_0.detach()  </span><br><span class="line">            </span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> torch.cuda.is_available():  </span><br><span class="line">            h_0 = h_0.cuda()  </span><br><span class="line">            c_0 = c_0.cuda()  </span><br><span class="line">            state = state.cuda()  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># ===== (4) 决策与动作选择 =====</span></span><br><span class="line">        <span class="comment"># 将 Actor 输出的 logits 转换为动作概率分布      </span></span><br><span class="line">        logits, value, h_0, c_0 = model(state, h_0, c_0)  </span><br><span class="line">        policy = F.softmax(logits, dim=<span class="number">1</span>)  </span><br><span class="line">        <span class="comment"># 贪婪策略 torch.argmax 选择概率最大的动作，适合评估阶段，避免随机探索</span></span><br><span class="line">        action = torch.argmax(policy).item()  </span><br><span class="line">        action = <span class="built_in">int</span>(action)  </span><br><span class="line">        <span class="comment"># 环境交互 把动作传给环境，得到下一帧状态、奖励和 done 标志</span></span><br><span class="line">        state, reward, done, info = env.step(action)  </span><br><span class="line">        state = torch.from_numpy(state)  </span><br><span class="line">        </span><br><span class="line">        <span class="comment"># ===== (5) 视频录制与可视化 =====      </span></span><br><span class="line">        env.render()  </span><br><span class="line">        time.sleep(<span class="number">1</span> / <span class="number">30</span>)  <span class="comment"># 控制为 30 FPS     </span></span><br><span class="line">        </span><br><span class="line">        <span class="comment"># ===== (6) 性能指标与通关检测 =====      </span></span><br><span class="line">        <span class="keyword">if</span> info[<span class="string">&quot;flag_get&quot;</span>]:  </span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;World &#123;&#125; stage &#123;&#125; completed, reward:&#123;&#125;&quot;</span>.<span class="built_in">format</span>(opt.world, opt.stage, reward))</span><br><span class="line">            <span class="keyword">break</span></span><br></pre></td></tr></table></figure>
+<p>模型效果：<br><video src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/video_1_1_super_mario.mp4" controls="controls"></video></p>
+<center> world 1 stage 1</center>
+<video src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/video_3_1_super_mario.mp4" controls="controls"></video>
+<center>world 3 stage 1 </center>
+<center> </center>
+<video src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/video_7_1_super_mario.mp4" controls="controls"></video>
+<center>world 7 stage 1 </center>
+
+<p>总结：</p>
+<ul>
+<li><strong>加载训练好的全局模型</strong> → 保证策略质量</li>
+<li><strong>初始化环境与状态</strong> → 保持与训练一致</li>
+<li><strong>初始化&#x2F;更新 LSTM 隐状态</strong> → 记忆连续动作信息</li>
+<li><strong>选择动作 → 与环境交互 → 获取奖励</strong> → 执行策略并收集指标</li>
+<li><strong>通关&#x2F;结束检测</strong> → 判断策略效果</li>
+<li><strong>可视化 + 视频录制</strong> → 便于分析和展示</li>
+</ul>
+<p>评估阶段就是让训练好的模型去玩游戏，记录每一步表现，同时生成视频来观察策略是否稳健。</p>
+<h2 id="7-实际训练表现"><a href="#7-实际训练表现" class="headerlink" title="7. 实际训练表现"></a>7. 实际训练表现</h2><h3 id="7-1-训练关卡的选择"><a href="#7-1-训练关卡的选择" class="headerlink" title="7.1 训练关卡的选择"></a>7.1 训练关卡的选择</h3><p>智能体的学习效果与环境复杂度密切相关。为了循序渐进地提升智能体的能力，我们通常会选择不同难度的关卡进行训练，比如：</p>
+<ul>
+<li><strong>世界 1-2</strong>：包含管道与天花板，强调 <strong>跳跃精度</strong> 与 <strong>避障</strong> 策略</li>
+<li><strong>世界 3-1</strong>：出现飞行敌人和平台跳跃，考验智能体的 <strong>时机把握</strong> 与 <strong>动态环境适应能力</strong></li>
+<li><strong>世界 7-1</strong>：敌人密集、地形复杂，属于 <strong>高难度场景</strong>，用于检验智能体在复杂环境中的泛化能力</li>
+</ul>
+<p>这种由浅入深的关卡设计，类似人类玩家的学习过程：先掌握基本操作，再逐步挑战更复杂的场景。</p>
+<h3 id="7-2-训练时间与资源开销"><a href="#7-2-训练时间与资源开销" class="headerlink" title="7.2 训练时间与资源开销"></a>7.2 训练时间与资源开销</h3><p>训练时间的长短取决于 <strong>硬件条件</strong> 与 <strong>并行度</strong>：</p>
+<ul>
+<li><strong>数小时</strong>：智能体可以学会基础操作，例如避免直接碰撞敌人、尝试跳跃</li>
+<li><strong>数十小时</strong>：策略逐渐成型，能够更合理地处理障碍，表现出较为稳定的存活能力</li>
+<li><strong>几天</strong>：在多核 CPU + GPU 的支持下，智能体能够学习到较复杂的动作组合，甚至可以通关</li>
+</ul>
+<p>如果仅依靠单机 CPU，训练效率会显著下降，可能需要几天甚至更久的时间来完成同等水平的学习。</p>
+<h3 id="7-3-训练成果"><a href="#7-3-训练成果" class="headerlink" title="7.3 训练成果"></a>7.3 训练成果</h3><p>经过充分训练后，智能体逐渐展现出与人类玩家类似的行为模式：</p>
+<ul>
+<li><strong>避障能力</strong>：面对前方的敌人，智能体能够选择跳跃或绕开，而不是盲目前进。</li>
+<li><strong>跳跃掌握</strong>：能够在坑洞前做出恰当的起跳动作，并且学会通过踩击敌人获取奖励。</li>
+<li><strong>通关能力</strong>：在部分关卡中，智能体可以稳定地完成整局游戏，并触发 flag_get &#x3D; True，即成功到达终点。</li>
+</ul>
+<p>与训练初期的“乱跑乱跳”相比，成熟的智能体表现更接近一个“熟练但偶尔失误”的人类玩家。</p>
+<h2 id="8-工程化实现要点"><a href="#8-工程化实现要点" class="headerlink" title="8. 工程化实现要点"></a>8. 工程化实现要点</h2><h3 id="8-1-LSTM-状态管理：detach避免梯度爆炸"><a href="#8-1-LSTM-状态管理：detach避免梯度爆炸" class="headerlink" title="8.1 LSTM 状态管理：detach避免梯度爆炸"></a>8.1 LSTM 状态管理：detach避免梯度爆炸</h3><p>在 A3C 中，我们采用 <strong>LSTM 单元</strong>来建模时间依赖性，让智能体能够记忆过去的状态和动作。<br>但如果不加处理，LSTM 的隐藏状态会在时间维度上不断累积梯度，导致 <strong>梯度爆炸</strong> 或 <strong>显存泄漏</strong>。</p>
+<p>解决办法是在每一轮 episode 开始时，显式执行：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> done:</span><br><span class="line">    h_0 = torch.zeros((<span class="number">1</span>, <span class="number">512</span>))</span><br><span class="line">    c_0 = torch.zeros((<span class="number">1</span>, <span class="number">512</span>))</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    h_0 = h_0.detach()</span><br><span class="line">    c_0 = c_0.detach()</span><br></pre></td></tr></table></figure>
+
+<p>这样，新的 episode 使用 <strong>干净的初始状态</strong>；未结束的 episode 则通过 detach 切断梯度回溯，避免跨 episode 梯度累计。</p>
+<h3 id="8-2-容错机制：环境异常自动reset"><a href="#8-2-容错机制：环境异常自动reset" class="headerlink" title="8.2 容错机制：环境异常自动reset"></a>8.2 容错机制：环境异常自动reset</h3><p>游戏环境（特别是复古模拟器）可能会因为 <strong>非法动作</strong>、<strong>内存错误</strong> 或 <strong>渲染问题</strong> 崩溃。如果训练过程缺乏容错机制，整个多进程系统就会挂掉。</p>
+<p>因此，代码中设计了 <strong>自动 reset</strong> 机制：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> done:</span><br><span class="line">    state = torch.from_numpy(env.reset())</span><br></pre></td></tr></table></figure>
+<p>一旦游戏失败或环境异常，智能体立即重置到初始状态，继续学习。这样保证了训练过程的 <strong>鲁棒性</strong>，不会因为单个环境问题影响全局训练。</p>
+<h3 id="8-3-模块化设计"><a href="#8-3-模块化设计" class="headerlink" title="8.3 模块化设计"></a>8.3 模块化设计</h3><p>为了便于维护与扩展，整个系统采用了 <strong>模块化设计</strong>：</p>
+<ul>
+<li><strong>env</strong>：环境封装层，负责状态预处理（灰度化、帧堆叠、缩放）和动作空间简化</li>
+<li><strong>model</strong>：Actor-Critic 网络定义，包含 CNN 特征提取、LSTM 时序建模、Actor &amp; Critic 输出</li>
+<li><strong>optimizer</strong>：自定义 GlobalAdam，支持多进程共享梯度更新</li>
+<li><strong>process</strong>：多进程 Worker 管理，确保并行训练与测试正常运行</li>
+<li><strong>train</strong>：训练逻辑，包括 rollout、GAE 优势估计、损失计算与梯度回传</li>
+<li><strong>test</strong>：测试与评估，加载 checkpoint 并可视化智能体表现</li>
+</ul>
+<p>这种分层结构使得工程更接近 <strong>生产级系统</strong>，方便在未来替换不同算法（如 PPO、IMPALA）、接入不同环境（如 Atari、Gym Retro）。</p>
+<h2 id="9-性能优化技巧"><a href="#9-性能优化技巧" class="headerlink" title="9. 性能优化技巧"></a>9. 性能优化技巧</h2><h3 id="9-1-帧跳跃-Frame-Skip-状态堆叠-Frame-Stack"><a href="#9-1-帧跳跃-Frame-Skip-状态堆叠-Frame-Stack" class="headerlink" title="9.1 帧跳跃 (Frame Skip) + 状态堆叠 (Frame Stack)"></a>9.1 帧跳跃 (Frame Skip) + 状态堆叠 (Frame Stack)</h3><p><strong>为什么需要帧跳跃？</strong><br>在原始游戏环境中，渲染速度往往是 <strong>60 FPS</strong>，如果每一帧都作为一步训练，计算量巨大，而且很多相邻帧几乎没有差别。因此，我们让智能体 <strong>每隔几帧执行一次动作</strong>，比如 skip&#x3D;4，这意味着智能体每 4 帧才更新一次决策。这样做有两个好处：</p>
+<ul>
+<li><strong>降低计算量</strong>：训练步数减少到 1&#x2F;4</li>
+<li><strong>增强动作一致性</strong>：连续几帧保持相同动作，更符合人类操作习惯</li>
+</ul>
+<p><strong>为什么需要状态堆叠？</strong><br>单一帧无法体现“速度”和“方向”，比如马里奥的跳跃在一帧里和静止几乎一样。<br>于是我们堆叠最近 k 帧（常见为 4 帧），形成一个“时间窗口”，让智能体从图像序列中捕捉运动趋势。<br>这种组合相当于让 CNN + LSTM 同时“看到”<strong>短期局部时序</strong>和<strong>长期全局时序</strong>，大大提升学习效率。</p>
+<h3 id="9-2-奖励塑形-Reward-Shaping"><a href="#9-2-奖励塑形-Reward-Shaping" class="headerlink" title="9.2 奖励塑形 (Reward Shaping)"></a>9.2 奖励塑形 (Reward Shaping)</h3><p><strong>原始奖励的问题</strong><br>在马里奥里，最直接的奖励是 <strong>到达终点旗子</strong>，但如果智能体只有在通关时才获得奖励，它会面临 <strong>稀疏奖励问题</strong>：前面几万步几乎得不到反馈，学习非常困难。</p>
+<p><strong>奖励塑形的做法</strong><br>我们人为设计一些中间奖励，引导智能体更快地学到“正确方向”。例如：</p>
+<ul>
+<li><strong>前进奖励</strong>：向右走一步给一个小奖励，避免原地不动</li>
+<li><strong>金币奖励</strong>：吃到金币&#x2F;道具给额外奖励，鼓励探索</li>
+<li><strong>死亡惩罚</strong>：掉坑、碰怪物扣分，避免鲁莽尝试</li>
+</ul>
+<p>通过这种“奖励引导”，智能体会更快学会走、跳、避障，最终再通过通关奖励来强化全局目标。</p>
+<h3 id="9-3-多进程并行-Asynchronous-Workers"><a href="#9-3-多进程并行-Asynchronous-Workers" class="headerlink" title="9.3 多进程并行 (Asynchronous Workers)"></a>9.3 多进程并行 (Asynchronous Workers)</h3><p>A3C 的核心思想就是 <strong>异步并行</strong>：同时运行多个环境，每个环境独立采样轨迹并更新全局模型。<br>优势有三点：</p>
+<ol>
+<li><strong>采样效率高</strong>：相比单线程采样，多进程能更快收集经验，GPU 不会闲置</li>
+<li><strong>探索更全面</strong>：不同 Worker 的随机性让智能体走出不同路径，避免陷入局部最优</li>
+<li><strong>训练更稳定</strong>：异步更新相当于一种“噪声正则化”，让全局参数更新不会被单一轨迹支配</li>
+</ol>
+<p>如果没有并行机制，智能体在复杂关卡（如 3-1、7-1）几乎不可能在合理时间内学会通关。</p>
+<h2 id="10-扩展与改进方向"><a href="#10-扩展与改进方向" class="headerlink" title="10. 扩展与改进方向"></a>10. 扩展与改进方向</h2><p>在前面的实现中，我们已经基于 <strong>A3C + LSTM</strong> 搭建了一个能通关马里奥的智能体。但这并不是终点，强化学习在复杂环境中的探索还有很大空间。以下几个方向，可以作为改进或扩展的思路：</p>
+<h3 id="10-1-算法替换：更强大的策略优化方法"><a href="#10-1-算法替换：更强大的策略优化方法" class="headerlink" title="10.1 算法替换：更强大的策略优化方法"></a>10.1 算法替换：更强大的策略优化方法</h3><p>A3C 是早期的经典算法，但随着研究进展，出现了许多更稳定、更高效的替代方案：</p>
+<ul>
+<li><strong>PPO（Proximal Policy Optimization）</strong>：在更新策略时加入「约束」，避免一次更新过大导致策略崩溃。相比 A3C，PPO 在样本效率和收敛速度上表现更好，是目前游戏和机器人领域的主流选择</li>
+<li><strong>SAC（Soft Actor-Critic）</strong>：通过 <strong>最大化熵</strong> 来鼓励探索，让智能体更具鲁棒性。在连续动作空间任务（如机器人操作）中尤其有效</li>
+<li><strong>IMPALA、APPO 等分布式方法</strong>：进一步放大并行规模，适合在大集群上运行，显著加快训练速度。</li>
+</ul>
+<p>换句话说，A3C 是“起点”，但在更高要求的场景中，可以逐步迁移到这些更先进的算法。</p>
+<h3 id="10-2-结构优化：让模型更聪明"><a href="#10-2-结构优化：让模型更聪明" class="headerlink" title="10.2 结构优化：让模型更聪明"></a>10.2 结构优化：让模型更聪明</h3><p>当前的 Actor-Critic 模型通常由 CNN + LSTM 构成，但我们可以借鉴深度学习中的最新进展：</p>
+<ul>
+<li><strong>注意力机制（Attention）</strong>：让模型“选择性关注”画面中的关键区域，比如马里奥和怪物，而不是盲目处理整张画面。这样不仅提高决策效率，还能减少无关干扰</li>
+<li><strong>残差连接（ResNet-style）</strong>：在深层 CNN 中加入残差结构，缓解梯度消失问题，让模型可以更轻松地训练得更深，从而提取更复杂的特征</li>
+</ul>
+<p>这类结构改进能让模型不仅“看得清”，还能“看得远”，在长时序任务中尤其有帮助。</p>
+<h3 id="10-3-训练策略：让智能体学得更快"><a href="#10-3-训练策略：让智能体学得更快" class="headerlink" title="10.3 训练策略：让智能体学得更快"></a>10.3 训练策略：让智能体学得更快</h3><p>强化学习的难点在于探索效率低，而合理的训练策略能显著改善：</p>
+<ul>
+<li><strong>课程学习（Curriculum Learning）</strong>：像人类学习一样，从简单任务逐步过渡到复杂任务。例如先在 1-1 学会走和跳，再放到 3-1 学习避难度更高的障碍，最后挑战 7-1</li>
+<li><strong>跨关卡训练（Multi-Task Learning）</strong>：不局限于单一关卡，而是让智能体在多个关卡中同时训练。这样能提升泛化能力，避免过拟合到某一地图</li>
+<li><strong>模仿学习 + 强化学习结合</strong>：先通过模仿人类操作初始化策略，再用强化学习微调，能够大幅降低探索难度</li>
+</ul>
+<p>这些方法能显著缩短收敛时间，让智能体更快达到可用水平。</p>
+<h3 id="10-4-应用拓展：从游戏到现实"><a href="#10-4-应用拓展：从游戏到现实" class="headerlink" title="10.4 应用拓展：从游戏到现实"></a>10.4 应用拓展：从游戏到现实</h3><p>虽然我们在马里奥上做实验，但本质上，这套框架可以推广到更广泛的领域：</p>
+<ul>
+<li><strong>通用游戏 AI</strong>：不仅限于马里奥，还可以用于 Atari、Minecraft、甚至 3D FPS 游戏，作为通用测试平台</li>
+<li><strong>机器人控制</strong>：现实中的机器人同样需要感知（相机、传感器）和决策（运动控制），和马里奥环境高度相似。经过适配后，可以让机器人学会走路、抓取物体、避障等技能</li>
+<li><strong>自动驾驶与智能体仿真</strong>：交通环境和复杂仿真同样依赖强化学习，算法优化和并行训练经验都可以迁移过去</li>
+</ul>
+<h2 id="11-总结"><a href="#11-总结" class="headerlink" title="11. 总结"></a>11. 总结</h2><p>本文尝试构建一个完整的深度强化学习系统，使用 ​<strong>A3C（Asynchronous Advantage Actor-Critic）算法</strong>​ 训练智能体玩超级马里奥游戏。该系统解决了高维状态空间、稀疏奖励和时序依赖等关键问题，实现了从环境封装、模型设计、多进程训练到性能评估的全流程。</p>
+<h3 id="核心要点"><a href="#核心要点" class="headerlink" title="核心要点"></a>核心要点</h3><ol>
+<li>​<strong>环境封装与预处理</strong>​<ul>
+<li>通过 <code>gym_super_mario_bros</code> 和 <code>JoypadSpace</code> 简化复杂动作空间，降低智能体探索难度</li>
+<li>​<strong>奖励塑形 (Reward Shaping)​</strong>​：自定义奖励函数，结合即时分数奖励、通关大额奖励和失败惩罚，有效引导智能体学习</li>
+<li>​<strong>状态预处理</strong>​：采用帧跳跃 (Frame Skip)、帧堆叠 (Frame Stack)、灰度化和缩放，将原始像素输入压缩为 4×84×84 的张量，大幅提升训练效率</li>
+</ul>
+</li>
+<li>​<strong>模型架构 (Actor-Critic with LSTM)​</strong>​<ul>
+<li>​<strong>CNN 特征提取器</strong>​：处理视觉输入，提取空间特征</li>
+<li>​<strong>LSTM 时序建模</strong>​：记忆历史信息，解决部分可观测问题，使智能体能理解跳跃、移动等动作的连续性</li>
+<li>​<strong>双输出头</strong>​：Actor 输出动作概率分布，Critic 评估状态价值，共同优化策略</li>
+</ul>
+</li>
+<li>​<strong>多进程并行训练 (Asynchronous Parallelism)​</strong>​<ul>
+<li>多个 Worker 进程并行与环境交互，收集经验，异步更新全局共享模型，极大加速样本收集和训练过程</li>
+<li>自定义 ​<strong>GlobalAdam</strong>​ 优化器，通过 <code>share_memory()</code> 实现多进程间梯度同步和参数更新，确保训练稳定性</li>
+</ul>
+</li>
+<li>​<strong>评估与可视化</strong>​<ul>
+<li>独立的测试进程使用训练好的模型进行贪婪策略评估，生成通关视频和性能指标（如奖励曲线、通关率），直观展示智能体表现</li>
+</ul>
+</li>
+<li>​<strong>工程化与性能优化</strong>​<ul>
+<li>​<strong>模块化设计</strong>​：环境、模型、训练、测试分离，便于维护和扩展</li>
+<li>​<strong>关键技巧</strong>​：LSTM 状态 <code>detach()</code> 防止梯度爆炸；帧跳跃与堆叠平衡效率与信息完整性；奖励塑形解决稀疏奖励问题</li>
+<li>智能体最终能学会跳跃、避障、攻击等操作，在部分关卡达到稳定通关水平</li>
+</ul>
+</li>
+</ol>
+<h2 id="12-备注"><a href="#12-备注" class="headerlink" title="12.备注"></a>12.备注</h2><p>环境：</p>
+<ul>
+<li>mac: 15.2</li>
+<li>python: 3.12.4</li>
+<li>pytorch: 2.5.1</li>
+<li>numpy: 1.26.4</li>
+<li>gym_super_mario_bros: 7.4.0</li>
+<li>gym：0.25.1</li>
+<li>tensorboardX：2.6.2.2</li>
+<li>opencv-python：4.11.0.86</li>
+</ul>
+<p>参考代码：<br><a target="_blank" rel="noopener" href="https://github.com/vietnh1009/Super-mario-bros-A3C-pytorch">https://github.com/vietnh1009/Super-mario-bros-A3C-pytorch</a></p>
+<p>完整代码：<br><a target="_blank" rel="noopener" href="https://github.com/keychankc/dl_code_for_blog/tree/main/029-a3c_super_mario_code">https://github.com/keychankc/dl_code_for_blog/tree/main/029-a3c_super_mario_code</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://keychankc.github.io/2025/08/29/029-rl-ac-a3c-mario-case-2/" title="A3C 算法原理与超级马里奥实践（下）">https://keychankc.github.io/2025/08/29/029-rl-ac-a3c-mario-case-2/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" rel="tag"># 神经网络</a>
+              <a href="/tags/%E7%AD%96%E7%95%A5%E6%A2%AF%E5%BA%A6/" rel="tag"># 策略梯度</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/08/22/028-rl-ac-a3c-mario-case-1/" rel="prev" title="A3C 算法原理与超级马里奥实践（上）">
+                  <i class="fa fa-angle-left"></i> A3C 算法原理与超级马里奥实践（上）
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">166k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.mengyajia.com","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2025/08/29/029-rl-ac-a3c-mario-case-2/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"keychankc.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="1.图像分割虽然图像分割（Image Segmentation）与目标检测（Object Detection）都属于计算机视觉中的视觉识别任务，但它们的目标、输出形式和应用场景各不相同：  目标检测（Object Detection）：找出图像中有哪些物体，并框出每个物体的位置，比如说检测行人、车辆，以边界框 + 类别标签为输出形式。 图像分割（Image Segmentation）：精确地标出图">
+<meta property="og:type" content="article">
+<meta property="og:title" content="图像分割与U-Net系列模型解析">
+<meta property="og:url" content="https://keychankc.github.io/2025/05/19/016-image-segmentation-u-net/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s blog">
+<meta property="og:description" content="1.图像分割虽然图像分割（Image Segmentation）与目标检测（Object Detection）都属于计算机视觉中的视觉识别任务，但它们的目标、输出形式和应用场景各不相同：  目标检测（Object Detection）：找出图像中有哪些物体，并框出每个物体的位置，比如说检测行人、车辆，以边界框 + 类别标签为输出形式。 图像分割（Image Segmentation）：精确地标出图">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250514143841.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250519132413.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250514150209.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250516135607.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250516135710.png">
+<meta property="article:published_time" content="2025-05-19T09:54:12.000Z">
+<meta property="article:modified_time" content="2025-09-21T12:04:48.539Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="计算机视觉">
+<meta property="article:tag" content="目标分割">
+<meta property="article:tag" content="U-Net">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250514143841.png">
+
+
+<link rel="canonical" href="https://keychankc.github.io/2025/05/19/016-image-segmentation-u-net/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/2025/05/19/016-image-segmentation-u-net/","path":"2025/05/19/016-image-segmentation-u-net/","title":"图像分割与U-Net系列模型解析"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>图像分割与U-Net系列模型解析 | KeyChan's blog</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.mengyajia.com">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's blog" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E5%9B%BE%E5%83%8F%E5%88%86%E5%89%B2"><span class="nav-text">1.图像分割</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E8%AF%AD%E4%B9%89%E5%88%86%E5%89%B2%EF%BC%88Semantic-Segmentation%EF%BC%89"><span class="nav-text">1.语义分割（Semantic Segmentation）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%AE%9E%E4%BE%8B%E5%88%86%E5%89%B2%EF%BC%88Instance-Segmentation%EF%BC%89"><span class="nav-text">2.实例分割（Instance Segmentation）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E5%88%86%E5%89%B2%E4%BB%BB%E5%8A%A1%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0"><span class="nav-text">2.分割任务损失函数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%8A%A0%E6%9D%83%E4%BA%A4%E5%8F%89%E7%86%B5%E6%8D%9F%E5%A4%B1%EF%BC%88Weighted-Cross-Entropy-Loss%EF%BC%89"><span class="nav-text">1.加权交叉熵损失（Weighted Cross Entropy Loss）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E9%80%90%E5%83%8F%E7%B4%A0%E7%9A%84%E4%BA%A4%E5%8F%89%E7%86%B5%E6%8D%9F%E5%A4%B1"><span class="nav-text">1. 逐像素的交叉熵损失</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E5%8A%A0%E5%85%A5%E5%89%8D%E6%99%AF-%E8%83%8C%E6%99%AF%E7%9A%84%E4%B8%8D%E5%B9%B3%E8%A1%A1%E6%9D%83%E9%87%8D%EF%BC%88%E5%8A%A0%E6%9D%83%E4%BA%A4%E5%8F%89%E7%86%B5%EF%BC%89"><span class="nav-text">2. 加入前景&#x2F;背景的不平衡权重（加权交叉熵）</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Focal-Loss"><span class="nav-text">2.Focal Loss</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%8A%A0%E6%9D%83%E4%BA%A4%E5%8F%89%E7%86%B5-Focal-Loss"><span class="nav-text">3.加权交叉熵+Focal Loss</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E8%AF%AD%E4%B9%89%E5%88%86%E5%89%B2%E4%B8%AD%E7%9A%84%E8%AF%84%E4%BC%B0%E6%8C%87%E6%A0%87"><span class="nav-text">3.语义分割中的评估指标</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-IoU%EF%BC%88Intersection-over-Union%EF%BC%89"><span class="nav-text">1.IoU（Intersection over Union）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%B9%B3%E5%9D%87-IoU%EF%BC%88mIoU%EF%BC%89"><span class="nav-text">2.平均 IoU（mIoU）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-U-Net-%E7%BD%91%E7%BB%9C%E7%BB%93%E6%9E%84"><span class="nav-text">4.U-Net 网络结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1"><span class="nav-text">1.结构设计</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E7%BC%96%E7%A0%81%E5%99%A8%EF%BC%88Contracting-Path%EF%BC%89"><span class="nav-text">1.编码器（Contracting Path）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E8%A7%A3%E7%A0%81%E5%99%A8%EF%BC%88Expansive-Path%EF%BC%89"><span class="nav-text">2.解码器（Expansive Path）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E8%B7%B3%E8%B7%83%E8%BF%9E%E6%8E%A5%EF%BC%88Skip-Connection%EF%BC%89"><span class="nav-text">3.跳跃连接（Skip Connection）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E6%9C%80%E5%90%8E%E4%B8%80%E5%B1%82%E8%BE%93%E5%87%BA%EF%BC%88%E5%8F%B3%E4%B8%8A%E8%A7%92%EF%BC%89"><span class="nav-text">4.最后一层输出（右上角）</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-U-Net-%E7%9A%84%E7%89%B9%E5%BE%81%E8%9E%8D%E5%90%88"><span class="nav-text">5.U-Net 的特征融合</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%81%9A%E7%89%B9%E5%BE%81%E8%9E%8D%E5%90%88%EF%BC%9F"><span class="nav-text">1. 为什么要做特征融合？</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84%E8%AF%B4%E6%98%8E"><span class="nav-text">1.基本结构说明</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E8%B7%B3%E8%B7%83%E8%BF%9E%E6%8E%A5%EF%BC%88Skip-Connections%EF%BC%89"><span class="nav-text">2.跳跃连接（Skip Connections）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E6%8B%BC%E6%8E%A5-%E5%8D%B7%E7%A7%AF%E8%9E%8D%E5%90%88%EF%BC%88Concat-Conv%EF%BC%89"><span class="nav-text">3.拼接 + 卷积融合（Concat + Conv）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E5%A4%9A%E5%B0%BA%E5%BA%A6%E8%9E%8D%E5%90%88%EF%BC%88%E5%B1%82%E5%B1%82%E9%80%92%E8%BF%9B%EF%BC%89"><span class="nav-text">4. 多尺度融合（层层递进）</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-U-Net-%E6%A0%B8%E5%BF%83%E7%BB%93%E6%9E%84"><span class="nav-text">6.U-Net++ 核心结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%95%B4%E4%BD%93%E6%A1%86%E6%9E%B6%E8%AE%BE%E8%AE%A1%EF%BC%9A%E5%8D%87%E7%BA%A7%E7%89%88%E7%9A%84-U-Net"><span class="nav-text">1.整体框架设计：升级版的 U-Net</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%9F%BA%E7%A1%80%E7%BB%93%E6%9E%84"><span class="nav-text">1.基础结构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E8%B7%B3%E8%B7%83%E8%BF%9E%E6%8E%A5%E4%B8%8E%E7%89%B9%E5%BE%81%E8%9E%8D%E5%90%88"><span class="nav-text">2. 跳跃连接与特征融合</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%BD%91%E7%BB%9C%E7%BB%93%E6%9E%84%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3%EF%BC%9A%E6%B7%B1%E5%BA%A6%E7%89%B9%E5%BE%81%E8%9E%8D%E5%90%88"><span class="nav-text">2.网络结构核心思想：深度特征融合</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E8%9E%8D%E5%90%88%E6%9C%BA%E5%88%B6"><span class="nav-text">1.融合机制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-U-Net-%E7%9A%84%E7%89%B9%E5%BE%81%E8%9E%8D%E5%90%88%E6%96%B9%E5%BC%8F"><span class="nav-text">2. U-Net++ 的特征融合方式</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E8%BE%85%E5%8A%A9%E7%9B%91%E7%9D%A3%E6%9C%BA%E5%88%B6%EF%BC%9A%E5%A4%9A%E5%B1%82%E6%8D%9F%E5%A4%B1%E5%BC%95%E5%AF%BC%E8%AE%AD%E7%BB%83"><span class="nav-text">3.辅助监督机制：多层损失引导训练</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E4%B8%AD%E9%97%B4%E7%9B%91%E7%9D%A3%EF%BC%88Deep-Supervision%EF%BC%89"><span class="nav-text">1.中间监督（Deep Supervision）</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-U-Net3-%E6%94%B9%E8%BF%9B"><span class="nav-text">7.U-Net3+改进</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E4%BB%8E%E5%AF%86%E9%9B%86%E5%B5%8C%E5%A5%97%E8%BF%9E%E6%8E%A5-%E2%9E%9C-%E5%85%A8%E5%B0%BA%E5%BA%A6%E8%9E%8D%E5%90%88"><span class="nav-text">1.从密集嵌套连接 ➜ 全尺度融合</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%BB%9F%E4%B8%80%E8%A7%A3%E7%A0%81%E5%99%A8%E8%AE%BE%E8%AE%A1%EF%BC%88One-Decoder-to-Rule-Them-All%EF%BC%89"><span class="nav-text">2.统一解码器设计（One Decoder to Rule Them All）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%A4%9A%E5%B0%BA%E5%BA%A6%E4%B8%8A%E4%B8%8B%E6%96%87%E5%BB%BA%E6%A8%A1%E8%83%BD%E5%8A%9B%E6%9B%B4%E5%BC%BA"><span class="nav-text">3.多尺度上下文建模能力更强</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E6%9B%B4%E8%BD%BB%E9%87%8F%EF%BC%8C%E8%AE%AD%E7%BB%83%E5%92%8C%E6%8E%A8%E7%90%86%E9%80%9F%E5%BA%A6%E6%9B%B4%E5%BF%AB"><span class="nav-text">4.更轻量，训练和推理速度更快</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E6%80%BB%E7%BB%93"><span class="nav-text">8.总结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">30</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">39</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/keychankc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://keychankc.github.io/2025/05/19/016-image-segmentation-u-net/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's blog">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="图像分割与U-Net系列模型解析 | KeyChan's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          图像分割与U-Net系列模型解析
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-05-19 17:54:12" itemprop="dateCreated datePublished" datetime="2025-05-19T17:54:12+08:00">2025-05-19</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-09-21 20:04:48" itemprop="dateModified" datetime="2025-09-21T20:04:48+08:00">2025-09-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2025/05/19/016-image-segmentation-u-net/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2025/05/19/016-image-segmentation-u-net/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>4.6k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>17 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="1-图像分割"><a href="#1-图像分割" class="headerlink" title="1.图像分割"></a>1.图像分割</h2><p>虽然图像分割（Image Segmentation）与目标检测（Object Detection）都属于计算机视觉中的视觉识别任务，但它们的目标、输出形式和应用场景各不相同：</p>
+<ul>
+<li><strong>目标检测（Object Detection）</strong>：找出图像中有哪些物体，并框出每个物体的位置，比如说检测行人、车辆，以边界框 + 类别标签为输出形式。</li>
+<li><strong>图像分割（Image Segmentation）</strong>：精确地标出图像中每个像素属于哪个类别，以每个像素的类别标签为输出形式。</li>
+</ul>
+<span id="more"></span>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250514143841.png"></p>
+<p>举个例子：</p>
+<ul>
+<li>左图是目标检测任务，把人框出来。</li>
+<li>右图是图像分割任务，每个像素都需要判断是属于“人”还是背景，类似于 Photoshop 中的“抠图”。</li>
+</ul>
+<p>图像分割任务可以分为：</p>
+<h3 id="1-语义分割（Semantic-Segmentation）"><a href="#1-语义分割（Semantic-Segmentation）" class="headerlink" title="1.语义分割（Semantic Segmentation）"></a>1.语义分割（Semantic Segmentation）</h3><p> 把图像中的像素分为不同类别，同类的像素标注为相同颜色，<strong>不用区分个体</strong>。例如，如下图中5个人都被标注为“人类”类别，不需要区分谁是谁。</p>
+<h3 id="2-实例分割（Instance-Segmentation）"><a href="#2-实例分割（Instance-Segmentation）" class="headerlink" title="2.实例分割（Instance Segmentation）"></a>2.实例分割（Instance Segmentation）</h3><p>不仅区分类别，还要<strong>区分每个实例</strong>。例如下图中5个人都属于“人类”类别，但每个人都需要被单独标记出来。</p>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250519132413.png"></p>
+<p>目标检测中我们需要预测的是几个坐标点（回归问题），而图像分割中我们需要对<strong>每一个像素点</strong>做分类，最基础的图像分割是<strong>前景 vs 背景（二分类）</strong>，更高级一点的是<strong>多类别语义分割</strong>或<strong>实例分割</strong>。<br>换句话说，图像分割就是一个<strong>逐像素的分类任务（per-pixel classification）</strong></p>
+<h2 id="2-分割任务损失函数"><a href="#2-分割任务损失函数" class="headerlink" title="2.分割任务损失函数"></a>2.分割任务损失函数</h2><p>在图像分割任务中，我们的目标是对图像中的每一个像素点进行分类——判断它是属于前景（如人、车、树等）还是背景。那我们该如何衡量模型预测的效果好坏呢？和其他深度学习任务一样，我们也需要一个<strong>损失函数</strong>。而图像分割中最常用的损失函数有两个<strong>加权交叉熵损失（Weighted Cross Entropy Loss）以及Focal Loss</strong>。</p>
+<h3 id="1-加权交叉熵损失（Weighted-Cross-Entropy-Loss）"><a href="#1-加权交叉熵损失（Weighted-Cross-Entropy-Loss）" class="headerlink" title="1.加权交叉熵损失（Weighted Cross Entropy Loss）"></a>1.加权交叉熵损失（Weighted Cross Entropy Loss）</h3><h4 id="1-逐像素的交叉熵损失"><a href="#1-逐像素的交叉熵损失" class="headerlink" title="1. 逐像素的交叉熵损失"></a>1. 逐像素的交叉熵损失</h4><p>在最基础的语义分割任务中，我们对每个像素点预测其类别，并与真实标签进行比较，这和图像分类任务是一样的，只不过粒度从“整张图”变成了“每个像素”，这就是<strong>交叉熵损失函数</strong>（Cross Entropy Loss），公式如下：<br>$$\mathcal{L}{CE} &#x3D; - \sum{i} y_i \log(p_i)$$<br>其中：</p>
+<ul>
+<li>$i$ 类别索引，表示当前样本可能属于的各个类别</li>
+<li>$y_i$ 是真实标签（通常是one-hot编码）</li>
+<li>$p_i$ 是模型对该像素属于类别 $i$ 的预测概率</li>
+</ul>
+<h4 id="2-加入前景-背景的不平衡权重（加权交叉熵）"><a href="#2-加入前景-背景的不平衡权重（加权交叉熵）" class="headerlink" title="2. 加入前景&#x2F;背景的不平衡权重（加权交叉熵）"></a>2. 加入前景&#x2F;背景的不平衡权重（加权交叉熵）</h4><p>而在图像中，前景往往只占很小一部分，绝大多数像素都是背景。如果我们直接用普通交叉熵损失，那模型可能更倾向于“全部预测成背景”，这会导致训练不收敛或结果不理想。</p>
+<p>因此，我们可以<strong>引入一个权重项</strong>，对前景像素赋予更高的权重，从而让模型更关注“稀有”的前景目标。这个权重可以根据前景和背景的像素数比例自动计算，也可以手动指定。<br>$$\mathcal{L}_{WCE} &#x3D; - \alpha \cdot y \log(p) - (1 - \alpha) \cdot (1 - y) \log(1 - p)$$<br>其中：</p>
+<ul>
+<li>$\alpha$ 是正样本（前景）的权重，值越大，模型对前景越敏感</li>
+</ul>
+<h3 id="2-Focal-Loss"><a href="#2-Focal-Loss" class="headerlink" title="2.Focal Loss"></a>2.Focal Loss</h3><p>除了数量上的不平衡，其实还有一个更细致的问题——有些像素点<strong>很好判断</strong>（比如大片背景或目标内部），而有些像素点<strong>非常难判断</strong>（比如目标边缘、遮挡处）。我们希望模型<strong>更加关注这些难判断的像素点</strong>。</p>
+<p>这时候就要引入著名的<strong>Focal Loss</strong>：<br>$$\mathcal{L}_{focal} &#x3D; -\alpha (1 - p_t)^{\gamma} \log(p_t)$$<br>其中：</p>
+<ul>
+<li>$p_t$ 表示模型对真实类别的预测概率</li>
+<li>$\gamma$ 是调节因子，一般设为 2</li>
+<li>$\alpha$ 是样本类别的权重（和上面公式一样）</li>
+</ul>
+<p>这个公式的核心思想是：</p>
+<ul>
+<li>对于预测非常准确（$p_t \approx 1$）的样本，损失值被显著缩小</li>
+<li>对于预测错误的样本（$p_t$ 小），损失值被放大<br>也就是说，Focal Loss <strong>会自动弱化容易分类的像素点、增强难分类像素点的权重</strong>，从而引导模型重点学习更有价值的信息。</li>
+</ul>
+<h3 id="3-加权交叉熵-Focal-Loss"><a href="#3-加权交叉熵-Focal-Loss" class="headerlink" title="3.加权交叉熵+Focal Loss"></a>3.加权交叉熵+Focal Loss</h3><p>加权交叉熵的关注点在于<strong>类别样本不均衡</strong>，而Focal Loss的关注点在于<strong>像素点难易程度不同</strong>。</p>
+<p>在实际任务中，我们可以将这两者结合起来使用，例如使用带权重的Focal Loss：<br>$$\mathcal{L} &#x3D; - \alpha (1 - p_t)^\gamma \log(p_t)$$<br>其中：</p>
+<ul>
+<li><strong>权重 α：物以稀为贵。</strong> 前景像素少，就要给它更高的权重，像打游戏爆稀有装备一样，越少越珍贵</li>
+<li><strong>调节因子 γ：难者多得分。</strong> 越是难分类的像素（比如目标边缘），对训练越有价值，就像我们抄错题、练习难题一样，要多加关注</li>
+</ul>
+<h2 id="3-语义分割中的评估指标"><a href="#3-语义分割中的评估指标" class="headerlink" title="3.语义分割中的评估指标"></a>3.语义分割中的评估指标</h2><p>训练完模型后，我们还需要评估模型的效果，<strong>IoU（Intersection over Union）</strong> 是语义分割中最常用的评估指标。</p>
+<h3 id="1-IoU（Intersection-over-Union）"><a href="#1-IoU（Intersection-over-Union）" class="headerlink" title="1.IoU（Intersection over Union）"></a>1.IoU（Intersection over Union）</h3><p>IoU 表示的是预测区域与真实区域的交集与并集之比，公式如下：<br>$$\text{IoU} &#x3D; \frac{\text{Intersection}}{\text{Union}}$$</p>
+<ul>
+<li><strong>Intersection（交集）</strong>：预测为某类且真实也为该类的像素数量</li>
+<li><strong>Union（并集）</strong>：预测为该类的像素数量 + 真实为该类的像素数量 − Intersection<br>在<strong>混淆矩阵</strong>中，IoU 的计算方式可以看作：<br>$$\text{IoU}_\text{class} &#x3D; \frac{TP}{TP + FP + FN}$$<br>其中：</li>
+<li>TP（True Positive）：预测正确的正类</li>
+<li>FP（False Positive）：误判为该类的像素</li>
+<li>FN（False Negative）：漏判为其他类的像素</li>
+</ul>
+<h3 id="2-平均-IoU（mIoU）"><a href="#2-平均-IoU（mIoU）" class="headerlink" title="2.平均 IoU（mIoU）"></a>2.平均 IoU（mIoU）</h3><p>由于语义分割通常包含多个类别，我们通常会计算<strong>所有类别的 IoU</strong>，然后取平均，得到 <strong>mean IoU (mIoU)</strong>：<br>$$\text{mIoU} &#x3D; \frac{1}{C} \sum_{c&#x3D;1}^{C} \text{IoU}_c$$<br>这就像是多个类别下的 IoU 的加权平均，是衡量模型整体性能的核心指标。</p>
+<h2 id="4-U-Net-网络结构"><a href="#4-U-Net-网络结构" class="headerlink" title="4.U-Net 网络结构"></a>4.U-Net 网络结构</h2><p>U-Net 是一种非常经典的语义分割网络，最初发表于 2015-2016 年，专为<strong>医学图像分割</strong>设计，因为其结构简单后来被广泛应用于各种像素级任务。因为整体结构：像字母U的形状，所以叫<strong>U-Net</strong>。</p>
+<p>如下图，U-Net 是一个<strong>对称结构</strong>，左边下采样提取语义，右边上采样还原细节，跳跃连接帮助拼接高精度特征，最终生成和输入尺寸接近的像素级预测图。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250514150209.png"></p>
+<h3 id="1-结构设计"><a href="#1-结构设计" class="headerlink" title="1.结构设计"></a>1.结构设计</h3><p> 可以类比为“编码-解码”的思想（像 Sequence-to-Sequence）</p>
+<table>
+<thead>
+<tr>
+<th><strong>模块</strong></th>
+<th><strong>功能</strong></th>
+<th><strong>类比</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>编码器（左边）</td>
+<td>下采样，提取语义特征</td>
+<td>像人眼看整体轮廓，从模糊到清晰</td>
+</tr>
+<tr>
+<td>解码器（右边）</td>
+<td>上采样，恢复空间分辨率，生成 mask</td>
+<td>像放大镜一点点拼出目标的精细形状</td>
+</tr>
+<tr>
+<td>跳跃连接（中间横线）</td>
+<td>保留细节，连接浅层特征到深层输出</td>
+<td>就像复习时要结合课本基础和考试重点一起理解</td>
+</tr>
+</tbody></table>
+<h4 id="1-编码器（Contracting-Path）"><a href="#1-编码器（Contracting-Path）" class="headerlink" title="1.编码器（Contracting Path）"></a>1.编码器（Contracting Path）</h4><p>编码器的主要作用是，<strong>提取抽象语义特征 + 下采样</strong>。采用多个卷积 + ReLU + MaxPooling 层，逐步下采样（比如 256→128→64…），每个阶段是两个3 $\times$ 3卷积（蓝色箭头）+ ReLU，后跟一个2 $\times$ 2 max pooling（红色箭头）。随着层数加深，<strong>空间分辨率变小</strong>（572 → 284 → … → 28），<strong>通道数增多</strong>（64 → 128 → … → 1024），特征越粗，语义越强。<br>示例：</p>
+<ul>
+<li>第一层输入大小为 <strong>572×572×1</strong>（单通道图像）</li>
+<li>卷积后输出：<strong>568×568×64</strong>（因为 3×3 卷积没有 padding）</li>
+<li>然后 max pooling：下采样为 <strong>284×284×64</strong></li>
+</ul>
+<p>下采样（编码器）的作用：逐层抽象全局轮廓**​</p>
+<ul>
+<li>​<strong>感受野扩大</strong>​：通过池化&#x2F;卷积步长降低分辨率，每个神经元能覆盖更大图像区域，捕获整体结构（如器官形状、物体位置）</li>
+<li>​<strong>高级语义提取</strong>​：深层网络识别抽象特征（如”这是肺部CT”而非像素级纹理），类似人类先看”大致轮廓”</li>
+<li>​<strong>抗噪声干扰</strong>​：压缩空间信息后，对小位移和噪声更鲁棒</li>
+</ul>
+<h4 id="2-解码器（Expansive-Path）"><a href="#2-解码器（Expansive-Path）" class="headerlink" title="2.解码器（Expansive Path）"></a>2.解码器（Expansive Path）</h4><p>解码器的主要作用是<strong>上采样恢复原图尺寸 + 分割掩码生成</strong>。每个阶段是一次<strong>转置卷积</strong>（绿色箭头）进行上采样，然后将对应分辨率的特征图拼接（灰色箭头），再做两个 3 $\times$ 3 卷积（蓝色箭头）。<br>使用转置卷积（或上采样）逐步还原分辨率，每次上采样后，都把<strong>对应的编码器特征“跳跃连接”过来</strong>，拼接后再卷积。这样能<strong>结合深层的语义信息</strong>和<strong>浅层的位置信息</strong>。<br>示例：</p>
+<ul>
+<li>中间最底部是 <strong>28×28×1024</strong></li>
+<li>上采样为 <strong>56×56×512</strong>，拼接编码器的 <strong>64×64×512</strong></li>
+<li>然后卷积、ReLU 处理，输出通道逐渐减小</li>
+</ul>
+<p>上采样（解码器）的作用：逐步恢复空间细节​</p>
+<ul>
+<li>​<strong>定位精细化</strong>​：通过转置卷积&#x2F;插值逐步放大特征图，结合跳跃连接（skip connection）注入编码器的底层细节（如边缘、纹理）</li>
+<li>​<strong>多尺度特征融合</strong>​：跳跃连接将高层语义（”这是什么”）与底层细节（”边界在哪”）拼接，实现”轮廓指导细节”的分割</li>
+<li>​<strong>分辨率恢复</strong>​：最终输出与输入同分辨率，实现像素级预测</li>
+</ul>
+<h4 id="3-跳跃连接（Skip-Connection）"><a href="#3-跳跃连接（Skip-Connection）" class="headerlink" title="3.跳跃连接（Skip Connection）"></a>3.跳跃连接（Skip Connection）</h4><p>每下采样一次，保留当前的特征图，解码时，把<strong>对应分辨率的编码特征图复制并拼接</strong>到解码器中。这一步也叫：<strong>copy and crop</strong>。目的是防止上采样过程丢失空间信息，补充原始的细节和边缘特征。比如编码器在 128x128 层的特征，会跳到解码器的同尺寸上一起用。防止丢失空间细节，<strong>补回精细轮廓和边缘信息</strong>。</p>
+<h4 id="4-最后一层输出（右上角）"><a href="#4-最后一层输出（右上角）" class="headerlink" title="4.最后一层输出（右上角）"></a>4.最后一层输出（右上角）</h4><p>使用一个 <strong>1×1 卷积（青色箭头）</strong> 将通道数变为类别数（图中为 2 类）。最终输出尺寸为：<strong>388×388×2</strong>（每个像素对应两个类别的概率）。</p>
+<p>为啥尺寸变小了？（572→388）<br>因为卷积操作没有使用 padding，每次 3×3 卷积会减少 2 个像素，两次卷积减少 4 个像素，每层下采样都会累计空间损失，所以最终输出图比输入图小（用 crop 来对齐）。</p>
+<h2 id="5-U-Net-的特征融合"><a href="#5-U-Net-的特征融合" class="headerlink" title="5.U-Net 的特征融合"></a>5.U-Net 的特征融合</h2><h3 id="1-为什么要做特征融合？"><a href="#1-为什么要做特征融合？" class="headerlink" title="1. 为什么要做特征融合？"></a>1. 为什么要做特征融合？</h3><p>在深度学习做视觉任务时，总会强调“<strong>特征融合</strong>”。什么是特征融合？就是把不同层级（深浅不同）的特征信息整合起来，既有<strong>局部细节</strong>，也有<strong>全局语义</strong>。在 U-Net 结构中，典型的融合方式就是从左侧编码器（下采样路径）拿出浅层特征，传到右侧解码器（上采样路径）对应位置进行融合。如下图。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250516135607.png"></p>
+<h4 id="1-基本结构说明"><a href="#1-基本结构说明" class="headerlink" title="1.基本结构说明"></a>1.基本结构说明</h4><p>每个节点 $X^{i,j}$ 表示一个特征图，来自某一层的卷积输出<br>    $i$：表示网络的<strong>深度层级</strong>（从上到下）<br>    $j$：表示在同一分辨率下的<strong>第几个操作阶段</strong>（从左到右）<br>图中三种箭头说明不同的信息流路径：</p>
+<ul>
+<li>下黑实箭头：<strong>下采样</strong>（Down-sampling）</li>
+<li>上黑实箭头：<strong>上采样</strong>（Up-sampling）</li>
+<li>虚线箭头：<strong>跳跃连接</strong>（Skip Connection）</li>
+<li>所有连接都是基于 <strong>卷积操作</strong>（节点本身）</li>
+</ul>
+<p>U-Net 之所以分割效果好，关键就在于它把“<strong>高分辨率细节特征</strong>”和“<strong>低分辨率语义特征</strong>”融合在了一起。</p>
+<h4 id="2-跳跃连接（Skip-Connections）"><a href="#2-跳跃连接（Skip-Connections）" class="headerlink" title="2.跳跃连接（Skip Connections）"></a>2.跳跃连接（Skip Connections）</h4><p>每次下采样后保留的特征（如 $X^{0,0}, X^{1,0}, X^{2,0}$…），会在解码阶段通过虚线<strong>跳跃连接</strong>到对应分辨率的上采样阶段（如 $X^{0,4}, X^{1,3}$…）。</p>
+<blockquote>
+<p>深层特征语义强但空间信息模糊，浅层特征保留边缘细节但语义弱。跳跃连接能<strong>组合两者优点</strong>，形成精准分割。</p>
+</blockquote>
+<h4 id="3-拼接-卷积融合（Concat-Conv）"><a href="#3-拼接-卷积融合（Concat-Conv）" class="headerlink" title="3.拼接 + 卷积融合（Concat + Conv）"></a>3.拼接 + 卷积融合（Concat + Conv）</h4><p>在执行上采样操作后，U-Net 会把，当前上采样结果，对应的跳跃特征图，进行 <strong>通道维度的拼接（concatenate）</strong>，再通过卷积融合，生成新的特征图。<br>$$X^{2,2} &#x3D; Conv([Up(X^{3,1}) ⊕ X^{2,0}])$$<br>把解码路径中的上采样结果和编码路径中的浅层特征拼接，<strong>再交给卷积融合</strong>，这一步实现了真正的“融合”。</p>
+<h4 id="4-多尺度融合（层层递进）"><a href="#4-多尺度融合（层层递进）" class="headerlink" title="4. 多尺度融合（层层递进）"></a>4. 多尺度融合（层层递进）</h4><p>从图中可见，最终输出 $X^{0,4}$ 是逐层融合浅层和深层特征得到的。每一级都融合了不同语义层级的特征，最终形成一个<strong>丰富多尺度信息的特征图</strong>。</p>
+<p>类比理解：</p>
+<blockquote>
+<p>就像人做图像理解时，既需要看到整体（全局语义），也需要看细节（边界线条）。U-Net 就是“全景 + 放大镜”一起看。</p>
+</blockquote>
+<h2 id="6-U-Net-核心结构"><a href="#6-U-Net-核心结构" class="headerlink" title="6.U-Net++ 核心结构"></a>6.U-Net++ 核心结构</h2><p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250516135710.png"></p>
+<h3 id="1-整体框架设计：升级版的-U-Net"><a href="#1-整体框架设计：升级版的-U-Net" class="headerlink" title="1.整体框架设计：升级版的 U-Net"></a>1.整体框架设计：升级版的 U-Net</h3><h4 id="1-基础结构"><a href="#1-基础结构" class="headerlink" title="1.基础结构"></a>1.基础结构</h4><ul>
+<li>下采样（Down-sampling）：通过卷积步长为2的方式，将特征图尺寸逐步减半（例如：96 → 48 → 24 → 12 → 6）</li>
+<li>上采样（Up-sampling）：使用插值（如最近邻或双线性）将特征图尺寸恢复（例如：6 → 12 → 24 → 48 → 96）</li>
+</ul>
+<h4 id="2-跳跃连接与特征融合"><a href="#2-跳跃连接与特征融合" class="headerlink" title="2. 跳跃连接与特征融合"></a>2. 跳跃连接与特征融合</h4><p>不仅连接当前层与对应的对称上采样层（如传统U-Net），还连接同一层级的多个历史特征图。每一层的输出可能融合了来自多个深度和广度的特征——<strong>类似 DenseNet 的密集连接思想</strong>，表现形式上是：<br>“当前节点 &#x3D; 上采样特征 + 所有前层同级别节点的融合”。</p>
+<h3 id="2-网络结构核心思想：深度特征融合"><a href="#2-网络结构核心思想：深度特征融合" class="headerlink" title="2.网络结构核心思想：深度特征融合"></a>2.网络结构核心思想：深度特征融合</h3><h4 id="1-融合机制"><a href="#1-融合机制" class="headerlink" title="1.融合机制"></a>1.融合机制</h4><p>所有能拼接的特征图都尽可能进行融合，提高特征表达的丰富性，增强网络学习能力。类似 2017 CVPR Best Paper 中提出的 DenseNet 结构。</p>
+<h4 id="2-U-Net-的特征融合方式"><a href="#2-U-Net-的特征融合方式" class="headerlink" title="2. U-Net++ 的特征融合方式"></a>2. U-Net++ 的特征融合方式</h4><p>类似于“多个路径、跨层连接、分支拼接”的机制，多层次、多尺度的特征信息被汇聚到一起。</p>
+<h3 id="3-辅助监督机制：多层损失引导训练"><a href="#3-辅助监督机制：多层损失引导训练" class="headerlink" title="3.辅助监督机制：多层损失引导训练"></a>3.辅助监督机制：多层损失引导训练</h3><h4 id="1-中间监督（Deep-Supervision）"><a href="#1-中间监督（Deep-Supervision）" class="headerlink" title="1.中间监督（Deep Supervision）"></a>1.中间监督（Deep Supervision）</h4><p>网络训练时，不只在最后输出层加损失函数，而是所有输出尺寸一致的位置都可以加损失函数（例如多个 96x96 大小的节点）。并且每个阶段都加以监督，因为这样有利于梯度传播、加速收敛、提升中间层质量。</p>
+<p>就像看人不是只看最终是否考上大学，而是每一个阶段（小学、初中、高中）都要尽力做到最好，才能最终成功。同理，网络中每一个中间输出都应该被优化，才能提升整体性能。</p>
+<p>U-Net++ 作为 U-Net 的增强版本，在分割、检测等 CV 任务中应用广泛，结构通用、效果优秀，主要改进在于：</p>
+<ul>
+<li><strong>多级跳跃连接和特征融合机制</strong>，强化了跨层信息的整合</li>
+<li><strong>多损失辅助监督机制</strong>，提高了模型的训练效率与精度</li>
+</ul>
+<h2 id="7-U-Net3-改进"><a href="#7-U-Net3-改进" class="headerlink" title="7.U-Net3+改进"></a>7.U-Net3+改进</h2><p>U-Net 3+统一解码器、全尺度特征融合，结构简洁、效果更强、计算更高效。</p>
+<table>
+<thead>
+<tr>
+<th><strong>模型</strong></th>
+<th><strong>特征融合策略</strong></th>
+<th><strong>改进点</strong></th>
+<th><strong>存在问题（相对）</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>U-Net++</strong></td>
+<td>深度跳跃连接 + 密集嵌套结构（Nested skip）</td>
+<td>强调<strong>语义一致性</strong>，引入了<strong>密集连接路径</strong>，减缓语义鸿沟</td>
+<td>路径结构复杂、融合不彻底、解码器分支多、计算开销大</td>
+</tr>
+<tr>
+<td><strong>U-Net 3+</strong></td>
+<td>全尺度融合（Full-scale skip connection）</td>
+<td>引入<strong>统一解码器结构</strong>，将浅层细节和深层语义<strong>全融合</strong>，提升效果且结构简洁</td>
+<td>跳跃路径更多，特征对齐成本更高</td>
+</tr>
+</tbody></table>
+<h3 id="1-从密集嵌套连接-➜-全尺度融合"><a href="#1-从密集嵌套连接-➜-全尺度融合" class="headerlink" title="1.从密集嵌套连接 ➜ 全尺度融合"></a>1.从密集嵌套连接 ➜ 全尺度融合</h3><ul>
+<li><strong>U-Net++</strong> 通过构建密集的嵌套路径（Nested decoder），增强特征流动，但每一层的解码器是独立的</li>
+<li><strong>U-Net 3+</strong> 则提出：<strong>每一层解码器只保留一个</strong>，将所有尺度的编码特征、解码特征<strong>全部统一融合</strong>，更高效、结构更简单<br>本质：从“多路径拼接” ➜ “一次性大融合”</li>
+</ul>
+<h3 id="2-统一解码器设计（One-Decoder-to-Rule-Them-All）"><a href="#2-统一解码器设计（One-Decoder-to-Rule-Them-All）" class="headerlink" title="2.统一解码器设计（One Decoder to Rule Them All）"></a>2.统一解码器设计（One Decoder to Rule Them All）</h3><ul>
+<li><strong>U-Net++</strong>：每个输出都对应一个不同的子解码器结构（解码器嵌套）</li>
+<li><strong>U-Net 3+</strong>：整个网络只保留<strong>一套统一的解码器路径</strong>，避免冗余计算，减少参数</li>
+</ul>
+<h3 id="3-多尺度上下文建模能力更强"><a href="#3-多尺度上下文建模能力更强" class="headerlink" title="3.多尺度上下文建模能力更强"></a>3.多尺度上下文建模能力更强</h3><p>在 U-Net 3+ 中，所有<strong>编码器特征</strong>通过上采样&#x2F;下采样对齐后统一拼接，同时利用<strong>解码器中间特征</strong>，提供更深层次语义信息。这样做的结果是：在每一层融合中，模型能够同时看到：浅层，边界细节，中层：语义和上下文，深层：全局理解。</p>
+<h3 id="4-更轻量，训练和推理速度更快"><a href="#4-更轻量，训练和推理速度更快" class="headerlink" title="4.更轻量，训练和推理速度更快"></a>4.更轻量，训练和推理速度更快</h3><p>虽然跳跃连接更多，但结构统一，避免了解码器重复设计，在保持准确率的前提下，整体计算量低于 U-Net++。</p>
+<h2 id="8-总结"><a href="#8-总结" class="headerlink" title="8.总结"></a>8.总结</h2><p>本文主要讲了：</p>
+<ul>
+<li>图像分割任务，对比了目标检测差异</li>
+<li>语义&#x2F;实例分割区别</li>
+<li>解析加权交叉熵与Focal Loss，解决样本不均衡问题</li>
+<li>IoU&#x2F;mIoU评估指标。</li>
+</ul>
+<p>还重点剖析了U-Net系列：</p>
+<ul>
+<li>U-Net如何通过编码-解码结构与跳跃连接实现特征融合的</li>
+<li>U-Net++引入密集嵌套连接和中间监督增强语义一致性</li>
+<li>U-Net3+创新全尺度融合与统一解码器，兼顾多尺度特征与计算效率，形成从基础到高阶的模型演进路径。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://keychankc.github.io/2025/05/19/016-image-segmentation-u-net/" title="图像分割与U-Net系列模型解析">https://keychankc.github.io/2025/05/19/016-image-segmentation-u-net/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/" rel="tag"># 计算机视觉</a>
+              <a href="/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/" rel="tag"># 目标分割</a>
+              <a href="/tags/U-Net/" rel="tag"># U-Net</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/05/13/015-transformer-to-detr/" rel="prev" title="基于Transformer的detr目标检测算法思路分析">
+                  <i class="fa fa-angle-left"></i> 基于Transformer的detr目标检测算法思路分析
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/05/27/017-unet-cell-segmentation/" rel="next" title="基于U-Net++的细胞分割代码实现">
+                  基于U-Net++的细胞分割代码实现 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">166k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.mengyajia.com","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2025/05/19/016-image-segmentation-u-net/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>

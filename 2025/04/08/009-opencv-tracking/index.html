@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"keychankc.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="1.目标追踪目标追踪（Object Tracking）是指在视频序列中持续追踪目标的位置，这是计算机视觉中的核心难点，其核心挑战包括遮挡、光照变化和快速运动。在视频分析、自动驾驶、智能监控、人机交互等领域中应用广泛。 1.按任务类型分类 单目标追踪（SOT, Single Object Tracking）：只追踪一个初始帧中给定的目标，典型方法如： Siamese-based Tracking（孪">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OpenCV之目标追踪">
+<meta property="og:url" content="https://keychankc.github.io/2025/04/08/009-opencv-tracking/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s blog">
+<meta property="og:description" content="1.目标追踪目标追踪（Object Tracking）是指在视频序列中持续追踪目标的位置，这是计算机视觉中的核心难点，其核心挑战包括遮挡、光照变化和快速运动。在视频分析、自动驾驶、智能监控、人机交互等领域中应用广泛。 1.按任务类型分类 单目标追踪（SOT, Single Object Tracking）：只追踪一个初始帧中给定的目标，典型方法如： Siamese-based Tracking（孪">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-04-08T14:29:12.000Z">
+<meta property="article:modified_time" content="2025-09-21T12:04:48.538Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="计算机视觉">
+<meta property="article:tag" content="目标检测">
+<meta property="article:tag" content="OpenCV">
+<meta property="article:tag" content="目标追踪">
+<meta property="article:tag" content="dlib">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://keychankc.github.io/2025/04/08/009-opencv-tracking/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/2025/04/08/009-opencv-tracking/","path":"2025/04/08/009-opencv-tracking/","title":"OpenCV之目标追踪"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>OpenCV之目标追踪 | KeyChan's blog</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.mengyajia.com">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's blog" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA"><span class="nav-text">1.目标追踪</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%8C%89%E4%BB%BB%E5%8A%A1%E7%B1%BB%E5%9E%8B%E5%88%86%E7%B1%BB"><span class="nav-text">1.按任务类型分类</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E4%BC%A0%E7%BB%9F%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA%E7%AE%97%E6%B3%95"><span class="nav-text">2.传统目标追踪算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-OpenCV%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA"><span class="nav-text">3.OpenCV目标追踪</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%94%AF%E6%8C%81%E7%AE%97%E6%B3%95"><span class="nav-text">1.支持算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E4%B8%BB%E5%87%BD%E6%95%B0"><span class="nav-text">2.主函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E8%B0%83%E7%94%A8"><span class="nav-text">3.调用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-DNN-Dlib%E7%9A%84%E5%AE%9E%E6%97%B6%E8%A7%86%E9%A2%91%E8%BF%BD%E8%B8%AA"><span class="nav-text">4.DNN+Dlib的实时视频追踪</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%8D%95%E4%B8%AA%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA"><span class="nav-text">1.单个目标追踪</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E4%B8%BB%E5%87%BD%E6%95%B0-1"><span class="nav-text">2.主函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E8%B0%83%E7%94%A8-1"><span class="nav-text">3.调用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E6%80%BB%E7%BB%93"><span class="nav-text">5.总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E5%A4%87%E6%B3%A8"><span class="nav-text">6.备注</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83"><span class="nav-text">环境</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B5%84%E6%BA%90%E5%92%8C%E4%BB%A3%E7%A0%81"><span class="nav-text">资源和代码</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">30</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">39</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/keychankc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://keychankc.github.io/2025/04/08/009-opencv-tracking/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's blog">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="OpenCV之目标追踪 | KeyChan's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          OpenCV之目标追踪
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-04-08 22:29:12" itemprop="dateCreated datePublished" datetime="2025-04-08T22:29:12+08:00">2025-04-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-09-21 20:04:48" itemprop="dateModified" datetime="2025-09-21T20:04:48+08:00">2025-09-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2025/04/08/009-opencv-tracking/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2025/04/08/009-opencv-tracking/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>2.3k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>8 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="1-目标追踪"><a href="#1-目标追踪" class="headerlink" title="1.目标追踪"></a>1.目标追踪</h2><p>目标追踪（Object Tracking）是指在视频序列中持续追踪目标的位置，这是计算机视觉中的核心难点，其核心挑战包括遮挡、光照变化和快速运动。在视频分析、自动驾驶、智能监控、人机交互等领域中应用广泛。</p>
+<h3 id="1-按任务类型分类"><a href="#1-按任务类型分类" class="headerlink" title="1.按任务类型分类"></a>1.按任务类型分类</h3><ol>
+<li>单目标追踪（SOT, Single Object Tracking）：只追踪一个初始帧中给定的目标，典型方法如：<ol>
+<li>Siamese-based Tracking（孪生网络）</li>
+<li>Transformer-based Tracking</li>
+</ol>
+</li>
+<li>多目标追踪（MOT, Multi-Object Tracking）：同时追踪多个目标，通常包括目标检测与数据关联两个阶段，典型方法如：<ol>
+<li>基于检测的跟踪（Tracking-by-Detection）</li>
+<li>端到端方法</li>
+</ol>
+</li>
+<li>多摄像头追踪（MTMC, Multi-Camera Multi-Object Tracking）：跨视角数据关联，更复杂的特征匹配，常结合ReID、时空建模、图神经网络等</li>
+</ol>
+<h2 id="2-传统目标追踪算法"><a href="#2-传统目标追踪算法" class="headerlink" title="2.传统目标追踪算法"></a>2.传统目标追踪算法</h2><p>除了基于深度学习的追踪算法，还有依赖传统的机器学习的目标追踪算法，它们适用于某些轻量级、实时或资源受限的场景（如嵌入式设备）。</p>
+<span id="more"></span>
+<p>OpenCV中常用的目标追踪算法：</p>
+<ol>
+<li>Boosting Tracker<br> • <strong>原理</strong>：使用在线Boosting分类器，从背景中区分出目标<br> • <strong>优点</strong>：适应性强，适合光照变化的情况<br> • <strong>缺点</strong>：对遮挡敏感，易漂移</li>
+<li>MIL (Multiple Instance Learning) Tracker<br> • <strong>原理</strong>：目标不是单个样本表示，而是多个候选区域的集合；只要集合中包含目标就算正例<br> • <strong>优点</strong>：缓解标签不确定问题，增强鲁棒性<br> • <strong>缺点</strong>：对遮挡还是不太稳，精度一般</li>
+<li>KCF (Kernelized Correlation Filter)<br> • <strong>原理</strong>：使用核技巧加速的相关滤波器，训练和测试都在频域完成<br> • <strong>优点</strong>：非常快，速度极高（可达上百帧&#x2F;秒），适合实时追踪<br> • <strong>缺点</strong>：对尺度变化、遮挡、快速运动敏感</li>
+<li>TLD (Tracking-Learning-Detection)<br> • <strong>原理</strong>：将追踪、检测、学习分成三个模块协同工作。追踪失败时，检测器会重新识别目标<br> • <strong>优点</strong>：鲁棒性强，能处理遮挡后的恢复<br> • <strong>缺点</strong>：复杂度高，速度慢，容易累积错误</li>
+<li>MedianFlow<br> • <strong>原理</strong>：跟踪局部块（点），计算前后帧之间的点的光流；中位数流用于稳定估计<br> • <strong>优点</strong>：平滑、稳定，适合小运动<br> • <strong>缺点</strong>：对快速运动、遮挡很不鲁棒；会直接失败而不是漂移</li>
+<li>MOSSE (Minimum Output Sum of Squared Error Filter)<br> • <strong>原理</strong>：训练一个滤波器，使得卷积后的响应图和期望响应（高斯峰）最接近<br> • <strong>优点</strong>：非常快（轻量、实时）；对照明变化有一定鲁棒性<br> • <strong>缺点</strong>：定位不够准，易受背景干扰</li>
+<li>CSRT (Discriminative Correlation Filter with Channel and Spatial Reliability)<br> • <strong>原理</strong>：在KCF基础上改进，引入通道可靠性和空间可靠性来增强鲁棒性<br> • <strong>优点</strong>：比KCF更准确，适合尺度变化、部分遮挡<br> • <strong>缺点</strong>：比KCF慢，实时性稍差</li>
+</ol>
+<h2 id="3-OpenCV目标追踪"><a href="#3-OpenCV目标追踪" class="headerlink" title="3.OpenCV目标追踪"></a>3.OpenCV目标追踪</h2><p>下面是一个可以在视频中实时添加跟踪目标的代码示例：</p>
+<h3 id="1-支持算法"><a href="#1-支持算法" class="headerlink" title="1.支持算法"></a>1.支持算法</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">get_tracker</span>(<span class="params">name</span>):  </span><br><span class="line">    <span class="string">&quot;&quot;&quot;根据OpenCV的版本自动获取跟踪器的构造函数&quot;&quot;&quot;</span>  </span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">hasattr</span>(cv2.legacy, name + <span class="string">&quot;_create&quot;</span>):  </span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">getattr</span>(cv2.legacy, name + <span class="string">&quot;_create&quot;</span>)  </span><br><span class="line">    <span class="keyword">elif</span> <span class="built_in">hasattr</span>(cv2, name + <span class="string">&quot;_create&quot;</span>):  </span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">getattr</span>(cv2, name + <span class="string">&quot;_create&quot;</span>)  </span><br><span class="line">    <span class="keyword">return</span> <span class="literal">None</span>  </span><br><span class="line">  </span><br><span class="line"><span class="comment"># opencv支持的跟踪算法</span></span><br><span class="line">opencv_object_trackers = &#123;  </span><br><span class="line">    <span class="string">&quot;boosting&quot;</span>: get_tracker(<span class="string">&quot;TrackerBoosting&quot;</span>),  <span class="comment"># 基于AdaBoost的传统算法，性能较差  </span></span><br><span class="line">    <span class="string">&quot;mil&quot;</span>: get_tracker(<span class="string">&quot;TrackerMIL&quot;</span>),  <span class="comment"># 比Boosting鲁棒，但仍有局限性  </span></span><br><span class="line">    <span class="string">&quot;kcf&quot;</span>: get_tracker(<span class="string">&quot;TrackerKCF&quot;</span>),  <span class="comment"># 速度快，但对遮挡敏感  </span></span><br><span class="line">    <span class="string">&quot;tld&quot;</span>: get_tracker(<span class="string">&quot;TrackerTLD&quot;</span>),  <span class="comment"># 处理目标遮挡和消失，但易漂移  </span></span><br><span class="line">    <span class="string">&quot;medianflow&quot;</span>: get_tracker(<span class="string">&quot;TrackerMedianFlow&quot;</span>),  <span class="comment"># 适用于匀速运动的小目标，失败时会自我检测  </span></span><br><span class="line">    <span class="string">&quot;mosse&quot;</span>: get_tracker(<span class="string">&quot;TrackerMOSSE&quot;</span>),  <span class="comment"># 极快，适合实时应用，但精度较低  </span></span><br><span class="line">    <span class="string">&quot;csrt&quot;</span>: get_tracker(<span class="string">&quot;TrackerCSRT&quot;</span>)  <span class="comment"># 高精度，但速度较慢  </span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="2-主函数"><a href="#2-主函数" class="headerlink" title="2.主函数"></a>2.主函数</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">tracking</span>(<span class="params">video_path, tracker_type=<span class="string">&quot;kcf&quot;</span></span>):</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 创建一个多目标追踪器对象（MultiTracker），可以同时追踪多个对象</span></span><br><span class="line">    trackers = cv2.legacy.MultiTracker_create()  </span><br><span class="line">    vs = cv2.VideoCapture(video_path)  <span class="comment"># 读取视频流</span></span><br><span class="line">  </span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:  </span><br><span class="line">        <span class="comment"># 取当前帧  </span></span><br><span class="line">        frame = vs.read()  </span><br><span class="line">        frame = frame[<span class="number">1</span>]  </span><br><span class="line">        <span class="keyword">if</span> frame <span class="keyword">is</span> <span class="literal">None</span>:  </span><br><span class="line">            <span class="keyword">break</span>  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 读取视频帧并缩放（这里统一宽度为 600 像素）</span></span><br><span class="line">        (h, w) = frame.shape[:<span class="number">2</span>]  </span><br><span class="line">        width = <span class="number">600</span>  </span><br><span class="line">        r = width / <span class="built_in">float</span>(w)  </span><br><span class="line">        dim = (width, <span class="built_in">int</span>(h * r))  </span><br><span class="line">        frame = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 更新所有跟踪目标</span></span><br><span class="line">        (success, boxes) = trackers.update(frame)  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 绘制区域  </span></span><br><span class="line">        <span class="keyword">for</span> box <span class="keyword">in</span> boxes:  </span><br><span class="line">            (x, y, w, h) = [<span class="built_in">int</span>(v) <span class="keyword">for</span> v <span class="keyword">in</span> box]  </span><br><span class="line">            cv2.rectangle(frame, (x, y), (x + w, y + h), (<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>), <span class="number">2</span>)  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 显示  </span></span><br><span class="line">        cv2.imshow(<span class="string">&quot;Frame&quot;</span>, frame)  </span><br><span class="line">        key = cv2.waitKey(<span class="number">100</span>) &amp; <span class="number">0xFF</span>  </span><br><span class="line">  </span><br><span class="line">        <span class="keyword">if</span> key == <span class="built_in">ord</span>(<span class="string">&quot;s&quot;</span>):  </span><br><span class="line">            <span class="comment"># 选择一个区域，按s  </span></span><br><span class="line">            box = cv2.selectROI(<span class="string">&quot;Frame&quot;</span>, frame, fromCenter=<span class="literal">False</span>,  </span><br><span class="line">                                showCrosshair=<span class="literal">True</span>)  </span><br><span class="line">  </span><br><span class="line">            <span class="comment"># 创建一个新的追踪器  </span></span><br><span class="line">            tracker = opencv_object_trackers[tracker_type]()  </span><br><span class="line">            trackers.add(tracker, frame, box)  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 退出  </span></span><br><span class="line">        <span class="keyword">elif</span> key == <span class="number">27</span>:  </span><br><span class="line">            <span class="keyword">break</span>  </span><br><span class="line">    vs.release()  </span><br><span class="line">    cv2.destroyAllWindows()</span><br></pre></td></tr></table></figure>
+<h3 id="3-调用"><a href="#3-调用" class="headerlink" title="3.调用"></a>3.调用</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">multi_object_tracking.tracking(<span class="string">&quot;videos/soccer_01.mp4&quot;</span>, <span class="string">&quot;medianflow&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p><video src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/select_track.mov" controls="controls" width="500"></video><br>按<strong>s</strong>键，框出需要追踪的区域，再按任意键继续</p>
+<h2 id="4-DNN-Dlib的实时视频追踪"><a href="#4-DNN-Dlib的实时视频追踪" class="headerlink" title="4.DNN+Dlib的实时视频追踪"></a>4.DNN+Dlib的实时视频追踪</h2><p>下面是一个先检测再追踪的代码示例：</p>
+<h3 id="1-单个目标追踪"><a href="#1-单个目标追踪" class="headerlink" title="1.单个目标追踪"></a>1.单个目标追踪</h3><p><code>dlib.correlation_tracker</code> 是 <code>Dlib</code> 库中基于相关滤波（correlation filter）算法的目标追踪器，可以用来在视频中持续追踪一个物体。</p>
+<p>它属于 <strong>单目标追踪器（Single Object Tracker）</strong>，不是检测器，不会识别物体类型，只能追踪一开始指定的区域。</p>
+<p>实现原理：<br>利用初始帧中的目标图像作为“模板”，在后续每一帧中，通过相关匹配来寻找与这个模板最相似的区域，更新模板以适应外观的小变化。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">start_tracker</span>(<span class="params">box, label, rgb, inputQueue, outputQueue</span>):  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 初始化一个dlib的追踪器，并设置初始位置（start_track）</span></span><br><span class="line">    t = dlib.correlation_tracker()  </span><br><span class="line">    rect = dlib.rectangle(<span class="built_in">int</span>(box[<span class="number">0</span>]), <span class="built_in">int</span>(box[<span class="number">1</span>]), <span class="built_in">int</span>(box[<span class="number">2</span>]), <span class="built_in">int</span>(box[<span class="number">3</span>]))  </span><br><span class="line">    t.start_track(rgb, rect)  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:  </span><br><span class="line">        <span class="comment"># 持续从 inputQueue 中获取下一帧图像</span></span><br><span class="line">        rgb = inputQueue.get()  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 非空就开始处理  </span></span><br><span class="line">        <span class="keyword">if</span> rgb <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:  </span><br><span class="line">            <span class="comment"># 每来一帧就更新追踪器的位置</span></span><br><span class="line">            t.update(rgb)  </span><br><span class="line">            pos = t.get_position()  </span><br><span class="line">  </span><br><span class="line">            startX = <span class="built_in">int</span>(pos.left())  </span><br><span class="line">            startY = <span class="built_in">int</span>(pos.top())  </span><br><span class="line">            endX = <span class="built_in">int</span>(pos.right())  </span><br><span class="line">            endY = <span class="built_in">int</span>(pos.bottom())  </span><br><span class="line">  </span><br><span class="line">            <span class="comment"># 将新的位置通过outputQueue发回主进程 </span></span><br><span class="line">            outputQueue.put((label, (startX, startY, endX, endY))) </span><br></pre></td></tr></table></figure>
+<p>多进程的好处是：多个对象可以并行追踪，不会互相影响，CPU 利用率高</p>
+<h3 id="2-主函数-1"><a href="#2-主函数-1" class="headerlink" title="2.主函数"></a>2.主函数</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 类别定义 用于检测输出中的label索引对应类别名</span></span><br><span class="line">classes = [<span class="string">&quot;background&quot;</span>, <span class="string">&quot;aeroplane&quot;</span>, <span class="string">&quot;bicycle&quot;</span>, <span class="string">&quot;bird&quot;</span>, <span class="string">&quot;boat&quot;</span>, <span class="string">&quot;bottle&quot;</span>, <span class="string">&quot;bus&quot;</span>, <span class="string">&quot;car&quot;</span>, <span class="string">&quot;cat&quot;</span>, <span class="string">&quot;chair&quot;</span>, <span class="string">&quot;cow&quot;</span>,  </span><br><span class="line">           <span class="string">&quot;diningtable&quot;</span>, <span class="string">&quot;dog&quot;</span>, <span class="string">&quot;horse&quot;</span>, <span class="string">&quot;motorbike&quot;</span>, <span class="string">&quot;person&quot;</span>, <span class="string">&quot;pottedplant&quot;</span>, <span class="string">&quot;sheep&quot;</span>, <span class="string">&quot;sofa&quot;</span>, <span class="string">&quot;train&quot;</span>, <span class="string">&quot;tvmonitor&quot;</span>]   </span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">tracking</span>(<span class="params">video_path, model, proto_txt, output, confidence_value</span>):  </span><br><span class="line">    inputQueues = []  </span><br><span class="line">    outputQueues = []  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 加载Caffe格式的深度学习模型</span></span><br><span class="line">    net = cv2.dnn.readNetFromCaffe(proto_txt, model)  </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[INFO] starting video stream...&quot;</span>)</span><br><span class="line">    vs = cv2.VideoCapture(video_path)  <span class="comment"># 打开视频流</span></span><br><span class="line">    writer = <span class="literal">None</span>  </span><br><span class="line">    fps = FPS().start()  <span class="comment"># 启动FPS计数器</span></span><br><span class="line">  </span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:  </span><br><span class="line">        <span class="comment"># 读取并预处理每一帧</span></span><br><span class="line">        (grabbed, frame) = vs.read()  </span><br><span class="line">        <span class="keyword">if</span> frame <span class="keyword">is</span> <span class="literal">None</span>:  </span><br><span class="line">            <span class="keyword">break</span>  </span><br><span class="line">        (h, w) = frame.shape[:<span class="number">2</span>]  </span><br><span class="line">        width = <span class="number">600</span>  </span><br><span class="line">        r = width / <span class="built_in">float</span>(w)  </span><br><span class="line">        dim = (width, <span class="built_in">int</span>(h * r))  </span><br><span class="line">        frame = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)  </span><br><span class="line">        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 初始化视频保存器</span></span><br><span class="line">        <span class="keyword">if</span> output <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span> <span class="keyword">and</span> writer <span class="keyword">is</span> <span class="literal">None</span>:  </span><br><span class="line">            fourcc = cv2.VideoWriter_fourcc(*<span class="string">&quot;mp4v&quot;</span>)  </span><br><span class="line">            writer = cv2.VideoWriter(output, fourcc, <span class="number">30</span>,  </span><br><span class="line">                                     (frame.shape[<span class="number">1</span>], frame.shape[<span class="number">0</span>]), <span class="literal">True</span>)  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 检测并启动追踪器（只在第一帧执行）</span></span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(inputQueues) == <span class="number">0</span>:  </span><br><span class="line">            (h, w) = frame.shape[:<span class="number">2</span>]</span><br><span class="line">            <span class="comment"># 使用OpenCV DNN执行一次前向推理</span></span><br><span class="line">            blob = cv2.dnn.blobFromImage(frame, <span class="number">0.007843</span>, (w, h), <span class="number">127.5</span>)  </span><br><span class="line">            net.setInput(blob)  </span><br><span class="line">            detections = net.forward()  </span><br><span class="line">            <span class="keyword">for</span> i <span class="keyword">in</span> np.arange(<span class="number">0</span>, detections.shape[<span class="number">2</span>]):  </span><br><span class="line">                confidence = detections[<span class="number">0</span>, <span class="number">0</span>, i, <span class="number">2</span>]  </span><br><span class="line">                <span class="comment"># 过滤置信度大于confidence_value 且类别为 &quot;person&quot; 的结果</span></span><br><span class="line">                <span class="keyword">if</span> confidence &gt; confidence_value:  </span><br><span class="line">                    idx = <span class="built_in">int</span>(detections[<span class="number">0</span>, <span class="number">0</span>, i, <span class="number">1</span>])  </span><br><span class="line">                    label = classes[idx]  </span><br><span class="line">                    <span class="keyword">if</span> classes[idx] != <span class="string">&quot;person&quot;</span>:  </span><br><span class="line">                        <span class="keyword">continue</span>  </span><br><span class="line">                    box = detections[<span class="number">0</span>, <span class="number">0</span>, i, <span class="number">3</span>:<span class="number">7</span>] * np.array([w, h, w, h])  </span><br><span class="line">                    (startX, startY, endX, endY) = box.astype(<span class="string">&quot;int&quot;</span>)  </span><br><span class="line">                    <span class="comment"># 得到目标框</span></span><br><span class="line">                    bb = (startX, startY, endX, endY)  </span><br><span class="line">  </span><br><span class="line">                    <span class="comment"># 创建输入q和输出q  </span></span><br><span class="line">                    iq = multiprocessing.Queue()  </span><br><span class="line">                    oq = multiprocessing.Queue()  </span><br><span class="line">                    inputQueues.append(iq)  </span><br><span class="line">                    outputQueues.append(oq)  </span><br><span class="line">  </span><br><span class="line">                    <span class="comment"># 创建一个 multiprocessing.Queue 输入输出队列  </span></span><br><span class="line">                    p = multiprocessing.Process(target=start_tracker, args=(bb, label, rgb, iq, oq))  </span><br><span class="line">                    p.daemon = <span class="literal">True</span>  </span><br><span class="line">                    p.start()  </span><br><span class="line">  </span><br><span class="line">                    cv2.rectangle(frame, (startX, startY), (endX, endY),  </span><br><span class="line">                                  (<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>), <span class="number">2</span>)  </span><br><span class="line">                    cv2.putText(frame, label, (startX, startY - <span class="number">15</span>),  </span><br><span class="line">                                cv2.FONT_HERSHEY_SIMPLEX, <span class="number">0.45</span>, (<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>), <span class="number">2</span>)  </span><br><span class="line">		  </span><br><span class="line">        <span class="keyword">else</span>:  </span><br><span class="line">            <span class="comment"># 更新追踪器 </span></span><br><span class="line">            <span class="keyword">for</span> iq <span class="keyword">in</span> inputQueues:  </span><br><span class="line">                iq.put(rgb)  <span class="comment"># 所有追踪器共享相同帧</span></span><br><span class="line">  </span><br><span class="line">            <span class="keyword">for</span> oq <span class="keyword">in</span> outputQueues:  </span><br><span class="line">                <span class="comment"># 得到更新结果  </span></span><br><span class="line">                (label, (startX, startY, endX, endY)) = oq.get()  </span><br><span class="line">  </span><br><span class="line">                <span class="comment"># 绘图  </span></span><br><span class="line">                cv2.rectangle(frame, (startX, startY), (endX, endY),  </span><br><span class="line">                              (<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>), <span class="number">2</span>)  </span><br><span class="line">                cv2.putText(frame, label, (startX, startY - <span class="number">15</span>),  </span><br><span class="line">                            cv2.FONT_HERSHEY_SIMPLEX, <span class="number">0.45</span>, (<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>), <span class="number">2</span>)  </span><br><span class="line">  </span><br><span class="line">        <span class="keyword">if</span> writer <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:  </span><br><span class="line">            writer.write(frame)  </span><br><span class="line">  </span><br><span class="line">        cv2.imshow(<span class="string">&quot;Frame&quot;</span>, frame)  </span><br><span class="line"></span><br><span class="line">        <span class="comment"># FPS更新+按键控制</span></span><br><span class="line">        key = cv2.waitKey(<span class="number">1</span>) &amp; <span class="number">0xFF</span>  </span><br><span class="line">        <span class="keyword">if</span> key == <span class="number">27</span>:  </span><br><span class="line">            <span class="keyword">break</span>  </span><br><span class="line">        fps.update()  </span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[INFO] elapsed time: &#123;:.2f&#125;&quot;</span>.<span class="built_in">format</span>(fps.elapsed()))  </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[INFO] approx. FPS: &#123;:.2f&#125;&quot;</span>.<span class="built_in">format</span>(fps.fps()))  </span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 清理资源</span></span><br><span class="line">    fps.stop() </span><br><span class="line">    <span class="keyword">if</span> writer <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:  </span><br><span class="line">        writer.release()  </span><br><span class="line">    cv2.destroyAllWindows()  </span><br><span class="line">    vs.release()</span><br></pre></td></tr></table></figure>
+<h3 id="3-调用-1"><a href="#3-调用-1" class="headerlink" title="3.调用"></a>3.调用</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">multi_object_tracking_fast.tracking(<span class="string">&quot;videos/race.mp4&quot;</span>,  </span><br><span class="line">                            <span class="string">&quot;mobilenet_ssd/MobileNetSSD_deploy.caffemodel&quot;</span>,  </span><br><span class="line">                            <span class="string">&quot;mobilenet_ssd/MobileNetSSD_deploy.prototxt&quot;</span>,  </span><br><span class="line">                            <span class="string">&quot;output/race_fast.mp4&quot;</span>,  </span><br><span class="line">                            <span class="number">0.2</span>)</span><br></pre></td></tr></table></figure>
+
+<p>主要功能点：</p>
+<ol>
+<li>用 OpenCV 的 DNN 模块加载 Caffe 模型检测“person”</li>
+<li>每个目标分配一个子进程进行独立追踪</li>
+<li>利用 multiprocessing 提升处理性能</li>
+<li>使用 FPS 类打印处理速度</li>
+</ol>
+<p><video src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/race_fast.mov" controls="controls" width="500"></video></p>
+<h2 id="5-总结"><a href="#5-总结" class="headerlink" title="5.总结"></a>5.总结</h2><table>
+<thead>
+<tr>
+<th>​<strong>方法类型</strong>​</th>
+<th>​<strong>优势</strong>​</th>
+<th>​<strong>局限</strong>​</th>
+<th>​<strong>适用场景</strong>​</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>​<strong>传统算法</strong>​</td>
+<td>轻量、高速，适合嵌入式设备</td>
+<td>对复杂变化（遮挡、尺度）敏感</td>
+<td>实时监控、资源受限环境</td>
+</tr>
+<tr>
+<td>​<strong>深度学习+Dlib</strong>​</td>
+<td>高精度，支持多目标并行</td>
+<td>计算资源要求较高</td>
+<td>复杂场景（如人流密集、遮挡频繁）</td>
+</tr>
+<tr>
+<td>​<strong>端到端模型</strong>​</td>
+<td>检测与追踪联合优化，简化流程</td>
+<td>需大量标注数据，训练成本高</td>
+<td>高精度需求（如自动驾驶）</td>
+</tr>
+</tbody></table>
+<h2 id="6-备注"><a href="#6-备注" class="headerlink" title="6.备注"></a>6.备注</h2><h3 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h3><ul>
+<li>mac: 15.2</li>
+<li>python: 3.12.4</li>
+<li>numpy: 1.26.4</li>
+<li>opencv-python: 4.11.0.86</li>
+<li>dlib: 19.24.6</li>
+</ul>
+<h3 id="资源和代码"><a href="#资源和代码" class="headerlink" title="资源和代码"></a>资源和代码</h3><pre><code>https://github.com/keychankc/dl_code_for_blog/tree/main/009_opencv_tracking
+</code></pre>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://keychankc.github.io/2025/04/08/009-opencv-tracking/" title="OpenCV之目标追踪">https://keychankc.github.io/2025/04/08/009-opencv-tracking/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/" rel="tag"># 计算机视觉</a>
+              <a href="/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/" rel="tag"># 目标检测</a>
+              <a href="/tags/OpenCV/" rel="tag"># OpenCV</a>
+              <a href="/tags/%E7%9B%AE%E6%A0%87%E8%BF%BD%E8%B8%AA/" rel="tag"># 目标追踪</a>
+              <a href="/tags/dlib/" rel="tag"># dlib</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/03/31/008-opencv-park/" rel="prev" title="OpenCV之停车场车位识别">
+                  <i class="fa fa-angle-left"></i> OpenCV之停车场车位识别
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/04/15/010-opencv-face-fatigue-detection/" rel="next" title="OpenCV之人脸疲劳检测">
+                  OpenCV之人脸疲劳检测 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">166k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.mengyajia.com","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2025/04/08/009-opencv-tracking/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"keychankc.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="1.YOLO-V31.网络架构改进提升特征提取能力和训练稳定性​​ 1.残差连接（Residual Connections）​残差连接 是指在神经网络中将输入 x 直接跳跃连接（shortcut）加到输出 F(x) 上的那一条路径。数学形式如下：$$y &#x3D; F(x) + x$$  其中： x：输入 F(x)：一系列卷积层后的输出（即“主干路径”） x 是“旁路路径”或称“跳跃连接” 两者">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[YOLO系列③] YOLOv3和YOLOv4优化策略">
+<meta property="og:url" content="https://keychankc.github.io/2025/04/29/013-yolo-yolov3-yolov4/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s blog">
+<meta property="og:description" content="1.YOLO-V31.网络架构改进提升特征提取能力和训练稳定性​​ 1.残差连接（Residual Connections）​残差连接 是指在神经网络中将输入 x 直接跳跃连接（shortcut）加到输出 F(x) 上的那一条路径。数学形式如下：$$y &#x3D; F(x) + x$$  其中： x：输入 F(x)：一系列卷积层后的输出（即“主干路径”） x 是“旁路路径”或称“跳跃连接” 两者">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-04-28T23:50:12.000Z">
+<meta property="article:modified_time" content="2025-09-21T12:04:48.538Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="计算机视觉">
+<meta property="article:tag" content="目标检测">
+<meta property="article:tag" content="YOLO">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://keychankc.github.io/2025/04/29/013-yolo-yolov3-yolov4/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/2025/04/29/013-yolo-yolov3-yolov4/","path":"2025/04/29/013-yolo-yolov3-yolov4/","title":"[YOLO系列③] YOLOv3和YOLOv4优化策略"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>[YOLO系列③] YOLOv3和YOLOv4优化策略 | KeyChan's blog</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.mengyajia.com">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's blog" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-YOLO-V3"><span class="nav-text">1.YOLO-V3</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84%E6%94%B9%E8%BF%9B"><span class="nav-text">1.网络架构改进</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E6%AE%8B%E5%B7%AE%E8%BF%9E%E6%8E%A5%EF%BC%88Residual-Connections%EF%BC%89%E2%80%8B"><span class="nav-text">1.残差连接（Residual Connections）​</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-Backbone-%E5%8D%87%E7%BA%A7%EF%BC%9ADarknet-19-%E2%86%92-Darknet-53"><span class="nav-text">2.Backbone 升级：Darknet-19 → Darknet-53</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E6%A3%80%E6%B5%8B%E6%9C%BA%E5%88%B6%E4%BC%98%E5%8C%96"><span class="nav-text">2.检测机制优化</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%A4%9A%E5%B0%BA%E5%BA%A6%E9%A2%84%E6%B5%8B%EF%BC%88Feature-Pyramid%EF%BC%89"><span class="nav-text">1.多尺度预测（Feature Pyramid）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E2%80%8B%E7%BB%86%E7%B2%92%E5%BA%A6%E7%89%B9%E5%BE%81%E8%9E%8D%E5%90%88%EF%BC%88Fine-Grained-Features%EF%BC%89%E2%80%8B"><span class="nav-text">2.​细粒度特征融合（Fine-Grained Features）​</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-Bounding-Box-%E9%A2%84%E6%B5%8B%E6%96%B9%E5%BC%8F%E6%94%B9%E8%BF%9B"><span class="nav-text">3.Bounding Box 预测方式改进</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E5%85%88%E9%AA%8C%E6%A1%86%E4%BC%98%E5%8C%96%EF%BC%88Anchor-Box-Clustering%EF%BC%89"><span class="nav-text">4.先验框优化（Anchor Box Clustering）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-%E5%88%86%E7%B1%BB%E6%96%B9%E5%BC%8F%E5%8F%98%E5%8C%96%EF%BC%9ASoftmax-%E2%86%92-Sigmoid"><span class="nav-text">5.分类方式变化：Softmax → Sigmoid</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%85%B6%E5%AE%83"><span class="nav-text">3.其它</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E8%AE%AD%E7%BB%83%E7%AD%96%E7%95%A5%E5%A2%9E%E5%BC%BA%E2%80%8B"><span class="nav-text">1.训练策略增强​</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E6%94%B9%E8%BF%9B%E2%80%8B"><span class="nav-text">2.损失函数改进​</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E7%BB%86%E7%B2%92%E5%BA%A6%E7%89%B9%E5%BE%81%E8%9E%8D%E5%90%88%EF%BC%88Fine-Grained-Features%EF%BC%89%E2%80%8B%E2%80%8B"><span class="nav-text">3.细粒度特征融合（Fine-Grained Features）​​</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E5%8A%A8%E6%80%81%E9%98%88%E5%80%BC%E4%B8%8E%E9%9D%9E%E6%9E%81%E5%A4%A7%E6%8A%91%E5%88%B6%EF%BC%88NMS%EF%BC%89%E4%BC%98%E5%8C%96%E2%80%8B"><span class="nav-text">4.动态阈值与非极大抑制（NMS）优化​</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-YOLO-V4"><span class="nav-text">2.YOLO-V4</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Bag-of-freebies-BOF-%E8%AE%AD%E7%BB%83%E4%BC%98%E5%8C%96"><span class="nav-text">1.Bag of freebies(BOF)训练优化</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-Mosaic%E6%95%B0%E6%8D%AE%E5%A2%9E%E5%BC%BA%EF%BC%88Mosaic-data-augmentation%EF%BC%89"><span class="nav-text">1.Mosaic数据增强（Mosaic data augmentation）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E8%87%AA%E5%AF%B9%E6%8A%97%E8%AE%AD%E7%BB%83%EF%BC%88Self-Adversarial-Training-SAT%EF%BC%89"><span class="nav-text">2.自对抗训练（Self-Adversarial Training, SAT）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-DropBlock"><span class="nav-text">3.DropBlock</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E6%A0%87%E7%AD%BE%E5%B9%B3%E6%BB%91%EF%BC%88Label-Smoothing%EF%BC%89"><span class="nav-text">4.标签平滑（Label Smoothing）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-%E2%80%8BIoU-GIoU-DIoU-CIoU-%E6%8D%9F%E5%A4%B1"><span class="nav-text">5.​IoU&#x2F;GIoU&#x2F;DIoU&#x2F;CIoU 损失</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#IoU%EF%BC%88Intersection-over-Union%EF%BC%89"><span class="nav-text">IoU（Intersection over Union）</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#GIoU%EF%BC%88Generalized-IoU%EF%BC%89"><span class="nav-text">GIoU（Generalized IoU）</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#DIoU%EF%BC%88Distance-IoU%EF%BC%89"><span class="nav-text">DIoU（Distance IoU）</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#CIoU%EF%BC%88Complete-IoU%EF%BC%89"><span class="nav-text">CIoU（Complete IoU）</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Bag-of-specials-BOS-%E6%A8%A1%E5%9E%8B%E7%BB%93%E6%9E%84%E6%94%B9%E8%BF%9B"><span class="nav-text">2.Bag of specials(BOS)模型结构改进</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-CSPDarknet53-Cross-Stage-Partial-Network"><span class="nav-text">1.CSPDarknet53(Cross Stage Partial Network)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-SPPNet-Spatial-Pyramid-Pooling"><span class="nav-text">2.SPPNet(Spatial Pyramid Pooling)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-PANet-Path-Aggregation-Network"><span class="nav-text">3.PANet(Path Aggregation Network)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-CBAM"><span class="nav-text">4.CBAM</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-Mish-%E6%BF%80%E6%B4%BB%E5%87%BD%E6%95%B0"><span class="nav-text">5.Mish 激活函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-Eliminate-grid-sensitivity"><span class="nav-text">6.Eliminate grid sensitivity</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%90%8E%E5%A4%84%E7%90%86%E4%BC%98%E5%8C%96"><span class="nav-text">3.后处理优化</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-DIoU-NMS%E2%80%8B-%E2%80%8BSoft-NMS"><span class="nav-text">1.DIoU-NMS​&#x2F;​Soft-NMS</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Soft-NMS%EF%BC%88Soft-Non-Maximum-Suppression%EF%BC%89"><span class="nav-text">Soft-NMS（Soft Non-Maximum Suppression）</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#DIoU-NMS%EF%BC%88Distance-IoU-based-NMS%EF%BC%89"><span class="nav-text">DIoU-NMS（Distance IoU-based NMS）</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%80%BB%E7%BB%93"><span class="nav-text">3.总结</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#YOLO-V3-%E6%94%B9%E8%BF%9B"><span class="nav-text">YOLO-V3 改进</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#YOLO-V4-%E6%94%B9%E8%BF%9B"><span class="nav-text">YOLO-V4 改进</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AF%B9%E6%AF%94"><span class="nav-text">对比</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">30</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">39</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/keychankc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://keychankc.github.io/2025/04/29/013-yolo-yolov3-yolov4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's blog">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="[YOLO系列③] YOLOv3和YOLOv4优化策略 | KeyChan's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          [YOLO系列③] YOLOv3和YOLOv4优化策略
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-04-29 07:50:12" itemprop="dateCreated datePublished" datetime="2025-04-29T07:50:12+08:00">2025-04-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-09-21 20:04:48" itemprop="dateModified" datetime="2025-09-21T20:04:48+08:00">2025-09-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2025/04/29/013-yolo-yolov3-yolov4/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2025/04/29/013-yolo-yolov3-yolov4/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>8.4k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>31 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="1-YOLO-V3"><a href="#1-YOLO-V3" class="headerlink" title="1.YOLO-V3"></a>1.YOLO-V3</h2><h3 id="1-网络架构改进"><a href="#1-网络架构改进" class="headerlink" title="1.网络架构改进"></a>1.网络架构改进</h3><p>提升特征提取能力和训练稳定性​​</p>
+<h4 id="1-残差连接（Residual-Connections）​"><a href="#1-残差连接（Residual-Connections）​" class="headerlink" title="1.残差连接（Residual Connections）​"></a>1.残差连接（Residual Connections）​</h4><p><strong>残差连接</strong> 是指在神经网络中将<strong>输入 x 直接跳跃连接（shortcut）加到输出 F(x) 上</strong>的那一条路径。数学形式如下：<br>$$<br>y &#x3D; F(x) + x<br>$$</p>
+<ul>
+<li>其中：<ul>
+<li>x：输入</li>
+<li>F(x)：一系列卷积层后的输出（即“主干路径”）</li>
+<li>x 是“旁路路径”或称“跳跃连接”</li>
+<li>两者相加形成最终输出 y<br>这条连接就是 “残差连接”，它是 <strong>结构中的一条数据路径</strong>。</li>
+</ul>
+</li>
+</ul>
+<span id="more"></span>
+<p>为什么要加残差连接？</p>
+<ol>
+<li><strong>解决梯度消失</strong>：深层网络容易出现梯度消失，导致前层参数无法有效更新。残差连接可以让梯度直接从后向前传播，缓解这个问题</li>
+<li><strong>避免退化问题</strong>：当网络加深后，理论上精度应该更好，但实际上常常出现“深层网络比浅层表现差”的现象，残差连接能避免这个问题</li>
+<li><strong>更容易收敛</strong>：训练时网络更快收敛，训练更稳定</li>
+<li><strong>允许更深的网络</strong>：有了残差结构，能够训练出 <strong>50层、101层甚至1000多层</strong> 的深度神经网络</li>
+</ol>
+<p><strong>残差结构</strong>是指包含<strong>残差连接</strong>的整个网络子模块（block）。它通常包括：</p>
+<ol>
+<li>一条主路径：由几层卷积、BN、ReLU 等组成，用来提取特征；</li>
+<li>一条旁路径：直接跳过主路径，将输入 x 加到输出；</li>
+<li>一个加法操作：将主路径和旁路径的结果合并。</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">输入 x</span><br><span class="line"> ├─ Conv（卷积）</span><br><span class="line"> ├─ BatchNorm（归一化）</span><br><span class="line"> ├─ ReLU（激活）</span><br><span class="line"> ├─ Conv（卷积）</span><br><span class="line"> ├─ BatchNorm（归一化）</span><br><span class="line"> └─ 加上输入 x（残差连接 / Shortcut）</span><br><span class="line">输出 y = F(x) + x</span><br></pre></td></tr></table></figure>
+<p>总结：残差结构其实就是“包含残差连接的子网络结构”</p>
+<h4 id="2-Backbone-升级：Darknet-19-→-Darknet-53"><a href="#2-Backbone-升级：Darknet-19-→-Darknet-53" class="headerlink" title="2.Backbone 升级：Darknet-19 → Darknet-53"></a>2.Backbone 升级：Darknet-19 → Darknet-53</h4><p>YOLOv2 使用的是 <strong>Darknet-19</strong>，它结构简单、推理速度快，但在复杂场景中容易丢失细节信息，YOLOv3 需要一个更深、更强的特征提取网络来增强对小目标的检测能力，于是作者提出了<strong>Darknet-53</strong>特点：</p>
+<ul>
+<li>“53” 代表网络共有 53 层具有可学习参数的层（大多是卷积层）</li>
+<li>引入了 <strong>残差结构（Residual Block）</strong>，类似于 ResNet，使得更深层的网络更容易训练</li>
+<li>全部使用了 <strong>3x3 和 1x1 卷积核</strong>，保持运算高效</li>
+<li>没有使用全连接层，利于保持空间信息</li>
+</ul>
+<p>Darknet-53 的网络层次可以分为多个阶段，每个阶段都包含若干个残差块，具体结构如下：</p>
+<table>
+<thead>
+<tr>
+<th><strong>Stage</strong></th>
+<th><strong>Output Size</strong></th>
+<th><strong>Layers（简写）</strong></th>
+<th><strong>残差块数量</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>256×256</td>
+<td>Conv1: 3×3, 32</td>
+<td>0</td>
+</tr>
+<tr>
+<td>2</td>
+<td>128×128</td>
+<td>Conv2: 3×3, 64 &#x2F; stride&#x3D;2</td>
+<td>1</td>
+</tr>
+<tr>
+<td>3</td>
+<td>64×64</td>
+<td>Conv3: 3×3, 128 &#x2F; stride&#x3D;2</td>
+<td>2</td>
+</tr>
+<tr>
+<td>4</td>
+<td>32×32</td>
+<td>Conv4: 3×3, 256 &#x2F; stride&#x3D;2</td>
+<td>8</td>
+</tr>
+<tr>
+<td>5</td>
+<td>16×16</td>
+<td>Conv5: 3×3, 512 &#x2F; stride&#x3D;2</td>
+<td>8</td>
+</tr>
+<tr>
+<td>6</td>
+<td>8×8</td>
+<td>Conv6: 3×3, 1024 &#x2F; stride&#x3D;2</td>
+<td>4</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>注：每个“残差块”都包含 1 个 1×1 卷积 + 1 个 3×3 卷积，并带有残差连接。</p>
+</blockquote>
+<h3 id="2-检测机制优化"><a href="#2-检测机制优化" class="headerlink" title="2.检测机制优化"></a>2.检测机制优化</h3><p>提升多尺度目标检测和定位精度​</p>
+<h4 id="1-多尺度预测（Feature-Pyramid）"><a href="#1-多尺度预测（Feature-Pyramid）" class="headerlink" title="1.多尺度预测（Feature Pyramid）"></a>1.多尺度预测（Feature Pyramid）</h4><p>在目标检测中，一个主要挑战是：<strong>目标大小不一</strong>，有的目标很小（比如鸟、行人），有的很大（比如卡车、建筑），为了同时检测这些不同尺寸的物体，YOLOv3 引入了多尺度预测机制，灵感来源于 <strong>FPN（Feature Pyramid Network）</strong>。<br><strong>核心思想：</strong></p>
+<blockquote>
+<p>在不同分辨率的特征图上分别进行检测，每个尺度都负责检测特定大小的目标。</p>
+</blockquote>
+<p>YOLOv3 使用 <strong>Darknet-53</strong> 主干网络来提取特征，并构建多尺度输出。流程如下：</p>
+<ol>
+<li>从主干网络中间层获取三个特征图（多尺度预测）<ul>
+<li><strong>ResBlock8 输出 → 52×52</strong></li>
+<li><strong>ResBlock15 输出 → 26×26</strong></li>
+<li><strong>最终输出 → 13×13</strong></li>
+</ul>
+</li>
+<li>上采样 + 拼接（​细粒度特征融合）<ul>
+<li>高层特征通过 <strong>上采样（Nearest Neighbour）</strong> 放大</li>
+<li>与来自浅层的特征图进行 <strong>拼接（concat）</strong></li>
+<li>然后再通过卷积层提取融合后的特征</li>
+</ul>
+</li>
+</ol>
+<p>多尺度预测带来的好处：</p>
+<ol>
+<li><strong>增强小目标检测能力</strong>，如行人、人脸、交通标志</li>
+<li><strong>适应多种目标大小</strong>，从小狗到大卡车都能检测</li>
+<li><strong>信息融合更充分</strong>，深层语义 + 浅层细节互补</li>
+<li><strong>检测性能全面提升</strong>，尤其在 COCO 数据集上表现优异</li>
+</ol>
+<h4 id="2-​细粒度特征融合（Fine-Grained-Features）​"><a href="#2-​细粒度特征融合（Fine-Grained-Features）​" class="headerlink" title="2.​细粒度特征融合（Fine-Grained Features）​"></a>2.​细粒度特征融合（Fine-Grained Features）​</h4><p>为什么要融合细粒度特征？<br>神经网络在不断向下采样、加深层数的过程中：</p>
+<ul>
+<li><strong>低层特征（浅层）</strong>：保留了<strong>空间位置和纹理细节信息</strong>，但语义抽象能力弱</li>
+<li><strong>高层特征（深层）</strong>：具有很强的<strong>语义理解能力</strong>，但空间分辨率低、细节丢失<br>这种深层特征虽然对“看懂物体”很强，但：</li>
+<li>对<strong>小目标的位置、边界感知能力弱</strong>；</li>
+<li>容易出现目标边界模糊、定位不准等问题。<br>所以，<strong>细粒度特征融合</strong>的目标就是：<strong>结合低层的“清晰细节”与高层的“语义理解”</strong>，做到“看清楚 + 看懂了”。</li>
+</ul>
+<p>YOLOv3 借助类似 <strong>FPN（Feature Pyramid Network）</strong> 的思想，把不同层级的特征融合起来，具体策略如下：</p>
+<ol>
+<li>将高层的语义特征图（分辨率低）进行<strong>上采样</strong>（Nearest Neighbor）</li>
+<li>与来自浅层网络的高分辨率特征图进行 <strong>拼接（concatenation）</strong></li>
+<li>拼接后经过卷积进一步提取融合后的信息，得到更<strong>丰富的检测特征图</strong></li>
+</ol>
+<h4 id="3-Bounding-Box-预测方式改进"><a href="#3-Bounding-Box-预测方式改进" class="headerlink" title="3.Bounding Box 预测方式改进"></a>3.Bounding Box 预测方式改进</h4><p>YOLOv3 在 <strong>Bounding Box（边界框）预测方式</strong> 上也做了关键改进，这是 YOLOv3 能提升定位准确度、训练更稳定的重要原因之一。<br>早期 YOLO 系列的 bbox 预测有一些问题：</p>
+<table>
+<thead>
+<tr>
+<th><strong>问题</strong></th>
+<th><strong>解释</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>不够稳定</td>
+<td>使用直接预测中心点 (x, y) 和宽高 (w, h)，对回归不敏感，尤其宽高变化大时梯度不稳定</td>
+</tr>
+<tr>
+<td>容易偏移</td>
+<td>预测中心点是绝对位置，对小目标偏移影响更大</td>
+</tr>
+<tr>
+<td>有负数预测值</td>
+<td>预测结果可为负数，导致框“跑出图像”或不合理</td>
+</tr>
+</tbody></table>
+<p>YOLOv3 改进的核心是：<strong>用更稳定的相对形式来预测 bbox 参数，并通过激活函数限制其范围</strong>。具体改进包括：</p>
+<ol>
+<li><strong>使用 sigmoid 激活预测中心坐标偏移</strong>，始终在当前 grid cell 内，不会跑偏或跳出格子，更好学习“相对位移”，训练稳定、收敛更快</li>
+<li><strong>宽高采用 anchor box 的缩放系数</strong>，YOLOv3 不直接预测宽高，而是基于 anchor box 尺寸进行缩放，这样做的好处是，保证宽高始终为正值，使用指数函数使得模型可以灵活地预测比 anchor 更大&#x2F;更小的物体</li>
+</ol>
+<p>与 YOLOv2 的预测方式对比：</p>
+<table>
+<thead>
+<tr>
+<th><strong>对比项</strong></th>
+<th><strong>YOLOv2</strong></th>
+<th><strong>YOLOv3</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>中心坐标预测方式</td>
+<td>未归一化（线性偏移）</td>
+<td>Sigmoid 激活后加上网格坐标</td>
+</tr>
+<tr>
+<td>宽高预测方式</td>
+<td>线性缩放</td>
+<td>指数缩放（保证宽高为正）</td>
+</tr>
+<tr>
+<td>激活函数</td>
+<td>无限制</td>
+<td>Sigmoid + exp 让预测值更合理、更稳定</td>
+</tr>
+<tr>
+<td>框的位置稳定性</td>
+<td>容易偏移</td>
+<td>更准确、学习目标位置更加稳定</td>
+</tr>
+<tr>
+<td>多标签支持</td>
+<td>softmax 分类（互斥）</td>
+<td>sigmoid 多标签（支持多标签分类场景）</td>
+</tr>
+</tbody></table>
+<h4 id="4-先验框优化（Anchor-Box-Clustering）"><a href="#4-先验框优化（Anchor-Box-Clustering）" class="headerlink" title="4.先验框优化（Anchor Box Clustering）"></a>4.先验框优化（Anchor Box Clustering）</h4><p>先验框优化是 YOLOv3 在预测精度上提升的重要步骤，它直接影响模型预测框的 <strong>拟合能力和收敛速度</strong></p>
+<p>为什么需要先验框（Anchor Box）优化？<br>在物体检测中，<strong>Anchor Box（先验框）</strong> 是预设的一组矩形框，用于引导模型预测目标的位置和尺寸。<br>YOLOv2 起首次引入 Anchor Box，每个格子默认设定多个尺度和比例的先验框，模型只需预测与 Anchor Box 的“偏移量”，这样可以提高定位精度，尤其是对于尺寸多变的目标。<br>但这样存在问题：</p>
+<ul>
+<li>不能很好地拟合训练集中真实目标的尺寸分布</li>
+<li>对小目标或特殊形状的物体不友好</li>
+<li>容易出现预测框与实际目标形状差距太大</li>
+</ul>
+<p>YOLOv3 使用 <strong>K-Means 聚类算法</strong> 在训练集上<strong>自动学习出合适的 Anchor Box 尺寸</strong>，替代人为设置，聚类过程如下：</p>
+<ol>
+<li><strong>收集训练集中的所有真实 bbox</strong>（宽、高）</li>
+<li><strong>选择一个距离度量方式</strong><ul>
+<li>通常用 <strong>IOU 距离（1 - IOU）</strong>，不是欧氏距离</li>
+<li>这样更符合 bbox 匹配的实际逻辑</li>
+</ul>
+</li>
+<li><strong>用 K-Means 对这些真实框做聚类</strong><ul>
+<li>聚出 K 个“代表性 bbox 尺寸”作为 anchor</li>
+</ul>
+</li>
+<li>得到一组尺寸不一但适配度高的 Anchor Boxes</li>
+</ol>
+<p>Anchor Box 优化的好处：</p>
+<table>
+<thead>
+<tr>
+<th><strong>优势</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>更匹配真实目标尺寸分布</td>
+<td>聚类得出的 anchor 更符合数据分布</td>
+</tr>
+<tr>
+<td>提升预测框与真实框匹配度</td>
+<td>IOU 更高，正样本分配更准确</td>
+</tr>
+<tr>
+<td>收敛速度更快</td>
+<td>不会训练初期大量预测框 mismatch</td>
+</tr>
+<tr>
+<td>提高小目标检测能力</td>
+<td>某些 anchor 专门服务于小目标</td>
+</tr>
+<tr>
+<td>泛化性更强</td>
+<td>在新数据集上重新聚类即可快速适配</td>
+</tr>
+</tbody></table>
+<h4 id="5-分类方式变化：Softmax-→-Sigmoid"><a href="#5-分类方式变化：Softmax-→-Sigmoid" class="headerlink" title="5.分类方式变化：Softmax → Sigmoid"></a>5.分类方式变化：Softmax → Sigmoid</h4><p>YOLOv3 抛弃 Softmax，采用 <strong>逐类别 Sigmoid 激活</strong>，实现了更灵活的 <strong>多标签分类能力</strong>，使模型可以适应更多复杂、多义、多标签的目标检测任务，是一个设计上的质变提升。</p>
+<p>为什么 Softmax 不适合目标检测？<br>在真实检测任务中，存在以下情况：</p>
+<table>
+<thead>
+<tr>
+<th><strong>情况</strong></th>
+<th><strong>举例</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>多标签物体</td>
+<td>一只“人骑在马”上，可能属于“人类”和“骑手”</td>
+</tr>
+<tr>
+<td>模糊&#x2F;不确定类别</td>
+<td>模糊图像同时可能是“猫”和“狸花猫”</td>
+</tr>
+<tr>
+<td>需要支持多类可能性</td>
+<td>一些检测任务，如医学影像、遥感图像，多类交叉</td>
+</tr>
+</tbody></table>
+<p>因此 Softmax 会强行“排他”，不能表达“一个框可能属于多个类”的情况</p>
+<p>YOLOv3 抛弃 Softmax，改用 <strong>逐类别的 Sigmoid 激活函数</strong>：<br>特点：</p>
+<ul>
+<li>每个类别都有一个独立的概率</li>
+<li>类别之间互不干扰，不要求总和为 1</li>
+<li>可以实现<strong>多标签分类</strong>（multi-label classification）</li>
+</ul>
+<h3 id="3-其它"><a href="#3-其它" class="headerlink" title="3.其它"></a>3.其它</h3><h4 id="1-训练策略增强​"><a href="#1-训练策略增强​" class="headerlink" title="1.训练策略增强​"></a>1.训练策略增强​</h4><ul>
+<li>多尺度训练（Multi-Scale Training）：在训练时动态调整输入图像尺寸（如 320×320 → 608×608），提升模型尺度鲁棒性</li>
+<li>数据增强：引入随机裁剪、色彩抖动等，提升泛化性</li>
+</ul>
+<h4 id="2-损失函数改进​"><a href="#2-损失函数改进​" class="headerlink" title="2.损失函数改进​"></a>2.损失函数改进​</h4><ul>
+<li>用二元交叉熵（BCE）替代 MSE 计算分类损失，更适应多标签任务</li>
+<li>对定位损失（IoU）和分类损失分开加权，平衡不同任务优化</li>
+</ul>
+<h4 id="3-细粒度特征融合（Fine-Grained-Features）​​"><a href="#3-细粒度特征融合（Fine-Grained-Features）​​" class="headerlink" title="3.细粒度特征融合（Fine-Grained Features）​​"></a>3.细粒度特征融合（Fine-Grained Features）​​</h4><ul>
+<li>在 26×26 和 52×52 特征图中，通过跳跃连接（Concatenation）融合浅层细节信息（如边缘、纹理），提升小目标检测</li>
+</ul>
+<h4 id="4-动态阈值与非极大抑制（NMS）优化​"><a href="#4-动态阈值与非极大抑制（NMS）优化​" class="headerlink" title="4.动态阈值与非极大抑制（NMS）优化​"></a>4.动态阈值与非极大抑制（NMS）优化​</h4><ul>
+<li>设置动态置信度阈值过滤低质量预测框</li>
+<li>改进 NMS 算法，缓解密集场景下的重叠框误删问题</li>
+</ul>
+<h2 id="2-YOLO-V4"><a href="#2-YOLO-V4" class="headerlink" title="2.YOLO-V4"></a>2.YOLO-V4</h2><h3 id="1-Bag-of-freebies-BOF-训练优化"><a href="#1-Bag-of-freebies-BOF-训练优化" class="headerlink" title="1.Bag of freebies(BOF)训练优化"></a>1.Bag of freebies(BOF)训练优化</h3><h4 id="1-Mosaic数据增强（Mosaic-data-augmentation）"><a href="#1-Mosaic数据增强（Mosaic-data-augmentation）" class="headerlink" title="1.Mosaic数据增强（Mosaic data augmentation）"></a>1.Mosaic数据增强（Mosaic data augmentation）</h4><p><strong>Mosaic 数据增强</strong> 是由 YOLOv4 首次提出的一种图像增强方法是将4张不同的图像拼接成1张图像，并将目标框同时映射过来。相比传统的数据增强（如翻转、旋转、裁剪等），Mosaic 可以在一次训练样本中同时看到更多目标，<strong>显著增加了图像中目标的多样性、数量和尺度变化</strong>。</p>
+<p>Mosaic实现过程：</p>
+<ol>
+<li>从数据集中随机选择 4 张图像</li>
+<li>对每张图像分别进行缩放、裁剪等基本预处理</li>
+<li>将这 4 张图像以 2×2 网格方式拼接成 1 张图像（可以是中心交汇，也可以是非对称拼接）</li>
+<li>将原图中的标注框（bounding boxes）根据缩放和平移关系映射到拼接后的图像中<br>这样每张训练图像可以包含多个原始图像中的目标</li>
+</ol>
+<p>Mosaic 的优势：</p>
+<ol>
+<li>提高小目标检测能力，Mosaic 能让原本分布在不同图像中的小目标集中在一张图中，使模型能更好地学习小目标的特征</li>
+<li>增强模型鲁棒性，通过随机组合不同图像内容，模型学到更丰富的背景、目标组合，从而提升泛化能力</li>
+<li>类似于“批内增强”，它相当于将 4 张图片的信息融合进了 1 次前向传播中，某种程度上起到了提升 batch 多样性的作用。</li>
+<li>无需大batch size，结合了 4 张图像的信息，有效缓解小 batch size 下样本多样性不足的问题</li>
+</ol>
+<h4 id="2-自对抗训练（Self-Adversarial-Training-SAT）"><a href="#2-自对抗训练（Self-Adversarial-Training-SAT）" class="headerlink" title="2.自对抗训练（Self-Adversarial Training, SAT）"></a>2.自对抗训练（Self-Adversarial Training, SAT）</h4><p>YOLOv4 中的 <strong>自对抗训练（Self-Adversarial Training, SAT）</strong> 是一个非常有趣、而且颇具创意的训练技巧。它首次将“对抗攻击”的概念用于数据增强，从而提升模型的鲁棒性和性能。</p>
+<p>什么是自对抗训练？SAT 是一种分两步进行的训练方式，先“欺骗”模型，再“教训”模型。<br>它的核心思路是：</p>
+<ol>
+<li>利用模型本身生成“对抗性扰动”来修改输入图像，使其对模型变得更难识别</li>
+<li>然后再用这些被“扰乱”的图像去训练模型，让模型学会“识破”这些对抗干扰<br>这就像模型自己“打一巴掌，再喂药”，最终变得更强。</li>
+</ol>
+<p>实现过程：<br>SAT 通常发生在每一个 mini-batch 的训练过程中，主要包括两个阶段：<br><strong>对抗扰动阶段</strong>：主要是找出模型当前最不容易处理的样本区域</p>
+<ul>
+<li>模型接收到一张原始图像</li>
+<li>对其进行一次前向传播，计算损失</li>
+<li>然后根据这个损失对输入图像计算梯度（类似 FGSM 方法）</li>
+<li>利用这个梯度对图像进行微调（添加对抗扰动）</li>
+<li>得到一张被“攻击过”的图像<br><strong>常规训练阶段</strong></li>
+<li>用第一步生成的“被攻击图像”进行正常的训练</li>
+<li>目标是让模型正确识别这些更具挑战性的样本，从而提升鲁棒性</li>
+</ul>
+<p>这样做有什么好处？</p>
+<ol>
+<li>提升模型鲁棒性：SAT 实际上是让模型暴露在“对抗样本”中，因此它在面对噪声、遮挡、低质量图像时，表现更稳健</li>
+<li>模拟更复杂的样本分布：相比于普通数据增强，SAT 所生成的对抗图像具有“更真实的混乱”，更接近模型容易犯错的场景</li>
+<li>不需要额外的数据或模型：自对抗训练完全基于当前模型自身，不需要额外的对抗网络（不像 GAN），训练成本可控</li>
+</ol>
+<h4 id="3-DropBlock"><a href="#3-DropBlock" class="headerlink" title="3.DropBlock"></a>3.DropBlock</h4><p>YOLOv4 中引入的 <strong>DropBlock</strong> 是一种比 Dropout 更高级的正则化方法，它专门针对 <strong>卷积神经网络（CNN）</strong> 中的特征图设计，能有效防止模型过拟合，效果非常实用且高效。<br>DropBlock 是一种针对 CNN 特征图的正则化方法，它会随机“抹掉”一个区域（Block）而不是单个点（像 Dropout 那样）。想象一下，把特征图中的一小块方形区域设为零，就像是图像上贴了一块“遮挡物”。这样训练时，模型就必须学会依赖更多元的上下文信息，而不是过度依赖某一个区域。</p>
+<p>为什么要用 DropBlock（而不是 Dropout）？<br>在卷积网络中，普通的 Dropout 并不太有效，原因是：</p>
+<ul>
+<li>Dropout 是随机将单个像素设为 0</li>
+<li>但在 CNN 的特征图中，相邻像素高度相关</li>
+<li>所以即使“断”了一个点，其周围还会有类似信息，模型没太受影响<br>而 <strong>DropBlock 会将一整块区域同时设为 0</strong>，这更像是“局部信息丢失”，迫使模型从别的地方寻找信息，更有效防止过拟合。</li>
+</ul>
+<p>DropBlock 的工作机制<br>核心参数有两个：</p>
+<ul>
+<li><strong>block_size</strong>：要遮挡的方块区域的边长，比如 3 就是一个 3×3 的方块</li>
+<li><strong>keep_prob &#x2F; drop_prob</strong>：保留或丢弃的概率，控制正则化强度<br>实现步骤如下：</li>
+</ul>
+<ol>
+<li>随机选择特征图上的若干中心点</li>
+<li>以这些点为中心，生成固定大小的 block 区域</li>
+<li>将这些 block 区域内的值全部设为 0</li>
+<li>保持整个特征图的均值不变（可选的 scale 操作）</li>
+</ol>
+<h4 id="4-标签平滑（Label-Smoothing）"><a href="#4-标签平滑（Label-Smoothing）" class="headerlink" title="4.标签平滑（Label Smoothing）"></a>4.标签平滑（Label Smoothing）</h4><p>标签平滑是一种防止模型过拟合的方法，核心思想是：不要把标签当作“100% 确定”的真理，而是给它留一点“模糊空间”。<br>传统分类任务中，标签是独热（one-hot）形式，比如对于 3 类任务中的第 2 类，标签为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[0, 1, 0]</span><br></pre></td></tr></table></figure>
+<p>而标签平滑之后，就变成了类似：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[0.1, 0.8, 0.1]（当 smoothing=0.2 时）</span><br></pre></td></tr></table></figure>
+<p>这样模型在训练时就不会把第二类“当作绝对真理”，而是会保持一些“不确定性”，从而减少过拟合。</p>
+<p>为什么要用标签平滑？<br>在目标检测中，特别是像 YOLO 这样的大规模多类检测中，模型很容易：</p>
+<ul>
+<li>对于某一类过拟合（预测置信度接近1）</li>
+<li>对其他类别完全“视而不见”<br>这会造成模型泛化性差，一旦测试图像稍有偏差，模型就“懵了”。<br>而标签平滑可以缓解这个问题，让模型在训练过程中更温和地“相信”标签，从而提升稳定性与鲁棒性。</li>
+</ul>
+<p>YOLOv4 使用标签平滑主要是用于：</p>
+<ul>
+<li><strong>类别置信度的预测部分</strong>（即 objectness + class probability）</li>
+<li>搭配 <strong>CIoU Loss</strong>、Mosaic、SAT 等其他策略，形成一套完整的正则组合拳</li>
+<li>特别有效于多类、小样本类别，能减少对“极端标签”的依赖</li>
+</ul>
+<p>注意事项</p>
+<ul>
+<li>smoothing 不宜过大，一般 $0.05 \sim 0.1$</li>
+<li>在 label 极其干净且类别之间差异极大时，可能带来微弱负面影响（置信度下降）</li>
+<li>对于检测模型来说，标签平滑只作用在分类标签上，不影响位置（bbox）回归</li>
+</ul>
+<h4 id="5-​IoU-GIoU-DIoU-CIoU-损失"><a href="#5-​IoU-GIoU-DIoU-CIoU-损失" class="headerlink" title="5.​IoU&#x2F;GIoU&#x2F;DIoU&#x2F;CIoU 损失"></a>5.​IoU&#x2F;GIoU&#x2F;DIoU&#x2F;CIoU 损失</h4><p>在 YOLO 系列（特别是 YOLOv3 之后）中，<strong>边界框回归（bounding box regression）</strong> 的损失函数经历了从 IoU 到 GIoU、DIoU、CIoU 的逐步演化。这些损失函数的目标是让预测框更准确地贴合真实框。</p>
+<h5 id="IoU（Intersection-over-Union）"><a href="#IoU（Intersection-over-Union）" class="headerlink" title="IoU（Intersection over Union）"></a>IoU（Intersection over Union）</h5><p>$$<br>IoU &#x3D; \frac{Area\ of\ Overlap}{Area\ of\ Union}<br>$$</p>
+<p>表示预测框和真实框重合部分与并集的比例，范围在 $[0, 1]$<br>问题点：</p>
+<ul>
+<li>如果两个框 <strong>没有重叠（IoU&#x3D;0）</strong>，就无法提供任何梯度信息，模型无法学习</li>
+<li>只能衡量“重叠程度”，不能衡量位置差异或形状差异</li>
+</ul>
+<h5 id="GIoU（Generalized-IoU）"><a href="#GIoU（Generalized-IoU）" class="headerlink" title="GIoU（Generalized IoU）"></a>GIoU（Generalized IoU）</h5><p>$$<br>GIoU &#x3D; IoU - \frac{|C \setminus (A \cup B)|}{|C|}<br>$$</p>
+<ul>
+<li>$C$ 是预测框和真实框的最小闭包框（包含两者的最小矩形）</li>
+<li>当 IoU &#x3D; 0 时，GIoU 仍然能产生梯度<br>优点：</li>
+<li>即使两个框没有重叠，也能提供优化方向</li>
+<li>更鲁棒地处理初始预测不准的情况</li>
+</ul>
+<h5 id="DIoU（Distance-IoU）"><a href="#DIoU（Distance-IoU）" class="headerlink" title="DIoU（Distance IoU）"></a>DIoU（Distance IoU）</h5><p>$$<br>DIoU &#x3D; IoU - \frac{\rho^2(\mathbf{b}, \mathbf{b}^{gt})}{c^2}<br>$$</p>
+<ul>
+<li>$\rho$：两个框中心点之间的欧几里得距离</li>
+<li>$c$：包含两个框的最小闭包框的对角线长度<br>优点：</li>
+<li>加入了 <strong>“中心点距离”惩罚项</strong>，促使预测框中心靠近真实框</li>
+<li>收敛更快，回归效果更好</li>
+<li>更适合快速定位目标</li>
+</ul>
+<h5 id="CIoU（Complete-IoU）"><a href="#CIoU（Complete-IoU）" class="headerlink" title="CIoU（Complete IoU）"></a>CIoU（Complete IoU）</h5><p>$$<br>CIoU &#x3D; IoU - \left( \frac{\rho^2(\mathbf{b}, \mathbf{b}^{gt})}{c^2} + \alpha v \right)<br>$$</p>
+<p>其中：</p>
+<ul>
+<li>$\rho^2$ 是中心点距离；</li>
+<li>$v$ 是宽高比一致性度量项；</li>
+<li>$\alpha$ 是动态权重，依赖于 IoU 和 $v$；<br>其中：<br>$$v &#x3D; \frac{4}{\pi^2} \left( \arctan\frac{w^{gt}}{h^{gt}} - \arctan\frac{w}{h} \right)^2$$</li>
+</ul>
+<p>$$ \alpha &#x3D; \frac{v}{(1 - IoU) + v} $$</p>
+<p>优点是同时考虑了，框的重叠程度（IoU）、中心点距离（定位）、 宽高比差异（形状匹配）。是目前目标检测中最全面、收敛最快、表现最优的一种 bbox 回归损失。</p>
+<h3 id="2-Bag-of-specials-BOS-模型结构改进"><a href="#2-Bag-of-specials-BOS-模型结构改进" class="headerlink" title="2.Bag of specials(BOS)模型结构改进"></a>2.Bag of specials(BOS)模型结构改进</h3><h4 id="1-CSPDarknet53-Cross-Stage-Partial-Network"><a href="#1-CSPDarknet53-Cross-Stage-Partial-Network" class="headerlink" title="1.CSPDarknet53(Cross Stage Partial Network)"></a>1.CSPDarknet53(Cross Stage Partial Network)</h4><p><strong>CSPDarknet53</strong> 是 YOLOv4 的主干网络（Backbone），它是对 YOLOv3 中使用的 <strong>Darknet-53</strong> 的增强版本，引入了 <strong>CSPNet（Cross Stage Partial Network）</strong> 架构思想，大幅提升了网络的性能和效率。<br><strong>Darknet-53</strong> 是 YOLOv3 使用的主干网络，包含 53 层卷积结构，使用残差连接（Residual），特点是结构简单，速度快，适合实时检测。<br>但是Darknet-53 在高层容易<strong>冗余梯度</strong>，特征融合效率一般，在保持轻量的同时很难进一步提升精度。<br>CSPDarknet是将特征图通道分成两部分：一部分<strong>直接跳过残差块</strong>，另一部分<strong>通过残差块学习</strong>，最终在 stage 的末尾进行融合。也就是说，在传统残差块的基础上，把输入一分为二：<strong>一半走残差学习</strong>路径，<strong>一半直接传输</strong>；最后再 concat（拼接）。</p>
+<p>YOLOv4 中 CSPDarknet53 使用了新的激活函数：<strong>Mish</strong>，Mish 的特点：平滑且非单调，梯度流通更顺畅，表现优于 ReLU、LeakyReLU（但推理速度略慢）。</p>
+<p>CSPDarknet53 &#x3D; Darknet53 + CSPNet + Mish 激活函数，拥有更高的效率、更强的表示力，是 YOLOv4 实时检测的核心骨干网络。**</p>
+<h4 id="2-SPPNet-Spatial-Pyramid-Pooling"><a href="#2-SPPNet-Spatial-Pyramid-Pooling" class="headerlink" title="2.SPPNet(Spatial Pyramid Pooling)"></a>2.SPPNet(Spatial Pyramid Pooling)</h4><p><strong>SPPNet</strong> 是一个非常经典的结构，被广泛应用于图像分类、目标检测等任务中。YOLOv4 也集成了它的思想，用来增强特征提取能力。<br>它的核心思想是：<strong>在一张特征图上，进行多尺度的最大池化，然后把这些池化结果拼接起来</strong>，从而提取多尺度上下文信息。</p>
+<p>为什么要用 SPP？<br>YOLOv4 中的目标检测有两个难点：</p>
+<ol>
+<li><strong>目标尺寸不一致</strong> —— 同一张图里，大目标、小目标混杂</li>
+<li><strong>感受野不够大</strong> —— 上层卷积只能看到局部<br>而 <strong>SPP</strong> 的优势是：</li>
+</ol>
+<ul>
+<li>不改变输入图像尺寸</li>
+<li>能提取 <strong>不同感受野下的特征</strong>（即多尺度上下文信息）</li>
+<li>提升模型对大、小目标的适应能力</li>
+</ul>
+<p>SPP 的结构怎么做？<br>假设某一层输出了一个大小为 n × n 的特征图。<br>我们在这个特征图上做：</p>
+<ul>
+<li>1×1 最大池化（全局）</li>
+<li>5×5 最大池化</li>
+<li>9×9 最大池化</li>
+<li>13×13 最大池化<br>然后对这些池化结果进行拼接（concat）。<br>通俗理解：就像把一个图像用不同大小的窗口去“扫”，每个窗口提取一个“全局摘要”特征，最后把这些不同尺度的摘要拼在一起，形成更全面的理解。</li>
+</ul>
+<h4 id="3-PANet-Path-Aggregation-Network"><a href="#3-PANet-Path-Aggregation-Network" class="headerlink" title="3.PANet(Path Aggregation Network)"></a>3.PANet(Path Aggregation Network)</h4><p>PANet &#x3D; FPN + Bottom-Up Path + Adaptive Feature Pooling</p>
+<blockquote>
+<p>由 <strong>Facebook AI</strong> 在 2018 年提出，最初是为了改进实例分割和目标检测中的多尺度融合结构。</p>
+</blockquote>
+<p>在 YOLOv4 中，PANet 被用作 <strong>Neck</strong>，连接主干网络（如 CSPDarknet53）和检测头（Head），增强信息流的双向传播。</p>
+<p>PANet 的核心结构</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">CSPDarknet53（Backbone）</span><br><span class="line">   ↓</span><br><span class="line">SPP 模块（增强感受野）</span><br><span class="line">   ↓</span><br><span class="line">FPN（top-down 路径）</span><br><span class="line">   ↓</span><br><span class="line">PANet（bottom-up 路径）</span><br><span class="line">   ↓</span><br><span class="line">YOLO Head（输出框和类别）</span><br></pre></td></tr></table></figure>
+<p>这种顺序结构被称为 <strong>“SPP + FPN + PANet”</strong>，强化了语义 &amp; 位置特征融合，尤其对小目标检测非常有效。</p>
+<p>PANet 的优势:</p>
+<table>
+<thead>
+<tr>
+<th><strong>优点</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>双向融合</td>
+<td>结合 top-down 和 bottom-up 信息</td>
+</tr>
+<tr>
+<td>强化定位</td>
+<td>底层信息可回传，增强空间细节</td>
+</tr>
+<tr>
+<td>小目标检测提升</td>
+<td>多尺度增强对小物体识别更敏感</td>
+</tr>
+<tr>
+<td>与 FPN 兼容</td>
+<td>在 FPN 基础上增强，无需重构体系</td>
+</tr>
+</tbody></table>
+<p>PANet &#x3D; FPN 的双向升级版，它让特征融合从“单向信息流”变成“双向协作”，是 YOLOv4 实现强小目标检测能力的重要模块。</p>
+<h4 id="4-CBAM"><a href="#4-CBAM" class="headerlink" title="4.CBAM"></a>4.CBAM</h4><p>CBAM（<strong>Convolutional Block Attention Module</strong>）是一个轻量级的注意力机制模块，可以无缝嵌入到现有的 CNN 网络中，用于增强模型对<strong>有用特征的关注能力</strong>，提升特征表达效果。CBAM 在图像分类、目标检测、分割等任务中都非常实用。<br>它是一个模块化的注意力结构，由两个子模块组成：</p>
+<ol>
+<li><strong>Channel Attention Module（通道注意力）</strong></li>
+<li><strong>Spatial Attention Module（空间注意力）</strong><br>这两个模块串联使用，用来从不同角度提升特征图的质量</li>
+</ol>
+<p>通道注意力模块（Channel Attention），关注哪些通道更重要，如边缘通道、纹理通道、颜色通道等。以达到强化重要的通道，抑制冗余信息的目的。<br>步骤：</p>
+<ol>
+<li>对输入特征图分别做 <strong>Global Avg Pooling 和 Max Pooling</strong>，得到两个通道描述向量（1×1×C）</li>
+<li>将这两个向量送入 <strong>共享的 MLP（全连接层）</strong></li>
+<li>输出经过 sigmoid 激活的权重向量</li>
+<li>将该权重与原特征图逐通道相乘</li>
+</ol>
+<p>空间注意力模块（Spatial Attention），关注“图像上哪些位置更关键”，比如目标所在区域。<br>步骤：</p>
+<ol>
+<li>对通道维做 MaxPool 和 AvgPool，得到两个 1×H×W 特征图</li>
+<li>将它们拼接在通道维上（2×H×W）</li>
+<li>通过一个 7×7 的卷积核</li>
+<li>经 sigmoid 激活后生成空间注意力图</li>
+<li>与输入特征图逐元素相乘</li>
+</ol>
+<p>CBAM 的优势：</p>
+<table>
+<thead>
+<tr>
+<th><strong>优点</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>模块轻量</td>
+<td>几乎不增加计算量</td>
+</tr>
+<tr>
+<td>可插拔</td>
+<td>可用于任何 CNN 模型后续模块</td>
+</tr>
+<tr>
+<td>语义增强</td>
+<td>强调关键通道和空间区域，提高准确率</td>
+</tr>
+<tr>
+<td>对小目标友好</td>
+<td>提升模型关注小区域信息的能力</td>
+</tr>
+<tr>
+<td>适合多任务</td>
+<td>分类、检测、分割任务都适用</td>
+</tr>
+</tbody></table>
+<p>CBAM 是一个串联的“通道 + 空间”注意力模块，帮助 CNN 更聪明地理解“看哪”和“看什么”，在轻量化和性能之间取得了极佳的平衡。</p>
+<h4 id="5-Mish-激活函数"><a href="#5-Mish-激活函数" class="headerlink" title="5.Mish 激活函数"></a>5.Mish 激活函数</h4><p>Mish 激活函数是一种新兴的非线性激活函数，在很多模型（包括 YOLOv4）中被应用，用于增强特征表达能力。它是 ReLU 和 Swish 的一种更平滑、性能更优的替代方案。</p>
+<p>Mish 与其他激活函数的对比</p>
+<table>
+<thead>
+<tr>
+<th><strong>激活函数</strong></th>
+<th><strong>数学表达</strong></th>
+<th><strong>是否平滑</strong></th>
+<th><strong>是否单调</strong></th>
+<th><strong>输出范围</strong></th>
+<th><strong>性能表现</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ReLU</td>
+<td>max(0, x)</td>
+<td>否</td>
+<td>是</td>
+<td>[0, ∞)</td>
+<td>基础款</td>
+</tr>
+<tr>
+<td>LeakyReLU</td>
+<td>max(αx, x)</td>
+<td>否</td>
+<td>是</td>
+<td>(-∞, ∞)</td>
+<td>较好</td>
+</tr>
+<tr>
+<td>Swish</td>
+<td>x * sigmoid(x)</td>
+<td>是</td>
+<td>否</td>
+<td>(-∞, ∞)</td>
+<td>好</td>
+</tr>
+<tr>
+<td><strong>Mish</strong></td>
+<td>x * tanh(softplus(x))</td>
+<td>是</td>
+<td>否</td>
+<td>(-∞, ∞)</td>
+<td>最优（很多场景）</td>
+</tr>
+</tbody></table>
+<p>Mish 继承了 Swish 的非线性优势，输出在负区间更温和，利于梯度流动。</p>
+<p>Mish 的优势总结：</p>
+<table>
+<thead>
+<tr>
+<th><strong>优势</strong></th>
+<th><strong>描述</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>更强特征表达</td>
+<td>曲线光滑，非线性强，有利于建模复杂模式</td>
+</tr>
+<tr>
+<td>梯度更稳定</td>
+<td>相比 ReLU、LeakyReLU 梯度不会突变</td>
+</tr>
+<tr>
+<td>不截断负值</td>
+<td>在负区间仍有小的输出，有利于保留信息</td>
+</tr>
+<tr>
+<td>实证有效</td>
+<td>在 YOLOv4、EfficientNet 等网络上验证有效提升</td>
+</tr>
+</tbody></table>
+<p>YOLOv4 将 Mish 激活广泛用于主干 CSPDarknet53，替换了传统的 LeakyReLU，配合其他模块（如 CSP、SPP、PANet）进一步提升准确率，对小目标检测尤其明显。</p>
+<h4 id="6-Eliminate-grid-sensitivity"><a href="#6-Eliminate-grid-sensitivity" class="headerlink" title="6.Eliminate grid sensitivity"></a>6.Eliminate grid sensitivity</h4><p>主要用于改善目标检测中因网格划分导致的预测偏差问题，尤其是在小目标或边缘目标的检测上。</p>
+<p>什么是 Grid Sensitivity（网格敏感性）？<br>在 YOLO 系列（尤其是 YOLOv1~v3）中，图像被划分为 S×S 个网格，每个网格预测其“负责”的目标框：</p>
+<ul>
+<li>每个目标只能被分配给其中心点所在的网格</li>
+<li>假如目标刚好压在网格边缘，模型必须决定“左边网格负责”还是“右边负责”，这就容易产生波动（不稳定）</li>
+<li>同样，小目标若跨多个网格，可能会出现预测位置偏差</li>
+</ul>
+<p>YOLOv4 对于位置回归的预测做了以下调整，特别是在预测框中心坐标 (x, y) 的计算方式上：<br>加上一个小常数 ε，以允许预测点略微“跳出”当前网格，突破 sigmoid 限制。</p>
+<p>方法一：<strong>缩放输出范围</strong><br>    $$\hat{x} &#x3D; (\sigma(t_x) \cdot s + \epsilon) + c_x$$<br>	- $s \in (0,1.5)$，例如 1.2<br>    - ε 是微小偏移，用于平滑过渡</p>
+<p>方法二：<strong>用更大的 sigmoid 控制区间</strong><br>	$$ \sigma(2 \cdot t_x) - 0.5 \ $$<br>    - 这样 sigmoid 的范围变成了约 (-0.5, 1.5)，可以适度超出网格边界<br>这种方式就允许中心坐标跨越网格边界，从而<strong>缓解边缘预测抖动</strong>，提升定位精度</p>
+<p>通俗总结一下，网络把图像像井盖一样切成格子，以前每个“井盖”只能管它正中间的东西，现在我们说：<strong>井盖的手可以伸出去一点点，不用非得把人圈死在正中心</strong>，这样，就能“柔和地”预测落在格子边缘的目标了，不再出现抖动、漏检！</p>
+<h3 id="3-后处理优化"><a href="#3-后处理优化" class="headerlink" title="3.后处理优化"></a>3.后处理优化</h3><h4 id="1-DIoU-NMS​-​Soft-NMS"><a href="#1-DIoU-NMS​-​Soft-NMS" class="headerlink" title="1.DIoU-NMS​&#x2F;​Soft-NMS"></a>1.DIoU-NMS​&#x2F;​Soft-NMS</h4><p>用来改进 YOLO 等目标检测器中 <strong>非极大值抑制（NMS）</strong> 的优化技术，目的是在去除冗余检测框时，更<strong>智能地保留真实目标框</strong>，尤其对密集目标检测、小目标检测有帮助。</p>
+<p>Soft-NMS 更柔和、精细地处理框之间的重叠；DIoU-NMS 则更智能地结合了 IoU 与中心距离，更适合 YOLO 等实时检测器，对密集目标特别有效。</p>
+<p>NMS 是什么？<br>在目标检测中，模型可能对同一个物体输出多个重叠框，需要做抑制，原始 <strong>NMS（Greedy NMS）</strong> 策略是：<br>    1. 选择当前得分最高的框<br>    2. 将与其 IoU &gt; 阈值 的其他框全部移除<br>    3. 重复以上步骤直到无框可选<br>这种做法简单暴力，但<strong>存在两个问题</strong>：</p>
+<ul>
+<li><strong>对密集目标不友好</strong>（比如人群、果堆）</li>
+<li><strong>可能误删有效框</strong>（只因为 IoU 稍大）</li>
+</ul>
+<h5 id="Soft-NMS（Soft-Non-Maximum-Suppression）"><a href="#Soft-NMS（Soft-Non-Maximum-Suppression）" class="headerlink" title="Soft-NMS（Soft Non-Maximum Suppression）"></a>Soft-NMS（Soft Non-Maximum Suppression）</h5><p>不是直接删掉重叠框，而是“<strong>软处理</strong>”：随着 IoU 增加，逐渐降低其它框的置信度。<br>优点是更温和地处理重叠框；可以保留多个相邻目标，适合拥挤场景。</p>
+<h5 id="DIoU-NMS（Distance-IoU-based-NMS）"><a href="#DIoU-NMS（Distance-IoU-based-NMS）" class="headerlink" title="DIoU-NMS（Distance IoU-based NMS）"></a>DIoU-NMS（Distance IoU-based NMS）</h5><p>除了考虑 IoU，还考虑 <strong>两个框中心点的距离</strong>，<strong>优先保留“离得远的”框</strong>，避免误删多个相邻目标。<br>优点是解决 NMS 对密集目标误删问题；对于同类目标密集区域（如行人、人脸）效果明显提升， 速度快，易于替换传统 NMS。</p>
+<p>DIoU-NMS vs Soft-NMS 对比</p>
+<table>
+<thead>
+<tr>
+<th><strong>特性</strong></th>
+<th><strong>Soft-NMS</strong></th>
+<th><strong>DIoU-NMS</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>保留重叠目标</td>
+<td>更温和</td>
+<td>更智能</td>
+</tr>
+<tr>
+<td>抑制依据</td>
+<td>IoU + 衰减函数</td>
+<td>IoU + 距离</td>
+</tr>
+<tr>
+<td>对密集目标</td>
+<td>很有效</td>
+<td>很有效</td>
+</tr>
+<tr>
+<td>计算复杂度</td>
+<td>较高（需要排序）</td>
+<td>类似原始 NMS</td>
+</tr>
+<tr>
+<td>是否去除框</td>
+<td>不直接去除</td>
+<td>直接去除（基于距离）</td>
+</tr>
+<tr>
+<td>在 YOLO 中应用</td>
+<td>默认未启用</td>
+<td>YOLOv4 默认采用</td>
+</tr>
+</tbody></table>
+<h3 id="3-总结"><a href="#3-总结" class="headerlink" title="3.总结"></a>3.总结</h3><h4 id="YOLO-V3-改进"><a href="#YOLO-V3-改进" class="headerlink" title="YOLO-V3 改进"></a>YOLO-V3 改进</h4><ol>
+<li>​<strong>网络架构改进</strong>​<ul>
+<li>​<strong>残差连接（Residual Connections）​</strong>​：解决梯度消失和退化问题，允许训练更深的网络</li>
+<li>​<strong>Darknet-53 主干网络</strong>​：引入残差块，提升特征提取能力，支持多尺度检测</li>
+</ul>
+</li>
+<li>​<strong>检测机制优化</strong>​<ul>
+<li>​<strong>多尺度预测</strong>​：通过三个不同尺度的特征图（13×13、26×26、52×52）检测不同大小的目标</li>
+<li>​<strong>细粒度特征融合</strong>​：上采样深层特征并与浅层特征拼接，结合细节与语义信息</li>
+<li>​<strong>边界框预测改进</strong>​：sigmoid处理中心坐标，基于anchor的指数缩放预测宽高，提升稳定性</li>
+<li>​<strong>先验框优化</strong>​：K-means聚类生成更匹配数据分布的anchor尺寸</li>
+<li>​<strong>分类方式</strong>​：用sigmoid替代softmax，支持多标签分类</li>
+</ul>
+</li>
+<li>​<strong>训练策略</strong>​<ul>
+<li>​<strong>多尺度训练</strong>​：动态调整输入尺寸，增强模型鲁棒性</li>
+<li>​<strong>数据增强</strong>​：如随机裁剪、色彩抖动等</li>
+<li>​<strong>损失函数</strong>​：二元交叉熵（分类）与改进的定位损失结合</li>
+</ul>
+</li>
+</ol>
+<h4 id="YOLO-V4-改进"><a href="#YOLO-V4-改进" class="headerlink" title="YOLO-V4 改进"></a>YOLO-V4 改进</h4><ol>
+<li>​<strong>Bag of Freebies（训练优化）​</strong>​    <ul>
+<li>​<strong>Mosaic数据增强</strong>​：拼接四张图像，增加目标多样性和尺度变化</li>
+<li>​<strong>自对抗训练（SAT）​</strong>​：生成对抗样本并训练模型，提升鲁棒性</li>
+<li>​<strong>DropBlock</strong>​：区域级正则化，防止过拟合</li>
+<li>​<strong>标签平滑</strong>​：缓解分类标签的过拟合</li>
+<li>​<strong>CIoU损失</strong>​：综合考虑重叠、中心距离和宽高比，提升定位精度</li>
+</ul>
+</li>
+<li>​<strong>Bag of Specials（结构改进）​</strong>​<ul>
+<li>​<strong>CSPDarknet53</strong>​：引入CSP结构和Mish激活函数，提升特征提取效率</li>
+<li>​<strong>SPPNet</strong>​：多尺度池化增强感受野</li>
+<li>​<strong>PANet</strong>​：双向特征金字塔，强化多尺度融合</li>
+<li>​<strong>CBAM注意力机制</strong>​：通道与空间注意力结合，聚焦关键特征</li>
+<li>​<strong>Mish激活函数</strong>​：平滑梯度，增强非线性表达能力</li>
+<li>​<strong>消除网格敏感度</strong>​：允许预测框微调出网格，改善边缘目标检测</li>
+</ul>
+</li>
+<li>​<strong>后处理优化</strong>​<ul>
+<li>​<strong>DIoU-NMS</strong>​：结合IoU与中心距离，减少密集目标的误删</li>
+</ul>
+</li>
+</ol>
+<h4 id="对比"><a href="#对比" class="headerlink" title="对比"></a>对比</h4><table>
+<thead>
+<tr>
+<th>​<strong>改进点</strong>​</th>
+<th>​<strong>YOLO-V3</strong>​</th>
+<th>​<strong>YOLO-V4</strong>​</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>​<strong>主干网络</strong>​</td>
+<td>Darknet-53（残差连接）</td>
+<td>CSPDarknet53（CSP结构 + Mish激活）</td>
+</tr>
+<tr>
+<td>​<strong>多尺度检测</strong>​</td>
+<td>三尺度特征图 + FPN思想</td>
+<td>SPP + PANet（双向融合）</td>
+</tr>
+<tr>
+<td>​<strong>数据增强</strong>​</td>
+<td>多尺度训练、传统增强</td>
+<td>Mosaic、自对抗训练（SAT）</td>
+</tr>
+<tr>
+<td>​<strong>正则化</strong>​</td>
+<td>残差连接、BatchNorm</td>
+<td>DropBlock、标签平滑</td>
+</tr>
+<tr>
+<td>​<strong>损失函数</strong>​</td>
+<td>Sigmoid分类 + 定位损失</td>
+<td>CIoU损失（综合重叠、距离、宽高比）</td>
+</tr>
+<tr>
+<td>​<strong>注意力机制</strong>​</td>
+<td>无</td>
+<td>CBAM（通道与空间注意力）</td>
+</tr>
+<tr>
+<td>​<strong>后处理</strong>​</td>
+<td>传统NMS</td>
+<td>DIoU-NMS（结合距离抑制冗余框）</td>
+</tr>
+<tr>
+<td>​<strong>激活函数</strong>​</td>
+<td>LeakyReLU</td>
+<td>Mish（更平滑的梯度流）</td>
+</tr>
+</tbody></table>
+<p><strong>YOLO-V3</strong>​：通过残差结构、多尺度预测和细粒度融合，解决了深层网络训练难题，提升小目标检测能力。<br>​<strong>YOLO-V4</strong>​：集成大量训练技巧（Mosaic、SAT）和结构优化（CSP、PANet、CBAM），结合CIoU损失和DIoU-NMS，显著提升精度与鲁棒性，尤其适合复杂场景和密集目标检测。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://keychankc.github.io/2025/04/29/013-yolo-yolov3-yolov4/" title="[YOLO系列③] YOLOv3和YOLOv4优化策略">https://keychankc.github.io/2025/04/29/013-yolo-yolov3-yolov4/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/" rel="tag"># 计算机视觉</a>
+              <a href="/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/" rel="tag"># 目标检测</a>
+              <a href="/tags/YOLO/" rel="tag"># YOLO</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/04/21/012-yolo-yolov2/" rel="prev" title="[YOLO系列②] YOLOv2十大改进点解析">
+                  <i class="fa fa-angle-left"></i> [YOLO系列②] YOLOv2十大改进点解析
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/05/07/014-yolo-yolov5-code-detail/" rel="next" title="[YOLO系列④] YOLOv5模型训练与流程解析">
+                  [YOLO系列④] YOLOv5模型训练与流程解析 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">166k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.mengyajia.com","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2025/04/29/013-yolo-yolov3-yolov4/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>

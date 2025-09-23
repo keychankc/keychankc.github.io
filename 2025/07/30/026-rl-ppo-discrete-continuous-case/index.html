@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"keychankc.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="1.PPO算法与动作空间类型概览1.PPO（Proximal Policy Optimization）简介PPO（近端策略优化）是OpenAI于2017年提出的强化学习算法，通过创新的”剪切目标函数”设计，在保证训练稳定性的同时实现高效策略优化。其核心思想是通过约束策略更新幅度，防止策略突变导致的性能崩溃，解决了传统策略梯度方法（如TRPO）的工程实现复杂性问题。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PPO算法在连续与离散动作空间中的案例实践">
+<meta property="og:url" content="https://keychankc.github.io/2025/07/30/026-rl-ppo-discrete-continuous-case/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s blog">
+<meta property="og:description" content="1.PPO算法与动作空间类型概览1.PPO（Proximal Policy Optimization）简介PPO（近端策略优化）是OpenAI于2017年提出的强化学习算法，通过创新的”剪切目标函数”设计，在保证训练稳定性的同时实现高效策略优化。其核心思想是通过约束策略更新幅度，防止策略突变导致的性能崩溃，解决了传统策略梯度方法（如TRPO）的工程实现复杂性问题。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/lunar_lander_ep2.gif">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/bipedal_walker_ep2.gif">
+<meta property="article:published_time" content="2025-07-30T03:40:12.000Z">
+<meta property="article:modified_time" content="2025-09-21T12:04:48.541Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="PyTorch">
+<meta property="article:tag" content="策略优化">
+<meta property="article:tag" content="PPO">
+<meta property="article:tag" content="离散动作">
+<meta property="article:tag" content="连续动作">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/lunar_lander_ep2.gif">
+
+
+<link rel="canonical" href="https://keychankc.github.io/2025/07/30/026-rl-ppo-discrete-continuous-case/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/2025/07/30/026-rl-ppo-discrete-continuous-case/","path":"2025/07/30/026-rl-ppo-discrete-continuous-case/","title":"PPO算法在连续与离散动作空间中的案例实践"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>PPO算法在连续与离散动作空间中的案例实践 | KeyChan's blog</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.mengyajia.com">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's blog" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-PPO%E7%AE%97%E6%B3%95%E4%B8%8E%E5%8A%A8%E4%BD%9C%E7%A9%BA%E9%97%B4%E7%B1%BB%E5%9E%8B%E6%A6%82%E8%A7%88"><span class="nav-text">1.PPO算法与动作空间类型概览</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-PPO%EF%BC%88Proximal-Policy-Optimization%EF%BC%89%E7%AE%80%E4%BB%8B"><span class="nav-text">1.PPO（Proximal Policy Optimization）简介</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%89%AA%E5%88%87%E6%AF%94%E5%80%BC%E6%9C%BA%E5%88%B6%EF%BC%88Clip-Objective%EF%BC%89"><span class="nav-text">1.剪切比值机制（Clip Objective）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E2%80%8B%E5%B9%BF%E4%B9%89%E4%BC%98%E5%8A%BF%E4%BC%B0%E8%AE%A1%EF%BC%88GAE%EF%BC%89%E2%80%8B"><span class="nav-text">2.​广义优势估计（GAE）​</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E5%8F%8C%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%95%B0%E6%8D%AE%E5%A4%8D%E7%94%A8%E2%80%8B"><span class="nav-text">3.双网络架构与数据复用​</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%AD%E7%9A%84%E4%B8%A4%E7%B1%BB%E5%8A%A8%E4%BD%9C%E7%A9%BA%E9%97%B4"><span class="nav-text">2.强化学习中的两类动作空间</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E7%A6%BB%E6%95%A3%E5%8A%A8%E4%BD%9C%E7%A9%BA%E9%97%B4%EF%BC%88Discrete-Action-Space%EF%BC%89"><span class="nav-text">1.离散动作空间（Discrete Action Space）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E8%BF%9E%E7%BB%AD%E5%8A%A8%E4%BD%9C%E7%A9%BA%E9%97%B4%EF%BC%88Continuous-Action-Space%EF%BC%89"><span class="nav-text">2.连续动作空间（Continuous Action Space）</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-LunarLander-v3-%E7%A6%BB%E6%95%A3%E5%8A%A8%E4%BD%9C%E7%A9%BA%E9%97%B4%E6%A1%88%E4%BE%8B"><span class="nav-text">2.LunarLander-v3(离散动作空间案例)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E7%8E%AF%E5%A2%83%E4%B8%8E%E4%BB%BB%E5%8A%A1"><span class="nav-text">1.环境与任务</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E7%8A%B6%E6%80%81%E7%A9%BA%E9%97%B4%EF%BC%88state%EF%BC%89"><span class="nav-text">1.状态空间（state）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E5%8A%A8%E4%BD%9C%E7%A9%BA%E9%97%B4%EF%BC%88action-space%EF%BC%89"><span class="nav-text">2.动作空间（action space）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E5%A5%96%E5%8A%B1%E6%9C%BA%E5%88%B6%EF%BC%88reward%EF%BC%89"><span class="nav-text">3.奖励机制（reward）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E6%88%90%E5%8A%9F-%E7%BB%88%E6%AD%A2%E6%9D%A1%E4%BB%B6"><span class="nav-text">4.成功&#x2F;终止条件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-%E7%9B%B8%E5%85%B3%E5%8F%82%E6%95%B0"><span class="nav-text">5.相关参数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%BB%8F%E9%AA%8C%E7%BC%93%E5%AD%98"><span class="nav-text">2.经验缓存</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E4%B8%BB%E8%A6%81%E7%94%A8%E9%80%94"><span class="nav-text">1. 主要用途</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="nav-text">2.代码实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="nav-text">3.工作流程</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E7%AD%96%E7%95%A5%E7%BD%91%E7%BB%9C%E7%BB%93%E6%9E%84%EF%BC%88Actor%EF%BC%89"><span class="nav-text">3.策略网络结构（Actor）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="nav-text">1.代码实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E5%89%8D%E5%90%91%E6%8E%A8%E7%90%86%E4%B8%8E%E5%8A%A8%E4%BD%9C%E9%87%87%E6%A0%B7"><span class="nav-text">2.前向推理与动作采样</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E8%AE%BE%E8%AE%A1%E9%80%BB%E8%BE%91%E4%B8%8E%E4%BC%98%E7%82%B9"><span class="nav-text">3.设计逻辑与优点</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E4%BB%B7%E5%80%BC%E7%BD%91%E7%BB%9C%E7%BB%93%E6%9E%84%EF%BC%88Critic%EF%BC%89"><span class="nav-text">4.价值网络结构（Critic）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0-1"><span class="nav-text">1.代码实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E8%AF%84%E4%BC%B0%E6%97%A7%E7%AD%96%E7%95%A5"><span class="nav-text">2.评估旧策略</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-PPO%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0"><span class="nav-text">5.PPO算法实现</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0-2"><span class="nav-text">1.代码实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E4%B8%BE%E4%BE%8B%E8%AF%B4%E8%AF%B4-PPO-%E7%9A%84ratio-%E5%89%AA%E5%88%87%E7%AD%96%E7%95%A5"><span class="nav-text">2.举例说说 PPO 的ratio 剪切策略</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-%E8%AE%AD%E7%BB%83%E5%8F%82%E6%95%B0%E4%B8%8E%E6%8E%A7%E5%88%B6%E5%8F%98%E9%87%8F"><span class="nav-text">6.训练参数与控制变量</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E8%AE%AD%E7%BB%83%E5%8F%82%E6%95%B0"><span class="nav-text">1.训练参数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E6%8E%A7%E5%88%B6%E5%8F%98%E9%87%8F"><span class="nav-text">2.控制变量</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-%E8%AE%AD%E7%BB%83%E6%B5%81%E7%A8%8B"><span class="nav-text">7.训练流程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0-3"><span class="nav-text">1.代码实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E8%AE%AD%E7%BB%83%E6%97%A5%E5%BF%97"><span class="nav-text">2.训练日志</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-%E6%A8%A1%E5%9E%8B%E9%AA%8C%E8%AF%81"><span class="nav-text">8.模型验证</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-BipedalWalker-v3%EF%BC%88%E8%BF%9E%E7%BB%AD%E5%8A%A8%E4%BD%9C%E7%A9%BA%E9%97%B4%E6%A1%88%E4%BE%8B%EF%BC%89"><span class="nav-text">3.BipedalWalker-v3（连续动作空间案例）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E7%8E%AF%E5%A2%83%E4%B8%8E%E4%BB%BB%E5%8A%A1-1"><span class="nav-text">1.环境与任务</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E7%8A%B6%E6%80%81%E7%A9%BA%E9%97%B4%EF%BC%88state-space%EF%BC%89"><span class="nav-text">1.状态空间（state space）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E5%8A%A8%E4%BD%9C%E7%A9%BA%E9%97%B4%EF%BC%88action-space%EF%BC%89-1"><span class="nav-text">2.动作空间（action space）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E5%A5%96%E5%8A%B1%E5%87%BD%E6%95%B0%EF%BC%88reward%EF%BC%89"><span class="nav-text">3.奖励函数（reward）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E6%88%90%E5%8A%9F-%E7%BB%88%E6%AD%A2%E6%9D%A1%E4%BB%B6-1"><span class="nav-text">4.成功&#x2F;终止条件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-%E9%9A%BE%E7%82%B9"><span class="nav-text">5.难点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-%E7%9B%B8%E5%85%B3%E5%8F%82%E6%95%B0"><span class="nav-text">6.相关参数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%BB%8F%E9%AA%8C%E7%BC%93%E5%AD%98-1"><span class="nav-text">2.经验缓存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E7%AD%96%E7%95%A5%E7%BD%91%E7%BB%9C%E7%BB%93%E6%9E%84%EF%BC%88Actor%EF%BC%89-1"><span class="nav-text">3.策略网络结构（Actor）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E4%BB%B7%E5%80%BC%E7%BD%91%E7%BB%9C%E7%BB%93%E6%9E%84%EF%BC%88Critic%EF%BC%89-1"><span class="nav-text">4.价值网络结构（Critic）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-PPO%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0-1"><span class="nav-text">5.PPO算法实现</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0-4"><span class="nav-text">1.代码实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E4%B8%8E%E7%A6%BB%E6%95%A3%E5%8A%A8%E4%BD%9C-PPO%E7%9A%84%E5%8C%BA%E5%88%AB%E5%AF%B9%E6%AF%94"><span class="nav-text">2.与离散动作 PPO的区别对比</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-%E8%AE%AD%E7%BB%83%E5%8F%82%E6%95%B0%E4%B8%8E%E6%8E%A7%E5%88%B6%E5%8F%98%E9%87%8F-1"><span class="nav-text">6.训练参数与控制变量</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%8F%82%E6%95%B0"><span class="nav-text">1.参数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E5%8C%BA%E5%88%AB"><span class="nav-text">2.区别</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-%E8%AE%AD%E7%BB%83%E6%B5%81%E7%A8%8B-1"><span class="nav-text">7.训练流程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0-5"><span class="nav-text">1.代码实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E8%AE%AD%E7%BB%83%E6%97%A5%E5%BF%97-1"><span class="nav-text">2.训练日志</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E4%B8%8E%E7%A6%BB%E6%95%A3%E5%8A%A8%E4%BD%9C%E7%89%88%E6%9C%AC%E7%9B%B8%E6%AF%94"><span class="nav-text">3.与离散动作版本相比</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-%E6%A8%A1%E5%9E%8B%E9%AA%8C%E8%AF%81-1"><span class="nav-text">8.模型验证</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E6%80%BB%E7%BB%93"><span class="nav-text">4.总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-PPO%E6%A0%B8%E5%BF%83%E4%BC%98%E5%8A%BF%E2%80%8B"><span class="nav-text">1.PPO核心优势​</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%8A%A8%E4%BD%9C%E7%A9%BA%E9%97%B4%E5%85%B3%E9%94%AE%E5%B7%AE%E5%BC%82%E2%80%8B"><span class="nav-text">2.动作空间关键差异​</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%B7%A5%E7%A8%8B%E5%AE%9E%E7%8E%B0%E8%A6%81%E7%82%B9%E2%80%8B"><span class="nav-text">3. 工程实现要点​</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E7%8E%AF%E5%A2%83%E5%AF%B9%E6%AF%94%E2%80%8B"><span class="nav-text">4. 环境对比​</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E5%A4%87%E6%B3%A8"><span class="nav-text">5.备注</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">30</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">39</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/keychankc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://keychankc.github.io/2025/07/30/026-rl-ppo-discrete-continuous-case/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's blog">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="PPO算法在连续与离散动作空间中的案例实践 | KeyChan's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          PPO算法在连续与离散动作空间中的案例实践
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-07-30 11:40:12" itemprop="dateCreated datePublished" datetime="2025-07-30T11:40:12+08:00">2025-07-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-09-21 20:04:48" itemprop="dateModified" datetime="2025-09-21T20:04:48+08:00">2025-09-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">强化学习</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2025/07/30/026-rl-ppo-discrete-continuous-case/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2025/07/30/026-rl-ppo-discrete-continuous-case/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>9k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>33 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="1-PPO算法与动作空间类型概览"><a href="#1-PPO算法与动作空间类型概览" class="headerlink" title="1.PPO算法与动作空间类型概览"></a>1.PPO算法与动作空间类型概览</h2><h3 id="1-PPO（Proximal-Policy-Optimization）简介"><a href="#1-PPO（Proximal-Policy-Optimization）简介" class="headerlink" title="1.PPO（Proximal Policy Optimization）简介"></a>1.PPO（Proximal Policy Optimization）简介</h3><p>PPO（近端策略优化）是OpenAI于2017年提出的强化学习算法，通过创新的”剪切目标函数”设计，在保证训练稳定性的同时实现高效策略优化。其核心思想是<strong>通过约束策略更新幅度，防止策略突变导致的性能崩溃，解决了传统策略梯度方法（如TRPO）的工程实现复杂性问题</strong>。</p>
+<span id="more"></span>
+<h4 id="1-剪切比值机制（Clip-Objective）"><a href="#1-剪切比值机制（Clip-Objective）" class="headerlink" title="1.剪切比值机制（Clip Objective）"></a>1.剪切比值机制（Clip Objective）</h4><p>$$L^{\text{CLIP}}(\theta) &#x3D; \mathbb{E}_t \left[ \min\left(r_t(\theta) \hat{A}_t,; \text{clip}(r_t(\theta), 1 - \epsilon, 1 + \epsilon) \cdot \hat{A}_t\right) \right]$$</p>
+<p>其中  $r_t(\theta) &#x3D; \frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{\text{old}}}(a_t|s_t)}$ 是新旧策略的概率比值。该设计的目的是：</p>
+<ul>
+<li>当策略更新幅度在阈值 ϵ（通常取0.1-0.3）内时正常优化</li>
+<li>当策略更新幅度过大或过小时进行截断，避免策略突变</li>
+</ul>
+<h4 id="2-​广义优势估计（GAE）​"><a href="#2-​广义优势估计（GAE）​" class="headerlink" title="2.​广义优势估计（GAE）​"></a>2.​广义优势估计（GAE）​</h4><p>广义优势估计（Generalized Advantage Estimation，简称 <strong>GAE</strong>）是策略梯度方法中一种用于减少策略训练时方差、提高稳定性的技巧。<strong>GAE 的目标</strong>是 <strong>结合多个 n-step Advantage 的加权平均</strong>，在方差和偏差之间取得更好的平衡。<br>GAE 定义如下：<br>$$\hat{A}t^{\mathrm{GAE}(\gamma, \lambda)} &#x3D; \sum{l&#x3D;0}^{\infty} (\gamma \lambda)^l \delta_{t+l}$$<br>其中：</p>
+<ul>
+<li>$\delta_t &#x3D; r_t + \gamma V(s_{t+1}) - V(s_t)$：一阶 TD 残差</li>
+<li>$\lambda \in [0, 1]$：控制偏差与方差的权衡参数<ul>
+<li>$\lambda &#x3D; 0$：使用 1-step TD，偏差大但方差小</li>
+<li>$\lambda &#x3D; 1$：类似 Monte Carlo 返回，偏差小但方差大</li>
+<li>介于中间时，效果通常更好（如 PPO 默认 $\lambda &#x3D; 0.95$）</li>
+</ul>
+</li>
+</ul>
+<p>可以把 GAE 看成是 <strong>对未来奖励序列的指数加权平均</strong>，越靠近当前步的 TD 残差权重越大，远期的残差权重越小。通过调整 $\lambda$ 来控制对未来的“信任度”。<br>一个形象的比喻是：</p>
+<ul>
+<li>$\lambda$ 小 → “短视”：更相信当前的反馈</li>
+<li>$\lambda$ 大 → “长视”：更相信未来回报的总体趋势</li>
+</ul>
+<h4 id="3-双网络架构与数据复用​"><a href="#3-双网络架构与数据复用​" class="headerlink" title="3.双网络架构与数据复用​"></a>3.双网络架构与数据复用​</h4><ul>
+<li>​<strong>Actor-Critic框架</strong>​：策略网络（Actor）生成动作，价值网络（Critic）评估状态</li>
+<li>​<strong>多轮优化机制</strong>​：单次采样数据支持3-10轮策略更新，提升样本效率</li>
+</ul>
+<h3 id="2-强化学习中的两类动作空间"><a href="#2-强化学习中的两类动作空间" class="headerlink" title="2.强化学习中的两类动作空间"></a>2.强化学习中的两类动作空间</h3><p>在强化学习中，“动作”就是智能体（agent）在每个时刻可以“做什么”。而<strong>动作空间</strong>，就是所有可能动作的集合——就像游戏角色能做哪些操作：走、跳、射击、转身……都在动作空间里。</p>
+<h4 id="1-离散动作空间（Discrete-Action-Space）"><a href="#1-离散动作空间（Discrete-Action-Space）" class="headerlink" title="1.离散动作空间（Discrete Action Space）"></a>1.离散动作空间（Discrete Action Space）</h4><p>动作空间是<strong>有限个、不连续的动作选项</strong>。每个动作就像一个编号。像“菜单点菜”：选一个选项，编号是离散的，不能选半个动作或者1.7号动作。举例：</p>
+<table>
+<thead>
+<tr>
+<th><strong>场景</strong></th>
+<th><strong>动作空间</strong></th>
+<th><strong>含义</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>游戏角色控制</td>
+<td>[0, 1, 2]</td>
+<td>0&#x3D;前进，1&#x3D;后退，2&#x3D;跳跃</td>
+</tr>
+<tr>
+<td>自动贩售机</td>
+<td>[0, 1, 2, 3]</td>
+<td>选择四种饮料中的一种</td>
+</tr>
+<tr>
+<td>黑白棋</td>
+<td>所有合法落子位置（最多 64 个）</td>
+<td>每一步落子对应一个动作</td>
+</tr>
+</tbody></table>
+<h4 id="2-连续动作空间（Continuous-Action-Space）"><a href="#2-连续动作空间（Continuous-Action-Space）" class="headerlink" title="2.连续动作空间（Continuous Action Space）"></a>2.连续动作空间（Continuous Action Space）</h4><p>动作是<strong>实数向量</strong>，可以是任意值，甚至是多个维度组成的动作向量。像“调音台旋钮”：你可以随意旋转旋钮，控制值是连续的，可以精调到任意数值。举例：</p>
+<table>
+<thead>
+<tr>
+<th><strong>场景</strong></th>
+<th><strong>动作空间</strong></th>
+<th><strong>含义</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>机械臂控制</td>
+<td>[θ₁, θ₂, θ₃] ∈ ℝ³</td>
+<td>每个关节旋转角度是一个连续值</td>
+</tr>
+<tr>
+<td>飞船推进</td>
+<td>[f₁, f₂] ∈ ℝ²</td>
+<td>左右引擎推力，值从 0~1</td>
+</tr>
+<tr>
+<td>自动驾驶</td>
+<td>[加速度, 方向盘角度] ∈ ℝ²</td>
+<td>任意控制强度和方向</td>
+</tr>
+</tbody></table>
+<h2 id="2-LunarLander-v3-离散动作空间案例"><a href="#2-LunarLander-v3-离散动作空间案例" class="headerlink" title="2.LunarLander-v3(离散动作空间案例)"></a>2.LunarLander-v3(离散动作空间案例)</h2><p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/lunar_lander_ep2.gif"></p>
+<h3 id="1-环境与任务"><a href="#1-环境与任务" class="headerlink" title="1.环境与任务"></a>1.环境与任务</h3><p>LunarLander-v3 是 OpenAI Gym&#x2F;Gymnasium 中的一个经典强化学习环境，模拟了一个飞船在月球上着陆的任务。任务目标是让飞船安全、平稳地降落在地面中央的着陆平台上。</p>
+<h4 id="1-状态空间（state）"><a href="#1-状态空间（state）" class="headerlink" title="1.状态空间（state）"></a>1.状态空间（state）</h4><p>一个长度为 8 的浮点向量，表示飞船当前的物理状态：</p>
+<ul>
+<li>x：水平方向的位置</li>
+<li>y：垂直方向的位置</li>
+<li>vx：水平方向速度</li>
+<li>vy：垂直方向速度</li>
+<li>angle：飞船的旋转角度</li>
+<li>angle_vel：飞船的角速度</li>
+<li>left_leg_contact：左腿是否接触地面</li>
+<li>right_leg_contact：右腿是否接触地面</li>
+</ul>
+<h4 id="2-动作空间（action-space）"><a href="#2-动作空间（action-space）" class="headerlink" title="2.动作空间（action space）"></a>2.动作空间（action space）</h4><p>动作是离散的，共有 <strong>4 个动作</strong>：</p>
+<ul>
+<li>0：不作为</li>
+<li>2：主引擎向下喷气</li>
+<li>3：左方向喷气</li>
+<li>1：右方向喷气</li>
+</ul>
+<h4 id="3-奖励机制（reward）"><a href="#3-奖励机制（reward）" class="headerlink" title="3.奖励机制（reward）"></a>3.奖励机制（reward）</h4><ul>
+<li><strong>+100~140</strong>：成功降落在平台中央</li>
+<li><strong>-100</strong>：摔坏飞船</li>
+<li><strong>-0.3 &#x2F; 每次喷气</strong>：惩罚使用燃料（节省能量）</li>
+<li><strong>+10</strong>：每条腿接触地面</li>
+</ul>
+<p>所以整个着陆任务的最佳策略是如何平稳、省油地降落在中央区域（两个小旗子中间）。</p>
+<h4 id="4-成功-终止条件"><a href="#4-成功-终止条件" class="headerlink" title="4.成功&#x2F;终止条件"></a>4.成功&#x2F;终止条件</h4><p>成功条件：飞船平稳降落在中央的目标平台，并且两个着陆腿都接触地面<br>终止条件：飞船成功着陆或坠毁或者飞船飞出屏幕外或者任务时间超限</p>
+<h4 id="5-相关参数"><a href="#5-相关参数" class="headerlink" title="5.相关参数"></a>5.相关参数</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">env = gym.make(<span class="string">&quot;LunarLander-v3&quot;</span>, render_mode=<span class="string">&quot;human&quot;</span>) <span class="comment"># 创建环境</span></span><br><span class="line">action = <span class="number">3</span>  <span class="comment"># 向左推进</span></span><br><span class="line"><span class="comment"># terminated：任务完成 truncated：任务被结束</span></span><br><span class="line">obs, reward, terminated, truncated, info = env.step(action)</span><br><span class="line">x, y, vx, vy, angle, angle_vel, left_leg, right_leg = obs</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;横向:<span class="subst">&#123;x&#125;</span>, 纵向:<span class="subst">&#123;y&#125;</span>, 水平速度:<span class="subst">&#123;vx&#125;</span>, 垂直速度:<span class="subst">&#123;vy&#125;</span>, 朝向角度:<span class="subst">&#123;angle&#125;</span>, \n角速度:<span class="subst">&#123;angle_vel&#125;</span>, 左支架:<span class="subst">&#123;left_leg&#125;</span>, 右支架:<span class="subst">&#123;right_leg&#125;</span>,action:<span class="subst">&#123;action&#125;</span>,得分:<span class="subst">&#123;reward&#125;</span>&quot;</span>)</span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">横向:-0.18395118415355682, 纵向:0.003272805130109191, 水平速度:-0.005371610634028912, 垂直速度:-0.001628089346922934, 朝向角度:-1.9359147548675537, 角速度:0.017528165131807327, 左支架:1.0, 右支架:0.0,action:3,得分:-100</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br></pre></td></tr></table></figure>
+<h3 id="2-经验缓存"><a href="#2-经验缓存" class="headerlink" title="2.经验缓存"></a>2.经验缓存</h3><p>Memory 类的作用是收集和存储智能体与环境交互过程中的经验数据，这也是为后续的策略更新（训练）提供数据支持。主要功能如下：</p>
+<h4 id="1-主要用途"><a href="#1-主要用途" class="headerlink" title="1. 主要用途"></a>1. 主要用途</h4><ul>
+<li>存储一批采样数据：包括每一步的状态、动作、动作概率、奖励、是否终止等信息</li>
+<li>支持多轮优化：采集到一批数据后，可以多次利用这些数据进行策略网络的更新，提高样本利用率</li>
+<li>便于批量处理：将采集到的数据整理为张量，方便后续神经网络的批量训练</li>
+</ul>
+<h4 id="2-代码实现"><a href="#2-代码实现" class="headerlink" title="2.代码实现"></a>2.代码实现</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Memory</span>:  </span><br><span class="line">    <span class="comment"># 经验缓存类  </span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):  </span><br><span class="line">        <span class="variable language_">self</span>.actions = []  <span class="comment"># 存储动作  </span></span><br><span class="line">        <span class="variable language_">self</span>.states = []  <span class="comment"># 存储状态  </span></span><br><span class="line">        <span class="variable language_">self</span>.logprobs = []  <span class="comment"># 存储旧策略下动作的对数概率  </span></span><br><span class="line">        <span class="variable language_">self</span>.rewards = []  <span class="comment"># 存储奖励  </span></span><br><span class="line">        <span class="variable language_">self</span>.is_terminals = []  <span class="comment"># 存储是否为终止状态标志  </span></span><br><span class="line">  </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">clear_memory</span>(<span class="params">self</span>):  </span><br><span class="line">        <span class="comment"># 清空缓存（每次 update 后调用）  </span></span><br><span class="line">        <span class="keyword">del</span> <span class="variable language_">self</span>.actions[:]  </span><br><span class="line">        <span class="keyword">del</span> <span class="variable language_">self</span>.states[:]  </span><br><span class="line">        <span class="keyword">del</span> <span class="variable language_">self</span>.logprobs[:]  </span><br><span class="line">        <span class="keyword">del</span> <span class="variable language_">self</span>.rewards[:]  </span><br><span class="line">        <span class="keyword">del</span> <span class="variable language_">self</span>.is_terminals[:]</span><br></pre></td></tr></table></figure>
+<h4 id="3-工作流程"><a href="#3-工作流程" class="headerlink" title="3.工作流程"></a>3.工作流程</h4><ol>
+<li>采样阶段：智能体与环境交互，每一步都把当前的状态、动作、动作概率、奖励、是否终止等信息存入Memory</li>
+<li>更新阶段：达到一定步数后（如update_timestep），用Memory中存储的数据进行多轮策略更新</li>
+<li>清空阶段：更新完毕后，调用clear_memory()清空缓存，为下一批采样做准备</li>
+</ol>
+<h3 id="3-策略网络结构（Actor）"><a href="#3-策略网络结构（Actor）" class="headerlink" title="3.策略网络结构（Actor）"></a>3.策略网络结构（Actor）</h3><p>在PPO中，策略网络（Actor）的作用是：输入当前环境状态，输出每个可选动作的概率分布。<br>对于LunarLander-v3（离散动作空间），策略网络输出4个动作的概率。</p>
+<h4 id="1-代码实现"><a href="#1-代码实现" class="headerlink" title="1.代码实现"></a>1.代码实现</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 输入层：输入维度state_dim（LunarLander-v3为8，即8维状态特征）</span></span><br><span class="line"><span class="comment"># 隐藏层：两个全连接层，每层后接Tanh激活函数（增加非线性表达能力），隐藏层宽度：n_latent_var（如64）</span></span><br><span class="line"><span class="comment"># 输出层：输出维度：action_dim（LunarLander-v3为4，即4个离散动作）Softmax激活：将输出转为概率分布，保证所有动作概率之和为1</span></span><br><span class="line"><span class="variable language_">self</span>.action_layer = nn.Sequential(  </span><br><span class="line">    nn.Linear(state_dim, n_latent_var),  </span><br><span class="line">    nn.Tanh(), <span class="comment"># Tanh 激活函数，给网络增加非线性表达能力，帮助网络学习更复杂的特征  </span></span><br><span class="line">    nn.Linear(n_latent_var, n_latent_var),  </span><br><span class="line">    nn.Tanh(),  </span><br><span class="line">    nn.Linear(n_latent_var, action_dim),  </span><br><span class="line">    nn.Softmax(dim=-<span class="number">1</span>)  <span class="comment"># 输出动作概率分布  </span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>策略网络<strong>输入8维状态特征，输出4维动作概率分布</strong></p>
+<h4 id="2-前向推理与动作采样"><a href="#2-前向推理与动作采样" class="headerlink" title="2.前向推理与动作采样"></a>2.前向推理与动作采样</h4><p>先输入状态，经过上述网络，得到4个动作的概率分布，再用<strong>Categorical分布</strong>根据概率采样动作，实现探索，最后将采样的动作、对应的对数概率等信息存入Memory，用于后续PPO更新。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">act</span>(<span class="params">self, state, memory</span>):  </span><br><span class="line">    <span class="comment"># 用当前策略选择动作  </span></span><br><span class="line">    state = torch.from_numpy(state).<span class="built_in">float</span>().to(device)  </span><br><span class="line">    action_probs = <span class="variable language_">self</span>.action_layer(state)  <span class="comment"># 得到4维动作概率  </span></span><br><span class="line">    dist = Categorical(action_probs)  <span class="comment"># 创建了一个按策略概率采样动作的分布 </span></span><br><span class="line">    action = dist.sample() <span class="comment"># 从这个分布中随机抽取一个动作，以便进行策略执行和训练 </span></span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 将动作与 log 概率存入 memory，用于后续更新  </span></span><br><span class="line">    memory.states.append(state)  </span><br><span class="line">    memory.actions.append(action)  </span><br><span class="line">    memory.logprobs.append(dist.log_prob(action))  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">return</span> action.item()</span><br></pre></td></tr></table></figure>
+
+<p><strong>Categorical 策略</strong>是：</p>
+<blockquote>
+<p>“当前状态下，每个动作的概率是多少”，然后<strong>按这个分布随机选择一个动作</strong>。</p>
+</blockquote>
+<p><code>torch.distributions.Categorical</code> 是 PyTorch 中的一个<strong>离散概率分布类</strong>，用于处理<strong>一维离散随机变量</strong>。举例：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">probs = torch.tensor([<span class="number">0.1</span>, <span class="number">0.7</span>, <span class="number">0.2</span>])</span><br><span class="line">dist = Categorical(probs) <span class="comment"># [0, 0.1] 动作0的概率是0.1 [1, 0.7], [2, 0.2]</span></span><br><span class="line">action = dist.sample()</span><br></pre></td></tr></table></figure>
+<p>当执行 dist.sample()，我们就“按概率抽奖”选出一个动作编号。例如抽到action为1的概率是0.7.</p>
+<h4 id="3-设计逻辑与优点"><a href="#3-设计逻辑与优点" class="headerlink" title="3.设计逻辑与优点"></a>3.设计逻辑与优点</h4><ul>
+<li>多层感知机的结构，适合处理中等复杂度的状态特征</li>
+<li>使用Tanh激活函数，有助于稳定训练</li>
+<li>采用Softmax输出，天然适配离散动作空间</li>
+<li>使用的概率采样，支持策略的探索性</li>
+</ul>
+<p>LunarLander-v3的策略网络本质是一个两层隐藏层的全连接神经网络，输入状态，输出每个动作的概率分布。</p>
+<h3 id="4-价值网络结构（Critic）"><a href="#4-价值网络结构（Critic）" class="headerlink" title="4.价值网络结构（Critic）"></a>4.价值网络结构（Critic）</h3><p>输入当前环境状态，输出该状态的“价值估计”（state value），即智能体在该状态下能获得的期望累计回报。这个数值用于计算优势函数（Advantage），指导策略（Actor）如何去优化。</p>
+<h4 id="1-代码实现-1"><a href="#1-代码实现-1" class="headerlink" title="1.代码实现"></a>1.代码实现</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Critic网络（价值网络）：用于输出当前状态的价值（state value）  </span></span><br><span class="line"><span class="comment"># 输入层 输入维度：state_dim（LunarLander-v3为8，即8维状态特征）</span></span><br><span class="line"><span class="comment"># 隐藏层 两个全连接层，每层后接Tanh激活函数 隐藏层宽度：n_latent_var（如64）</span></span><br><span class="line"><span class="comment"># 输出层 输出维度：1（标量，表示该状态的价值）</span></span><br><span class="line"><span class="variable language_">self</span>.value_layer = nn.Sequential(  </span><br><span class="line">    nn.Linear(state_dim, n_latent_var),  </span><br><span class="line">    nn.Tanh(),  </span><br><span class="line">    nn.Linear(n_latent_var, n_latent_var),  </span><br><span class="line">    nn.Tanh(),  </span><br><span class="line">    nn.Linear(n_latent_var, <span class="number">1</span>) <span class="comment"># 输出状态价值  </span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>输入一个状态向量，经过上述网络，输出一个标量，表示该状态的价值估计。这个值用于PPO损失函数中的优势计算和价值损失部分。</p>
+<h4 id="2-评估旧策略"><a href="#2-评估旧策略" class="headerlink" title="2.评估旧策略"></a>2.评估旧策略</h4><p>评估旧策略在给定状态下选出某个动作的概率，以及当前状态的价值估计。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 输入：状态和动作</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">evaluate</span>(<span class="params">self, state, action</span>):  </span><br><span class="line">    <span class="comment"># 1.当前策略网络的前向传播结果，输出动作概率分布（Softmax输出）</span></span><br><span class="line">    action_probs = <span class="variable language_">self</span>.action_layer(state)  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 2.基于动作概率，构建 PyTorch 的 离散概率分布对象。</span></span><br><span class="line">    <span class="comment"># 这个dist可以，计算动作的概率、log概率，计算整个分布的熵</span></span><br><span class="line">    dist = Categorical(action_probs)  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 3.重点：计算旧动作在当前策略下的 log 概率</span></span><br><span class="line">    action_logprobs = dist.log_prob(action) </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 4. 熵衡量当前策略有多“随机”。</span></span><br><span class="line">    <span class="comment"># PPO 中通常会加上一个探索激励项:loss=policy_loss-c1*value_loss+c2*entropy</span></span><br><span class="line">    dist_entropy = dist.entropy() <span class="comment"># 概率分布熵（鼓励探索）  </span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 5.这是 Critic 网络的输出，对每个状态估计其“价值”</span></span><br><span class="line">    state_value = <span class="variable language_">self</span>.value_layer(state) <span class="comment"># 状态价值  </span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 6.输出</span></span><br><span class="line">    <span class="comment"># action_logprobs：当前策略对旧动作的 log 概率（用于更新）</span></span><br><span class="line">    <span class="comment"># torch.squeeze(state_value)：当前状态的估值</span></span><br><span class="line">    <span class="comment"># dist_entropy：当前策略的分布熵（用于鼓励探索）</span></span><br><span class="line">    <span class="keyword">return</span> action_logprobs, torch.squeeze(state_value), dist_entropy</span><br></pre></td></tr></table></figure>
+<p>evaluate() 是 PPO 算法在 <strong>训练更新阶段的核心评估函数</strong>，它用于：</p>
+<ul>
+<li><strong>计算 log概率</strong>（用于 PPO 的 clip ratio）</li>
+<li><strong>计算 state value</strong>（用于 advantage）</li>
+<li><strong>计算 entropy</strong>（用于策略的探索奖励）</li>
+</ul>
+<p>这些值都将直接进入 PPO 的损失函数，指导策略网络和价值网络进行反向传播和参数更新。</p>
+<h3 id="5-PPO算法实现"><a href="#5-PPO算法实现" class="headerlink" title="5.PPO算法实现"></a>5.PPO算法实现</h3><h4 id="1-代码实现-2"><a href="#1-代码实现-2" class="headerlink" title="1.代码实现"></a>1.代码实现</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">PPO</span>:  </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, state_dim, action_dim, n_latent_var, lr, betas, gamma, k_epochs, eps_clip</span>):  </span><br><span class="line">        <span class="variable language_">self</span>.lr = lr  </span><br><span class="line">        <span class="variable language_">self</span>.betas = betas  </span><br><span class="line">        <span class="variable language_">self</span>.gamma = gamma  </span><br><span class="line">        <span class="variable language_">self</span>.eps_clip = eps_clip  </span><br><span class="line">        <span class="variable language_">self</span>.K_epochs = k_epochs  </span><br><span class="line">  </span><br><span class="line">        <span class="variable language_">self</span>.policy = ActorCritic(state_dim, action_dim, n_latent_var).to(device) <span class="comment"># 当前策略网络（Actor-Critic结构）</span></span><br><span class="line">        <span class="variable language_">self</span>.optimizer = torch.optim.Adam(<span class="variable language_">self</span>.policy.parameters(), lr=lr, betas=betas)  <span class="comment"># 用于更新当前策略的 Adam 优化器</span></span><br><span class="line">        <span class="variable language_">self</span>.policy_old = ActorCritic(state_dim, action_dim, n_latent_var).to(device) <span class="comment"># 拷贝旧策略网络，采样时使用它（保证采样策略固定）</span></span><br><span class="line">        <span class="variable language_">self</span>.policy_old.load_state_dict(<span class="variable language_">self</span>.policy.state_dict())  </span><br><span class="line">        <span class="variable language_">self</span>.MseLoss = nn.MSELoss()   <span class="comment"># 用于 critic 的价值函数回归</span></span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 策略更新核心函数</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">update</span>(<span class="params">self, memory</span>):  </span><br><span class="line">        <span class="comment"># 1. 使用 GAE 估计每个状态的回报  </span></span><br><span class="line">        <span class="comment"># 如果是终止状态（done），则折扣回报归零重新累计</span></span><br><span class="line">        rewards = []  </span><br><span class="line">        discounted_reward = <span class="number">0</span>  </span><br><span class="line">        <span class="keyword">for</span> reward, is_terminal <span class="keyword">in</span> <span class="built_in">zip</span>(<span class="built_in">reversed</span>(memory.rewards), <span class="built_in">reversed</span>(memory.is_terminals)):  </span><br><span class="line">            <span class="keyword">if</span> is_terminal:  </span><br><span class="line">                discounted_reward = <span class="number">0</span>  </span><br><span class="line">            discounted_reward = reward + (<span class="variable language_">self</span>.gamma * discounted_reward)  </span><br><span class="line">            rewards.insert(<span class="number">0</span>, discounted_reward)  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 2.对回报进行标准化（加快收敛）:有助于更稳定的训练</span></span><br><span class="line">        rewards = torch.tensor(rewards, dtype=torch.float32).to(device)  </span><br><span class="line">        rewards = (rewards - rewards.mean()) / (rewards.std() + <span class="number">1e-5</span>)  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 3.取出旧的数据（detach 防止反向传播）  </span></span><br><span class="line">        old_states = torch.stack(memory.states).to(device).detach()  </span><br><span class="line">        old_actions = torch.stack(memory.actions).to(device).detach()  </span><br><span class="line">        old_logprobs = torch.stack(memory.logprobs).to(device).detach()  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 4.K次epoch的PPO更新：每次更新循环中，进行一次“策略评估 + 损失计算 + 反向传播”</span></span><br><span class="line">        <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="variable language_">self</span>.K_epochs):  </span><br><span class="line">            <span class="comment"># 5.策略评估：计算新策略下动作的对数概率、state的value估计和策略的熵（鼓励探索）</span></span><br><span class="line">            logprobs, state_values, dist_entropy = <span class="variable language_">self</span>.policy.evaluate(old_states, old_actions)  </span><br><span class="line">  </span><br><span class="line">            <span class="comment"># 6.计算概率比率       </span></span><br><span class="line">            ratios = torch.exp(logprobs - old_logprobs.detach())  </span><br><span class="line">  </span><br><span class="line">            <span class="comment"># 7.计算优势项，衡量动作比期望好多少</span></span><br><span class="line">            advantages = rewards - state_values.detach()  </span><br><span class="line"></span><br><span class="line">            <span class="comment"># 8.计算PPO剪切目标</span></span><br><span class="line">            <span class="comment"># PPO的核心是防止策略更新太快（剪切比率），所以取两者中较小的作为最终目标</span></span><br><span class="line">            surr1 = ratios * advantages  </span><br><span class="line">            surr2 = torch.clamp(ratios, <span class="number">1</span> - <span class="variable language_">self</span>.eps_clip, <span class="number">1</span> + <span class="variable language_">self</span>.eps_clip) * advantages  </span><br><span class="line">  </span><br><span class="line">            <span class="comment"># 9.构造总损失函数</span></span><br><span class="line">            <span class="comment"># -torch.min(surr1, surr2)：策略损失（Actor）</span></span><br><span class="line">            <span class="comment"># 0.5 * self.MseLoss(state_values, rewards)：价值损失（Critic）</span></span><br><span class="line">            <span class="comment"># - 0.01 * dist_entropy：熵惩罚项，鼓励策略保持一定随机性（探索）</span></span><br><span class="line">            loss = -torch.<span class="built_in">min</span>(surr1, surr2) + <span class="number">0.5</span> * <span class="variable language_">self</span>.MseLoss(state_values, rewards) - <span class="number">0.01</span> * dist_entropy  </span><br><span class="line">  </span><br><span class="line">            <span class="comment"># 10.执行梯度更新  </span></span><br><span class="line">            <span class="variable language_">self</span>.optimizer.zero_grad()  </span><br><span class="line">            loss.mean().backward()  </span><br><span class="line">            <span class="variable language_">self</span>.optimizer.step()  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 11.更新旧策略参数，便于下一轮采样</span></span><br><span class="line">        <span class="variable language_">self</span>.policy_old.load_state_dict(<span class="variable language_">self</span>.policy.state_dict())</span><br></pre></td></tr></table></figure>
+
+<p><code>PPO.update()</code>代码的核心是：<strong>用采样轨迹计算 advantage，构造 clipped surrogate loss，在保证稳定更新的前提下优化 actor-critic 网络。</strong></p>
+<h4 id="2-举例说说-PPO-的ratio-剪切策略"><a href="#2-举例说说-PPO-的ratio-剪切策略" class="headerlink" title="2.举例说说 PPO 的ratio 剪切策略"></a>2.举例说说 PPO 的ratio 剪切策略</h4><p>在PPO算法中，策略更新的核心是限制新旧策略之间的变化幅度，以避免剧烈更新导致策略崩溃。这一策略的核心公式之一为：<br>$$\text{ratio} &#x3D; \frac{\pi_{\text{new}}(a|s)}{\pi_{\text{old}}(a|s)}$$<br>该比率表示新策略与旧策略在相同状态下选择某个动作的概率比值。</p>
+<p>在 LunarLander-v3 环境中，飞船需要根据当前的状态（如高度、角度、速度）做出决策，选择激活哪些推进器以实现平稳着陆。策略网络 π 就是用于在每个状态下输出相应动作分布的模型。<br>在一次回合中，旧策略 π_old 对某个状态 s 采样了一个动作 a，比如“点燃主推进器”。随后，训练过程根据实际的环境反馈计算出该动作的优势（Advantage），即该动作相对于当前状态下平均动作的好坏程度。</p>
+<p><strong>策略更新不宜过快</strong><br>如果该动作的优势为正（说明该动作是“好”的），策略应当提高该动作的概率以鼓励重复选择。然而，如果直接按照策略梯度进行无约束更新，可能会导致该动作的概率被显著放大，从而造成策略过拟合于当前经验，降低策略在未见过情形下的泛化能力，甚至使策略陷入崩溃。</p>
+<p><strong>PPO 中的剪切机制</strong><br>为了抑制策略剧烈更新，PPO 引入了一个“剪切”机制，即限制 ratio 的值在一个范围内（例如 [0.8, 1.2]）。当更新导致的概率比率超过该范围时，会使用边界值替代，以实现“保守更新”。</p>
+<p>这种剪切机制可类比为飞船的姿态控制系统：</p>
+<table>
+<thead>
+<tr>
+<th><strong>情形</strong></th>
+<th><strong>含义</strong></th>
+<th><strong>PPO 策略行为</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>$\text{ratio} \approx 1$</td>
+<td>当前策略与旧策略差异不大，动作选择变化平稳</td>
+<td>正常更新，鼓励优势动作</td>
+</tr>
+<tr>
+<td>$\text{ratio} \gg 1$</td>
+<td>策略剧烈放大某一动作的概率，容易造成策略偏移或不稳定</td>
+<td>剪切 ratio，抑制剧烈变化</td>
+</tr>
+<tr>
+<td>$\text{ratio} \ll 1$</td>
+<td>策略对某一动作严重抑制，可能过度惩罚</td>
+<td>剪切后保持稳定下降，避免过度惩罚</td>
+</tr>
+</tbody></table>
+<h3 id="6-训练参数与控制变量"><a href="#6-训练参数与控制变量" class="headerlink" title="6.训练参数与控制变量"></a>6.训练参数与控制变量</h3><h4 id="1-训练参数"><a href="#1-训练参数" class="headerlink" title="1.训练参数"></a>1.训练参数</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">state_dim = env.observation_space.shape[<span class="number">0</span>] <span class="comment"># 状态向量长度（LunarLander 为 8）</span></span><br><span class="line">action_dim = <span class="number">4</span> <span class="comment"># 动作数量（离散 4 种：无、主推进器、左右推进器） </span></span><br><span class="line">n_latent_var = <span class="number">64</span>  <span class="comment"># 隐藏层宽度  </span></span><br><span class="line">lr = <span class="number">0.002</span> <span class="comment"># 学习率 控制每次参数更新的步长，影响训练速度和稳定性  </span></span><br><span class="line">betas = (<span class="number">0.9</span>, <span class="number">0.999</span>) <span class="comment"># Adam 优化器的动量参数，通常为 (0.9, 0.999)</span></span><br><span class="line">gamma = <span class="number">0.99</span>  <span class="comment"># 奖励折扣因子，控制未来奖励的衰减程度，越接近 1 越重视长期奖励  </span></span><br><span class="line">k_epochs = <span class="number">4</span>  <span class="comment"># 每次更新策略时的训练轮数，每收集一批数据后，策略网络要训练多少次，如 4（离散动作），80（连续动作）  </span></span><br><span class="line">eps_clip = <span class="number">0.2</span>  <span class="comment"># PPO 裁剪参数，限制新旧策略概率比的变化范围，防止策略更新过大，保证训练稳定 </span></span><br><span class="line">random_seed = <span class="literal">None</span> <span class="comment"># 是否设置随机种子（可复现性）</span></span><br></pre></td></tr></table></figure>
+<h4 id="2-控制变量"><a href="#2-控制变量" class="headerlink" title="2.控制变量"></a>2.控制变量</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">render = <span class="literal">False</span>  <span class="comment"># 是否渲染游戏UI</span></span><br><span class="line">solved_reward = <span class="number">230</span>  <span class="comment"># 平均奖励大于该值即认为任务完成</span></span><br><span class="line">log_interval = <span class="number">20</span>  <span class="comment"># 每多少个 episode 打印一次日志</span></span><br><span class="line">max_episodes = <span class="number">50000</span>  <span class="comment"># 训练的总轮数（每轮为一次游戏）</span></span><br><span class="line">max_timesteps = <span class="number">300</span>  <span class="comment"># 每轮最多多少步</span></span><br><span class="line">update_timestep = <span class="number">2000</span>  <span class="comment"># 策略更新步数间隔</span></span><br></pre></td></tr></table></figure>
+<h3 id="7-训练流程"><a href="#7-训练流程" class="headerlink" title="7.训练流程"></a>7.训练流程</h3><h4 id="1-代码实现-3"><a href="#1-代码实现-3" class="headerlink" title="1.代码实现"></a>1.代码实现</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>():  </span><br><span class="line">    <span class="comment"># 训练参数与控制变量</span></span><br><span class="line">    <span class="comment"># ...</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 设置随机种子  </span></span><br><span class="line">    <span class="keyword">if</span> random_seed <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:  </span><br><span class="line">        torch.manual_seed(random_seed)  </span><br><span class="line">        env.reset(seed=random_seed)  </span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;PyTorch随机数:<span class="subst">&#123;torch.rand(<span class="number">1</span>).item()&#125;</span>, 环境初始状态:<span class="subst">&#123;env.reset()[<span class="number">0</span>][:<span class="number">2</span>]&#125;</span>&quot;</span>)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 初始化 PPO、Memory、变量  </span></span><br><span class="line">    memory = Memory()  <span class="comment"># 存储一段时间内的经验轨迹（state、action、reward 等）</span></span><br><span class="line">    ppo = PPO(state_dim, action_dim, n_latent_var, lr, betas, gamma, k_epochs, eps_clip)  <span class="comment"># 初始化一个 PPO 对象，内部包含策略网络、优化器等</span></span><br><span class="line">  </span><br><span class="line">    <span class="comment"># logging variables  </span></span><br><span class="line">    running_reward = <span class="number">0</span>  </span><br><span class="line">    total_length = <span class="number">0</span>  </span><br><span class="line">    timestep = <span class="number">0</span>  </span><br><span class="line">  </span><br><span class="line">    finished_step = <span class="number">0</span>  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 训练循环</span></span><br><span class="line">    <span class="keyword">for</span> i_episode <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, max_episodes + <span class="number">1</span>): <span class="comment"># 每次循环表示飞船从头开始着陆一次</span></span><br><span class="line">        state, _ = env.reset()  <span class="comment"># 初始化  </span></span><br><span class="line">        <span class="keyword">for</span> t <span class="keyword">in</span> <span class="built_in">range</span>(max_timesteps): <span class="comment"># 每一局最多能走max_timesteps步  </span></span><br><span class="line">            finished_step = t  </span><br><span class="line">            timestep += <span class="number">1</span>  </span><br><span class="line">  </span><br><span class="line">            <span class="comment"># 使用旧策略选择动作</span></span><br><span class="line">            action = ppo.policy_old.act(state, memory)  </span><br><span class="line">            <span class="comment"># next_state：执行动作后的新状态 r</span></span><br><span class="line">            <span class="comment"># reward：本步获得的奖励 </span></span><br><span class="line">            <span class="comment"># terminated：是否因为任务完成/失败而结束 </span></span><br><span class="line">            <span class="comment"># truncated：是否因为达到最大步数等外部原因而结束  </span></span><br><span class="line">            next_state, reward, terminated, truncated, _ = env.step(action)  </span><br><span class="line">            done = terminated <span class="keyword">or</span> truncated <span class="comment"># 是否终止</span></span><br><span class="line">            state = next_state  <span class="comment"># 更新状态</span></span><br><span class="line">  </span><br><span class="line">            <span class="comment"># 存储奖励与终止标记 </span></span><br><span class="line">            memory.rewards.append(reward)  </span><br><span class="line">            memory.is_terminals.append(done)  </span><br><span class="line">  </span><br><span class="line">            <span class="comment"># 满足 update_timestep 时，更新策略并清空经验  </span></span><br><span class="line">            <span class="keyword">if</span> timestep % update_timestep == <span class="number">0</span>:  </span><br><span class="line">                ppo.update(memory)  </span><br><span class="line">                memory.clear_memory()  </span><br><span class="line">                timestep = <span class="number">0</span>  </span><br><span class="line">  </span><br><span class="line">            running_reward += reward  <span class="comment"># 奖励累加</span></span><br><span class="line">            </span><br><span class="line">            <span class="keyword">if</span> render:  </span><br><span class="line">                env.render()  </span><br><span class="line">            <span class="keyword">if</span> done:  </span><br><span class="line">                <span class="keyword">break</span>  </span><br><span class="line">  </span><br><span class="line">        total_length += finished_step <span class="comment"># 累计每个 episode（回合）实际运行的步数  </span></span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 是否完成任务（Early Stop）</span></span><br><span class="line">        <span class="comment"># 如果最近 log_interval 个回合的总奖励超过设定阈值，认为已经训练成功，提前结束并保存模型</span></span><br><span class="line">        <span class="keyword">if</span> running_reward &gt; (log_interval * solved_reward):  </span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;########## Solved! ##########&quot;</span>)  </span><br><span class="line">            torch.save(ppo.policy.state_dict(), <span class="string">&#x27;./PPO_&#123;&#125;.pth&#x27;</span>.<span class="built_in">format</span>(env_name)) </span><br><span class="line">            <span class="keyword">break</span>  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 打印训练日志，</span></span><br><span class="line">        <span class="comment"># 每隔 log_interval 回合打印一次平均奖励和步数</span></span><br><span class="line">        <span class="comment"># 清零统计变量，进入下一轮计算</span></span><br><span class="line">        <span class="keyword">if</span> i_episode % log_interval == <span class="number">0</span>:  </span><br><span class="line">            avg_length = <span class="built_in">int</span>(total_length / log_interval)  </span><br><span class="line">            running_reward = <span class="built_in">int</span>((running_reward / log_interval))  </span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&#x27;Episode &#123;&#125; \t avg length: &#123;&#125; \t reward: &#123;&#125;&#x27;</span>.<span class="built_in">format</span>(i_episode, avg_length, running_reward))  </span><br><span class="line">            running_reward = <span class="number">0</span>  </span><br><span class="line">            total_length = <span class="number">0</span></span><br></pre></td></tr></table></figure>
+<h4 id="2-训练日志"><a href="#2-训练日志" class="headerlink" title="2.训练日志"></a>2.训练日志</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">Episode 20 	 avg length: 95 	 reward: -264</span><br><span class="line">Episode 40 	 avg length: 92 	 reward: -173</span><br><span class="line">Episode 60 	 avg length: 90 	 reward: -147</span><br><span class="line">Episode 80 	 avg length: 93 	 reward: -134</span><br><span class="line">...</span><br><span class="line">Episode 420 	 avg length: 99 	 reward: -70</span><br><span class="line">Episode 440 	 avg length: 102 	 reward: -68</span><br><span class="line">Episode 460 	 avg length: 113 	 reward: -70</span><br><span class="line">...</span><br><span class="line">Episode 600 	 avg length: 216 	 reward: 6</span><br><span class="line">Episode 620 	 avg length: 237 	 reward: 68</span><br><span class="line">Episode 640 	 avg length: 261 	 reward: 100</span><br><span class="line">...</span><br><span class="line">Episode 820 	 avg length: 238 	 reward: 101</span><br><span class="line">Episode 840 	 avg length: 230 	 reward: 103</span><br><span class="line">Episode 860 	 avg length: 250 	 reward: 104</span><br><span class="line">...</span><br><span class="line">Episode 1360 	 avg length: 213 	 reward: 164</span><br><span class="line">Episode 1380 	 avg length: 232 	 reward: 174</span><br><span class="line">Episode 1400 	 avg length: 239 	 reward: 214</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"><span class="comment">######### Solved! ##########</span></span></span><br></pre></td></tr></table></figure>
+<h3 id="8-模型验证"><a href="#8-模型验证" class="headerlink" title="8.模型验证"></a>8.模型验证</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">start_lunar_lander</span>():  </span><br><span class="line"></span><br><span class="line">    env_name = <span class="string">&quot;LunarLander-v3&quot;</span>  </span><br><span class="line">    env = gym.make(env_name, render_mode=<span class="string">&quot;human&quot;</span>)  </span><br><span class="line">  </span><br><span class="line">    state_dim = env.observation_space.shape[<span class="number">0</span>]  <span class="comment"># 状态向量长度（=8）</span></span><br><span class="line">    action_dim = <span class="number">4</span>  <span class="comment"># 动作数量（4 个离散动作）</span></span><br><span class="line">    </span><br><span class="line">    n_latent_var = <span class="number">64</span>  <span class="comment"># 隐藏层宽度</span></span><br><span class="line">    lr = <span class="number">0.0007</span>  <span class="comment"># 学习率（略小于训练时使用的 0.002，测试时不重要）</span></span><br><span class="line">    betas = (<span class="number">0.9</span>, <span class="number">0.999</span>)  <span class="comment"># Adam 优化器参数</span></span><br><span class="line">    gamma = <span class="number">0.99</span>  <span class="comment"># 奖励折扣因子</span></span><br><span class="line">    K_epochs = <span class="number">4</span>   <span class="comment"># 每次更新策略训练的轮数（此处无用，因不训练）</span></span><br><span class="line">    eps_clip = <span class="number">0.2</span>  <span class="comment"># PPO 的剪切比例</span></span><br><span class="line"></span><br><span class="line">  </span><br><span class="line">    n_episodes = <span class="number">3</span>  <span class="comment"># 测试回合数（让模型飞 3 次）</span></span><br><span class="line">    max_timesteps = <span class="number">300</span>  <span class="comment"># 每次最多模拟 300 步</span></span><br><span class="line">  </span><br><span class="line">    filename = <span class="string">f&quot;PPO_<span class="subst">&#123;env_name&#125;</span>.pth&quot;</span>  </span><br><span class="line">    directory = <span class="string">&quot;./&quot;</span>  </span><br><span class="line">  </span><br><span class="line">    memory = Memory()  <span class="comment"># 初始化空记忆（虽然不训练，但 act() 函数需要它）</span></span><br><span class="line">    ppo = PPO(state_dim, action_dim, n_latent_var, lr, betas, gamma, K_epochs, eps_clip)  <span class="comment"># 构建 PPO 模型结构</span></span><br><span class="line">    ppo.policy_old.load_state_dict(torch.load(os.path.join(directory, filename)), strict=<span class="literal">False</span>)  <span class="comment"># 加载训练好的模型参数</span></span><br><span class="line">  </span><br><span class="line">    <span class="keyword">for</span> ep <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, n_episodes + <span class="number">1</span>):  </span><br><span class="line">        ep_reward = <span class="number">0</span>  <span class="comment"># 当前回合累计奖励</span></span><br><span class="line">        state, _ = env.reset()  </span><br><span class="line"></span><br><span class="line">        <span class="comment"># 飞行动作循环</span></span><br><span class="line">        <span class="keyword">for</span> t <span class="keyword">in</span> <span class="built_in">range</span>(max_timesteps):  </span><br><span class="line">            action = ppo.policy_old.act(state, memory)  <span class="comment"># 旧策略选择动作</span></span><br><span class="line">            <span class="comment"># 执行动作，获取新状态</span></span><br><span class="line">            state, reward, terminated, truncated, _ = env.step(action)  </span><br><span class="line">            ep_reward += reward  </span><br><span class="line">  </span><br><span class="line">            <span class="keyword">try</span>:  </span><br><span class="line">                env.render()  </span><br><span class="line">                pygame.event.pump()  <span class="comment"># 防止窗口卡死  </span></span><br><span class="line">            <span class="keyword">except</span> pygame.error:  </span><br><span class="line">                <span class="built_in">print</span>(<span class="string">&quot;Render window was closed unexpectedly.&quot;</span>)  </span><br><span class="line">                <span class="keyword">break</span>  </span><br><span class="line"></span><br><span class="line">            <span class="comment"># 飞船坠毁或安全降落或 truncated：超过最大步数等强制终止</span></span><br><span class="line">            <span class="keyword">if</span> terminated <span class="keyword">or</span> truncated:</span><br><span class="line">                <span class="keyword">break</span>  </span><br><span class="line">  </span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&#x27;Episode: <span class="subst">&#123;ep&#125;</span>\tReward: <span class="subst">&#123;<span class="built_in">int</span>(ep_reward)&#125;</span>&#x27;</span>)  </span><br><span class="line">  </span><br><span class="line">    env.close()  <span class="comment"># 正确地在最后统一关闭环境</span></span><br></pre></td></tr></table></figure>
+<p>日志输出：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Episode: <span class="number">1</span>	Reward: <span class="number">223</span></span><br><span class="line">Episode: <span class="number">2</span>	Reward: <span class="number">39</span></span><br><span class="line">Episode: <span class="number">3</span>	Reward: <span class="number">261</span></span><br></pre></td></tr></table></figure>
+<p>测试飞行三次，有两次可以安全降落在指定位置。</p>
+<h2 id="3-BipedalWalker-v3（连续动作空间案例）"><a href="#3-BipedalWalker-v3（连续动作空间案例）" class="headerlink" title="3.BipedalWalker-v3（连续动作空间案例）"></a>3.BipedalWalker-v3（连续动作空间案例）</h2><p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/bipedal_walker_ep2.gif"></p>
+<h3 id="1-环境与任务-1"><a href="#1-环境与任务-1" class="headerlink" title="1.环境与任务"></a>1.环境与任务</h3><p>BipedalWalker-v3 是 OpenAI Gym 提供的一个经典 <strong>连续控制</strong> 强化学习环境，任务目标是：<strong>控制一个双足机器人在崎岖地形上行走而不摔倒，并尽可能走得远</strong>。这是一个对智能体控制能力要求较高的环境。</p>
+<h4 id="1-状态空间（state-space）"><a href="#1-状态空间（state-space）" class="headerlink" title="1.状态空间（state space）"></a>1.状态空间（state space）</h4><p>BipedalWalker-v3的状态空间是一个 24 维的浮点向量，包含：</p>
+<table>
+<thead>
+<tr>
+<th><strong>索引</strong></th>
+<th><strong>含义</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>机器人躯干角度</td>
+<td>单位：弧度，表示身体的旋转角</td>
+</tr>
+<tr>
+<td>1</td>
+<td>机器人躯干角速度</td>
+<td>躯干旋转的速度</td>
+</tr>
+<tr>
+<td>2</td>
+<td>水平方向速度（vx）</td>
+<td>躯干的水平移动速度</td>
+</tr>
+<tr>
+<td>3</td>
+<td>垂直方向速度（vy）</td>
+<td>躯干的垂直移动速度</td>
+</tr>
+<tr>
+<td>4</td>
+<td>躯干到地面的水平距离</td>
+<td>和目标区域的距离偏移</td>
+</tr>
+<tr>
+<td>5</td>
+<td>躯干到地面的垂直距离</td>
+<td>着陆高度</td>
+</tr>
+<tr>
+<td>6-13</td>
+<td>4 个腿关节的角度（4 个关节）</td>
+<td>分别表示前后腿的上&#x2F;下段关节</td>
+</tr>
+<tr>
+<td>14-17</td>
+<td>4 个腿关节的角速度</td>
+<td>对应角度的变化速度</td>
+</tr>
+<tr>
+<td>18-21</td>
+<td>4 个地面接触传感器（布尔值）</td>
+<td>是否接触地面（每条腿有两个脚趾）</td>
+</tr>
+<tr>
+<td>22-23</td>
+<td>最近 2 帧的躯干高度差</td>
+<td>有些实现中添加，用于平滑动作判断（非标准）</td>
+</tr>
+</tbody></table>
+<h4 id="2-动作空间（action-space）-1"><a href="#2-动作空间（action-space）-1" class="headerlink" title="2.动作空间（action space）"></a>2.动作空间（action space）</h4><p>BipedalWalker-v3的动作空间是一个 <strong>4维连续动作空间</strong>，范围是 [-1, 1]，分别控制：</p>
+<ul>
+<li>左髋关节的推力        </li>
+<li>左膝关节的推力        </li>
+<li>右髋关节的推力</li>
+<li>右膝关节的推力</li>
+</ul>
+<p>每个数值控制一个电机的激活强度（可正可负），表示关节的力和方向。</p>
+<h4 id="3-奖励函数（reward）"><a href="#3-奖励函数（reward）" class="headerlink" title="3.奖励函数（reward）"></a>3.奖励函数（reward）</h4><p>正奖励：右移动的距离（越走越远奖励越多），控制越稳，步态越自然，奖励越高<br>负奖励：每一步都会有小的惩罚（惩罚能量浪费），摔倒或行为不稳定将被惩罚或直接终止</p>
+<h4 id="4-成功-终止条件-1"><a href="#4-成功-终止条件-1" class="headerlink" title="4.成功&#x2F;终止条件"></a>4.成功&#x2F;终止条件</h4><ul>
+<li>成功：机器人走完整个地形</li>
+<li>失败：摔倒或身体某部分触地</li>
+</ul>
+<h4 id="5-难点"><a href="#5-难点" class="headerlink" title="5.难点"></a>5.难点</h4><ol>
+<li><strong>动作是连续的</strong>：不像“前进&#x2F;后退”这种离散选择，而是需要精确调控关节的力，这样容错率就低</li>
+<li><strong>地形复杂</strong>：每次生成的地图都不同，有坑、坡、凸起，机器人需要学会灵活适应</li>
+<li><strong>需要协调多个关节动作</strong>：形成合理步态（如：迈出一条腿的同时另一条支撑）</li>
+<li><strong>平衡控制</strong>：摔倒即结束，类似倒立摆任务，强调稳定性与反馈控制</li>
+</ol>
+<h4 id="6-相关参数"><a href="#6-相关参数" class="headerlink" title="6.相关参数"></a>6.相关参数</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">env = gym.make(<span class="string">&quot;BipedalWalker-v3&quot;</span>, render_mode=<span class="string">&quot;human&quot;</span>)</span><br><span class="line"><span class="comment"># 分别对应：左髋 左膝 右髋 右膝</span></span><br><span class="line">action = [<span class="number">0.9765114</span>, -<span class="number">0.280038</span>, <span class="number">0.5163014</span>, -<span class="number">1.10301</span>]</span><br><span class="line">state, reward, terminated, truncated, _ = env.step(action)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;state:<span class="subst">&#123;state&#125;</span> reward:<span class="subst">&#123;reward&#125;</span> terminated:<span class="subst">&#123;terminated&#125;</span> truncated:<span class="subst">&#123;truncated&#125;</span>&quot;</span>)</span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">state:[-0.02104758 -0.03126067 -0.02977715 -0.01362359  </span></span><br><span class="line"><span class="string">0.47771385  1.0004591 0.07091689 -1.0004667   </span></span><br><span class="line"><span class="string">1.  0.37952623  0.9994885   0.07574213</span></span><br><span class="line"><span class="string"> -0.99983853  1.          0.44616896  0.4512359 </span></span><br><span class="line"><span class="string">0.46702808  0.49549717 0.540591    0.60977966 </span></span><br><span class="line"><span class="string">0.71776354  0.896694    1.          1.    ]</span></span><br><span class="line"><span class="string">reward:-0.24856666951812803 terminated:False truncated:False</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br></pre></td></tr></table></figure>
+<h3 id="2-经验缓存-1"><a href="#2-经验缓存-1" class="headerlink" title="2.经验缓存"></a>2.经验缓存</h3><p>同LunarLander-v3案例的<strong>Memory</strong>类，也是收集和存储智能体与环境交互过程中的经验数据，为后续的策略更新（训练）提供数据支持：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Memory</span>:  </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):  </span><br><span class="line">        <span class="variable language_">self</span>.actions = []</span><br><span class="line">        <span class="variable language_">self</span>.states = []  </span><br><span class="line">        <span class="variable language_">self</span>.logprobs = []</span><br><span class="line">        <span class="variable language_">self</span>.rewards = []</span><br><span class="line">        <span class="variable language_">self</span>.is_terminals = []  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">clear_memory</span>(<span class="params">self</span>):  </span><br><span class="line">        <span class="keyword">del</span> <span class="variable language_">self</span>.actions[:]  </span><br><span class="line">        <span class="keyword">del</span> <span class="variable language_">self</span>.states[:]  </span><br><span class="line">        <span class="keyword">del</span> <span class="variable language_">self</span>.logprobs[:]  </span><br><span class="line">        <span class="keyword">del</span> <span class="variable language_">self</span>.rewards[:]  </span><br><span class="line">        <span class="keyword">del</span> <span class="variable language_">self</span>.is_terminals[:]</span><br></pre></td></tr></table></figure>
+<h3 id="3-策略网络结构（Actor）-1"><a href="#3-策略网络结构（Actor）-1" class="headerlink" title="3.策略网络结构（Actor）"></a>3.策略网络结构（Actor）</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable language_">self</span>.actor = nn.Sequential(  </span><br><span class="line">    nn.Linear(state_dim, <span class="number">64</span>),  </span><br><span class="line">    nn.Tanh(),  </span><br><span class="line">    nn.Linear(<span class="number">64</span>, <span class="number">32</span>),  </span><br><span class="line">    nn.Tanh(),  </span><br><span class="line">    nn.Linear(<span class="number">32</span>, action_dim),  </span><br><span class="line">    nn.Tanh()  <span class="comment"># 输出动作均值，范围[-1,1]</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>与<code>LunarLander-v3</code>的策略网络结构最大的不同是，前者输出的是输出动作概率分布，后者输出动作均值，范围[-1,1]</p>
+<table>
+<thead>
+<tr>
+<th>特征</th>
+<th>PPO_discrete</th>
+<th>PPO_continuous</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>输出激活</td>
+<td>Softmax</td>
+<td>Tanh</td>
+</tr>
+<tr>
+<td>概率分布</td>
+<td>Categorical</td>
+<td>MultivariateNormal</td>
+</tr>
+<tr>
+<td>探索方式</td>
+<td>概率采样</td>
+<td>方差控制</td>
+</tr>
+<tr>
+<td>输出范围</td>
+<td>[0,1]概率</td>
+<td>[-1,1]均值</td>
+</tr>
+<tr>
+<td>动作类型</td>
+<td>离散整数</td>
+<td>连续向量</td>
+</tr>
+</tbody></table>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">act</span>(<span class="params">self, state, memory</span>):  </span><br><span class="line">    action_mean = <span class="variable language_">self</span>.actor(state)  </span><br><span class="line">    cov_mat = torch.diag(<span class="variable language_">self</span>.action_var).to(device)  <span class="comment"># 固定方差矩阵</span></span><br><span class="line">  </span><br><span class="line">    dist = MultivariateNormal(action_mean, cov_mat)  <span class="comment"># 多维正态分布</span></span><br><span class="line">    action = dist.sample()  </span><br><span class="line">    action_logprob = dist.log_prob(action)  </span><br><span class="line">  </span><br><span class="line">    memory.states.append(state)  </span><br><span class="line">    memory.actions.append(action)  </span><br><span class="line">    memory.logprobs.append(action_logprob)  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">return</span> action.detach()</span><br></pre></td></tr></table></figure>
+<p>与<code>LunarLander-v3</code>的概率分布类型也不同，前者是用的<code>Categorical</code>分类分布（从有限个离散动作中采样）是离散的，后者用的是MultivariateNormal分布（从连续动作空间中采样），是连续的。</p>
+<h3 id="4-价值网络结构（Critic）-1"><a href="#4-价值网络结构（Critic）-1" class="headerlink" title="4.价值网络结构（Critic）"></a>4.价值网络结构（Critic）</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable language_">self</span>.critic = nn.Sequential(  </span><br><span class="line">    nn.Linear(state_dim, <span class="number">64</span>),  </span><br><span class="line">    nn.Tanh(),  </span><br><span class="line">    nn.Linear(<span class="number">64</span>, <span class="number">32</span>),  </span><br><span class="line">    nn.Tanh(),  </span><br><span class="line">    nn.Linear(<span class="number">32</span>, <span class="number">1</span>)  </span><br><span class="line">)  </span><br><span class="line"><span class="variable language_">self</span>.action_var = torch.full((action_dim,), action_std * action_std).to(device)</span><br></pre></td></tr></table></figure>
+<p><code>LunarLander-v3</code>中是通过Softmax输出的概率分布自然实现探索，不同动作有不同的采样概率。而这个例子中通过固定的方差矩阵控制探索，网络输出动作均值，方差固定（如0.5²）。</p>
+<table>
+<thead>
+<tr>
+<th>特征</th>
+<th>PPO_discrete</th>
+<th>PPO_continuous</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>网络结构</td>
+<td>基本相同</td>
+<td>基本相同</td>
+</tr>
+<tr>
+<td>隐藏层</td>
+<td>64→64</td>
+<td>64→32</td>
+</tr>
+<tr>
+<td>输出</td>
+<td>状态价值（标量）</td>
+<td>状态价值（标量）</td>
+</tr>
+<tr>
+<td>功能</td>
+<td>完全相同</td>
+<td>完全相同</td>
+</tr>
+</tbody></table>
+<p><strong>PPO 中策略评估（而非采样）阶段的核心</strong>，通常在更新策略前，对旧轨迹重新评估当前策略 π 的行为，以便计算 PPO 的剪切损失函数。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 给定状态 state 和动作 action，评估当前策略对这些动作的 log 概率、状态值估计，以及策略分布的熵（用于鼓励探索）</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">evaluate</span>(<span class="params">self, state, action</span>):  </span><br><span class="line">    <span class="comment"># 计算策略均值</span></span><br><span class="line">    action_mean = <span class="variable language_">self</span>.actor(state)  </span><br><span class="line">    <span class="comment"># 预设或可学习的方差张量</span></span><br><span class="line">    action_var = <span class="variable language_">self</span>.action_var.expand_as(action_mean)  </span><br><span class="line">    <span class="comment"># 构建对角协方差矩阵（只有对角线有值，代表各动作维度独立），用于构建多维正态分布</span></span><br><span class="line">    cov_mat = torch.diag_embed(action_var).to(device)  </span><br><span class="line">    <span class="comment"># 创建一个多维正态分布（动作策略分布），均值为 action_mean，协方差为 cov_mat</span></span><br><span class="line">    dist = MultivariateNormal(action_mean, cov_mat)  <span class="comment"># 多维正态分布</span></span><br><span class="line">    <span class="comment"># 计算 log 概率</span></span><br><span class="line">    action_logprobs = dist.log_prob(action)  </span><br><span class="line">    <span class="comment"># 计算分布的熵</span></span><br><span class="line">    dist_entropy = dist.entropy()  </span><br><span class="line">    <span class="comment"># 评估 Critic 值函数</span></span><br><span class="line">    state_value = <span class="variable language_">self</span>.critic(state)  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># action_logprobs:当前策略下该动作的 log 概率（用于策略更新）</span></span><br><span class="line">    <span class="comment"># torch.squeeze(state_value) Critic 网络输出的状态值估计</span></span><br><span class="line">    <span class="comment"># dist_entropy 当前策略分布的熵（用于鼓励探索）</span></span><br><span class="line">    <span class="keyword">return</span> action_logprobs, torch.squeeze(state_value), dist_entropy</span><br></pre></td></tr></table></figure>
+<h3 id="5-PPO算法实现-1"><a href="#5-PPO算法实现-1" class="headerlink" title="5.PPO算法实现"></a>5.PPO算法实现</h3><h4 id="1-代码实现-4"><a href="#1-代码实现-4" class="headerlink" title="1.代码实现"></a>1.代码实现</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">PPO</span>:  </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, state_dim, action_dim, action_std, lr, betas, gamma, K_epochs, eps_clip</span>):  </span><br><span class="line">        <span class="variable language_">self</span>.lr = lr  </span><br><span class="line">        <span class="variable language_">self</span>.betas = betas  </span><br><span class="line">        <span class="variable language_">self</span>.gamma = gamma  <span class="comment"># 奖励折扣因子</span></span><br><span class="line">        <span class="variable language_">self</span>.eps_clip = eps_clip  <span class="comment"># PPO 剪切的 ε 参数</span></span><br><span class="line">        <span class="variable language_">self</span>.K_epochs = K_epochs  <span class="comment"># 每次更新中进行的迭代次数</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 当前策略</span></span><br><span class="line">        <span class="variable language_">self</span>.policy = ActorCritic(state_dim, action_dim, action_std).to(device)  </span><br><span class="line">        <span class="variable language_">self</span>.optimizer = torch.optim.Adam(<span class="variable language_">self</span>.policy.parameters(), lr=lr, betas=betas)  </span><br><span class="line">        <span class="comment"># 行动时用的旧策略（不更新）</span></span><br><span class="line">        <span class="variable language_">self</span>.policy_old = ActorCritic(state_dim, action_dim, action_std).to(device)  </span><br><span class="line">        <span class="variable language_">self</span>.policy_old.load_state_dict(<span class="variable language_">self</span>.policy.state_dict())  </span><br><span class="line">  </span><br><span class="line">        <span class="variable language_">self</span>.MseLoss = nn.MSELoss()  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">select_action</span>(<span class="params">self, state, memory</span>):  </span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">isinstance</span>(state, <span class="built_in">tuple</span>):  </span><br><span class="line">            state = state[<span class="number">0</span>]  </span><br><span class="line">        state = torch.FloatTensor(np.array(state).reshape(<span class="number">1</span>, -<span class="number">1</span>)).to(device)  </span><br><span class="line">        <span class="comment"># 输出的是一个连续动作向量，如 [0.23, -0.44]</span></span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">self</span>.policy_old.act(state, memory).cpu().data.numpy().flatten()  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 这部分与离散 PPO 大体一致</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">update</span>(<span class="params">self, memory</span>):  <span class="comment"># PPO 策略更新</span></span><br><span class="line">        rewards = []  </span><br><span class="line">        discounted_reward = <span class="number">0</span>  </span><br><span class="line">        <span class="comment"># Monte Carlo 方式计算回报</span></span><br><span class="line">        <span class="keyword">for</span> reward, is_terminal <span class="keyword">in</span> <span class="built_in">zip</span>(<span class="built_in">reversed</span>(memory.rewards), <span class="built_in">reversed</span>(memory.is_terminals)):  </span><br><span class="line">            <span class="keyword">if</span> is_terminal:  </span><br><span class="line">                discounted_reward = <span class="number">0</span>  </span><br><span class="line">            discounted_reward = reward + (<span class="variable language_">self</span>.gamma * discounted_reward)  </span><br><span class="line">            rewards.insert(<span class="number">0</span>, discounted_reward)  </span><br><span class="line">  </span><br><span class="line">        rewards = torch.tensor(rewards, dtype=torch.<span class="built_in">float</span>).to(device)  </span><br><span class="line">        <span class="comment"># 回报被标准化，以减少方差</span></span><br><span class="line">        rewards = (rewards - rewards.mean()) / (rewards.std() + <span class="number">1e-5</span>)  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 转换状态、动作、log_prob为 tensor</span></span><br><span class="line">        old_states = torch.squeeze(torch.stack(memory.states).to(device), <span class="number">1</span>).detach()  </span><br><span class="line">        old_actions = torch.squeeze(torch.stack(memory.actions).to(device), <span class="number">1</span>).detach()  </span><br><span class="line">        old_logprobs = torch.squeeze(torch.stack(memory.logprobs), <span class="number">1</span>).to(device).detach()  </span><br><span class="line">  </span><br><span class="line">        <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="variable language_">self</span>.K_epochs):  </span><br><span class="line">            <span class="comment"># 评估当前策略  </span></span><br><span class="line">            <span class="comment"># logprobs: 当前策略对旧动作的 log π(a|s)</span></span><br><span class="line">            <span class="comment"># state_values: Critic 输出的 V(s)</span></span><br><span class="line">            <span class="comment"># dist_entropy: 多维高斯分布的熵，鼓励策略多样性</span></span><br><span class="line">            logprobs, state_values, dist_entropy = <span class="variable language_">self</span>.policy.evaluate(old_states, old_actions)  </span><br><span class="line">  </span><br><span class="line">            <span class="comment"># PPO核心构造surrogate loss+剪切项</span></span><br><span class="line">            <span class="comment"># 剪切项控制策略更新幅度，防止新策略偏离旧策略太远，加入 value loss（Critic）和熵项（Actor 探索）</span></span><br><span class="line">            ratios = torch.exp(logprobs - old_logprobs.detach())  <span class="comment"># 概率比</span></span><br><span class="line">            advantages = rewards - state_values.detach()  </span><br><span class="line">            surr1 = ratios * advantages  </span><br><span class="line">            surr2 = torch.clamp(ratios, <span class="number">1</span> - <span class="variable language_">self</span>.eps_clip, <span class="number">1</span> + <span class="variable language_">self</span>.eps_clip) * advantages  </span><br><span class="line">            loss = -torch.<span class="built_in">min</span>(surr1, surr2) + <span class="number">0.5</span> * <span class="variable language_">self</span>.MseLoss(state_values, rewards) - <span class="number">0.01</span> * dist_entropy  </span><br><span class="line">            <span class="variable language_">self</span>.optimizer.zero_grad()  </span><br><span class="line"></span><br><span class="line">            <span class="comment"># 更新策略参数</span></span><br><span class="line">            loss.mean().backward()  </span><br><span class="line">            <span class="variable language_">self</span>.optimizer.step()  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 最后更新策略，并将当前策略复制给 policy_old</span></span><br><span class="line">        <span class="variable language_">self</span>.policy_old.load_state_dict(<span class="variable language_">self</span>.policy.state_dict())</span><br></pre></td></tr></table></figure>
+<h4 id="2-与离散动作-PPO的区别对比"><a href="#2-与离散动作-PPO的区别对比" class="headerlink" title="2.与离散动作 PPO的区别对比"></a>2.与离散动作 PPO的区别对比</h4><table>
+<thead>
+<tr>
+<th><strong>项目</strong></th>
+<th><strong>连续动作版</strong></th>
+<th><strong>离散动作版</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>动作空间</strong></td>
+<td>连续（多维向量）</td>
+<td>离散（索引，如 0&#x2F;1&#x2F;2&#x2F;3）</td>
+</tr>
+<tr>
+<td><strong>策略分布</strong></td>
+<td>MultivariateNormal</td>
+<td>Categorical</td>
+</tr>
+<tr>
+<td><strong>动作采样</strong></td>
+<td>高斯分布采样：dist.sample()</td>
+<td>概率分布采样：dist.sample()</td>
+</tr>
+<tr>
+<td><strong>log_prob</strong></td>
+<td>dist.log_prob(action)（多维）</td>
+<td>dist.log_prob(action)（离散）</td>
+</tr>
+<tr>
+<td><strong>策略输出</strong></td>
+<td>动作的<strong>均值</strong>（actor 输出）</td>
+<td>动作的<strong>概率分布</strong>（softmax）</td>
+</tr>
+<tr>
+<td><strong>方差来源</strong></td>
+<td>固定或可学习的标准差 action_std</td>
+<td>不需要方差</td>
+</tr>
+<tr>
+<td><strong>evaluate()</strong></td>
+<td>构建多维高斯分布（协方差矩阵）</td>
+<td>构建离散分布（Categorical）</td>
+</tr>
+<tr>
+<td><strong>适用环境</strong></td>
+<td>如 LunarLanderContinuous-v2, BipedalWalker-v3</td>
+<td>如 CartPole-v1, LunarLander-v3</td>
+</tr>
+</tbody></table>
+<h3 id="6-训练参数与控制变量-1"><a href="#6-训练参数与控制变量-1" class="headerlink" title="6.训练参数与控制变量"></a>6.训练参数与控制变量</h3><h4 id="1-参数"><a href="#1-参数" class="headerlink" title="1.参数"></a>1.参数</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">render = <span class="literal">False</span>  <span class="comment"># 是否显示图形窗口（训练时通常关闭，测试时打开）</span></span><br><span class="line">solved_reward = <span class="number">300</span>  <span class="comment"># 如果过去若干轮的平均奖励超过 300，则认为任务完成</span></span><br><span class="line">log_interval = <span class="number">20</span>  <span class="comment"># 每训练多少回合打印一次日志</span></span><br><span class="line">max_episodes = <span class="number">10000</span>  <span class="comment"># 最大训练轮数（episode），每轮指一局游戏</span></span><br><span class="line">max_timesteps = <span class="number">1500</span>  <span class="comment"># 每局最多运行多少步，步数用完或 agent 死亡则 episode 结束</span></span><br><span class="line">  </span><br><span class="line">update_timestep = <span class="number">4000</span>  <span class="comment"># 每收集多少个环境步数后执行一次策略网络的更新  </span></span><br><span class="line">action_std = <span class="number">0.5</span>  <span class="comment"># 动作标准差（仅用于连续动作），控制策略输出高斯分布的探索强度。 </span></span><br><span class="line">K_epochs = <span class="number">80</span>  <span class="comment"># 每次策略更新时，进行多少轮优化 </span></span><br><span class="line">eps_clip = <span class="number">0.2</span>  <span class="comment"># PPO 的裁剪范围，用于限制新旧策略的变动，保持训练稳定。</span></span><br><span class="line">gamma = <span class="number">0.99</span>  <span class="comment"># 奖励折扣因子，控制未来奖励的重要性。0.99 表示非常看重长远回报。</span></span><br><span class="line">  </span><br><span class="line">lr = <span class="number">0.0003</span>  <span class="comment"># 学习率</span></span><br><span class="line">betas = (<span class="number">0.9</span>, <span class="number">0.999</span>)  <span class="comment"># 动量</span></span><br><span class="line">  </span><br><span class="line">random_seed = <span class="literal">None</span>  <span class="comment"># 随机种子，控制训练的可复现性</span></span><br></pre></td></tr></table></figure>
+<h4 id="2-区别"><a href="#2-区别" class="headerlink" title="2.区别"></a>2.区别</h4><table>
+<thead>
+<tr>
+<th><strong>连续动作（如 BipedalWalker）</strong></th>
+<th><strong>离散动作（如 LunarLander）</strong></th>
+<th><strong>区别说明</strong></th>
+<th><strong>解释</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>action_std</td>
+<td>有，设定高斯分布方差</td>
+<td>无</td>
+<td>离散动作不需要方差</td>
+</tr>
+<tr>
+<td>K_epochs</td>
+<td>通常较大（如 80）</td>
+<td>较小（如 4）</td>
+<td>连续动作难度大，更新次数多</td>
+</tr>
+<tr>
+<td>update_timestep</td>
+<td>大（如 4000）</td>
+<td>小（如 2000）</td>
+<td>连续动作需要积累更多经验再训练</td>
+</tr>
+<tr>
+<td>action_dim</td>
+<td>实数向量维度</td>
+<td>整数类别数</td>
+<td>连续动作需要输出一个动作向量</td>
+</tr>
+<tr>
+<td>策略分布</td>
+<td>MultivariateNormal</td>
+<td>Categorical</td>
+<td>前者生成连续动作，后者选择概率最大的动作</td>
+</tr>
+<tr>
+<td>Actor 输出</td>
+<td>动作的均值（连续向量）</td>
+<td>动作的概率（Softmax）</td>
+<td>连续 vs 离散策略网络结构不同</td>
+</tr>
+</tbody></table>
+<h3 id="7-训练流程-1"><a href="#7-训练流程-1" class="headerlink" title="7.训练流程"></a>7.训练流程</h3><h4 id="1-代码实现-5"><a href="#1-代码实现-5" class="headerlink" title="1.代码实现"></a>1.代码实现</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>():  </span><br><span class="line">    <span class="comment"># 训练参数与控制变量</span></span><br><span class="line">    <span class="comment"># ...</span></span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 创建环境与状态空间、动作空间维度</span></span><br><span class="line">    env = gym.make(env_name)  </span><br><span class="line">    <span class="comment"># 状态维度，如 24（对 BipedalWalker）</span></span><br><span class="line">    state_dim = env.observation_space.shape[<span class="number">0</span>]  </span><br><span class="line">    action_dim = env.action_space.shape[<span class="number">0</span>]  <span class="comment"># 连续动作维度，如 4（对 BipedalWalker）</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 设置随机种子（可选）</span></span><br><span class="line">    <span class="keyword">if</span> random_seed:  </span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;Random Seed: &#123;&#125;&quot;</span>.<span class="built_in">format</span>(random_seed))  </span><br><span class="line">        torch.manual_seed(random_seed)  </span><br><span class="line">        env.seed(random_seed)  </span><br><span class="line">        np.random.seed(random_seed)  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 初始化 PPO、Memory</span></span><br><span class="line">    memory = Memory()  </span><br><span class="line">    ppo = PPO(state_dim, action_dim, action_std, lr, betas, gamma, K_epochs, eps_clip)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 创建日志变量</span></span><br><span class="line">    running_reward = <span class="number">0</span>  </span><br><span class="line">    avg_length = <span class="number">0</span>  </span><br><span class="line">    time_step = <span class="number">0</span>  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 主训练循环（每个 episode）</span></span><br><span class="line">    <span class="keyword">for</span> i_episode <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, max_episodes + <span class="number">1</span>):  </span><br><span class="line">        state = env.reset()  <span class="comment"># 每轮开始时重置环境</span></span><br><span class="line">        <span class="keyword">for</span> t <span class="keyword">in</span> <span class="built_in">range</span>(max_timesteps):  </span><br><span class="line">            time_step += <span class="number">1</span>  </span><br><span class="line">            </span><br><span class="line">            <span class="comment"># 每个 timestep 采样动作并交互</span></span><br><span class="line">            action = ppo.select_action(state, memory)  </span><br><span class="line">            next_state, reward, done, truncated, _ = env.step(action)  </span><br><span class="line">  </span><br><span class="line">            <span class="comment"># 存储经验、更新策略 </span></span><br><span class="line">            memory.rewards.append(reward)  </span><br><span class="line">            memory.is_terminals.append(done)  </span><br><span class="line">            <span class="keyword">if</span> time_step % update_timestep == <span class="number">0</span>:  </span><br><span class="line">                ppo.update(memory)  </span><br><span class="line">                memory.clear_memory()  </span><br><span class="line">                time_step = <span class="number">0</span>  </span><br><span class="line">            </span><br><span class="line">            running_reward += reward  </span><br><span class="line"></span><br><span class="line">            <span class="comment"># 渲染与终止处理</span></span><br><span class="line">            <span class="keyword">if</span> render:  </span><br><span class="line">                env.render()  </span><br><span class="line">            <span class="keyword">if</span> done:  </span><br><span class="line">                <span class="keyword">break</span>  </span><br><span class="line">  </span><br><span class="line">        avg_length += t  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 保存模型</span></span><br><span class="line">        <span class="keyword">if</span> running_reward &gt; (log_interval * solved_reward):  </span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;########## Solved! ##########&quot;</span>)  </span><br><span class="line">            torch.save(ppo.policy.state_dict(), <span class="string">&#x27;./PPO_continuous_solved_&#123;&#125;.pth&#x27;</span>.<span class="built_in">format</span>(env_name))  </span><br><span class="line">            <span class="keyword">break</span>  </span><br><span class="line">        <span class="keyword">if</span> i_episode % <span class="number">500</span> == <span class="number">0</span>:  </span><br><span class="line">            torch.save(ppo.policy.state_dict(), <span class="string">&#x27;./PPO_continuous_&#123;&#125;.pth&#x27;</span>.<span class="built_in">format</span>(env_name))  </span><br><span class="line"></span><br><span class="line">        <span class="comment"># 日志输出</span></span><br><span class="line">        <span class="keyword">if</span> i_episode % log_interval == <span class="number">0</span>:  </span><br><span class="line">            avg_length = <span class="built_in">int</span>(avg_length / log_interval)  </span><br><span class="line">            running_reward = <span class="built_in">int</span>((running_reward / log_interval))  </span><br><span class="line">  </span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&#x27;Episode &#123;&#125; \t Avg length: &#123;&#125; \t Avg reward: &#123;&#125;&#x27;</span>.<span class="built_in">format</span>(i_episode, avg_length, running_reward))  </span><br><span class="line">            running_reward = <span class="number">0</span>  </span><br><span class="line">            avg_length = <span class="number">0</span></span><br></pre></td></tr></table></figure>
+<h4 id="2-训练日志-1"><a href="#2-训练日志-1" class="headerlink" title="2.训练日志"></a>2.训练日志</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">Episode 20 	 Avg length: 299 	 Avg reward: -100</span><br><span class="line">Episode 40 	 Avg length: 448 	 Avg reward: -96</span><br><span class="line">Episode 60 	 Avg length: 503 	 Avg reward: -94</span><br><span class="line">Episode 80 	 Avg length: 436 	 Avg reward: -95</span><br><span class="line">Episode 100 	 Avg length: 516 	 Avg reward: -91</span><br><span class="line">Episode 120 	 Avg length: 716 	 Avg reward: -84</span><br><span class="line">Episode 140 	 Avg length: 791 	 Avg reward: -81</span><br><span class="line">Episode 160 	 Avg length: 1069 	 Avg reward: -71</span><br><span class="line">Episode 180 	 Avg length: 1427 	 Avg reward: -61</span><br><span class="line">Episode 200 	 Avg length: 1357 	 Avg reward: -57</span><br><span class="line">Episode 220 	 Avg length: 1427 	 Avg reward: -57</span><br><span class="line">Episode 240 	 Avg length: 1285 	 Avg reward: -64</span><br><span class="line">Episode 260 	 Avg length: 1357 	 Avg reward: -56</span><br><span class="line">Episode 280 	 Avg length: 1004 	 Avg reward: -69</span><br><span class="line">Episode 300 	 Avg length: 1123 	 Avg reward: -75</span><br><span class="line">Episode 320 	 Avg length: 744 	 Avg reward: -90</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-与离散动作版本相比"><a href="#3-与离散动作版本相比" class="headerlink" title="3.与离散动作版本相比"></a>3.与离散动作版本相比</h4><table>
+<thead>
+<tr>
+<th><strong>方面</strong></th>
+<th><strong>连续动作 main()</strong></th>
+<th><strong>离散动作 main()</strong></th>
+<th><strong>区别说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>动作类型</td>
+<td>实数向量（np.array）</td>
+<td>整数（类别编号）</td>
+<td>连续动作使用多元高斯策略，离散使用分类策略</td>
+</tr>
+<tr>
+<td>action_dim</td>
+<td>env.action_space.shape[0]</td>
+<td>手动设为 4（动作数量）</td>
+<td>离散动作为固定离散集合，连续动作为多维实数</td>
+</tr>
+<tr>
+<td>策略网络输出</td>
+<td>动作均值 μ</td>
+<td>动作概率分布</td>
+<td>连续输出用于高斯分布采样，离散输出用于 softmax</td>
+</tr>
+<tr>
+<td>action_std</td>
+<td>需要设定（探索强度）</td>
+<td>不使用</td>
+<td>连续策略的探索来自方差，离散策略来自随机采样概率</td>
+</tr>
+<tr>
+<td>ppo.select_action()</td>
+<td>返回实数向量</td>
+<td>返回动作索引</td>
+<td>两者行为一致，输出形式不同</td>
+</tr>
+<tr>
+<td>策略更新频率</td>
+<td>通常设较大 update_timestep&#x3D;4000</td>
+<td>通常较小（如 2000）</td>
+<td>连续策略收敛慢，需要更多经验和更新步</td>
+</tr>
+<tr>
+<td>K_epochs</td>
+<td>大（如 80）</td>
+<td>小（如 4）</td>
+<td>连续动作策略更新更频繁以稳定训练</td>
+</tr>
+</tbody></table>
+<h3 id="8-模型验证-1"><a href="#8-模型验证-1" class="headerlink" title="8.模型验证"></a>8.模型验证</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">render_bipedal_walker</span>():  </span><br><span class="line">    env_name = <span class="string">&quot;BipedalWalker-v3&quot;</span>  </span><br><span class="line">    env = gym.make(env_name, render_mode=<span class="string">&quot;human&quot;</span>)  </span><br><span class="line">  </span><br><span class="line">    state_dim = env.observation_space.shape[<span class="number">0</span>]  <span class="comment"># 获取状态空间维度（如 24）</span></span><br><span class="line">    action_dim = env.action_space.shape[<span class="number">0</span>]  <span class="comment"># 动作空间维度（如 4）</span></span><br><span class="line">  </span><br><span class="line">    n_episodes = <span class="number">3</span>  </span><br><span class="line">    max_timesteps = <span class="number">1500</span>  </span><br><span class="line">  </span><br><span class="line">    filename = <span class="string">f&quot;PPO_continuous_<span class="subst">&#123;env_name&#125;</span>.pth&quot;</span>  <span class="comment"># 模型文件</span></span><br><span class="line">    directory = <span class="string">&quot;./&quot;</span>  </span><br><span class="line">  </span><br><span class="line">    action_std = <span class="number">0.5</span>  </span><br><span class="line">    K_epochs = <span class="number">80</span>  </span><br><span class="line">    eps_clip = <span class="number">0.2</span>  </span><br><span class="line">    gamma = <span class="number">0.99</span>  </span><br><span class="line">    lr = <span class="number">0.0003</span>  </span><br><span class="line">    betas = (<span class="number">0.9</span>, <span class="number">0.999</span>)  </span><br><span class="line">  </span><br><span class="line">    memory = Memory()  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 加载训练好的策略模型</span></span><br><span class="line">    ppo = PPO(state_dim, action_dim, action_std, lr, betas, gamma, K_epochs, eps_clip)  </span><br><span class="line">    ppo.policy_old.load_state_dict(torch.load(directory + filename, weights_only=<span class="literal">True</span>))  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 运行并渲染每个 Episode</span></span><br><span class="line">    <span class="keyword">for</span> ep <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, n_episodes + <span class="number">1</span>):  </span><br><span class="line">        ep_reward = <span class="number">0</span>  </span><br><span class="line">        state, _ = env.reset()  <span class="comment"># 重置环境开始新一轮</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 每一步执行 PPO 策略并交互环境</span></span><br><span class="line">        <span class="keyword">for</span> t <span class="keyword">in</span> <span class="built_in">range</span>(max_timesteps):  </span><br><span class="line">            action = ppo.select_action(state, memory)  </span><br><span class="line">            state, reward, terminated, truncated, _ = env.step(action)  </span><br><span class="line">            ep_reward += reward  </span><br><span class="line">  </span><br><span class="line">            <span class="keyword">try</span>:  </span><br><span class="line">                env.render()  </span><br><span class="line">                pygame.event.pump()  <span class="comment"># 防止 Pygame 卡死或被系统关闭  </span></span><br><span class="line">            <span class="keyword">except</span> pygame.error:  </span><br><span class="line">                <span class="built_in">print</span>(<span class="string">&quot;⚠️ Pygame window was closed. Skipping rendering.&quot;</span>)  </span><br><span class="line">                <span class="keyword">break</span>  </span><br><span class="line"></span><br><span class="line">            <span class="comment"># 检查是否结束</span></span><br><span class="line">            <span class="keyword">if</span> terminated <span class="keyword">or</span> truncated:  </span><br><span class="line">                <span class="keyword">break</span>  </span><br><span class="line"></span><br><span class="line">        <span class="comment"># 输出当前 episode 总奖励</span></span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&#x27;Episode: <span class="subst">&#123;ep&#125;</span>\tReward: <span class="subst">&#123;<span class="built_in">int</span>(ep_reward)&#125;</span>&#x27;</span>)  </span><br><span class="line">  </span><br><span class="line">    env.close()  <span class="comment"># 在所有 episode 后统一关闭</span></span><br></pre></td></tr></table></figure>
+<p>日志输出：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Episode: 1	Reward: 37</span><br><span class="line">Episode: 2	Reward: 259</span><br><span class="line">Episode: 3	Reward: 263</span><br></pre></td></tr></table></figure>
+<h2 id="4-总结"><a href="#4-总结" class="headerlink" title="4.总结"></a>4.总结</h2><h3 id="1-PPO核心优势​"><a href="#1-PPO核心优势​" class="headerlink" title="1.PPO核心优势​"></a>1.PPO核心优势​</h3><ul>
+<li>创新剪切机制：通过约束策略更新幅度（概率比剪切），解决策略突变问题</li>
+<li>高效稳定：GAE平衡偏差&#x2F;方差，双网络架构实现多轮数据复用</li>
+<li>工程友好：相比TRPO更易实现</li>
+</ul>
+<h3 id="2-动作空间关键差异​"><a href="#2-动作空间关键差异​" class="headerlink" title="2.动作空间关键差异​"></a>2.动作空间关键差异​</h3><table>
+<thead>
+<tr>
+<th>​<strong>特性</strong>​</th>
+<th>​<strong>离散动作空间</strong>​</th>
+<th>​<strong>连续动作空间</strong>​</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>​<strong>策略输出</strong>​</td>
+<td>Softmax概率分布</td>
+<td>Tanh均值向量</td>
+</tr>
+<tr>
+<td>​<strong>采样分布</strong>​</td>
+<td>Categorical（分类分布）</td>
+<td>MultivariateNormal（多元正态）</td>
+</tr>
+<tr>
+<td>​<strong>探索机制</strong>​</td>
+<td>概率采样</td>
+<td>固定&#x2F;可学习方差</td>
+</tr>
+<tr>
+<td>​<strong>环境举例</strong>​</td>
+<td>LunarLander（飞船着陆）</td>
+<td>BipedalWalker（双足行走）</td>
+</tr>
+<tr>
+<td>​<strong>训练参数差异</strong>​</td>
+<td>K_epochs小（≈4）</td>
+<td>K_epochs大（≈80）</td>
+</tr>
+</tbody></table>
+<h3 id="3-工程实现要点​"><a href="#3-工程实现要点​" class="headerlink" title="3. 工程实现要点​"></a>3. 工程实现要点​</h3><ul>
+<li>​<strong>离散动作</strong>​：输出层Softmax → 动作概率 → Categorical采样 → 动作索引</li>
+<li>​<strong>连续动作</strong>​：输出层Tanh → 动作均值 + 固定方差 → 多维正态分布采样 → 动作向量</li>
+<li>​<strong>关键技巧</strong>​：通过GAE优化优势估计；通过回报标准化加速收敛；熵奖励项促进探索；通过旧策略冻结保证采样一致性</li>
+</ul>
+<h3 id="4-环境对比​"><a href="#4-环境对比​" class="headerlink" title="4. 环境对比​"></a>4. 环境对比​</h3><ul>
+<li>​<strong>LunarLander</strong>​：8维状态&#x2F;4离散动作，300步内收敛</li>
+<li>​<strong>BipedalWalker</strong>​：24维状态&#x2F;4连续动作，需&gt;1500步更复杂训练</li>
+</ul>
+<p>PPO通过统一框架适配两类动作空间，其剪切机制和双网络设计在保证稳定性的同时，为机器人控制、游戏AI等领域提供了高效解决方案。<br>离散&#x2F;连续实现的差异主要在于策略表征和采样机制。</p>
+<h2 id="5-备注"><a href="#5-备注" class="headerlink" title="5.备注"></a>5.备注</h2><p>环境：</p>
+<ul>
+<li>mac: 15.2</li>
+<li>python: 3.12.4</li>
+<li>pytorch: 2.5.1</li>
+<li>numpy: 1.26.4</li>
+<li>gym: 0.26.2</li>
+<li>box2d-py: 2.3.8</li>
+</ul>
+<p>完整代码：<br>	<a target="_blank" rel="noopener" href="https://github.com/keychankc/dl_code_for_blog/tree/main/026_PPO_code">https://github.com/keychankc/dl_code_for_blog/tree/main/026_PPO_code</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://keychankc.github.io/2025/07/30/026-rl-ppo-discrete-continuous-case/" title="PPO算法在连续与离散动作空间中的案例实践">https://keychankc.github.io/2025/07/30/026-rl-ppo-discrete-continuous-case/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/PyTorch/" rel="tag"># PyTorch</a>
+              <a href="/tags/%E7%AD%96%E7%95%A5%E4%BC%98%E5%8C%96/" rel="tag"># 策略优化</a>
+              <a href="/tags/PPO/" rel="tag"># PPO</a>
+              <a href="/tags/%E7%A6%BB%E6%95%A3%E5%8A%A8%E4%BD%9C/" rel="tag"># 离散动作</a>
+              <a href="/tags/%E8%BF%9E%E7%BB%AD%E5%8A%A8%E4%BD%9C/" rel="tag"># 连续动作</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/07/22/025-reinforcement-learning-ppo/" rel="prev" title="强化学习 — PPO策略优化算法">
+                  <i class="fa fa-angle-left"></i> 强化学习 — PPO策略优化算法
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/08/14/027-rl-dqn-case/" rel="next" title="DQN(Deep Q-Network)系列算法解析与实践">
+                  DQN(Deep Q-Network)系列算法解析与实践 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">166k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.mengyajia.com","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2025/07/30/026-rl-ppo-discrete-continuous-case/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>

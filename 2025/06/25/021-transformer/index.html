@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"keychankc.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="1.循环神经网络前文有实现过一个基于循环神经网络的文本分类实践任务，循环神经网络（Recurrent Neural Network, RNN）也叫递归神经网络，是专门处理序列数据的神经网络架构，其核心思想是通过循环连接使网络具备“记忆”能力，从而构建序列中时序之间的依赖关系。而处理具有时序或顺序关系的数据（如语言、语音、基因序列等）的核心挑战是理解序列中的上下文依赖关系，这就涉及到序列建模问题。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Transformer:多头注意力驱动的编码器-解码器架构">
+<meta property="og:url" content="https://keychankc.github.io/2025/06/25/021-transformer/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s blog">
+<meta property="og:description" content="1.循环神经网络前文有实现过一个基于循环神经网络的文本分类实践任务，循环神经网络（Recurrent Neural Network, RNN）也叫递归神经网络，是专门处理序列数据的神经网络架构，其核心思想是通过循环连接使网络具备“记忆”能力，从而构建序列中时序之间的依赖关系。而处理具有时序或顺序关系的数据（如语言、语音、基因序列等）的核心挑战是理解序列中的上下文依赖关系，这就涉及到序列建模问题。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250624114203.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250624144755.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250624152338.png">
+<meta property="article:published_time" content="2025-06-25T06:53:12.000Z">
+<meta property="article:modified_time" content="2025-09-21T12:04:48.540Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="Transformer">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250624114203.png">
+
+
+<link rel="canonical" href="https://keychankc.github.io/2025/06/25/021-transformer/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/2025/06/25/021-transformer/","path":"2025/06/25/021-transformer/","title":"Transformer:多头注意力驱动的编码器-解码器架构"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Transformer:多头注意力驱动的编码器-解码器架构 | KeyChan's blog</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.mengyajia.com">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's blog" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C"><span class="nav-text">1.循环神经网络</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%BA%8F%E5%88%97%E5%BB%BA%E6%A8%A1%E9%97%AE%E9%A2%98"><span class="nav-text">1.序列建模问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-RNN-%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84%E4%B8%8E%E5%89%8D%E5%90%91%E4%BC%A0%E6%92%AD%E6%9C%BA%E5%88%B6"><span class="nav-text">2. RNN 的基本结构与前向传播机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-RNN-%E7%9A%84%E4%B8%BB%E8%A6%81%E9%97%AE%E9%A2%98"><span class="nav-text">3. RNN 的主要问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E4%B8%80%EF%BC%9A%E9%95%BF%E6%9C%9F%E4%BE%9D%E8%B5%96%E9%9A%BE%E4%BB%A5%E6%8D%95%E6%8D%89"><span class="nav-text">问题一：长期依赖难以捕捉</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E4%BA%8C%EF%BC%9A%E8%AE%A1%E7%AE%97%E8%BF%87%E7%A8%8B%E4%B8%BA%E4%B8%B2%E8%A1%8C%EF%BC%8C%E9%9A%BE%E4%BB%A5%E5%B9%B6%E8%A1%8C%E5%8C%96"><span class="nav-text">问题二：计算过程为串行，难以并行化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E4%B8%89%EF%BC%9A%E9%9A%BE%E4%BB%A5%E5%A0%86%E5%8F%A0%E6%9B%B4%E6%B7%B1%E5%B1%82%E7%BB%93%E6%9E%84"><span class="nav-text">问题三：难以堆叠更深层结构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E5%9B%9B%EF%BC%9A%E7%BB%93%E6%9E%84%E4%B8%BA%E5%8D%95%E5%90%91%EF%BC%8C%E7%BC%BA%E4%B9%8F%E5%AF%B9%E6%9C%AA%E6%9D%A5%E4%BF%A1%E6%81%AF%E7%9A%84%E5%88%A9%E7%94%A8"><span class="nav-text">问题四：结构为单向，缺乏对未来信息的利用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%8F%8C%E5%90%91-RNN%EF%BC%88Bidirectional-RNN%EF%BC%89"><span class="nav-text">4. 双向 RNN（Bidirectional RNN）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E4%BF%A1%E6%81%AF%E8%8E%B7%E5%8F%96%E6%9C%BA%E5%88%B6%E7%9A%84%E6%80%9D%E8%80%83%EF%BC%9A%E5%B1%80%E9%83%A8-vs-%E5%85%A8%E5%B1%80%E5%BD%B1%E5%93%8D"><span class="nav-text">5. 信息获取机制的思考：局部 vs 全局影响</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-Transformer%E6%A6%82%E8%BF%B0"><span class="nav-text">2.Transformer概述</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Transformer-%E7%9A%84%E6%8F%90%E5%87%BA%EF%BC%9A%E4%BB%8E%E2%80%9C%E6%B3%A8%E6%84%8F%E5%8A%9B%E2%80%9D%E5%88%B0%E2%80%9C%E7%BB%93%E6%9E%84%E6%80%A7%E7%AA%81%E7%A0%B4%E2%80%9D"><span class="nav-text">1. Transformer 的提出：从“注意力”到“结构性突破”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-BERT-%E7%9A%84%E9%97%AE%E4%B8%96%EF%BC%9A%E4%BB%8E%E6%9E%B6%E6%9E%84%E5%88%B0%E9%A2%84%E8%AE%AD%E7%BB%83%E8%8C%83%E5%BC%8F%E7%9A%84%E7%BB%9F%E4%B8%80"><span class="nav-text">2. BERT 的问世：从架构到预训练范式的统一</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-GPT-%E7%B3%BB%E5%88%97%E7%9A%84%E5%B4%9B%E8%B5%B7%EF%BC%9A%E4%BB%8E%E8%BE%B9%E7%BC%98%E6%8E%A2%E7%B4%A2%E8%80%85%E5%88%B0%E6%97%B6%E4%BB%A3%E4%B8%BB%E8%A7%92"><span class="nav-text">3. GPT 系列的崛起：从边缘探索者到时代主角</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-Transformer-%E7%9A%84%E6%9C%AC%E8%B4%A8%E4%BB%BB%E5%8A%A1%EF%BC%9A%E7%89%B9%E5%BE%81%E5%BB%BA%E6%A8%A1%E4%B8%8E%E8%A1%A8%E8%BE%BE%E9%87%8D%E5%A1%91"><span class="nav-text">4. Transformer 的本质任务：特征建模与表达重塑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-AI-%E7%9A%84%E8%8C%83%E5%BC%8F%E8%BF%81%E7%A7%BB%E4%B8%8E%E5%90%AF%E7%A4%BA"><span class="nav-text">5. AI 的范式迁移与启示</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-Transformer%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="nav-text">3.Transformer整体架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%A0%B8%E5%BF%83%E7%BB%93%E6%9E%84"><span class="nav-text">1.核心结构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BC%96%E7%A0%81%E5%99%A8%EF%BC%88%E5%B7%A6%E4%BE%A7%EF%BC%89%E2%80%8B%E2%80%8B"><span class="nav-text">编码器（左侧）​​</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%A3%E7%A0%81%E5%99%A8%EF%BC%88%E5%8F%B3%E4%BE%A7%EF%BC%89%E2%80%8B%E2%80%8B"><span class="nav-text">解码器（右侧）​​</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%80%8B2-%E8%BE%93%E5%85%A5%E5%A6%82%E4%BD%95%E7%BC%96%E7%A0%81%EF%BC%9F%E2%80%8B%E2%80%8B"><span class="nav-text">​2.输入如何编码？​​</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%80%8B1-%E8%BE%93%E5%85%A5%E9%A2%84%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%E2%80%8B"><span class="nav-text">​1. 输入预处理流程​</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%80%8B3-%E8%BE%93%E5%87%BA%E7%BB%93%E6%9E%9C%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F%E2%80%8B"><span class="nav-text">​3.输出结果是什么？​</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%80%8B1-%E8%BE%93%E5%87%BA%E7%94%9F%E6%88%90%E9%80%BB%E8%BE%91%E2%80%8B"><span class="nav-text">​1. 输出生成逻辑​</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%80%8B2-%E8%BE%93%E5%87%BA%E5%B1%82%E7%BB%93%E6%9E%84%E2%80%8B"><span class="nav-text">​2. 输出层结构​</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%80%8B4-Attention%E7%9A%84%E6%A0%B8%E5%BF%83%E7%9B%AE%E7%9A%84%E2%80%8B"><span class="nav-text">​4.Attention的核心目的​</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%80%8B1-%E4%B8%89%E7%A7%8D%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6%E2%80%8B"><span class="nav-text">​1. 三种注意力机制​</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%80%8B2-%E6%A0%B8%E5%BF%83%E4%BB%B7%E5%80%BC%E2%80%8B"><span class="nav-text">​2. 核心价值​</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%80%8B5-%E7%BB%84%E4%BB%B6%E5%A6%82%E4%BD%95%E5%8D%8F%E4%BD%9C%EF%BC%9F%E7%AB%AF%E5%88%B0%E7%AB%AF%E6%B5%81%E7%A8%8B%E2%80%8B"><span class="nav-text">​5.组件如何协作？端到端流程​</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%80%8B1-%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B%EF%BC%88%E4%BB%A5%E6%9C%BA%E5%99%A8%E7%BF%BB%E8%AF%91%E4%B8%BA%E4%BE%8B%EF%BC%89%E2%80%8B%E2%80%8B"><span class="nav-text">​1. 完整流程（以机器翻译为例）​​</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%80%8B2-%E5%85%B3%E9%94%AE%E5%8D%8F%E4%BD%9C%E8%AE%BE%E8%AE%A1%E2%80%8B"><span class="nav-text">​2. 关键协作设计​</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%80%8B%E6%80%BB%E7%BB%93%EF%BC%9ATransformer%E5%A6%82%E4%BD%95%E7%AA%81%E7%A0%B4%E4%BC%A0%E7%BB%9F%EF%BC%9F%E2%80%8B%E2%80%8B"><span class="nav-text">​总结：Transformer如何突破传统？​​</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E8%87%AA%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6%EF%BC%88%E5%A4%84%E7%90%86%E5%BA%8F%E5%88%97%E5%86%85%E9%83%A8%E5%85%B3%E7%B3%BB%EF%BC%89"><span class="nav-text">4.自注意力机制（处理序列内部关系）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%80%8B1-%E8%87%AA%E6%B3%A8%E6%84%8F%E5%8A%9B%E7%9A%84%E7%9B%AE%E6%A0%87%E2%80%8B"><span class="nav-text">​1.自注意力的目标​</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%80%8B2-%E8%87%AA%E6%B3%A8%E6%84%8F%E5%8A%9B%E5%9C%A8%E6%9E%B6%E6%9E%84%E4%B8%AD%E7%9A%84%E4%BD%8D%E7%BD%AE%E2%80%8B"><span class="nav-text">​2.自注意力在架构中的位置​</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%80%8B3-%E8%87%AA%E6%B3%A8%E6%84%8F%E5%8A%9B%E8%BF%90%E8%A1%8C%E6%9C%BA%E5%88%B6%EF%BC%883%E6%AD%A5%EF%BC%89%E2%80%8B%E2%80%8B"><span class="nav-text">​3.自注意力运行机制（3步）​​</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%80%8B1-%E7%94%9F%E6%88%90%E6%9F%A5%E8%AF%A2%E5%90%91%E9%87%8F%EF%BC%88Query%EF%BC%89%E3%80%81%E9%94%AE%E5%90%91%E9%87%8F%EF%BC%88Key%EF%BC%89%E3%80%81%E5%80%BC%E5%90%91%E9%87%8F%EF%BC%88Value%EF%BC%89"><span class="nav-text">​1.生成查询向量（Query）、键向量（Key）、值向量（Value）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%80%8B2-%E8%AE%A1%E7%AE%97%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9D%83%E9%87%8D%EF%BC%88%E5%BA%8F%E5%88%97%E5%85%83%E7%B4%A0%E9%97%B4%E7%9A%84%E5%85%B3%E8%81%94%E5%BC%BA%E5%BA%A6%EF%BC%89%E2%80%8B%E2%80%8B"><span class="nav-text">​2.计算注意力权重（序列元素间的关联强度）​​</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%80%8B3-%E5%8A%A0%E6%9D%83%E8%81%9A%E5%90%88%E5%80%BC%E5%90%91%E9%87%8F%EF%BC%88V%EF%BC%89%E2%80%8B%E2%80%8B"><span class="nav-text">​3.加权聚合值向量（V）​​</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E4%B8%BE%E4%BE%8B%E2%80%9C%E4%BB%8A%E5%A4%A9%E6%99%9A%E4%B8%8A%E5%90%83%E5%95%A5%E2%80%9D"><span class="nav-text">4.举例“今天晚上吃啥”</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E6%AF%8F%E4%B8%AA%E8%AF%8D%E5%85%88%E8%A2%AB%E6%98%A0%E5%B0%84%E6%88%90%E4%B8%89%E4%B8%AA%E5%90%91%E9%87%8F%EF%BC%9AQuery%E3%80%81Key%E3%80%81Value"><span class="nav-text">1.每个词先被映射成三个向量：Query、Key、Value</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E2%80%9C%E4%BB%8A%E5%A4%A9%E2%80%9D%E5%8E%BB%E5%92%8C%E6%AF%8F%E4%B8%AA%E8%AF%8D%E8%AE%A1%E7%AE%97%E7%9B%B8%E5%85%B3%E6%80%A7%EF%BC%9A%E7%82%B9%E7%A7%AF-softmax"><span class="nav-text">2.“今天”去和每个词计算相关性：点积 + softmax</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E7%94%A8%E8%BF%99%E7%BB%84%E6%9D%83%E9%87%8D%E5%8E%BB%E5%8A%A0%E6%9D%83-Value-%E5%90%91%E9%87%8F"><span class="nav-text">3.用这组权重去加权 Value 向量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E7%B1%BB%E6%AF%94%E4%B8%80%E4%B8%8B"><span class="nav-text">4.类比一下</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-%E6%B3%A8%E6%84%8F%E7%82%B9"><span class="nav-text">5.注意点</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%80%8B5-%E8%87%AA%E6%B3%A8%E6%84%8F%E5%8A%9B%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3%E5%BA%8F%E5%88%97%E9%97%AE%E9%A2%98%EF%BC%9F%EF%BC%88%E5%AF%B9%E6%AF%94RNN%EF%BC%89%E2%80%8B%E2%80%8B"><span class="nav-text">​5.自注意力如何解决序列问题？（对比RNN）​​</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%80%8B6-%E8%87%AA%E6%B3%A8%E6%84%8F%E5%8A%9B%E7%9A%84%E8%BE%93%E5%85%A5%E2%86%92%E8%BE%93%E5%87%BA"><span class="nav-text">​6.自注意力的输入→输出</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%80%8B7-%E8%87%AA%E6%B3%A8%E6%84%8F%E5%8A%9B%E7%9A%84%E6%9C%AC%E8%B4%A8%E2%80%8B"><span class="nav-text">​7.自注意力的本质​</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E5%A4%9A%E5%A4%B4%E6%B3%A8%E6%84%8F%E5%8A%9B%EF%BC%88%E5%B9%B6%E8%A1%8C%E6%8D%95%E6%8D%89%E4%B8%8D%E5%90%8C%E7%BB%B4%E5%BA%A6%E7%9A%84%E5%85%B3%E8%81%94%EF%BC%89"><span class="nav-text">5.多头注意力（并行捕捉不同维度的关联）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%A4%9A%E5%A4%B4%E6%B3%A8%E6%84%8F%E5%8A%9B%EF%BC%88Multi-Head-Attention%EF%BC%89%E4%BD%9C%E7%94%A8"><span class="nav-text">1. 多头注意力（Multi-Head Attention）作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%8E%9F%E7%90%86"><span class="nav-text">2. 原理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%8D%95%E5%A4%B4-vs-%E5%A4%9A%E5%A4%B4"><span class="nav-text">1.单头 vs 多头</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%8D%95%E5%A4%B4%E6%B3%A8%E6%84%8F%E5%8A%9B%EF%BC%9A"><span class="nav-text">单头注意力：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%A4%9A%E5%A4%B4%E6%B3%A8%E6%84%8F%E5%8A%9B%EF%BC%88%E4%BB%A5-8-%E5%A4%B4%E4%B8%BA%E4%BE%8B%EF%BC%89%EF%BC%9A"><span class="nav-text">多头注意力（以 8 头为例）：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%A8%A1%E5%9E%8B%E5%8F%82%E6%95%B0"><span class="nav-text">3.模型参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E7%B1%BB%E6%AF%94%EF%BC%9A%E5%B0%8F%E7%BB%84%E8%AE%A8%E8%AE%BA%E7%9A%84%E7%9B%B4%E8%A7%89%E6%AF%94%E5%96%BB"><span class="nav-text">4. 类比：小组讨论的直觉比喻</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E4%BD%8D%E7%BD%AE%E7%BC%96%E7%A0%81%EF%BC%88%E6%B3%A8%E5%85%A5%E5%BA%8F%E5%88%97%E9%A1%BA%E5%BA%8F%E4%BF%A1%E6%81%AF%EF%BC%89"><span class="nav-text">6.位置编码（注入序列顺序信息）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E4%BD%8D%E7%BD%AE%E7%BC%96%E7%A0%81%EF%BC%9F"><span class="nav-text">1.为什么需要位置编码？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E4%B8%A4%E7%A7%8D%E5%B8%B8%E8%A7%81%E6%96%B9%E6%B3%95%EF%BC%9A"><span class="nav-text">2.两种常见方法：</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-Sinusoidal-Encoding%EF%BC%88%E6%AD%A3%E4%BD%99%E5%BC%A6%E5%87%BD%E6%95%B0%E7%BC%96%E7%A0%81%EF%BC%89%E2%80%94%E2%80%94Transformer-%E5%8E%9F%E7%89%88"><span class="nav-text">1.Sinusoidal Encoding（正余弦函数编码）——Transformer 原版</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-Learnable-Position-Embedding%EF%BC%88%E5%8F%AF%E5%AD%A6%E4%B9%A0%E7%9A%84%E4%BD%8D%E7%BD%AE%E5%90%91%E9%87%8F%EF%BC%89"><span class="nav-text">2.Learnable Position Embedding（可学习的位置向量）</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E7%B1%BB%E6%AF%94%EF%BC%9A%E6%8B%BC%E7%81%AB%E8%BD%A6"><span class="nav-text">3.类比：拼火车</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E7%BC%96%E7%A0%81%E5%99%A8-%E8%A7%A3%E7%A0%81%E5%99%A8%E7%BB%93%E6%9E%84%EF%BC%88%E6%A0%B8%E5%BF%83%E6%A1%86%E6%9E%B6%EF%BC%89"><span class="nav-text">7.编码器-解码器结构（核心框架）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E7%BC%96%E7%A0%81%E5%99%A8%EF%BC%88Encoder%EF%BC%89"><span class="nav-text">1.编码器（Encoder）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E8%A7%A3%E7%A0%81%E5%99%A8%EF%BC%88Decoder%EF%BC%89"><span class="nav-text">2.解码器（Decoder）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E7%B1%BB%E6%AF%94%EF%BC%9A%E7%BF%BB%E8%AF%91%E5%91%98%E7%BB%93%E6%9E%84"><span class="nav-text">3.类比：翻译员结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E7%BC%96%E7%A0%81%E5%99%A8-vs-%E8%A7%A3%E7%A0%81%E5%99%A8-%E5%AF%B9%E6%AF%94"><span class="nav-text">4.编码器 vs 解码器 对比</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E5%B1%82%E6%A0%87%E5%87%86%E5%8C%96%EF%BC%88%E7%A8%B3%E5%AE%9A%E8%AE%AD%E7%BB%83%E8%BF%87%E7%A8%8B%EF%BC%89"><span class="nav-text">8.层标准化（稳定训练过程）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-%E6%AE%8B%E5%B7%AE%E8%BF%9E%E6%8E%A5%EF%BC%88%E7%BC%93%E8%A7%A3%E6%A2%AF%E5%BA%A6%E6%B6%88%E5%A4%B1%EF%BC%89"><span class="nav-text">9.残差连接（缓解梯度消失）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-%E5%89%8D%E9%A6%88%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88%E9%9D%9E%E7%BA%BF%E6%80%A7%E7%89%B9%E5%BE%81%E5%8F%98%E6%8D%A2%EF%BC%89"><span class="nav-text">10.前馈神经网络（非线性特征变换）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E6%80%BB%E7%BB%93"><span class="nav-text">11.总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E5%A4%87%E6%B3%A8"><span class="nav-text">11.备注</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">30</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">39</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/keychankc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://keychankc.github.io/2025/06/25/021-transformer/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's blog">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Transformer:多头注意力驱动的编码器-解码器架构 | KeyChan's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Transformer:多头注意力驱动的编码器-解码器架构
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-06-25 14:53:12" itemprop="dateCreated datePublished" datetime="2025-06-25T14:53:12+08:00">2025-06-25</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-09-21 20:04:48" itemprop="dateModified" datetime="2025-09-21T20:04:48+08:00">2025-09-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2025/06/25/021-transformer/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2025/06/25/021-transformer/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>7.6k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>28 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="1-循环神经网络"><a href="#1-循环神经网络" class="headerlink" title="1.循环神经网络"></a>1.循环神经网络</h2><p>前文有实现过一个<a href="https://keychankc.github.io/2025/03/14/005-rnn-classification-text/">基于循环神经网络的文本分类实践</a>任务，循环神经网络（<strong>Recurrent Neural Network, RNN</strong>）也叫递归神经网络，是专门处理<strong>序列数据</strong>的神经网络架构，其核心思想是通过<strong>循环连接</strong>使网络具备“记忆”能力，从而构建序列中时序之间的依赖关系。而处理具有<strong>时序或顺序关系</strong>的数据（如语言、语音、基因序列等）的核心挑战是<strong>理解序列中的上下文依赖关系</strong>，这就涉及到序列建模问题。</p>
+<span id="more"></span>
+<h3 id="1-序列建模问题"><a href="#1-序列建模问题" class="headerlink" title="1.序列建模问题"></a>1.序列建模问题</h3><p>与图像处理不同，序列建模关注的是<strong>输入数据的时序特性</strong>。例如：</p>
+<ul>
+<li>在时间序列预测中，我们可以根据前几天的指标（如身高、体重、年龄、饮食情况等）来预测未来的身体状态</li>
+<li>在文本建模任务中，输入为一个个按顺序排列的单词或字符，模型需要捕捉语言的上下文关系</li>
+</ul>
+<p>这类任务的共同特点是：<strong>输入之间存在时间&#x2F;位置上的顺序关系</strong>，即当前状态往往依赖于过去的信息。</p>
+<h3 id="2-RNN-的基本结构与前向传播机制"><a href="#2-RNN-的基本结构与前向传播机制" class="headerlink" title="2. RNN 的基本结构与前向传播机制"></a>2. RNN 的基本结构与前向传播机制</h3><p>为了解决这类时序相关问题，RNN 通过引入“记忆”机制，在每个时间步上对<strong>当前输入和上一个时间步的隐藏状态</strong>共同进行建模。</p>
+<p>以时间序列为例，模型的输入如下：</p>
+<ol>
+<li>在第一个时间步$x_0$：通过线性变换（如 $h_0 &#x3D; f(Wx_0 + b)）$得到隐藏状态 $h_0$，可以输出一个中间预测值</li>
+<li>在第二个时间步 $x_1$：模型不仅接收当前输入 $x_1$，还会接收前一时刻的隐藏状态 $h_0$，组合后作为输入生成 $h_1$，继续输出</li>
+<li>以此类推，到第 t 个时间步 $x_t$，模型会基于当前输入和前一隐藏状态来生成 $h_t$<br>这一结构意味着，后续的每个隐藏状态都隐式包含了之前所有时间步的信息。例如：<br>$$h_3 &#x3D; f(x_3, h_2) \Rightarrow f(x_3, f(x_2, h_1)) \Rightarrow f(x_3, f(x_2, f(x_1, h_0)))$$</li>
+</ol>
+<p>最终可以使用最后一个时间步的隐藏状态 $h_t$ 来表示整段序列的语义，从而用于后续分类、回归等任务。</p>
+<h3 id="3-RNN-的主要问题"><a href="#3-RNN-的主要问题" class="headerlink" title="3. RNN 的主要问题"></a>3. RNN 的主要问题</h3><p>尽管 RNN 在设计上适应了时序数据的建模需求，但在实际应用中却暴露出许多关键性问题：</p>
+<h4 id="问题一：长期依赖难以捕捉"><a href="#问题一：长期依赖难以捕捉" class="headerlink" title="问题一：长期依赖难以捕捉"></a>问题一：长期依赖难以捕捉</h4><p>当输入序列较长时，早期的信息（如 $x_0$）需要通过多个非线性变换传递到后续节点。由于梯度在反向传播过程中会不断衰减（即梯度消失问题），模型往往难以有效记住较早时间步的信息。<br>这一现象会导致<strong>RNN 无法有效捕捉长期依赖关系</strong>，只能关注较近的上下文。</p>
+<h4 id="问题二：计算过程为串行，难以并行化"><a href="#问题二：计算过程为串行，难以并行化" class="headerlink" title="问题二：计算过程为串行，难以并行化"></a>问题二：计算过程为串行，难以并行化</h4><p>RNN 的每个时间步必须依赖前一时间步的计算结果，因此其计算过程是<strong>串行</strong>的，不能像 CNN 那样并行处理所有输入。<br>这会显著限制模型的训练效率，尤其在处理长序列时，训练成本和时间开销变得极高。</p>
+<h4 id="问题三：难以堆叠更深层结构"><a href="#问题三：难以堆叠更深层结构" class="headerlink" title="问题三：难以堆叠更深层结构"></a>问题三：难以堆叠更深层结构</h4><p>由于其串行依赖性，RNN 通常只能堆叠极少的层数（如 2~3 层），一旦层数过多，训练难度迅速上升，模型性能还会下降。因此，与 CNN 等深层结构相比，RNN 的建模能力受到限制。</p>
+<h4 id="问题四：结构为单向，缺乏对未来信息的利用"><a href="#问题四：结构为单向，缺乏对未来信息的利用" class="headerlink" title="问题四：结构为单向，缺乏对未来信息的利用"></a>问题四：结构为单向，缺乏对未来信息的利用</h4><p>标准的 RNN 仅能从前向后建模（即从 $x_0$ 到 $x_t$），只能考虑历史信息，而无法利用“未来的信息”对当前施加影响。这在某些自然语言处理任务中尤为致命——因为当前词的含义往往依赖于后文。</p>
+<h3 id="4-双向-RNN（Bidirectional-RNN）"><a href="#4-双向-RNN（Bidirectional-RNN）" class="headerlink" title="4. 双向 RNN（Bidirectional RNN）"></a>4. 双向 RNN（Bidirectional RNN）</h3><p>为解决上述单向性问题，提出了<strong>双向 RNN（BiRNN）结构</strong>：</p>
+<ul>
+<li>先构建一条前向 RNN 处理从 $x_0$ 到 $x_t$ 的顺序</li>
+<li>再构建另外一条反向 RNN 处理从 $x_t$ 到 $x_0$ 的逆序</li>
+<li>最后把两条路径的隐藏状态进行拼接（或加权融合），作为最终的表示<br>这样，模型在每个时间步都能同时获得<strong>前文与后文</strong>的信息，从而可以更全面地理解上下文。然而，这一结构确还是不能从根本上解决“长期依赖”和“串行计算”的问题。</li>
+</ul>
+<h3 id="5-信息获取机制的思考：局部-vs-全局影响"><a href="#5-信息获取机制的思考：局部-vs-全局影响" class="headerlink" title="5. 信息获取机制的思考：局部 vs 全局影响"></a>5. 信息获取机制的思考：局部 vs 全局影响</h3><p>在 BiRNN 中，模型认为<strong>当前位置的语义最主要受邻近位置的影响</strong>。比如对于时间步 $x_3$，它主要融合来自 $x_2$ 和 $x_4$ 的信息。但实际上，某些远距离信息可能对当前任务具有更重要的影响，例如“某个关键事件”可能发生在很早以前。因此我们应该思考的是：</p>
+<blockquote>
+<p>当前时刻的信息，应该由<strong>模型自主动态决定该关注谁</strong>，而不是依赖固定的结构性传播。</p>
+</blockquote>
+<p>这种需要“动态决定关注谁”的思想，为后续的注意力机制（Attention）与 Transformer 架构的出现奠定了基础。</p>
+<h2 id="2-Transformer概述"><a href="#2-Transformer概述" class="headerlink" title="2.Transformer概述"></a>2.Transformer概述</h2><p>这篇发表于 2017 年的论文<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/1706.03762">《Attention is All You Need》</a>是一篇里程碑之作，它不仅提出了 Transformer 这一全新的架构，更彻底改变了自然语言处理乃至整个人工智能的发展方向。</p>
+<h3 id="1-Transformer-的提出：从“注意力”到“结构性突破”"><a href="#1-Transformer-的提出：从“注意力”到“结构性突破”" class="headerlink" title="1. Transformer 的提出：从“注意力”到“结构性突破”"></a>1. Transformer 的提出：从“注意力”到“结构性突破”</h3><p>2017 年，Google 团队在论文《Attention is All You Need》中提出了一种全新的模型架构——<strong>Transformer</strong>。这项工作最初的灵感源于“注意力机制”的有效性，而后作者们又进一步发展出了一种完全基于注意力机制、摒弃传统递归（RNN）和卷积结构的深度学习架构。</p>
+<p>Transformer 的核心创新在于：</p>
+<ul>
+<li><strong>去除序列间的依赖结构</strong>（如 RNN 的串行处理），转而依赖自注意力机制进行信息交互</li>
+<li><strong>提高了并行处理能力</strong>，可以大幅加速训练</li>
+<li><strong>有更强的上下文建模能力</strong>，使得模型能够灵活捕捉长距离依赖关系</li>
+</ul>
+<h3 id="2-BERT-的问世：从架构到预训练范式的统一"><a href="#2-BERT-的问世：从架构到预训练范式的统一" class="headerlink" title="2. BERT 的问世：从架构到预训练范式的统一"></a>2. BERT 的问世：从架构到预训练范式的统一</h3><p>虽然 Transformer 的结构十分先进，但真正让它走向工业应用、普及到主流研究的，是 2018 年 Google 提出的 <strong>BERT（Bidirectional Encoder Representations from Transformers）</strong> 模型。</p>
+<p>BERT 的重要意义体现在两点：</p>
+<ul>
+<li><strong>采用了纯 Transformer 编码器架构</strong></li>
+<li><strong>提出了通用的预训练 + 微调范式</strong>，通过大规模语料进行预训练，再针对下游任务进行微调，这样显著提升了各类自然语言处理任务的最终效果</li>
+</ul>
+<p>预训练的思想本质上解决了“从零开始训练”的困难。就像建筑施工如果完全从头开始搭建会耗时耗力，而如果提供一套成熟的“图纸”和“模板”，再在其基础上构建，就会高效许多。同样，预训练模型为下游任务提供了强大的“知识迁移”能力。</p>
+<p>BERT 的发布引发了一波空前的研究热潮，大量学者基于 BERT 架构进行下游任务优化，刷新了几乎所有公开数据集的基准性能。可以说，BERT 将 Transformer 的潜力推向了一个新的高峰，也标志着 NLP 进入了“预训练语言模型”时代。</p>
+<h3 id="3-GPT-系列的崛起：从边缘探索者到时代主角"><a href="#3-GPT-系列的崛起：从边缘探索者到时代主角" class="headerlink" title="3. GPT 系列的崛起：从边缘探索者到时代主角"></a>3. GPT 系列的崛起：从边缘探索者到时代主角</h3><p>与 BERT 同期诞生的还有 OpenAI 的 <strong>GPT（Generative Pre-trained Transformer）</strong>。不过，相较于 BERT 的“完形填空式”输入-输出结构，GPT 更专注于 <strong>语言生成任务</strong>，采用单向结构，通过自回归方式生成文本。起初，GPT 系列并未引起足够关注，市场和学界的重心几乎全部集中在 BERT 及其变体上。但 GPT 并未停止演进，反而持续扩大模型规模、优化训练方式，最终在 GPT-3、GPT-4 的阶段迎来爆发，成为今日大模型浪潮的中心。</p>
+<p>这也反映出一个事实：在 2018 年，BERT 主导了 NLP 领域几乎 99% 的关注，而 GPT 系列在当时被广泛忽视。然而如今，GPT 已成为引领行业发展的旗帜，反观 BERT 架构已逐渐退居二线。由此可见，技术演进的路径并非线性，而是由架构、预训练方式、数据规模和应用场景共同推动的。</p>
+<h3 id="4-Transformer-的本质任务：特征建模与表达重塑"><a href="#4-Transformer-的本质任务：特征建模与表达重塑" class="headerlink" title="4. Transformer 的本质任务：特征建模与表达重塑"></a>4. Transformer 的本质任务：特征建模与表达重塑</h3><p>在深入理解 Transformer 架构前，我们首先需要明确一个基本问题：Transformer 到底在做什么？<br>我们可以将 Transformer 看作一个<strong>特征重塑器</strong>。它的目标是接收一组原始输入特征，通过多层注意力机制进行全局信息建模与交互，最终输出一组更加<strong>棱角分明、语义丰富</strong>的表示。</p>
+<p>举个类比：假设每个输入向量是一个平平无奇的人物，缺乏特点，模型很难分辨；而 Transformer 的作用就是通过“问一问周围的人怎么说”、“看看全局谁更重要”等机制，重新塑造每个人的性格标签，让他们在模型眼中变得鲜明可辨。这种机制极大提升了模型对上下文的理解能力，也为下游任务提供了更具判别力的输入表示。</p>
+<p>因此，Transformer 的核心工作是：</p>
+<ul>
+<li>建立输入之间的全局关系</li>
+<li>强化有意义的特征维度，抑制冗余信息</li>
+<li>输出适用于分类、生成等任务的高质量表示</li>
+</ul>
+<h3 id="5-AI-的范式迁移与启示"><a href="#5-AI-的范式迁移与启示" class="headerlink" title="5. AI 的范式迁移与启示"></a>5. AI 的范式迁移与启示</h3><p>从 RNN 到 Transformer，不仅仅是结构的替换，更是计算范式的根本转变：</p>
+<ul>
+<li>从串行到并行</li>
+<li>从局部依赖到全局建模</li>
+<li>从“手工设计结构”到“数据驱动表示学习”</li>
+</ul>
+<p>2017 年的 Transformer 是一场变革的起点，2018 年的 BERT 是推广的催化剂，而今天的 GPT 系列与多模态模型则将这一技术带入了前所未有的高度。可以说，Transformer 不仅定义了 NLP，也逐渐在视觉、音频、强化学习等多个领域建立统治地位，成为真正的“通用架构”。</p>
+<p>接下来，我们将深入分析 Transformer 的具体结构，包括多头注意力机制、位置编码方式、前馈神经网络与残差连接等模块，剖析其如何高效地实现上下文建模与语义表示学习。</p>
+<h2 id="3-Transformer整体架构"><a href="#3-Transformer整体架构" class="headerlink" title="3.Transformer整体架构"></a>3.Transformer整体架构</h2><p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250624114203.png"></p>
+<h3 id="1-核心结构"><a href="#1-核心结构" class="headerlink" title="1.核心结构"></a>1.核心结构</h3><p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250624144755.png"></p>
+<h4 id="编码器（左侧）​​"><a href="#编码器（左侧）​​" class="headerlink" title="编码器（左侧）​​"></a><strong>编码器（左侧）​</strong>​</h4><ul>
+<li>包含 ​<strong>N个相同层</strong>​（图中<code>ENCODER #1</code>, <code>ENCODER #2</code>）</li>
+<li>每层含：​<strong>自注意力层 + 残差连接 &amp; 层归一化 + 前馈网络</strong>​</li>
+</ul>
+<h4 id="解码器（右侧）​​"><a href="#解码器（右侧）​​" class="headerlink" title="解码器（右侧）​​"></a><strong>解码器（右侧）​</strong>​</h4><ul>
+<li>包含 ​<strong>N个相同层</strong>​（图中<code>DECODER #1</code>, <code>DECODER #2</code>）</li>
+<li>每层比编码器多一层：​<strong>编码器-解码器注意力层</strong>​</li>
+<li>结构顺序 : <code>掩码自注意力 → 残差&amp;归一化 → 编码器-解码器注意力 → 残差&amp;归一化 → 前馈网络</code></li>
+</ul>
+<p><strong>堆叠设计</strong>​：  </p>
+<blockquote>
+<p>多个编码器&#x2F;解码器层堆叠（图中为2层）是为了构建深层网络，这样就可以学习更复杂的特征表示。</p>
+</blockquote>
+<h3 id="​2-输入如何编码？​​"><a href="#​2-输入如何编码？​​" class="headerlink" title="​2.输入如何编码？​​"></a>​2.输入如何编码？​​</h3><h4 id="​1-输入预处理流程​"><a href="#​1-输入预处理流程​" class="headerlink" title="​1. 输入预处理流程​"></a>​1. 输入预处理流程​</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">输入序列 = [<span class="string">&quot;Thinking&quot;</span>, <span class="string">&quot;Machines&quot;</span>]</span><br></pre></td></tr></table></figure>
+<ol>
+<li>​<strong>词嵌入（Word Embedding）​</strong>​：每个单词映射为<strong>稠密向量</strong>​（如512维向量 <code>[0.3, -0.8, ..., 0.1]</code>）</li>
+<li>​<strong>位置编码（Positional Encoding）​</strong>​：再为每个位置生成<strong>位置向量</strong>​（正弦&#x2F;余弦函数）<ul>
+<li>例：</li>
+</ul>
+ <figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&quot;Thinking&quot; (位置0) → [sin(0), cos(0), sin(0.01), cos(0.01), ...]  </span><br><span class="line">&quot;Machines&quot; (位置1) → [sin(1), cos(1), sin(0.0001), cos(0.0001), ...]  </span><br></pre></td></tr></table></figure></li>
+<li>​<strong>融合输入</strong>​： <br> $$最终输入向量&#x3D;词嵌入向量+位置编码向量$$<br>这样可以同时保留语义信息和顺序信息，供编码器处理。</li>
+</ol>
+<h3 id="​3-输出结果是什么？​"><a href="#​3-输出结果是什么？​" class="headerlink" title="​3.输出结果是什么？​"></a>​3.输出结果是什么？​</h3><h4 id="​1-输出生成逻辑​"><a href="#​1-输出生成逻辑​" class="headerlink" title="​1. 输出生成逻辑​"></a>​1. 输出生成逻辑​</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> 未生成结束符:</span><br><span class="line">   <span class="number">1.</span> 解码器接收：当前已生成序列（初始为&lt;start&gt;）</span><br><span class="line">   <span class="number">2.</span> 通过多层解码器生成隐状态</span><br><span class="line">   <span class="number">3.</span> 输出层预测下一个单词概率分布</span><br><span class="line">   <span class="number">4.</span> 采样一个单词（如贪心选择最高概率词）</span><br></pre></td></tr></table></figure>
+<h4 id="​2-输出层结构​"><a href="#​2-输出层结构​" class="headerlink" title="​2. 输出层结构​"></a>​2. 输出层结构​</h4><ul>
+<li>​<strong>线性层（Linear）​</strong>​：将解码器输出的高维向量映射到词汇表大小维度</li>
+<li>​<strong>Softmax</strong>​：计算每个单词的生成概率 <br>$$ P(下一个单词&#x3D;wi​)&#x3D;∑j​exp(zj​)exp(zi​) $$​<br>📌 ​<strong>示例输出</strong>​：<blockquote>
+<p>输入：”Thinking Machines”<br>输出可能是：”思考” → “机器” → <code>&lt;end&gt;</code>（机器翻译场景）</p>
+</blockquote>
+</li>
+</ul>
+<h3 id="​4-Attention的核心目的​"><a href="#​4-Attention的核心目的​" class="headerlink" title="​4.Attention的核心目的​"></a>​4.Attention的核心目的​</h3><h4 id="​1-三种注意力机制​"><a href="#​1-三种注意力机制​" class="headerlink" title="​1. 三种注意力机制​"></a>​1. 三种注意力机制​</h4><table>
+<thead>
+<tr>
+<th><strong>类型</strong></th>
+<th><strong>目的</strong></th>
+<th><strong>计算差异</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>自注意力（Self-Attention）</td>
+<td>让每个词动态地看整个句子，从而捕捉上下文关系</td>
+<td>Query、Key、Value 都来自同一个序列</td>
+</tr>
+<tr>
+<td>掩码自注意力（Masked Self-Attention）</td>
+<td>防止解码器“偷看”未来信息，只能关注当前位置及之前的词</td>
+<td>在自注意力计算中对未来位置加掩码（mask）</td>
+</tr>
+<tr>
+<td>编码器-解码器注意力（Encoder-Decoder Attention）</td>
+<td>让解码器在生成每个词时去关注编码器输出，即源句子内容</td>
+<td>Query 来自解码器，Key 和 Value 来自编码器</td>
+</tr>
+</tbody></table>
+<h4 id="​2-核心价值​"><a href="#​2-核心价值​" class="headerlink" title="​2. 核心价值​"></a>​2. 核心价值​</h4><ul>
+<li>​<strong>解决长距离依赖</strong>​：直接关联任意距离的两个词（无需RNN的逐步传递）</li>
+<li>​<strong>可解释性</strong>​：注意力权重可视化（例：翻译”Machines”时关注”机器”）</li>
+<li>​<strong>并行计算</strong>​：所有位置注意力同时计算（极大加速训练）</li>
+</ul>
+<h3 id="​5-组件如何协作？端到端流程​"><a href="#​5-组件如何协作？端到端流程​" class="headerlink" title="​5.组件如何协作？端到端流程​"></a>​5.组件如何协作？端到端流程​</h3><h4 id="​1-完整流程（以机器翻译为例）​​"><a href="#​1-完整流程（以机器翻译为例）​​" class="headerlink" title="​1. 完整流程（以机器翻译为例）​​"></a>​1. 完整流程（以机器翻译为例）​​</h4><p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250624152338.png"></p>
+<h4 id="​2-关键协作设计​"><a href="#​2-关键协作设计​" class="headerlink" title="​2. 关键协作设计​"></a>​2. 关键协作设计​</h4><ul>
+<li>​<strong>残差连接（Add）​</strong>​：每层输出 &#x3D; 原始输入 + 本层变换 → 防止深层网络梯度消失</li>
+<li>​<strong>层归一化（Normalize）​</strong>​：对每层输出归一化 → 稳定训练过程</li>
+<li>​<strong>信息传递路径</strong>​：编码器输出 → 每个解码器的<strong>编码器-解码器注意力层</strong>​ → 对齐输入输出关键信息</li>
+</ul>
+<p><strong>以”Thinking Machines”英译中为例</strong>​： </p>
+<blockquote>
+<ol>
+<li>编码器分析”Thinking”与”Machines”的语义关系</li>
+<li>解码器生成”思考”时，通过编码器-解码器注意力聚焦”Thinking”</li>
+<li>生成”机器”时，注意力同时聚焦”Machines”和已生成的”思考”</li>
+</ol>
+</blockquote>
+<h3 id="​总结：Transformer如何突破传统？​​"><a href="#​总结：Transformer如何突破传统？​​" class="headerlink" title="​总结：Transformer如何突破传统？​​"></a>​总结：Transformer如何突破传统？​​</h3><table>
+<thead>
+<tr>
+<th>​<strong>维度</strong>​</th>
+<th>​<strong>传统模型（RNN）​</strong>​</th>
+<th>​<strong>Transformer</strong>​</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>​<strong>顺序处理</strong>​</td>
+<td>逐步计算（无法并行）</td>
+<td>全序列并行计算</td>
+</tr>
+<tr>
+<td>​<strong>长距离依赖</strong>​</td>
+<td>需多次传递（易丢失信息）</td>
+<td>注意力一步直达</td>
+</tr>
+<tr>
+<td>​<strong>位置建模</strong>​</td>
+<td>天然顺序（但慢）</td>
+<td>显式位置编码（快且灵活）</td>
+</tr>
+<tr>
+<td>​<strong>架构本质</strong>​</td>
+<td>时间驱动</td>
+<td>​<strong>空间关联驱动（注意力矩阵）​</strong>​</td>
+</tr>
+</tbody></table>
+<h2 id="4-自注意力机制（处理序列内部关系）"><a href="#4-自注意力机制（处理序列内部关系）" class="headerlink" title="4.自注意力机制（处理序列内部关系）"></a>4.自注意力机制（处理序列内部关系）</h2><h3 id="​1-自注意力的目标​"><a href="#​1-自注意力的目标​" class="headerlink" title="​1.自注意力的目标​"></a>​1.自注意力的目标​</h3><p>解决序列的核心问题：<strong>如何让序列中的每个元素（如单词）理解自身与其他元素之间的关系？​</strong>​</p>
+<p>例：在句 <em>“The cat did not catch the mouse because it was tired”</em> 中，<em>“it”</em> 需要知道它指代的是 “cat”（而非 “mouse”）这就需要​<strong>依赖上下文关联</strong>。</p>
+<blockquote>
+<p><strong>自注意力的本质</strong>​：​<strong>动态计算序列内任意两个元素的相关性权重</strong>。</p>
+</blockquote>
+<h3 id="​2-自注意力在架构中的位置​"><a href="#​2-自注意力在架构中的位置​" class="headerlink" title="​2.自注意力在架构中的位置​"></a>​2.自注意力在架构中的位置​</h3><ul>
+<li>​<strong>编码器（ENCODER）​</strong>​：每个编码器层中的 ​<strong>Self-Attention 模块</strong>​</li>
+<li>​<strong>解码器（DECODER）​</strong>​：每个解码器层中的 ​<strong>Masked Self-Attention 模块</strong>​</li>
+</ul>
+<p> 图中路径：  </p>
+<blockquote>
+<p><code>输入序列 → 位置编码 → 编码器 Self-Attention → 解码器 Masked Self-Attention</code></p>
+</blockquote>
+<h3 id="​3-自注意力运行机制（3步）​​"><a href="#​3-自注意力运行机制（3步）​​" class="headerlink" title="​3.自注意力运行机制（3步）​​"></a>​3.自注意力运行机制（3步）​​</h3><h4 id="​1-生成查询向量（Query）、键向量（Key）、值向量（Value）"><a href="#​1-生成查询向量（Query）、键向量（Key）、值向量（Value）" class="headerlink" title="​1.生成查询向量（Query）、键向量（Key）、值向量（Value）"></a>​1.生成查询向量（Query）、键向量（Key）、值向量（Value）</h4><p>对序列中 ​<strong>每个单词的嵌入向量​</strong>（如 “Thinking”）做线性变换： </p>
+<ul>
+<li>$Q &#x3D; W_q · x_i$    主动“询问”向量，表示当前词想“了解什么”</li>
+<li>$K &#x3D; W_k · x_i$    被检索的“标识”向量，表示其他词“能提供什么”</li>
+<li>$V &#x3D; W_v · x_i$    实际携带信息的向量，是最终被提取的语义信息</li>
+</ul>
+<h4 id="​2-计算注意力权重（序列元素间的关联强度）​​"><a href="#​2-计算注意力权重（序列元素间的关联强度）​​" class="headerlink" title="​2.计算注意力权重（序列元素间的关联强度）​​"></a>​2.计算注意力权重（序列元素间的关联强度）​​</h4><p>通过 ​<strong>点积（Dot-Product）​</strong>​ 计算词与词之间的相关性分数：</p>
+<ul>
+<li>$分数 &#x3D; Q_i · K_j &#x2F; √d_k$    &#x2F;&#x2F; $d_k$为K的维度（缩放避免梯度消失）<br>对分数做 ​<strong>Softmax 归一化</strong>​ → 得到概率分布</li>
+<li>$权重 α_{ij} &#x3D; softmax(分数_ij)$   &#x2F;&#x2F; $α_{ij}$表示第j个词对第i个词的重要性<br>示例：  <blockquote>
+<p>当处理 “it” 时，$α_{it,cat} ≈ 0.9, α_{it,mouse} ≈ 0.1$</p>
+</blockquote>
+</li>
+</ul>
+<h4 id="​3-加权聚合值向量（V）​​"><a href="#​3-加权聚合值向量（V）​​" class="headerlink" title="​3.加权聚合值向量（V）​​"></a>​3.加权聚合值向量（V）​​</h4><p>用权重 $α_{ij}$ 对 ​<strong>所有词的 V 向量加权求和</strong>，生成当前词的新表示：<br>$$z_i &#x3D; ∑<em>{j&#x3D;1}^n α</em>{ij} V_j$$<br>输出​：  </p>
+<blockquote>
+<p>$z_i$ 是融合了<strong>全局上下文信息</strong>的新向量（如“it”的向量中包含了“cat”的信息）</p>
+</blockquote>
+<h3 id="4-举例“今天晚上吃啥”"><a href="#4-举例“今天晚上吃啥”" class="headerlink" title="4.举例“今天晚上吃啥”"></a>4.举例“今天晚上吃啥”</h3><h4 id="1-每个词先被映射成三个向量：Query、Key、Value"><a href="#1-每个词先被映射成三个向量：Query、Key、Value" class="headerlink" title="1.每个词先被映射成三个向量：Query、Key、Value"></a>1.每个词先被映射成三个向量：Query、Key、Value</h4><p>对于序列 [“今天”, “晚上”, “吃”, “啥”]，每个词都会被分别映射成：Q（Query）、K（Key）、V（Value）<br>比如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Q_今天 = W_Q × Emb(&quot;今天&quot;)</span><br><span class="line">K_今天 = W_K × Emb(&quot;今天&quot;)</span><br><span class="line">V_今天 = W_V × Emb(&quot;今天&quot;)</span><br><span class="line"># 其它词同理</span><br></pre></td></tr></table></figure>
+<h4 id="2-“今天”去和每个词计算相关性：点积-softmax"><a href="#2-“今天”去和每个词计算相关性：点积-softmax" class="headerlink" title="2.“今天”去和每个词计算相关性：点积 + softmax"></a>2.“今天”去和每个词计算相关性：点积 + softmax</h4><p>我们想更新“今天”这个词的信息表示，那么我们用它的 Query 去和所有词的 Key 做<strong>点积</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Score_今天-今天 = Q_今天 · K_今天</span><br><span class="line">Score_今天-晚上 = Q_今天 · K_晚上</span><br><span class="line">Score_今天-吃   = Q_今天 · K_吃</span><br><span class="line">Score_今天-啥   = Q_今天 · K_啥</span><br></pre></td></tr></table></figure>
+<p>然后把这些分数做一个 softmax 归一化，生成一组<strong>权重</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Softmax([Score_今天-今天, Score_今天-晚上, Score_今天-吃, Score_今天-啥]) </span><br><span class="line">→ [0.5, 0.1, 0.3, 0.1]</span><br></pre></td></tr></table></figure>
+<p>最终就得到了 <strong>“注意力百分比”</strong></p>
+<h4 id="3-用这组权重去加权-Value-向量"><a href="#3-用这组权重去加权-Value-向量" class="headerlink" title="3.用这组权重去加权 Value 向量"></a>3.用这组权重去加权 Value 向量</h4><p>最后，“今天”这个词的最终表示就变成：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">新的今天 = 0.5 × V_今天 + 0.1 × V_晚上 + 0.3 × V_吃 + 0.1 × V_啥</span><br></pre></td></tr></table></figure>
+<p>这里的“今天”、“晚上”等等都是对应词的 <strong>Value 向量</strong>（而不是原始文字）。</p>
+<h4 id="4-类比一下"><a href="#4-类比一下" class="headerlink" title="4.类比一下"></a>4.类比一下</h4><p>你可以把这个过程想成“今天”这个词要做一次信息融合，它在“问大家”：<br><strong>“我‘今天’想重新理解自己，我该参考谁多一点？”</strong></p>
+<ul>
+<li>它看自己（50%），因为“今天”对自身有最强的语义绑定</li>
+<li>看“吃”（30%），因为“吃饭”时间通常和“今天”有时序关系</li>
+<li>看“晚上”（10%），“今天晚上”是一个常见搭配</li>
+<li>“啥”（10%）可能关系较弱<br>这个“参考比例”也就是 attention score。</li>
+</ul>
+<p>你看到的“0.5、0.1、0.3、0.1”的权重，是由：</p>
+<blockquote>
+<p>Query(今天) 和所有 Key 做点积 → 再经过 softmax → 得到的一组概率分布，这些概率就决定了“今天”这个词在自注意力中<strong>融合哪些词的内容、要融合多少</strong>。</p>
+</blockquote>
+<h4 id="5-注意点"><a href="#5-注意点" class="headerlink" title="5.注意点"></a>5.注意点</h4><p>在实际训练或使用预训练模型时，<strong>这些权重（比如注意力机制中的 $W_Q, W_K, W_V$）都不需要我们手动初始化</strong>。因为 <strong>预训练模型已经学好了这些参数</strong>，我们只需要加载并使用即可。</p>
+<h3 id="​5-自注意力如何解决序列问题？（对比RNN）​​"><a href="#​5-自注意力如何解决序列问题？（对比RNN）​​" class="headerlink" title="​5.自注意力如何解决序列问题？（对比RNN）​​"></a>​5.自注意力如何解决序列问题？（对比RNN）​​</h3><table>
+<thead>
+<tr>
+<th>​<strong>能力</strong>​</th>
+<th>​<strong>RNN&#x2F;LSTM</strong>​</th>
+<th>​<strong>自注意力</strong>​</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>​<strong>建模长距离依赖</strong>​</td>
+<td>需逐步传递（信息易丢失&#x2F;稀释）</td>
+<td>一步直达，直接计算任意距离关联（任意位置连线）</td>
+</tr>
+<tr>
+<td>​<strong>并行计算</strong>​</td>
+<td>严格时间序，不可并行</td>
+<td>所有位置QKV同时计算（矩阵并行）</td>
+</tr>
+<tr>
+<td>​<strong>语义关联可视化</strong>​</td>
+<td>隐状态难以解释</td>
+<td>注意力权重$α_{ij}$可直观解释</td>
+</tr>
+<tr>
+<td>​<strong>计算复杂度</strong>​</td>
+<td>$O(T·d)$</td>
+<td>$O(T²·d)$（但GPU并行效率更高）</td>
+</tr>
+</tbody></table>
+<p><strong>关键优势</strong>​：  <strong>上下文感知（Context-Aware）​</strong>​  </p>
+<blockquote>
+<p>每个词的输出向量（如 $z_i$）都融合了<strong>整个序列的信息</strong>​ → 动态理解多义词（如“bank”在“river bank” vs “bank account”中不同含义）</p>
+</blockquote>
+<h3 id="​6-自注意力的输入→输出"><a href="#​6-自注意力的输入→输出" class="headerlink" title="​6.自注意力的输入→输出"></a>​6.自注意力的输入→输出</h3><p>以编码器中的 Self-Attention为例：</p>
+<ol>
+<li>​<strong>输入</strong>​：词嵌入向量 + 位置编码（<code>Thinking</code>, <code>Machines</code> 的向量）</li>
+<li>​<strong>过程</strong>​：自注意力计算 <code>Thinking</code> 与 <code>Machines</code> 的相互影响权重，生成新的上下文向量（包含两者关系）</li>
+<li>​<strong>输出</strong>​：传入下一层（<code>Add &amp; Normalize → Feed Forward</code>）继续抽象</li>
+</ol>
+<h3 id="​7-自注意力的本质​"><a href="#​7-自注意力的本质​" class="headerlink" title="​7.自注意力的本质​"></a>​7.自注意力的本质​</h3><ul>
+<li>​<strong>技术意义</strong>​：抛弃循环，用 ​<strong>Query-Key-Value 三明治机制</strong>​ 实现全局语义融合。</li>
+<li>​<strong>架构地位</strong>​：图中 ​<strong>Self-Attention 模块是 Transformer 的CPU</strong>，承担核心计算任务。</li>
+<li>​<strong>扩展影响</strong>​：后续大模型如 BERT（仅用自注意力编码器）、GPT（用掩码自注意力解码器），均以此为基础。</li>
+</ul>
+<h2 id="5-多头注意力（并行捕捉不同维度的关联）"><a href="#5-多头注意力（并行捕捉不同维度的关联）" class="headerlink" title="5.多头注意力（并行捕捉不同维度的关联）"></a>5.多头注意力（并行捕捉不同维度的关联）</h2><h3 id="1-多头注意力（Multi-Head-Attention）作用"><a href="#1-多头注意力（Multi-Head-Attention）作用" class="headerlink" title="1. 多头注意力（Multi-Head Attention）作用"></a>1. 多头注意力（Multi-Head Attention）作用</h3><p>就是<strong>让模型在多个子空间中并行地观察词与词之间的关系，捕捉不同角度的信息。</strong> 单头注意力只看一个“角度”或一种“相似度”，而多头注意力就像请了多个专家，各自用不同的标准分析句子中词之间的关系，<strong>并行、多元、综合</strong>。</p>
+<h3 id="2-原理"><a href="#2-原理" class="headerlink" title="2. 原理"></a>2. 原理</h3><h4 id="1-单头-vs-多头"><a href="#1-单头-vs-多头" class="headerlink" title="1.单头 vs 多头"></a>1.单头 vs 多头</h4><h5 id="单头注意力："><a href="#单头注意力：" class="headerlink" title="单头注意力："></a>单头注意力：</h5><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Q = X @ W_Q     # X: 输入序列，W_Q: 权重矩阵</span><br><span class="line">K = X @ W_K</span><br><span class="line">V = X @ W_V</span><br><span class="line">Attention = softmax(Q @ K.T / √d) @ V</span><br></pre></td></tr></table></figure>
+<h5 id="多头注意力（以-8-头为例）："><a href="#多头注意力（以-8-头为例）：" class="headerlink" title="多头注意力（以 8 头为例）："></a>多头注意力（以 8 头为例）：</h5><p>把 Q&#x2F;K&#x2F;V 分别用 <strong>8 套不同的投影矩阵</strong>做线性变换：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">for i in range(8):    # 8个头</span><br><span class="line">    Q_i = X @ W_Q_i   # 每个 W_Q_i 是不同的线性变换</span><br><span class="line">    K_i = X @ W_K_i</span><br><span class="line">    V_i = X @ W_V_i</span><br><span class="line">    Attention_i = softmax(Q_i @ K_i.T / √d_i) @ V_i</span><br></pre></td></tr></table></figure>
+
+<p>然后把 8 个头的输出拼在一起：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Concat(Attention_1, ..., Attention_8) → 再通过一个线性层</span><br></pre></td></tr></table></figure>
+
+<p>这个线性层就是 $W_O$，可以想象成“专家总结”。</p>
+<h3 id="3-模型参数"><a href="#3-模型参数" class="headerlink" title="3.模型参数"></a>3.模型参数</h3><p>假设输入维度是 512</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">W_Q_i / W_K_i / W_V_i   // [512, 64]（每个头 64 维）</span><br><span class="line">8个头变换后               // [512, 8×64 = 512]</span><br><span class="line">W_O                     // [512, 512]（拼接后还原维度）</span><br></pre></td></tr></table></figure>
+<h3 id="4-类比：小组讨论的直觉比喻"><a href="#4-类比：小组讨论的直觉比喻" class="headerlink" title="4. 类比：小组讨论的直觉比喻"></a>4. 类比：小组讨论的直觉比喻</h3><p>你有一个句子「今天晚上吃啥」，你想分析“今天”这个词该关注谁。<br>于是请来了 <strong>8 位专家</strong>，每位都从不同角度给建议：    </p>
+<ul>
+<li>第一个专注时间线（今天←→晚上）        </li>
+<li>第二个关注动作（吃） </li>
+<li>第三个关注主宾关系（吃←→啥）</li>
+<li>……其余人从语法、句法、话题等维度看<br>每个人（注意力头）单独打分，再分别输出他们的建议，最后把这些拼在一起，再交给一个“综合裁判”整合信息。</li>
+</ul>
+<p>多头注意力可以从不同头关注不同信息，这样就不容易“信息冲突”或“遗漏关键线索”，提高了表达能力。即使某一头注意力失败，其他头可以弥补，实际更稳定&#x2F;灵活。</p>
+<blockquote>
+<p>多头注意力 &#x3D; 多个注意力专家并行工作，分别分析不同语义维度，最后综合出一个更全面的理解。</p>
+</blockquote>
+<h2 id="6-位置编码（注入序列顺序信息）"><a href="#6-位置编码（注入序列顺序信息）" class="headerlink" title="6.位置编码（注入序列顺序信息）"></a>6.位置编码（注入序列顺序信息）</h2><h3 id="1-为什么需要位置编码？"><a href="#1-为什么需要位置编码？" class="headerlink" title="1.为什么需要位置编码？"></a>1.为什么需要位置编码？</h3><p>Transformer 结构完全没有 RNN &#x2F; CNN 中的“顺序感”。原始的 Transformer 是基于 Attention 的，它不管输入词的前后顺序，全靠计算相互之间的注意力。</p>
+<p>那么问题来了，我怎么知道“今天晚上吃啥”跟“吃啥今天晚上”是不同的？<br>位置编码就是给每个词<strong>加上“位置信息”</strong>，让模型知道哪个词在第几个位置。我们给每个词的 embedding 向量中 <strong>添加一段专门的“位置信息向量”</strong>，这样词的表示就和它的位置挂钩了。</p>
+<h3 id="2-两种常见方法："><a href="#2-两种常见方法：" class="headerlink" title="2.两种常见方法："></a>2.两种常见方法：</h3><h4 id="1-Sinusoidal-Encoding（正余弦函数编码）——Transformer-原版"><a href="#1-Sinusoidal-Encoding（正余弦函数编码）——Transformer-原版" class="headerlink" title="1.Sinusoidal Encoding（正余弦函数编码）——Transformer 原版"></a>1.Sinusoidal Encoding（正余弦函数编码）——Transformer 原版</h4><blockquote>
+<p>不依赖学习，使用公式构造，适合泛化到更长句子</p>
+</blockquote>
+<p>对于位置 $pos$ 和维度 $i$，定义：<br>$$PE_{(pos, 2i)} &#x3D; \sin\left(\frac{pos}{10000^{2i&#x2F;d}}\right)$$<br>$$PE_{(pos, 2i+1)} &#x3D; \cos\left(\frac{pos}{10000^{2i&#x2F;d}}\right)$$</p>
+<ul>
+<li>偶数维用 $sin$，奇数维用 $cos$</li>
+<li>低维度捕捉短期关系，高维度捕捉长期位置关系</li>
+<li>向量之间的差值有意义，便于模型学习“相对位置信息”</li>
+</ul>
+<p>每个位置会对应一个固定的向量，直接加到词向量上。</p>
+<h4 id="2-Learnable-Position-Embedding（可学习的位置向量）"><a href="#2-Learnable-Position-Embedding（可学习的位置向量）" class="headerlink" title="2.Learnable Position Embedding（可学习的位置向量）"></a>2.Learnable Position Embedding（可学习的位置向量）</h4><p>直接把位置当作一个“词”一样来训练，比如说最多处理 512 个位置，就定义一个：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pos_embedding = nn.Embedding(512, d_model)</span><br></pre></td></tr></table></figure>
+<p>每个位置 0~511 都有一个向量，随着训练自动学。</p>
+<p>优点：灵活、能拟合训练语料的结构<br>缺点：泛化能力差，位置超过训练长度可能表现差</p>
+<p>怎么加到词上？</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">x = word_embedding + positional_encoding</span><br></pre></td></tr></table></figure>
+<p>词的语义 + 位置信息 &#x3D; 带位置信息的输入表示</p>
+<h3 id="3-类比：拼火车"><a href="#3-类比：拼火车" class="headerlink" title="3.类比：拼火车"></a>3.类比：拼火车</h3><p>假设句子是“今天 晚上 吃 啥”，每个词是一节火车车厢。<br>你给每节车厢都贴个编号（1、2、3、4），贴的标签就是位置编码。</p>
+<p>没有标签 → 模型只知道“有这几节车厢”<br>加上标签 → 模型知道“车厢的顺序”</p>
+<h2 id="7-编码器-解码器结构（核心框架）"><a href="#7-编码器-解码器结构（核心框架）" class="headerlink" title="7.编码器-解码器结构（核心框架）"></a>7.编码器-解码器结构（核心框架）</h2><p>编码器把输入句子变成信息浓缩的“理解结果”，解码器基于这个理解一步步“生成”目标句子。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">输入句子（源语言）  ─→  编码器（Encoder）  ─→  编码结果</span><br><span class="line">                                            ↓</span><br><span class="line">                                      解码器（Decoder）  ─→  输出句子（目标语言）</span><br></pre></td></tr></table></figure>
+
+<p>比如输入：“今天晚上吃啥？”，生成：“What shall we eat tonight?”</p>
+<h3 id="1-编码器（Encoder）"><a href="#1-编码器（Encoder）" class="headerlink" title="1.编码器（Encoder）"></a>1.编码器（Encoder）</h3><p>由多个 <strong>Encoder Layer</strong> 叠加组成，每层结构如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[输入词向量 + 位置编码]</span><br><span class="line">       ↓</span><br><span class="line">自注意力（Self-Attention）</span><br><span class="line">       ↓</span><br><span class="line">前馈神经网络（Feed Forward）</span><br><span class="line">       ↓</span><br><span class="line">输出表示（保留输入中每个词的信息，考虑了上下文）</span><br></pre></td></tr></table></figure>
+<p>每个词在理解过程中不会只关注自己，而是会参考句子中其他词的信息，综合上下文后更新自己的表示，使得每个词的向量都包含了整句话的语义线索。<br>编码器的任务不是生成词语或句子，而是将输入句子转换为一组表达其含义的高维向量，用于后续生成阶段使用。</p>
+<h3 id="2-解码器（Decoder）"><a href="#2-解码器（Decoder）" class="headerlink" title="2.解码器（Decoder）"></a>2.解码器（Decoder）</h3><p>由多个 <strong>Decoder Layer</strong> 叠加组成，每层结构会复杂一些：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[目标词向量 + 位置编码]</span><br><span class="line">       ↓</span><br><span class="line">掩码自注意力（Masked Self-Attention）</span><br><span class="line">       ↓</span><br><span class="line">编码器-解码器注意力（Encoder-Decoder Attention）</span><br><span class="line">       ↓</span><br><span class="line">前馈神经网络（Feed Forward）</span><br><span class="line">       ↓</span><br><span class="line">输出向量（用于预测下一个词）</span><br></pre></td></tr></table></figure>
+
+<p>掩码自注意力的作用是在生成一个词的时候，只允许模型查看它前面已经生成的词，故意遮住后面的词，防止提前知道答案、出现“抄袭”现象。<br>编码器-解码器注意力是指当模型要生成一个词时，就会去“参考”输入句子中哪些词最相关，借此更好地决定该输出什么，从而提升翻译或生成的准确性。</p>
+<h3 id="3-类比：翻译员结构"><a href="#3-类比：翻译员结构" class="headerlink" title="3.类比：翻译员结构"></a>3.类比：翻译员结构</h3><p>你可以把 Transformer 想象成一个翻译过程：</p>
+<ul>
+<li>编码器 &#x3D; 一个理解中文的人，他把“今天晚上吃啥”理解成一份压缩的语义笔记</li>
+<li>解码器 &#x3D; 一个会英文的说话者，他一边看这份笔记一边逐字翻译出：“What shall we eat tonight?”</li>
+</ul>
+<p>其中解码器不能一次性生成所有单词，它是“边看边说”。每生成一个词（比如 “What”），它会重新计算注意力、生成下一个词（“shall”）</p>
+<h3 id="4-编码器-vs-解码器-对比"><a href="#4-编码器-vs-解码器-对比" class="headerlink" title="4.编码器 vs 解码器 对比"></a>4.编码器 vs 解码器 对比</h3><table>
+<thead>
+<tr>
+<th><strong>模块</strong></th>
+<th><strong>输入</strong></th>
+<th><strong>注意力类型</strong></th>
+<th><strong>目的</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>编码器</td>
+<td>源语言（比如中文）</td>
+<td>自注意力</td>
+<td>理解上下文</td>
+</tr>
+<tr>
+<td>解码器</td>
+<td>已生成的目标词（英文）+ 编码器输出</td>
+<td>掩码自注意力 + 编码器-解码器注意力</td>
+<td>生成新词、参考输入</td>
+</tr>
+</tbody></table>
+<h2 id="8-层标准化（稳定训练过程）"><a href="#8-层标准化（稳定训练过程）" class="headerlink" title="8.层标准化（稳定训练过程）"></a>8.层标准化（稳定训练过程）</h2><p>在每一层网络中，可以把输出“调成标准状态”（均值为0，方差为1），这样可以让训练更平稳，减少震荡，更快收敛。</p>
+<p>就像一群学生考试，有人考90分，有人考30分，差距太大，老师很难统一讲解。层标准化就像是先把分数都“标准化”，大家都围绕平均线波动，这样更容易统一训练策略，也能避免某些值太大或太小影响整个模型。</p>
+<h2 id="9-残差连接（缓解梯度消失）"><a href="#9-残差连接（缓解梯度消失）" class="headerlink" title="9.残差连接（缓解梯度消失）"></a>9.残差连接（缓解梯度消失）</h2><p>给每一层加一条“捷径”，让原始信息绕过复杂计算，直接传给后面的层，帮助模型更容易训练，不容易梯度消失。</p>
+<p>想象你在传话，一个人一句地传，很容易出错。残差连接就像是你偷偷把原话也发了条微信备份，最后的人可以同时听到“中间人转述的版本”和“原话”，即使中间转述有点偏，也不至于彻底误解。</p>
+<h2 id="10-前馈神经网络（非线性特征变换）"><a href="#10-前馈神经网络（非线性特征变换）" class="headerlink" title="10.前馈神经网络（非线性特征变换）"></a>10.前馈神经网络（非线性特征变换）</h2><p>在注意力机制之后，加一层小型的神经网络，对每个词的表示再加工一次，让它学到更复杂的特征和语义关系。</p>
+<p>你可以把前面的注意力比作“信息收集”，而前馈网络就像“深加工工厂”——收集到的信息还比较粗糙，前馈网络用非线性函数再精细处理，让每个词的表示更聪明、更有表现力。</p>
+<h2 id="11-总结"><a href="#11-总结" class="headerlink" title="11.总结"></a>11.总结</h2><p><strong>Transformer本质</strong>​：通过注意力机制重构序列建模，从“逐步传递”到“动态关联”，最终成为大模型时代的基础架构。</p>
+<ol>
+<li>​<strong>自注意力机制</strong>​：动态计算序列元素间关联（QKV矩阵），直接建模长距离依赖，替代RNN的串行传递</li>
+<li>​<strong>编码器-解码器结构</strong>​<ul>
+<li>​<strong>编码器</strong>​：自注意力+前馈网络，提取输入特征</li>
+<li>​<strong>解码器</strong>​：掩码自注意力（防信息泄露）+ 编码器交互注意力（对齐输入）</li>
+</ul>
+</li>
+<li>​<strong>关键技术点</strong>​<ul>
+<li>​<strong>多头注意力</strong>​：并行多组注意力，捕捉不同维度关系</li>
+<li>​<strong>位置编码</strong>​：注入位置信息，弥补注意力缺失的时序感知</li>
+<li>​<strong>残差连接+层标准化</strong>​：稳定深层训练，缓解梯度消失</li>
+</ul>
+</li>
+<li>​<strong>突破性优势</strong>​<ul>
+<li>​<strong>全局建模</strong>​：任意位置直接关联，解决长距离依赖</li>
+<li>​<strong>并行计算</strong>​：矩阵运算替代串行处理，大幅提升效率</li>
+<li>​<strong>可解释性</strong>​：注意力权重可视化，揭示模型决策逻辑</li>
+</ul>
+</li>
+</ol>
+<h2 id="11-备注"><a href="#11-备注" class="headerlink" title="11.备注"></a>11.备注</h2><p>Attention is All You Need : <a target="_blank" rel="noopener" href="https://arxiv.org/pdf/1706.03762">https://arxiv.org/pdf/1706.03762</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://keychankc.github.io/2025/06/25/021-transformer/" title="Transformer:多头注意力驱动的编码器-解码器架构">https://keychankc.github.io/2025/06/25/021-transformer/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/Transformer/" rel="tag"># Transformer</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/06/18/020-deepdab3-with-pascal-voc2012/" rel="prev" title="​DeepLabv3+语义分割代码解析">
+                  <i class="fa fa-angle-left"></i> ​DeepLabv3+语义分割代码解析
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/07/02/022-vision-transformer/" rel="next" title="ViT — Transformer在视觉领域应用代码解析">
+                  ViT — Transformer在视觉领域应用代码解析 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">166k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.mengyajia.com","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2025/06/25/021-transformer/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>

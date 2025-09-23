@@ -1,0 +1,543 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>KeyChan&#39;s blog</title>
+  <icon>https://keychankc.github.io/icon.png</icon>
+  
+  <link href="https://keychankc.github.io/atom.xml" rel="self"/>
+  
+  <link href="https://keychankc.github.io/"/>
+  <updated>2025-09-21T12:04:48.542Z</updated>
+  <id>https://keychankc.github.io/</id>
+  
+  <author>
+    <name>KeyChan</name>
+    
+  </author>
+  
+  <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>A3C 算法原理与超级马里奥实践（下）</title>
+    <link href="https://keychankc.github.io/2025/08/29/029-rl-ac-a3c-mario-case-2/"/>
+    <id>https://keychankc.github.io/2025/08/29/029-rl-ac-a3c-mario-case-2/</id>
+    <published>2025-08-29T05:40:12.000Z</published>
+    <updated>2025-09-21T12:04:48.542Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-项目背景与目标&quot;&gt;&lt;a href=&quot;#1-项目背景与目标&quot; class=&quot;headerlink&quot; title=&quot;1. 项目背景与目标&quot;&gt;&lt;/a&gt;1. 项目背景与目标&lt;/h2&gt;&lt;h3 id=&quot;1-1-为什么选择-A3C-来玩超级马里奥？&quot;&gt;&lt;a href=&quot;#1-1-为什么选择-A3C-来玩超级马里奥？&quot; class=&quot;headerlink&quot; title=&quot;1.1 为什么选择 A3C 来玩超级马里奥？&quot;&gt;&lt;/a&gt;1.1 为什么选择 A3C 来玩超级马里奥？&lt;/h3&gt;&lt;p&gt;超级马里奥是一个经典的横版过关游戏，玩法是简单，但是环境比较复杂：玩家要面对敌人、陷阱、跳跃平台，还要在有限时间内快速决策。&lt;br&gt;所以在强化学习中，它被认为是一个很好的 &lt;strong&gt;实验case&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;状态空间是高维的（游戏画面本身就是像素矩阵）&lt;/li&gt;
+&lt;li&gt;行动结果对未来奖励有长远影响（跳跃错过管道可能直接失败）&lt;/li&gt;
+&lt;li&gt;游戏场景变化多端，能充分考察智能体的泛化能力&lt;/li&gt;
+&lt;/ul&gt;</summary>
+    
+    
+    
+    <category term="强化学习" scheme="https://keychankc.github.io/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/"/>
+    
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="神经网络" scheme="https://keychankc.github.io/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
+    
+    <category term="策略梯度" scheme="https://keychankc.github.io/tags/%E7%AD%96%E7%95%A5%E6%A2%AF%E5%BA%A6/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>A3C 算法原理与超级马里奥实践（上）</title>
+    <link href="https://keychankc.github.io/2025/08/22/028-rl-ac-a3c-mario-case-1/"/>
+    <id>https://keychankc.github.io/2025/08/22/028-rl-ac-a3c-mario-case-1/</id>
+    <published>2025-08-22T05:40:12.000Z</published>
+    <updated>2025-09-21T12:04:48.542Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-AC-算法&quot;&gt;&lt;a href=&quot;#1-AC-算法&quot; class=&quot;headerlink&quot; title=&quot;1. AC 算法&quot;&gt;&lt;/a&gt;1. AC 算法&lt;/h2&gt;&lt;h3 id=&quot;1-1-策略梯度&quot;&gt;&lt;a href=&quot;#1-1-策略梯度&quot; class=&quot;headerlink&quot; title=&quot;1.1 策略梯度&quot;&gt;&lt;/a&gt;1.1 策略梯度&lt;/h3&gt;&lt;p&gt;在强化学习中，如果我们想让智能体学会这样一个 &lt;strong&gt;策略&lt;/strong&gt;（在不同状态下选什么动作）:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;一个动作能带来高奖励，就要让它以后更可能被选上&lt;/li&gt;
+&lt;li&gt;一个动作只能带来低回报，就要减少使用它的频率&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;而策略梯度就是一个这样的工具，&lt;strong&gt;“根据奖励信号，调整策略参数，让好动作更可能被选中，坏动作少被选上。”&lt;/strong&gt;&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="强化学习" scheme="https://keychankc.github.io/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/"/>
+    
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="神经网络" scheme="https://keychankc.github.io/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
+    
+    <category term="策略梯度" scheme="https://keychankc.github.io/tags/%E7%AD%96%E7%95%A5%E6%A2%AF%E5%BA%A6/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>DQN(Deep Q-Network)系列算法解析与实践</title>
+    <link href="https://keychankc.github.io/2025/08/14/027-rl-dqn-case/"/>
+    <id>https://keychankc.github.io/2025/08/14/027-rl-dqn-case/</id>
+    <published>2025-08-14T05:40:12.000Z</published>
+    <updated>2025-09-21T12:04:48.541Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-任务与背景介绍&quot;&gt;&lt;a href=&quot;#1-任务与背景介绍&quot; class=&quot;headerlink&quot; title=&quot;1. 任务与背景介绍&quot;&gt;&lt;/a&gt;1. 任务与背景介绍&lt;/h2&gt;&lt;p&gt;在 Gym&amp;#x2F;Gymnasium 的 &lt;strong&gt;MountainCar-v0&lt;/strong&gt; 环境中，有这样一个场景：一辆小车被困在两个山坡之间，目标是到达右侧山坡顶端的红旗位置。&lt;/p&gt;
+&lt;p&gt;乍一看，这似乎只需要踩油门往右冲就行，但现实并非如此，小车的发动机动力不足，单次加速无法直接登顶，它会在半途滑落回谷底。正确的策略是先向左加速爬上左坡，然后顺势向右冲下去，再反复摆动、积累动能，最终才能冲上右侧山顶。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="强化学习" scheme="https://keychankc.github.io/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/"/>
+    
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="神经网络" scheme="https://keychankc.github.io/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
+    
+    <category term="PyTorch" scheme="https://keychankc.github.io/tags/PyTorch/"/>
+    
+    <category term="目标网络" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E7%BD%91%E7%BB%9C/"/>
+    
+    <category term="经验回放" scheme="https://keychankc.github.io/tags/%E7%BB%8F%E9%AA%8C%E5%9B%9E%E6%94%BE/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>PPO算法在连续与离散动作空间中的案例实践</title>
+    <link href="https://keychankc.github.io/2025/07/30/026-rl-ppo-discrete-continuous-case/"/>
+    <id>https://keychankc.github.io/2025/07/30/026-rl-ppo-discrete-continuous-case/</id>
+    <published>2025-07-30T03:40:12.000Z</published>
+    <updated>2025-09-21T12:04:48.541Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-PPO算法与动作空间类型概览&quot;&gt;&lt;a href=&quot;#1-PPO算法与动作空间类型概览&quot; class=&quot;headerlink&quot; title=&quot;1.PPO算法与动作空间类型概览&quot;&gt;&lt;/a&gt;1.PPO算法与动作空间类型概览&lt;/h2&gt;&lt;h3 id=&quot;1-PPO（Proximal-Policy-Optimization）简介&quot;&gt;&lt;a href=&quot;#1-PPO（Proximal-Policy-Optimization）简介&quot; class=&quot;headerlink&quot; title=&quot;1.PPO（Proximal Policy Optimization）简介&quot;&gt;&lt;/a&gt;1.PPO（Proximal Policy Optimization）简介&lt;/h3&gt;&lt;p&gt;PPO（近端策略优化）是OpenAI于2017年提出的强化学习算法，通过创新的”剪切目标函数”设计，在保证训练稳定性的同时实现高效策略优化。其核心思想是&lt;strong&gt;通过约束策略更新幅度，防止策略突变导致的性能崩溃，解决了传统策略梯度方法（如TRPO）的工程实现复杂性问题&lt;/strong&gt;。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="强化学习" scheme="https://keychankc.github.io/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/"/>
+    
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="PyTorch" scheme="https://keychankc.github.io/tags/PyTorch/"/>
+    
+    <category term="策略优化" scheme="https://keychankc.github.io/tags/%E7%AD%96%E7%95%A5%E4%BC%98%E5%8C%96/"/>
+    
+    <category term="PPO" scheme="https://keychankc.github.io/tags/PPO/"/>
+    
+    <category term="离散动作" scheme="https://keychankc.github.io/tags/%E7%A6%BB%E6%95%A3%E5%8A%A8%E4%BD%9C/"/>
+    
+    <category term="连续动作" scheme="https://keychankc.github.io/tags/%E8%BF%9E%E7%BB%AD%E5%8A%A8%E4%BD%9C/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>强化学习 — PPO策略优化算法</title>
+    <link href="https://keychankc.github.io/2025/07/22/025-reinforcement-learning-ppo/"/>
+    <id>https://keychankc.github.io/2025/07/22/025-reinforcement-learning-ppo/</id>
+    <published>2025-07-22T03:40:12.000Z</published>
+    <updated>2025-09-21T12:04:48.541Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-PPO-算法概述&quot;&gt;&lt;a href=&quot;#1-PPO-算法概述&quot; class=&quot;headerlink&quot; title=&quot;1.PPO 算法概述&quot;&gt;&lt;/a&gt;1.PPO 算法概述&lt;/h2&gt;&lt;h3 id=&quot;1-PPO-的提出背景&quot;&gt;&lt;a href=&quot;#1-PPO-的提出背景&quot; class=&quot;headerlink&quot; title=&quot;1.PPO 的提出背景&quot;&gt;&lt;/a&gt;1.PPO 的提出背景&lt;/h3&gt;&lt;p&gt;我们还是以智能体如何控制飞船落地的小游戏为例，智能体的目标是通过一系列操作（如向左移动或向右移动）实现平稳着陆。在训练初期，智能体并不知道应该如何操作，它需要通过反复的试探操作，从环境中不断获得反馈并调整策略，最终掌握一套“高奖励”操作方式。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="强化学习" scheme="https://keychankc.github.io/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="策略优化" scheme="https://keychankc.github.io/tags/%E7%AD%96%E7%95%A5%E4%BC%98%E5%8C%96/"/>
+    
+    <category term="PPO" scheme="https://keychankc.github.io/tags/PPO/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>强化学习 — 试错、策略与长期奖励</title>
+    <link href="https://keychankc.github.io/2025/07/14/024-reinforcement-learning-start/"/>
+    <id>https://keychankc.github.io/2025/07/14/024-reinforcement-learning-start/</id>
+    <published>2025-07-14T09:40:12.000Z</published>
+    <updated>2025-09-21T12:04:48.541Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-强化学习：从试错中学习策略&quot;&gt;&lt;a href=&quot;#1-强化学习：从试错中学习策略&quot; class=&quot;headerlink&quot; title=&quot;1.强化学习：从试错中学习策略&quot;&gt;&lt;/a&gt;1.强化学习：从试错中学习策略&lt;/h2&gt;&lt;p&gt;我们先从一个轻松的生活片段切入：某天夜里，小明肚子咕咕叫，他想去找点吃的，但房间漆黑一片，他不敢开灯，只能凭借记忆和感知，一步一步摸索前进，一开始他撞到了桌角，又不小心踩到了猫，猫的尖叫声还吓了他一跳（负反馈），他又调整方向，继续摸索。他记住了这个方向有桌子不能走，那个方向可能有猫，不断的修正自己的路线，最终摸到了冰箱，找到了食物（正反馈）。这就是强化学习（Reinforcement Learning, RL）核心思想的具象呈现：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;智能体在完全未知的环境中，靠“做出行为 → 接受反馈 → 调整策略”这一闭环，在不断试错中学习完成任务的最佳方式。&lt;/p&gt;
+&lt;/blockquote&gt;</summary>
+    
+    
+    
+    <category term="强化学习" scheme="https://keychankc.github.io/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="非马尔可夫环境" scheme="https://keychankc.github.io/tags/%E9%9D%9E%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E7%8E%AF%E5%A2%83/"/>
+    
+    <category term="策略梯度" scheme="https://keychankc.github.io/tags/%E7%AD%96%E7%95%A5%E6%A2%AF%E5%BA%A6/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>从像素到区域：MaskFormer 系列详解</title>
+    <link href="https://keychankc.github.io/2025/07/08/023-segmentation-mask2former/"/>
+    <id>https://keychankc.github.io/2025/07/08/023-segmentation-mask2former/</id>
+    <published>2025-07-08T05:54:12.000Z</published>
+    <updated>2025-09-21T12:04:48.541Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-MaskFormer概述&quot;&gt;&lt;a href=&quot;#1-MaskFormer概述&quot; class=&quot;headerlink&quot; title=&quot;1.MaskFormer概述&quot;&gt;&lt;/a&gt;1.MaskFormer概述&lt;/h2&gt;&lt;h3 id=&quot;1-背景&quot;&gt;&lt;a href=&quot;#1-背景&quot; class=&quot;headerlink&quot; title=&quot;1.背景&quot;&gt;&lt;/a&gt;1.背景&lt;/h3&gt;&lt;p&gt;在图像分割任务中，传统方法如 U-Net、DeepLab 系列通常采用“逐像素点分类”的策略：模型需要判断图像中每一个像素所属的类别。这种方式在语义分割中表现出色，但在实例分割场景下却存在明显的局限性。例如，同一类别的多个实例往往难以区分，因此仅靠逐像素分类很难准确完成实例级的区域划分。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="Python" scheme="https://keychankc.github.io/tags/Python/"/>
+    
+    <category term="PyTorch" scheme="https://keychankc.github.io/tags/PyTorch/"/>
+    
+    <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
+    
+    <category term="目标分割" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>ViT — Transformer在视觉领域应用代码解析</title>
+    <link href="https://keychankc.github.io/2025/07/02/022-vision-transformer/"/>
+    <id>https://keychankc.github.io/2025/07/02/022-vision-transformer/</id>
+    <published>2025-07-02T06:53:12.000Z</published>
+    <updated>2025-09-21T12:04:48.540Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-ViT概述&quot;&gt;&lt;a href=&quot;#1-ViT概述&quot; class=&quot;headerlink&quot; title=&quot;1.ViT概述&quot;&gt;&lt;/a&gt;1.ViT概述&lt;/h2&gt;&lt;p&gt;在上一篇文章中主要讲了 &lt;a href=&quot;https://keychankc.github.io/2025/06/25/021-transformer/&quot;&gt;Transformer 的基本原理&lt;/a&gt;，尤其是在自然语言处理（NLP）任务中的应用，包括编码器和解码器的主要功能和注意力机制的具体实现。但这些内容大多基于 NLP 领域的示例，本篇我们看看在计算机视觉（CV）领域，Transformer 在图像任务中的使用方式。&lt;/p&gt;
+&lt;h3 id=&quot;1-在视觉领域的发展背景&quot;&gt;&lt;a href=&quot;#1-在视觉领域的发展背景&quot; class=&quot;headerlink&quot; title=&quot;1.在视觉领域的发展背景&quot;&gt;&lt;/a&gt;1.在视觉领域的发展背景&lt;/h3&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
+    
+    <category term="Transformer" scheme="https://keychankc.github.io/tags/Transformer/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Transformer:多头注意力驱动的编码器-解码器架构</title>
+    <link href="https://keychankc.github.io/2025/06/25/021-transformer/"/>
+    <id>https://keychankc.github.io/2025/06/25/021-transformer/</id>
+    <published>2025-06-25T06:53:12.000Z</published>
+    <updated>2025-09-21T12:04:48.540Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-循环神经网络&quot;&gt;&lt;a href=&quot;#1-循环神经网络&quot; class=&quot;headerlink&quot; title=&quot;1.循环神经网络&quot;&gt;&lt;/a&gt;1.循环神经网络&lt;/h2&gt;&lt;p&gt;前文有实现过一个&lt;a href=&quot;https://keychankc.github.io/2025/03/14/005-rnn-classification-text/&quot;&gt;基于循环神经网络的文本分类实践&lt;/a&gt;任务，循环神经网络（&lt;strong&gt;Recurrent Neural Network, RNN&lt;/strong&gt;）也叫递归神经网络，是专门处理&lt;strong&gt;序列数据&lt;/strong&gt;的神经网络架构，其核心思想是通过&lt;strong&gt;循环连接&lt;/strong&gt;使网络具备“记忆”能力，从而构建序列中时序之间的依赖关系。而处理具有&lt;strong&gt;时序或顺序关系&lt;/strong&gt;的数据（如语言、语音、基因序列等）的核心挑战是&lt;strong&gt;理解序列中的上下文依赖关系&lt;/strong&gt;，这就涉及到序列建模问题。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="Transformer" scheme="https://keychankc.github.io/tags/Transformer/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>​DeepLabv3+语义分割代码解析</title>
+    <link href="https://keychankc.github.io/2025/06/18/020-deepdab3-with-pascal-voc2012/"/>
+    <id>https://keychankc.github.io/2025/06/18/020-deepdab3-with-pascal-voc2012/</id>
+    <published>2025-06-18T06:01:12.000Z</published>
+    <updated>2025-09-21T12:04:48.540Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-Pascal-VOC-2012&quot;&gt;&lt;a href=&quot;#1-Pascal-VOC-2012&quot; class=&quot;headerlink&quot; title=&quot;1.Pascal VOC 2012&quot;&gt;&lt;/a&gt;1.Pascal VOC 2012&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;http://host.robots.ox.ac.uk/pascal/VOC/voc2012/&quot;&gt;Pascal VOC (Visual Object Classes) 2012&lt;/a&gt; 数据集是计算机视觉领域具有里程碑意义的公开基准数据集，以其全面性、高质量标注和在众多任务上的广泛应用而著称，被广泛用于模型训练、评估与比较研究，尤其作为图像分类、目标检测和语义分割等核心任务的经典基准。&lt;/p&gt;
+&lt;h3 id=&quot;1-核心特性：多任务基准&quot;&gt;&lt;a href=&quot;#1-核心特性：多任务基准&quot; class=&quot;headerlink&quot; title=&quot;1. 核心特性：多任务基准&quot;&gt;&lt;/a&gt;1. 核心特性：多任务基准&lt;/h3&gt;&lt;p&gt;Pascal VOC 2012 的核心价值在于其&lt;strong&gt;多任务性&lt;/strong&gt;。它并非针对单一任务设计，而是为多种计算机视觉任务提供了丰富且一致的标注：&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="Python" scheme="https://keychankc.github.io/tags/Python/"/>
+    
+    <category term="PyTorch" scheme="https://keychankc.github.io/tags/PyTorch/"/>
+    
+    <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
+    
+    <category term="目标分割" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/"/>
+    
+    <category term="DeepLab" scheme="https://keychankc.github.io/tags/DeepLab/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>图像分割DeepLab系列算法思路分析</title>
+    <link href="https://keychankc.github.io/2025/06/10/019-deeplab-series/"/>
+    <id>https://keychankc.github.io/2025/06/10/019-deeplab-series/</id>
+    <published>2025-06-10T08:01:12.000Z</published>
+    <updated>2025-09-21T12:04:48.539Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-DeepLab概述&quot;&gt;&lt;a href=&quot;#1-DeepLab概述&quot; class=&quot;headerlink&quot; title=&quot;1.DeepLab概述&quot;&gt;&lt;/a&gt;1.DeepLab概述&lt;/h2&gt;&lt;p&gt;DeepLab是由谷歌提出的专用于&lt;strong&gt;语义分割&lt;/strong&gt;任务的系列模型，核心目标是为图像中的&lt;strong&gt;每个像素分配一个语义类别标签&lt;/strong&gt;​。它在图像分割领域有很不错效果，曾在PASCAL VOC-2012数据集上达到当时最高水平（mIOU 79.7%） ，并在Cityscapes、PASCAL-Context等数据集上广泛使用。DeepLab的优势在于能够在保持高精度的同时还能结合上下文信息，对物体边界进行精确定位。&lt;/p&gt;
+&lt;h3 id=&quot;1-U-Net-与-DeepLab&quot;&gt;&lt;a href=&quot;#1-U-Net-与-DeepLab&quot; class=&quot;headerlink&quot; title=&quot;1.U-Net 与 DeepLab&quot;&gt;&lt;/a&gt;1.U-Net 与 DeepLab&lt;/h3&gt;&lt;p&gt;同样是做分割任务&lt;strong&gt;U-Net&lt;/strong&gt;和&lt;strong&gt;DeepLab&lt;/strong&gt;有啥区别呢？&lt;br&gt;&lt;strong&gt;U-Net&lt;/strong&gt;更适合在生物医学图像分割（细胞、器官、病变区域等）、小目标分割、需要精确边界轮廓的应用，其优势边界分割极其精细、在&lt;strong&gt;小样本数据集&lt;/strong&gt;​（尤其是医学影像）上表现卓越、架构相对也简单清晰、易于实现和改进。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="Python" scheme="https://keychankc.github.io/tags/Python/"/>
+    
+    <category term="PyTorch" scheme="https://keychankc.github.io/tags/PyTorch/"/>
+    
+    <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
+    
+    <category term="目标分割" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/"/>
+    
+    <category term="DeepLab" scheme="https://keychankc.github.io/tags/DeepLab/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>深度学习的概念们</title>
+    <link href="https://keychankc.github.io/2025/06/05/000-deep-learning-concepts/"/>
+    <id>https://keychankc.github.io/2025/06/05/000-deep-learning-concepts/</id>
+    <published>2025-06-05T09:03:25.000Z</published>
+    <updated>2025-09-21T12:04:48.536Z</updated>
+    
+    
+    <summary type="html">深度学习因为涉及大量的专业术语和复杂概念，系统性地整理这些内容非常有必要。这不仅有助于构建清晰的知识框架，还能避免理解偏差，让沟通更顺畅。同时，随着技术的快速发展，定期梳理这些概念也能帮助我们及时跟上领域前沿。</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="概念" scheme="https://keychankc.github.io/tags/%E6%A6%82%E5%BF%B5/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>U²-Net显著性目标检测</title>
+    <link href="https://keychankc.github.io/2025/06/04/018-u2net-saliency-detection/"/>
+    <id>https://keychankc.github.io/2025/06/04/018-u2net-saliency-detection/</id>
+    <published>2025-06-04T09:01:12.000Z</published>
+    <updated>2025-09-21T12:04:48.539Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-U²-Net介绍与应用&quot;&gt;&lt;a href=&quot;#1-U²-Net介绍与应用&quot; class=&quot;headerlink&quot; title=&quot;1.U²-Net介绍与应用&quot;&gt;&lt;/a&gt;1.U²-Net介绍与应用&lt;/h2&gt;&lt;p&gt;在 &lt;a href=&quot;https://keychankc.github.io/2025/05/19/016-image-segmentation-u-net/&quot;&gt;图像分割与U-Net系列模型解析&lt;/a&gt; 和 &lt;a href=&quot;https://keychankc.github.io/2025/05/27/017-unet-cell-segmentation/&quot;&gt;基于U-Net++的细胞分割代码实现&lt;/a&gt; 中提到了U-Net系列网络模型，而 &lt;a href=&quot;https://github.com/xuebinqin/U-2-Net&quot;&gt;U²-Net&lt;/a&gt; 虽然是一个U-Net的变体版本，原本用于显著性检测任务，但由于其优异的前景提取能力，逐渐被广泛用于抠图、图像编辑、人像分割等任务中。&lt;/p&gt;
+&lt;h3 id=&quot;1-U²-Net-概述&quot;&gt;&lt;a href=&quot;#1-U²-Net-概述&quot; class=&quot;headerlink&quot; title=&quot;1.U²-Net 概述&quot;&gt;&lt;/a&gt;1.U²-Net 概述&lt;/h3&gt;&lt;p&gt;U²-Net 属于“显著性检测”任务中的网络结构，其核心目标是从图像中识别出前景区域，即显著目标（Salient Object Detection, SOD）。从任务定义来看，它本质上和语义分割非常接近，将图像划分为前景和背景，只是语义标签通常只有两类。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="Python" scheme="https://keychankc.github.io/tags/Python/"/>
+    
+    <category term="PyTorch" scheme="https://keychankc.github.io/tags/PyTorch/"/>
+    
+    <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
+    
+    <category term="目标分割" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/"/>
+    
+    <category term="U2Net" scheme="https://keychankc.github.io/tags/U2Net/"/>
+    
+    <category term="显著性检测" scheme="https://keychankc.github.io/tags/%E6%98%BE%E8%91%97%E6%80%A7%E6%A3%80%E6%B5%8B/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>基于U-Net++的细胞分割代码实现</title>
+    <link href="https://keychankc.github.io/2025/05/27/017-unet-cell-segmentation/"/>
+    <id>https://keychankc.github.io/2025/05/27/017-unet-cell-segmentation/</id>
+    <published>2025-05-27T09:54:12.000Z</published>
+    <updated>2025-09-21T12:04:48.539Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;下面我们以一个医学图像实例分割任务为例，来介绍在 PyTorch 框架下如何使用 U-Net++ 网络。U-Net++ 是在经典 U-Net 基础上进行改进的语义分割网络，它通过引入密集跳跃连接和深层监督机制，增强了特征融合能力与梯度传播效果，特别适用于医学图像中边界模糊、结构复杂的分割任务。&lt;/p&gt;
+&lt;h2 id=&quot;1-数据预处理&quot;&gt;&lt;a href=&quot;#1-数据预处理&quot; class=&quot;headerlink&quot; title=&quot;1.数据预处理&quot;&gt;&lt;/a&gt;1.数据预处理&lt;/h2&gt;&lt;h3 id=&quot;1-数据集介绍&quot;&gt;&lt;a href=&quot;#1-数据集介绍&quot; class=&quot;headerlink&quot; title=&quot;1.数据集介绍&quot;&gt;&lt;/a&gt;1.数据集介绍&lt;/h3&gt;&lt;p&gt;这个数据集是一些细胞图像，我们的目标是做前景背景分离，对每一个细胞做实例分割。数据集有以下特点：&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="Python" scheme="https://keychankc.github.io/tags/Python/"/>
+    
+    <category term="PyTorch" scheme="https://keychankc.github.io/tags/PyTorch/"/>
+    
+    <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
+    
+    <category term="目标分割" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/"/>
+    
+    <category term="U-Net" scheme="https://keychankc.github.io/tags/U-Net/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>图像分割与U-Net系列模型解析</title>
+    <link href="https://keychankc.github.io/2025/05/19/016-image-segmentation-u-net/"/>
+    <id>https://keychankc.github.io/2025/05/19/016-image-segmentation-u-net/</id>
+    <published>2025-05-19T09:54:12.000Z</published>
+    <updated>2025-09-21T12:04:48.539Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-图像分割&quot;&gt;&lt;a href=&quot;#1-图像分割&quot; class=&quot;headerlink&quot; title=&quot;1.图像分割&quot;&gt;&lt;/a&gt;1.图像分割&lt;/h2&gt;&lt;p&gt;虽然图像分割（Image Segmentation）与目标检测（Object Detection）都属于计算机视觉中的视觉识别任务，但它们的目标、输出形式和应用场景各不相同：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;目标检测（Object Detection）&lt;/strong&gt;：找出图像中有哪些物体，并框出每个物体的位置，比如说检测行人、车辆，以边界框 + 类别标签为输出形式。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;图像分割（Image Segmentation）&lt;/strong&gt;：精确地标出图像中每个像素属于哪个类别，以每个像素的类别标签为输出形式。&lt;/li&gt;
+&lt;/ul&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
+    
+    <category term="目标分割" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/"/>
+    
+    <category term="U-Net" scheme="https://keychankc.github.io/tags/U-Net/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>基于Transformer的detr目标检测算法思路分析</title>
+    <link href="https://keychankc.github.io/2025/05/13/015-transformer-to-detr/"/>
+    <id>https://keychankc.github.io/2025/05/13/015-transformer-to-detr/</id>
+    <published>2025-05-13T07:50:12.000Z</published>
+    <updated>2025-09-21T12:04:48.539Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-Transformer&quot;&gt;&lt;a href=&quot;#1-Transformer&quot; class=&quot;headerlink&quot; title=&quot;1. Transformer&quot;&gt;&lt;/a&gt;1. Transformer&lt;/h2&gt;&lt;p&gt;我们可以尝试用一个例子来理解 Transformer 的各个概念。学生在课堂上进行小组讨论写作文：一个班级里有一群学生，每个学生负责贡献一句话来完成一篇作文。他们必须交流彼此的观点（信息），形成一篇通顺的文章。这就像 Transformer 处理一个序列（比如一句话）时的过程。&lt;/p&gt;
+&lt;h3 id=&quot;1-输入嵌入（Input-Embedding）&quot;&gt;&lt;a href=&quot;#1-输入嵌入（Input-Embedding）&quot; class=&quot;headerlink&quot; title=&quot;1. 输入嵌入（Input Embedding）&quot;&gt;&lt;/a&gt;1. 输入嵌入（Input Embedding）&lt;/h3&gt;&lt;p&gt;将原始的输入（如词、图像特征等）映射到一个高维向量空间中，便于 Transformer 网络进行后续处理。&lt;/p&gt;
+&lt;p&gt;就像每个学生都先写好一句话的草稿，用于后续讨论。每句话被转成一个有意义的表达——每个词转成向量。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
+    
+    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
+    
+    <category term="detr" scheme="https://keychankc.github.io/tags/detr/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>[YOLO系列④] YOLOv5模型训练与流程解析</title>
+    <link href="https://keychankc.github.io/2025/05/07/014-yolo-yolov5-code-detail/"/>
+    <id>https://keychankc.github.io/2025/05/07/014-yolo-yolov5-code-detail/</id>
+    <published>2025-05-07T09:50:12.000Z</published>
+    <updated>2025-09-21T12:04:48.538Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-基本使用&quot;&gt;&lt;a href=&quot;#1-基本使用&quot; class=&quot;headerlink&quot; title=&quot;1.基本使用&quot;&gt;&lt;/a&gt;1.基本使用&lt;/h2&gt;&lt;h3 id=&quot;1-YOLOv5整体概述&quot;&gt;&lt;a href=&quot;#1-YOLOv5整体概述&quot; class=&quot;headerlink&quot; title=&quot;1.YOLOv5整体概述&quot;&gt;&lt;/a&gt;1.YOLOv5整体概述&lt;/h3&gt;&lt;p&gt;YOLOv5本质上是一个经过大量优化的&lt;strong&gt;工程项目&lt;/strong&gt;，不像前几代那样有对应的学术论文。它主要是在YOLOv4的基础上做了更实用的工程改进，让使用者能更轻松地应用到实际场景中。主要有以下特点：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;​&lt;strong&gt;工程优化为主&lt;/strong&gt;​&lt;ul&gt;
+&lt;li&gt;没有官方论文，核心改进在于代码实现，比如训练效率、代码可读性&lt;/li&gt;
+&lt;li&gt;相比YOLOv4，工程结构更简洁，配置更直观，适合直接拿来训练自己的数据&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;​&lt;strong&gt;使用体验升级&lt;/strong&gt;​&lt;ul&gt;
+&lt;li&gt;作者把数据增强、模型结构（如CSP、SPP模块）等复杂逻辑封装得很好，使用者几乎不用改代码&lt;/li&gt;
+&lt;li&gt;支持混合精度训练，训练速度更快，对硬件要求更友好&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
+    
+    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
+    
+    <category term="YOLO" scheme="https://keychankc.github.io/tags/YOLO/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>[YOLO系列③] YOLOv3和YOLOv4优化策略</title>
+    <link href="https://keychankc.github.io/2025/04/29/013-yolo-yolov3-yolov4/"/>
+    <id>https://keychankc.github.io/2025/04/29/013-yolo-yolov3-yolov4/</id>
+    <published>2025-04-28T23:50:12.000Z</published>
+    <updated>2025-09-21T12:04:48.538Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-YOLO-V3&quot;&gt;&lt;a href=&quot;#1-YOLO-V3&quot; class=&quot;headerlink&quot; title=&quot;1.YOLO-V3&quot;&gt;&lt;/a&gt;1.YOLO-V3&lt;/h2&gt;&lt;h3 id=&quot;1-网络架构改进&quot;&gt;&lt;a href=&quot;#1-网络架构改进&quot; class=&quot;headerlink&quot; title=&quot;1.网络架构改进&quot;&gt;&lt;/a&gt;1.网络架构改进&lt;/h3&gt;&lt;p&gt;提升特征提取能力和训练稳定性​​&lt;/p&gt;
+&lt;h4 id=&quot;1-残差连接（Residual-Connections）​&quot;&gt;&lt;a href=&quot;#1-残差连接（Residual-Connections）​&quot; class=&quot;headerlink&quot; title=&quot;1.残差连接（Residual Connections）​&quot;&gt;&lt;/a&gt;1.残差连接（Residual Connections）​&lt;/h4&gt;&lt;p&gt;&lt;strong&gt;残差连接&lt;/strong&gt; 是指在神经网络中将&lt;strong&gt;输入 x 直接跳跃连接（shortcut）加到输出 F(x) 上&lt;/strong&gt;的那一条路径。数学形式如下：&lt;br&gt;$$&lt;br&gt;y &amp;#x3D; F(x) + x&lt;br&gt;$$&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;其中：&lt;ul&gt;
+&lt;li&gt;x：输入&lt;/li&gt;
+&lt;li&gt;F(x)：一系列卷积层后的输出（即“主干路径”）&lt;/li&gt;
+&lt;li&gt;x 是“旁路路径”或称“跳跃连接”&lt;/li&gt;
+&lt;li&gt;两者相加形成最终输出 y&lt;br&gt;这条连接就是 “残差连接”，它是 &lt;strong&gt;结构中的一条数据路径&lt;/strong&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
+    
+    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
+    
+    <category term="YOLO" scheme="https://keychankc.github.io/tags/YOLO/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>[YOLO系列②] YOLOv2十大改进点解析</title>
+    <link href="https://keychankc.github.io/2025/04/21/012-yolo-yolov2/"/>
+    <id>https://keychankc.github.io/2025/04/21/012-yolo-yolov2/</id>
+    <published>2025-04-21T08:29:12.000Z</published>
+    <updated>2025-09-21T12:04:48.538Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-YOLOv2改进概述&quot;&gt;&lt;a href=&quot;#1-YOLOv2改进概述&quot; class=&quot;headerlink&quot; title=&quot;1.YOLOv2改进概述&quot;&gt;&lt;/a&gt;1.YOLOv2改进概述&lt;/h2&gt;&lt;p&gt;YOLOv2 的改进围绕 ​&lt;strong&gt;稳定性&lt;/strong&gt;​（BN、位置预测）、&lt;strong&gt;灵活性&lt;/strong&gt;​（全卷积、多尺度）、&lt;strong&gt;数据驱动&lt;/strong&gt;​（锚框聚类）展开，同时通过&lt;strong&gt;结构优化&lt;/strong&gt;（Darknet-19、Passthrough）平衡速度与精度，为后续YOLO版本再改进奠定基础。&lt;br&gt;&lt;img src=&quot;https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/202504161606.jpg&quot;&gt;&lt;br&gt;如上图是YOLOv2的新特性和mAP（mean Average Precision，平均精度均值）之间的相关性。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
+    
+    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
+    
+    <category term="YOLO" scheme="https://keychankc.github.io/tags/YOLO/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>[YOLO系列①] 物体检测评估指标和YOLO-v1实现思路</title>
+    <link href="https://keychankc.github.io/2025/04/17/011-yolo-eval-metrics-yolov1/"/>
+    <id>https://keychankc.github.io/2025/04/17/011-yolo-eval-metrics-yolov1/</id>
+    <published>2025-04-17T04:29:12.000Z</published>
+    <updated>2025-09-21T12:04:48.538Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-物体检测评估指标&quot;&gt;&lt;a href=&quot;#1-物体检测评估指标&quot; class=&quot;headerlink&quot; title=&quot;1.物体检测评估指标&quot;&gt;&lt;/a&gt;1.物体检测评估指标&lt;/h2&gt;&lt;h3 id=&quot;1-TP-FP-FN-TN&quot;&gt;&lt;a href=&quot;#1-TP-FP-FN-TN&quot; class=&quot;headerlink&quot; title=&quot;1.TP &amp;#x2F; FP &amp;#x2F; FN &amp;#x2F; TN&quot;&gt;&lt;/a&gt;1.TP &amp;#x2F; FP &amp;#x2F; FN &amp;#x2F; TN&lt;/h3&gt;&lt;p&gt;这四个指标是分类任务的基础：&lt;br&gt;• &lt;strong&gt;TP（True Positive）&lt;/strong&gt;：预测为正，且是真正的正样本（比如检测到了一个人，且确实是人）&lt;br&gt;• &lt;strong&gt;FP（False Positive）&lt;/strong&gt;：预测为正，但实际上是负样本（检测到了人，但其实是背景或别的物体）&lt;br&gt;• &lt;strong&gt;FN（False Negative）&lt;/strong&gt;：实际是正样本，但没检测出来（图里有人，模型没发现）&lt;br&gt;• &lt;strong&gt;TN（True Negative）&lt;/strong&gt;：负样本预测为负（对物体检测来说，通常不关注 TN）&lt;/p&gt;
+&lt;p&gt;举个例子&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
+    
+    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
+    
+    <category term="YOLO" scheme="https://keychankc.github.io/tags/YOLO/"/>
+    
+  </entry>
+  
+</feed>

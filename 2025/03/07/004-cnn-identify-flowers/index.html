@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"keychankc.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="1.迁移学习做图像识别是不是每次都意味着要自定义模型，确定好 卷积层、池化层 和 全连接层，然后从0开始训练？不同类型的图像数据集会不会有通用的特征？如果训练样本比较少怎么办？是不是可以把已经训练好的模型，拿过来稍微改改就可以使用的？ 迁移学习（Transfer Learning） 就是这种可以将已有模型的知识迁移到新任务的学习方法，具有以下特点：  适合数据量比较少的任务，但是有预训练知识，无需">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于迁移学习(ResNet-18)的花卉识别">
+<meta property="og:url" content="https://keychankc.github.io/2025/03/07/004-cnn-identify-flowers/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s blog">
+<meta property="og:description" content="1.迁移学习做图像识别是不是每次都意味着要自定义模型，确定好 卷积层、池化层 和 全连接层，然后从0开始训练？不同类型的图像数据集会不会有通用的特征？如果训练样本比较少怎么办？是不是可以把已经训练好的模型，拿过来稍微改改就可以使用的？ 迁移学习（Transfer Learning） 就是这种可以将已有模型的知识迁移到新任务的学习方法，具有以下特点：  适合数据量比较少的任务，但是有预训练知识，无需">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250306163312.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250306171732.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250307155124.png">
+<meta property="article:published_time" content="2025-03-07T07:16:35.000Z">
+<meta property="article:modified_time" content="2025-09-21T12:04:48.536Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="PyTorch">
+<meta property="article:tag" content="模型训练">
+<meta property="article:tag" content="卷积神经网络">
+<meta property="article:tag" content="matplotlib">
+<meta property="article:tag" content="迁移学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250306163312.png">
+
+
+<link rel="canonical" href="https://keychankc.github.io/2025/03/07/004-cnn-identify-flowers/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/2025/03/07/004-cnn-identify-flowers/","path":"2025/03/07/004-cnn-identify-flowers/","title":"基于迁移学习(ResNet-18)的花卉识别"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>基于迁移学习(ResNet-18)的花卉识别 | KeyChan's blog</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.mengyajia.com">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's blog" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E8%BF%81%E7%A7%BB%E5%AD%A6%E4%B9%A0"><span class="nav-text">1.迁移学习</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86"><span class="nav-text">2.数据处理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-text">1.数据结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E6%95%B0%E6%8D%AE%E5%8A%A0%E8%BD%BD%E4%B8%8E%E9%A2%84%E5%A4%84%E7%90%86"><span class="nav-text">2.数据加载与预处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E7%BB%98%E5%88%B6%E9%83%A8%E5%88%86%E9%A2%84%E5%A4%84%E7%90%86%E6%95%B0%E6%8D%AE"><span class="nav-text">3.绘制部分预处理数据</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E6%A8%A1%E5%9E%8B%E9%85%8D%E7%BD%AE"><span class="nav-text">3.模型配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-ResNet-18"><span class="nav-text">1.ResNet-18</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E8%87%AA%E5%AE%9A%E4%B9%89ResNet-18"><span class="nav-text">2.自定义ResNet-18</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E4%BC%98%E5%8C%96%E5%99%A8"><span class="nav-text">3.优化器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%AD%A6%E4%B9%A0%E7%8E%87"><span class="nav-text">4.学习率</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0"><span class="nav-text">5.损失函数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83%E5%92%8C%E8%AF%84%E4%BC%B0"><span class="nav-text">4.模型训练和评估</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E8%AE%AD%E7%BB%83"><span class="nav-text">1.训练</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E8%AF%84%E4%BC%B0"><span class="nav-text">2.评估</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E7%AD%9B%E9%80%89%E4%B8%8E%E4%BF%9D%E5%AD%98"><span class="nav-text">3.筛选与保存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E4%B8%80%E6%AC%A1%E8%AE%AD%E7%BB%83"><span class="nav-text">4.一次训练</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E4%BA%8C%E6%AC%A1%E8%AE%AD%E7%BB%83"><span class="nav-text">5.二次训练</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E6%A8%A1%E5%9E%8B%E6%B5%8B%E8%AF%95"><span class="nav-text">5.模型测试</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E6%80%BB%E7%BB%93"><span class="nav-text">6.总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E6%A8%A1%E5%9E%8B%E4%BC%98%E5%8C%96"><span class="nav-text">7.模型优化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E5%A4%87%E6%B3%A8"><span class="nav-text">8.备注</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">30</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">39</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/keychankc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://keychankc.github.io/2025/03/07/004-cnn-identify-flowers/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's blog">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="基于迁移学习(ResNet-18)的花卉识别 | KeyChan's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          基于迁移学习(ResNet-18)的花卉识别
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-07 15:16:35" itemprop="dateCreated datePublished" datetime="2025-03-07T15:16:35+08:00">2025-03-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-09-21 20:04:48" itemprop="dateModified" datetime="2025-09-21T20:04:48+08:00">2025-09-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2025/03/07/004-cnn-identify-flowers/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2025/03/07/004-cnn-identify-flowers/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>4.5k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>16 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="1-迁移学习"><a href="#1-迁移学习" class="headerlink" title="1.迁移学习"></a>1.迁移学习</h2><p>做图像识别是不是每次都意味着要自定义模型，确定好 <strong>卷积层</strong>、<strong>池化层</strong> 和 <strong>全连接层</strong>，然后从0开始训练？不同类型的图像数据集会不会有通用的特征？如果训练样本比较少怎么办？是不是可以把已经训练好的模型，拿过来稍微改改就可以使用的？</p>
+<p><strong>迁移学习（Transfer Learning）</strong> 就是这种可以将已有模型的知识迁移到新任务的学习方法，具有以下特点：</p>
+<ul>
+<li>适合数据量比较少的任务，但是有预训练知识，无需从头训练深度神经网络</li>
+<li>更快的训练速度和更少的资源消耗</li>
+<li>避免过拟合，训练效果更好，预训练的模型已经在大数据集上学到了<strong>通用特征</strong>（如边缘、形状、颜色）</li>
+</ul>
+<span id="more"></span>
+<p>迁移学习常见的使用方式：</p>
+<ol>
+<li>冻结预训练模型的大部分参数，仅训练全连接层（FC 层），这样做的优点是训练快，适合小数据集，缺点是预训练模型的特征可能不完全适用于新任务。</li>
+<li>解冻部分或全部预训练层，使其适应新任务，优点是特征提取灵活，能学到更多任务相关的特征，缺点是训练时间长，需要手动调节学习率。</li>
+</ol>
+<p>下面通过一个小样本的花卉识别来介绍一下迁移学习的训练流程。</p>
+<h2 id="2-数据处理"><a href="#2-数据处理" class="headerlink" title="2.数据处理"></a>2.数据处理</h2><h3 id="1-数据结构"><a href="#1-数据结构" class="headerlink" title="1.数据结构"></a>1.数据结构</h3><p>训练集和验证集都是图片，每一个类型的花放在一个文件夹中，文件夹的名称可以通过<code>cat_to_name.json</code>文件匹配对应的花名称。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250306163312.png" alt="训练集和验证集结构" width="300"></p>
+<h3 id="2-数据加载与预处理"><a href="#2-数据加载与预处理" class="headerlink" title="2.数据加载与预处理"></a>2.数据加载与预处理</h3><p>由于本次任务训练集数据比较少，为了提高模型的泛化能力和训练效果，需要在做数据预处理的时候做下增强操作。<br>预处理：</p>
+<ul>
+<li><strong>transforms.Resize([96, 96])</strong>：将图片缩放到 96x96 的大小，统一输入尺寸，保证模型输入一致</li>
+<li><strong>transforms.ToTensor()</strong>：将图像从 PIL 图像或 NumPy 数组转换为 PyTorch 的 Tensor 格式<br>增强：</li>
+<li><strong>transforms.RandomRotation(45)</strong>：对图像进行随机旋转，角度范围是 -45 到 45 度之间。目的是增加模型对旋转变化的鲁棒性</li>
+<li><strong>transforms.CenterCrop(64)</strong>：从图像中心裁剪出 64x64 的区域。减少输入图像的多余部分，增强模型对图像的中心部分的学习</li>
+<li><strong>transforms.RandomHorizontalFlip(p&#x3D;0.5)</strong>：有 50% 的概率对图像进行水平翻转，能提高模型对图像左右方向不对称的适应能力</li>
+<li><strong>transforms.RandomVerticalFlip(p&#x3D;0.5)</strong>：有 50% 的概率对图像进行垂直翻转，进一步增强模型对图像的多样化学习</li>
+<li><strong>transforms.ColorJitter(brightness&#x3D;0.2, contrast&#x3D;0.1, saturation&#x3D;0.1, hue&#x3D;0.1)</strong>：对图像的亮度、对比度、饱和度和色调进行随机调整，增强模型对不同光照条件和颜色变化的鲁棒性</li>
+<li><strong>transforms.RandomGrayscale(p&#x3D;0.025)</strong>：有 2.5% 的概率将图像转为灰度图，这样模型能学到更多的图像特征，而不仅仅依赖颜色信息</li>
+<li><strong>transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])</strong>：标准化图像数据，使用 ImageNet 数据集的均值和标准差。标准化可以加速模型训练并提高收敛速度</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 数据预处理和增强</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">data_transforms</span>():  </span><br><span class="line">    <span class="keyword">return</span> &#123;  </span><br><span class="line">        <span class="string">&#x27;train&#x27;</span>:  </span><br><span class="line">            transforms.Compose([  </span><br><span class="line">                transforms.Resize([<span class="number">96</span>, <span class="number">96</span>]),  <span class="comment"># 转化成96*96大小的图像数据  </span></span><br><span class="line">                transforms.RandomRotation(<span class="number">45</span>),  <span class="comment"># 数据增强，-45到45度之间随机旋转  </span></span><br><span class="line">                transforms.CenterCrop(<span class="number">64</span>),  <span class="comment"># 数据增强，从中心开始裁剪为64*64  </span></span><br><span class="line">                transforms.RandomHorizontalFlip(p=<span class="number">0.5</span>),  <span class="comment"># 数据增强，选择一个概率概率随机水平翻转  </span></span><br><span class="line">                transforms.RandomVerticalFlip(p=<span class="number">0.5</span>),  <span class="comment"># 数据增强，选择一个概率概率随机水平翻转  </span></span><br><span class="line">                <span class="comment"># 数据增强，亮度，对比度，饱和度，色相调整  </span></span><br><span class="line">                transforms.ColorJitter(brightness=<span class="number">0.2</span>, contrast=<span class="number">0.1</span>, saturation=<span class="number">0.1</span>, hue=<span class="number">0.1</span>),  </span><br><span class="line">                transforms.RandomGrayscale(p=<span class="number">0.025</span>),  <span class="comment"># 数据增强，灰度调整  </span></span><br><span class="line">                transforms.ToTensor(),  <span class="comment"># 转化为tensor结构  </span></span><br><span class="line">                <span class="comment"># ImageNet提供的均值，标准差  </span></span><br><span class="line">                transforms.Normalize([<span class="number">0.485</span>, <span class="number">0.456</span>, <span class="number">0.406</span>], [<span class="number">0.229</span>, <span class="number">0.224</span>, <span class="number">0.225</span>])  </span><br><span class="line">            ]),  </span><br><span class="line">        <span class="string">&#x27;valid&#x27;</span>:  </span><br><span class="line">            transforms.Compose([  </span><br><span class="line">                transforms.Resize([<span class="number">64</span>, <span class="number">64</span>]),  </span><br><span class="line">                transforms.ToTensor(),  </span><br><span class="line">                <span class="comment"># ImageNet提供的均值，标准差  </span></span><br><span class="line">                transforms.Normalize([<span class="number">0.485</span>, <span class="number">0.456</span>, <span class="number">0.406</span>], [<span class="number">0.229</span>, <span class="number">0.224</span>, <span class="number">0.225</span>])  </span><br><span class="line">            ]),  </span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 数据加载</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">load_data_loader</span>():  </span><br><span class="line">    batch_size = <span class="number">128</span>  </span><br><span class="line">    image_datasets = &#123;x: datasets.ImageFolder(os.path.join(Path(<span class="string">&quot;./data/&quot;</span>), x), data_transforms()[x]) <span class="keyword">for</span> x <span class="keyword">in</span>  </span><br><span class="line">                      [<span class="string">&#x27;train&#x27;</span>, <span class="string">&#x27;valid&#x27;</span>]&#125;  </span><br><span class="line">    dataloaders = &#123;x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size, shuffle=<span class="literal">True</span>) <span class="keyword">for</span> x <span class="keyword">in</span>  </span><br><span class="line">                   [<span class="string">&#x27;train&#x27;</span>, <span class="string">&#x27;valid&#x27;</span>]&#125;  </span><br><span class="line">    <span class="keyword">return</span> dataloaders[<span class="string">&#x27;train&#x27;</span>], dataloaders[<span class="string">&#x27;valid&#x27;</span>]</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 训练数据 验证数据  </span></span><br><span class="line">train_dl, valid_dl = load_data_loader()</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-绘制部分预处理数据"><a href="#3-绘制部分预处理数据" class="headerlink" title="3.绘制部分预处理数据"></a>3.绘制部分预处理数据</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 反标准化（恢复原始图像）  </span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">denormalize</span>(<span class="params">image</span>):  </span><br><span class="line">    mean = np.array([<span class="number">0.485</span>, <span class="number">0.456</span>, <span class="number">0.406</span>])  </span><br><span class="line">    std = np.array([<span class="number">0.229</span>, <span class="number">0.224</span>, <span class="number">0.225</span>])  </span><br><span class="line">    image = image.numpy().transpose((<span class="number">1</span>, <span class="number">2</span>, <span class="number">0</span>))  <span class="comment"># 转换为 HWC 格式  </span></span><br><span class="line">    image = std * image + mean  <span class="comment"># 反标准化  </span></span><br><span class="line">    image = np.clip(image, <span class="number">0</span>, <span class="number">1</span>)  <span class="comment"># 限制在 [0,1] 之间  </span></span><br><span class="line">    <span class="keyword">return</span> image</span><br><span class="line"></span><br><span class="line"><span class="comment"># 绘制部分预处理后的数据</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">draw_dl_8img</span>(<span class="params">data_loader</span>):  </span><br><span class="line">    images, labels = <span class="built_in">next</span>(<span class="built_in">iter</span>(data_loader))  </span><br><span class="line">    fig, axes = plt.subplots(<span class="number">2</span>, <span class="number">4</span>, figsize=(<span class="number">12</span>, <span class="number">6</span>))  <span class="comment"># 创建 2x4 的子图网格  </span></span><br><span class="line">    axes = axes.flatten()  </span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">8</span>):  </span><br><span class="line">        img = denormalize(images[i])  <span class="comment"># 反标准化  </span></span><br><span class="line">        axes[i].imshow(img)  <span class="comment"># 显示图片  </span></span><br><span class="line">        axes[i].axis(<span class="string">&quot;off&quot;</span>)  <span class="comment"># 关闭坐标轴  </span></span><br><span class="line">        axes[i].set_title(<span class="string">f&quot;Label: <span class="subst">&#123;labels[i].item()&#125;</span>&quot;</span>)  <span class="comment"># 显示标签  </span></span><br><span class="line">    plt.tight_layout()  </span><br><span class="line">    plt.show()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">draw_dl_8img(train_dl)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250306171732.png"></p>
+<h2 id="3-模型配置"><a href="#3-模型配置" class="headerlink" title="3.模型配置"></a>3.模型配置</h2><h3 id="1-ResNet-18"><a href="#1-ResNet-18" class="headerlink" title="1.ResNet-18"></a>1.ResNet-18</h3><p><strong>ResNet-18</strong>可以用在别的任务上是因为它在 <strong>ImageNet</strong> 这样的超大规模数据集上训练过，学习到了通用的特征。<br>在深度学习模型训练中前几层通常学习 <strong>通用的低级特征</strong>（比如边缘、纹理、形状等），而后几层学习 <strong>高级的特定特征</strong>（比如猫的耳朵、人脸的结构）。前几层的特征对不同任务是通用的，因此可以在其他数据集上直接使用，只需调整最后几层（或者不调整）就能适应新的任务。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">BasicBlock</span>(nn.Module):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;ResNet 的基本残差块（适用于 ResNet-18 和 ResNet-34）&quot;&quot;&quot;</span></span><br><span class="line">    expansion = <span class="number">1</span>  <span class="comment"># 该块不会改变通道数</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, in_channels, out_channels, stride=<span class="number">1</span>, downsample=<span class="literal">None</span></span>):</span><br><span class="line">        <span class="built_in">super</span>(BasicBlock, <span class="variable language_">self</span>).__init__()</span><br><span class="line">        <span class="variable language_">self</span>.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=<span class="number">3</span>, stride=stride, padding=<span class="number">1</span>, bias=<span class="literal">False</span>)</span><br><span class="line">        <span class="variable language_">self</span>.bn1 = nn.BatchNorm2d(out_channels)</span><br><span class="line">        <span class="variable language_">self</span>.relu = nn.ReLU(inplace=<span class="literal">True</span>)</span><br><span class="line">        <span class="variable language_">self</span>.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=<span class="number">3</span>, stride=<span class="number">1</span>, padding=<span class="number">1</span>, bias=<span class="literal">False</span>)</span><br><span class="line">        <span class="variable language_">self</span>.bn2 = nn.BatchNorm2d(out_channels)</span><br><span class="line">        <span class="variable language_">self</span>.downsample = downsample  <span class="comment"># 是否使用 1×1 卷积调整通道数和尺寸</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        identity = x</span><br><span class="line">        <span class="keyword">if</span> <span class="variable language_">self</span>.downsample <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">            identity = <span class="variable language_">self</span>.downsample(x)</span><br><span class="line">        out = <span class="variable language_">self</span>.conv1(x)</span><br><span class="line">        out = <span class="variable language_">self</span>.bn1(out)</span><br><span class="line">        out = <span class="variable language_">self</span>.relu(out)</span><br><span class="line">        out = <span class="variable language_">self</span>.conv2(out)</span><br><span class="line">        out = <span class="variable language_">self</span>.bn2(out)</span><br><span class="line">        out += identity  <span class="comment"># 残差连接</span></span><br><span class="line">        out = <span class="variable language_">self</span>.relu(out)</span><br><span class="line">        <span class="keyword">return</span> out</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ResNet</span>(nn.Module):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;ResNet-18 模型&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, num_classes=<span class="number">1000</span></span>):</span><br><span class="line">        <span class="built_in">super</span>(ResNet, <span class="variable language_">self</span>).__init__()</span><br><span class="line">        <span class="variable language_">self</span>.conv1 = nn.Conv2d(<span class="number">3</span>, <span class="number">64</span>, kernel_size=<span class="number">7</span>, stride=<span class="number">2</span>, padding=<span class="number">3</span>, bias=<span class="literal">False</span>)</span><br><span class="line">        <span class="variable language_">self</span>.bn1 = nn.BatchNorm2d(<span class="number">64</span>)</span><br><span class="line">        <span class="variable language_">self</span>.relu = nn.ReLU(inplace=<span class="literal">True</span>)</span><br><span class="line">        <span class="variable language_">self</span>.maxpool = nn.MaxPool2d(kernel_size=<span class="number">3</span>, stride=<span class="number">2</span>, padding=<span class="number">1</span>)</span><br><span class="line">        <span class="comment"># ResNet 的四个层，每个包含 2 个 BasicBlock</span></span><br><span class="line">        <span class="variable language_">self</span>.layer1 = <span class="variable language_">self</span>._make_layer(<span class="number">64</span>, <span class="number">64</span>, <span class="number">2</span>, stride=<span class="number">1</span>)</span><br><span class="line">        <span class="variable language_">self</span>.layer2 = <span class="variable language_">self</span>._make_layer(<span class="number">64</span>, <span class="number">128</span>, <span class="number">2</span>, stride=<span class="number">2</span>)</span><br><span class="line">        <span class="variable language_">self</span>.layer3 = <span class="variable language_">self</span>._make_layer(<span class="number">128</span>, <span class="number">256</span>, <span class="number">2</span>, stride=<span class="number">2</span>)</span><br><span class="line">        <span class="variable language_">self</span>.layer4 = <span class="variable language_">self</span>._make_layer(<span class="number">256</span>, <span class="number">512</span>, <span class="number">2</span>, stride=<span class="number">2</span>)</span><br><span class="line">        <span class="variable language_">self</span>.avgpool = nn.AdaptiveAvgPool2d((<span class="number">1</span>, <span class="number">1</span>))</span><br><span class="line">        <span class="variable language_">self</span>.fc = nn.Linear(<span class="number">512</span>, num_classes)  <span class="comment"># 最终的全连接层</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">_make_layer</span>(<span class="params">self, in_channels, out_channels, blocks, stride</span>):</span><br><span class="line"></span><br><span class="line">        <span class="string">&quot;&quot;&quot;构建一个 ResNet 层&quot;&quot;&quot;</span></span><br><span class="line">        downsample = <span class="literal">None</span></span><br><span class="line">        <span class="keyword">if</span> stride != <span class="number">1</span> <span class="keyword">or</span> in_channels != out_channels:</span><br><span class="line">            downsample = nn.Sequential(</span><br><span class="line">                nn.Conv2d(in_channels, out_channels, kernel_size=<span class="number">1</span>, stride=stride, bias=<span class="literal">False</span>),</span><br><span class="line">                nn.BatchNorm2d(out_channels),</span><br><span class="line">            )</span><br><span class="line">        layers = []</span><br><span class="line">        layers.append(BasicBlock(in_channels, out_channels, stride, downsample))</span><br><span class="line">        <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, blocks):</span><br><span class="line">            layers.append(BasicBlock(out_channels, out_channels))</span><br><span class="line">        <span class="keyword">return</span> nn.Sequential(*layers)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        x = <span class="variable language_">self</span>.conv1(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.bn1(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.relu(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.maxpool(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.layer1(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.layer2(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.layer3(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.layer4(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.avgpool(x)</span><br><span class="line">        x = torch.flatten(x, <span class="number">1</span>)</span><br><span class="line">        x = <span class="variable language_">self</span>.fc(x)</span><br><span class="line">        <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
+<p>上面是ResNet-18 模型的结构，了解即可。因为ResNet-18 已经被 <strong>PyTorch 的 torchvision.models</strong> 模块包含并预定义了，我们无需手动定义整个模型结构，可直接使用它。</p>
+<h3 id="2-自定义ResNet-18"><a href="#2-自定义ResNet-18" class="headerlink" title="2.自定义ResNet-18"></a>2.自定义ResNet-18</h3><p>初始化一个预训练的 ResNet-18 模型，并修改它用于新的分类任务</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">init_model</span>(<span class="params">num_classes</span>):  </span><br><span class="line">    <span class="comment"># torch自带的18层训练好的模型  </span></span><br><span class="line">    model_ft = models.resnet18(weights=<span class="string">&quot;DEFAULT&quot;</span>)  </span><br><span class="line">    <span class="keyword">for</span> param <span class="keyword">in</span> model_ft.parameters():  </span><br><span class="line">        param.requires_grad = <span class="literal">False</span>  <span class="comment"># 冻结参数，使其在训练过程中 不会被优化  </span></span><br><span class="line">    model_ft.fc = nn.Linear(model_ft.fc.in_features, num_classes)  <span class="comment"># 替换ResNet18的最后全连接层  </span></span><br><span class="line">    model_ft.to(get_device())  <span class="comment"># 使用GPU or CPU训练</span></span><br><span class="line">    <span class="keyword">return</span> model_ft</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>models.resnet18(weights=&quot;DEFAULT&quot;</code>：加载 ResNet-18 预训练模型</li>
+<li><code>param.requires_grad = False</code>: 冻结 ResNet-18 的所有层，防止其参数被训练</li>
+<li><code>nn.Linear(model_ft.fc.in_features, num_classes)</code>：修改 ResNet 的最后一层，让它适应新的分类任务，因为当前训练集是102分类，<code>num_classes</code>为102，表示最后全连接层输出102个类别</li>
+<li><code>model_ft.to(get_device())</code>:让模型运行在 GPU 或 CPU上</li>
+</ul>
+<p>经过这样自定义后， ResNet-18模型只会训练最后的全连接层。</p>
+<h3 id="3-优化器"><a href="#3-优化器" class="headerlink" title="3.优化器"></a>3.优化器</h3><p>优化器还是使用<code>Adam</code></p>
+<blockquote>
+<p><strong>Adam</strong> 是一种常用的优化算法，全名为 <strong>Adaptive Moment Estimation</strong>，它结合了 <strong>Momentum</strong> 和 <strong>RMSprop</strong> 的优点，能够自动调整学习率来提高训练效果，Adam 优化器会通过计算一阶矩（梯度的均值）和二阶矩（梯度的平方均值）来动态调整每个参数的学习率，从而提高训练的效率和稳定性。  </p>
+</blockquote>
+<p>适用范围：一种自适应优化算法，非常适用于大多数任务，尤其是当模型参数多，训练过程复杂的时候。</p>
+<p>在定义<code>Adam</code>优化器的时候需要注意，只有未冻结的参数才需要训练，冻结的参数不会被训练优化</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">get_optimizer</span>(<span class="params">_model_resnet</span>):  </span><br><span class="line">    params_to_update = []  </span><br><span class="line">    <span class="keyword">for</span> name, param <span class="keyword">in</span> _model_resnet.named_parameters():  </span><br><span class="line">        <span class="keyword">if</span> param.requires_grad:  </span><br><span class="line">            params_to_update.append(param)  </span><br><span class="line">    <span class="keyword">return</span> optim.Adam(params_to_update, lr=<span class="number">1e-2</span>) <span class="comment"># 初始学习率 lr=0.01</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-学习率"><a href="#4-学习率" class="headerlink" title="4.学习率"></a>4.学习率</h3><p>在训练过程中，随着 epoch 增加，模型可能会 <strong>收敛变慢</strong>，也就是训练准确度会提升，如果还是保持原有的 <strong>步长(step_size)</strong> 往往会使训练效果下降，为了提高模型训练精度需要后期小步调整， Loss 下降变慢时，自动降低学习率。<br>例如，前 10 轮学习率 0.01，第 10 轮后变 0.001，第20轮后变0.0001，依次类推</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">scheduler = optim.lr_scheduler.StepLR(optimizer_ft, step_size=<span class="number">10</span>, gamma=<span class="number">0.1</span>)</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>step_size=10</code>：每 10 个epoch让学习率衰减一次</li>
+<li><code>gamma=0.1</code>：每次衰减时，学习率乘以0.1（缩小10倍）</li>
+</ul>
+<h3 id="5-损失函数"><a href="#5-损失函数" class="headerlink" title="5.损失函数"></a>5.损失函数</h3><blockquote>
+<p><code>CrossEntropyLoss</code>是PyTorch 中一个常用的损失函数，专门用于 <strong>分类任务</strong>，尤其是多类别分类。它结合了 <strong>Softmax</strong> 函数和 <strong>负对数似然损失</strong>（Negative Log-Likelihood Loss），用于处理分类任务中 <strong>概率输出</strong> 的问题</p>
+</blockquote>
+<p>适用范围：真实标签应该是一个 <strong>整数</strong>，表示每个样本的真实类别索引（而不是 one-hot 编码）</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">criterion = nn.CrossEntropyLoss()</span><br></pre></td></tr></table></figure>
+<h2 id="4-模型训练和评估"><a href="#4-模型训练和评估" class="headerlink" title="4.模型训练和评估"></a>4.模型训练和评估</h2><h3 id="1-训练"><a href="#1-训练" class="headerlink" title="1.训练"></a>1.训练</h3><p><code>train_one_epoch</code>方法定义了一个完整的<strong>训练轮次（epoch）</strong>，包括 <strong>前向传播、损失计算、反向传播、参数更新</strong>，并计算 <strong>训练损失和准确率</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">train_one_epoch</span>(<span class="params">_model, dataloader, optimizer, _criterion, device, _scheduler</span>):  </span><br><span class="line">    <span class="string">&quot;&quot;&quot;  </span></span><br><span class="line"><span class="string">    训练一个 epoch</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span>    </span><br><span class="line">    _model.train()  <span class="comment"># 设置为训练模式  </span></span><br><span class="line">    running_loss = <span class="number">0.0</span>  <span class="comment"># 累计 batch 损失值</span></span><br><span class="line">    running_corrects = <span class="number">0</span>  <span class="comment"># 累计正确预测的样本数</span></span><br><span class="line">  </span><br><span class="line">    <span class="keyword">for</span> inputs, labels <span class="keyword">in</span> dataloader:  <span class="comment"># 遍历每个batch（批量数据）</span></span><br><span class="line">        inputs, labels = inputs.to(device), labels.to(device)  <span class="comment"># 转移到GPU/CPU，加速训练  </span></span><br><span class="line">  </span><br><span class="line">        optimizer.zero_grad()  <span class="comment"># 清空梯度  </span></span><br><span class="line">        outputs = _model(inputs)  <span class="comment"># 模型前向传播计算输出  </span></span><br><span class="line">        _, predicted = torch.<span class="built_in">max</span>(outputs, <span class="number">1</span>)  <span class="comment"># 取最大概率的类别作为预测值 </span></span><br><span class="line">        loss = _criterion(outputs, labels)  <span class="comment"># 计算损失  </span></span><br><span class="line">  </span><br><span class="line">        loss.backward()  <span class="comment"># 计算梯度（反向传播） </span></span><br><span class="line">        optimizer.step()  <span class="comment"># 更新模型参数 </span></span><br><span class="line">  </span><br><span class="line">        running_loss += loss.item() * inputs.size(<span class="number">0</span>)  <span class="comment"># batch损失*batch_size</span></span><br><span class="line">	    running_corrects += torch.<span class="built_in">sum</span>((predicted == labels).<span class="built_in">int</span>())  <span class="comment"># 统计正确预测的个数</span></span><br><span class="line">    epoch_loss = running_loss / <span class="built_in">len</span>(dataloader.dataset)  <span class="comment"># 平均损失（总损失/样本数）</span></span><br><span class="line">    epoch_acc = running_corrects / <span class="built_in">len</span>(dataloader.dataset)  <span class="comment"># 准确率（正确预测数/总样本数）</span></span><br><span class="line">    <span class="keyword">return</span> epoch_loss, epoch_acc</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-评估"><a href="#2-评估" class="headerlink" title="2.评估"></a>2.评估</h3><p><code>validate_one_epoch</code> 方法 执行了一次完整的验证（evaluation），其核心功能是 <strong>前向传播、计算损失、计算准确率</strong>，但不会进行 <strong>反向传播和参数更新</strong>。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">validate_one_epoch</span>(<span class="params">_model, dataloader, _criterion, device</span>):  </span><br><span class="line">    <span class="string">&quot;&quot;&quot;  </span></span><br><span class="line"><span class="string">    进行一个 epoch 的验证  </span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span>    </span><br><span class="line">    _model.<span class="built_in">eval</span>()  <span class="comment"># 设置为评估模式  </span></span><br><span class="line">    running_loss = <span class="number">0.0</span>  <span class="comment"># 累计 batch 损失值</span></span><br><span class="line">    running_corrects = <span class="number">0</span>  <span class="comment"># 累计正确预测的样本数</span></span><br><span class="line">  </span><br><span class="line">    <span class="keyword">with</span> torch.no_grad():  <span class="comment"># 不计算梯度，加速计算  </span></span><br><span class="line">        <span class="keyword">for</span> inputs, labels <span class="keyword">in</span> dataloader:  <span class="comment"># 遍历每个batch（批量数据）</span></span><br><span class="line">            inputs, labels = inputs.to(device), labels.to(device)  <span class="comment"># 转移到GPU/CPU，加速训练</span></span><br><span class="line">            outputs = _model(inputs)  <span class="comment"># 模型前向计算输出</span></span><br><span class="line">            _, predicted = torch.<span class="built_in">max</span>(outputs, <span class="number">1</span>)  <span class="comment"># 取最大概率的类别作为预测值</span></span><br><span class="line">            loss = _criterion(outputs, labels)  <span class="comment"># 计算损失</span></span><br><span class="line">  </span><br><span class="line">            running_loss += loss.item() * inputs.size(<span class="number">0</span>)  <span class="comment"># batch损失*batch_size</span></span><br><span class="line">            running_corrects += torch.<span class="built_in">sum</span>((predicted == labels).<span class="built_in">int</span>())  <span class="comment"># 统计正确预测的个数 </span></span><br><span class="line">  </span><br><span class="line">    epoch_loss = running_loss / <span class="built_in">len</span>(dataloader.dataset)  <span class="comment"># 平均损失（总损失/样本数）</span></span><br><span class="line">    epoch_acc = running_corrects / <span class="built_in">len</span>(dataloader.dataset)  <span class="comment"># 准确率（正确预测数/总样本数）</span></span><br><span class="line">    <span class="keyword">return</span> epoch_loss, epoch_acc</span><br></pre></td></tr></table></figure>
+<h3 id="3-筛选与保存"><a href="#3-筛选与保存" class="headerlink" title="3.筛选与保存"></a>3.筛选与保存</h3><p><code>train_model</code>方法就是一个完整的模型训练过程了，包括</p>
+<ul>
+<li>训练多个 epoch（循环多轮数据集）</li>
+<li>对每个 epoch 进行训练和验证</li>
+<li>记录并打印损失、准确率、学习率变化</li>
+<li>保存最佳模型权重到本地</li>
+<li>在训练结束后，返回最佳模型参数</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">train_model</span>(<span class="params">_model, train_loader, valid_loader, _criterion, optimizer, _scheduler, num_epochs, device, _model_name</span>):  </span><br><span class="line">    <span class="string">&quot;&quot;&quot;  </span></span><br><span class="line"><span class="string">    训练完整模型  </span></span><br><span class="line"><span class="string">    return 最终模型、损失 &amp; 准确率历史、学习率变化</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span>    </span><br><span class="line">    start_time = time.time()  <span class="comment"># 记录训练开始时间</span></span><br><span class="line">    best_acc = <span class="number">0.0</span>  <span class="comment"># 记录最高的验证准确率，用于保存最佳模型</span></span><br><span class="line">    best_model_wts = copy.deepcopy(_model.state_dict())  <span class="comment"># 保存最佳模型的参数</span></span><br><span class="line">  </span><br><span class="line">    train_acc_history = []  <span class="comment"># 训练集的准确率</span></span><br><span class="line">    train_losses = []  <span class="comment"># 训练集的损失  </span></span><br><span class="line">    valid_acc_history = []  <span class="comment"># 验证集的准确率</span></span><br><span class="line">    valid_losses = []  <span class="comment"># 验证集的损失</span></span><br><span class="line">  </span><br><span class="line">    learning_rates = [optimizer.param_groups[<span class="number">0</span>][<span class="string">&#x27;lr&#x27;</span>]]  <span class="comment"># 学习率</span></span><br><span class="line">  </span><br><span class="line">    <span class="keyword">for</span> epoch <span class="keyword">in</span> <span class="built_in">range</span>(num_epochs):  </span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&#x27;Epoch:<span class="subst">&#123;epoch + <span class="number">1</span>&#125;</span>/<span class="subst">&#123;num_epochs&#125;</span>&#x27;</span>)  <span class="comment"># 循环epoch</span></span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 训练 记录训练损失和准确率</span></span><br><span class="line">        train_loss, train_acc = train_one_epoch(_model, train_loader, optimizer, _criterion, device, _scheduler)  </span><br><span class="line">        train_losses.append(train_loss)  </span><br><span class="line">        train_acc_history.append(train_acc)  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 验证 记录验证损失和准确率</span></span><br><span class="line">        valid_loss, valid_acc = validate_one_epoch(_model, valid_loader, _criterion, device)  </span><br><span class="line">        valid_losses.append(valid_loss)  </span><br><span class="line">        valid_acc_history.append(valid_acc)  </span><br><span class="line"></span><br><span class="line">        <span class="comment"># 记录&amp;打印本轮训练和验证的损失、准确率</span></span><br><span class="line">        time_elapsed = time.time() - start_time  </span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;Time elapsed: <span class="subst">&#123;time_elapsed // <span class="number">60</span>:<span class="number">.0</span>f&#125;</span>m <span class="subst">&#123;time_elapsed % <span class="number">60</span>:<span class="number">.0</span>f&#125;</span>s&quot;</span>)  </span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;Train Loss: <span class="subst">&#123;train_loss:<span class="number">.4</span>f&#125;</span> Acc: <span class="subst">&#123;train_acc:<span class="number">.4</span>f&#125;</span>&quot;</span>)  </span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;Valid Loss: <span class="subst">&#123;valid_loss:<span class="number">.4</span>f&#125;</span> Acc: <span class="subst">&#123;valid_acc:<span class="number">.4</span>f&#125;</span>&quot;</span>)  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 记录最佳模型  </span></span><br><span class="line">        <span class="keyword">if</span> valid_acc &gt; best_acc:  </span><br><span class="line">            best_acc = valid_acc  </span><br><span class="line">            best_model_wts = copy.deepcopy(_model.state_dict())  </span><br><span class="line">            state = &#123;  </span><br><span class="line">                <span class="string">&#x27;state_dict&#x27;</span>: _model.state_dict(),  </span><br><span class="line">                <span class="string">&#x27;best_acc&#x27;</span>: best_acc,  </span><br><span class="line">                <span class="string">&#x27;optimizer&#x27;</span>: optimizer.state_dict(),  </span><br><span class="line">            &#125;  </span><br><span class="line">            torch.save(state, model_name)  <span class="comment"># 保存最佳模型</span></span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 记录学习率  </span></span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27;Optimizer learning rate : &#123;:.7f&#125;&#x27;</span>.<span class="built_in">format</span>(optimizer.param_groups[<span class="number">0</span>][<span class="string">&#x27;lr&#x27;</span>]))  </span><br><span class="line">        learning_rates.append(optimizer.param_groups[<span class="number">0</span>][<span class="string">&#x27;lr&#x27;</span>])  </span><br><span class="line">        _scheduler.step()  <span class="comment"># 调整学习率 学习率衰减</span></span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27;-&#x27;</span> * <span class="number">100</span>)  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 训练完成 打印 训练总时长 最佳验证准确率</span></span><br><span class="line">    time_elapsed = time.time() - start_time  </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&#x27;Training complete in <span class="subst">&#123;time_elapsed // <span class="number">60</span>:<span class="number">.0</span>f&#125;</span>m <span class="subst">&#123;time_elapsed % <span class="number">60</span>:<span class="number">.0</span>f&#125;</span>s&#x27;</span>)  </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&#x27;Best validation Acc: <span class="subst">&#123;best_acc:<span class="number">.4</span>f&#125;</span>&#x27;</span>)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 用最佳模型的参数作为最终模型  </span></span><br><span class="line">    _model.load_state_dict(best_model_wts)  </span><br><span class="line">    <span class="keyword">return</span> _model, train_losses, train_acc_history, valid_losses, valid_acc_history, learning_rates</span><br></pre></td></tr></table></figure>
+<h3 id="4-一次训练"><a href="#4-一次训练" class="headerlink" title="4.一次训练"></a>4.一次训练</h3><p>一次训练20个epoch，训练完把模型保存到本地</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">train_model(model, train_dl, valid_dl, criterion, optimizer_ft, scheduler, <span class="number">20</span>, get_device(), model_name)</span><br></pre></td></tr></table></figure>
+<p>结果输出</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">---------------------------------------------------------------------------------</span><br><span class="line">Epoch:<span class="number">19</span>/<span class="number">20</span></span><br><span class="line">Time elapsed: 33m 37s</span><br><span class="line">Train Loss: <span class="number">1.6936</span> Acc: <span class="number">0.5911</span></span><br><span class="line">Valid Loss: <span class="number">3.2956</span> Acc: <span class="number">0.3912</span></span><br><span class="line">Optimizer learning rate : <span class="number">0.0000100</span></span><br><span class="line">---------------------------------------------------------------------------------</span><br><span class="line">Epoch:<span class="number">20</span>/<span class="number">20</span></span><br><span class="line">Time elapsed: 34m 52s</span><br><span class="line">Train Loss: <span class="number">1.7088</span> Acc: <span class="number">0.5882</span></span><br><span class="line">Valid Loss: <span class="number">3.2838</span> Acc: <span class="number">0.3704</span></span><br><span class="line">Optimizer learning rate : <span class="number">0.0000100</span></span><br><span class="line">---------------------------------------------------------------------------------</span><br><span class="line">Training complete <span class="keyword">in</span> 35m 1s</span><br><span class="line">Best validation Acc: <span class="number">0.392421</span></span><br></pre></td></tr></table></figure>
+<p>训练完后当前模块文件夹下会有一个<code>best.pt</code>刚训练好的模型文件，准备二次训练</p>
+<h3 id="5-二次训练"><a href="#5-二次训练" class="headerlink" title="5.二次训练"></a>5.二次训练</h3><p>加载第一次训练的模型后，解冻模型的所有层，然后使用较小的学习率继续训练 10 轮，更新模型权重。这样做可以让模型达到更好的准确率。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">second_train</span>(<span class="params">_model_name, _train_dl, _valid_dl, _criterion</span>):  </span><br><span class="line">    <span class="comment"># 初始化一个新模型，类别数 num_classes=102</span></span><br><span class="line">    <span class="comment"># 加载已有模型的权重，恢复之前训练好的参数</span></span><br><span class="line">    _model = init_model(num_classes=<span class="number">102</span>)  </span><br><span class="line">    checkpoint = torch.load(_model_name, weights_only=<span class="literal">True</span>)  </span><br><span class="line">    _model.load_state_dict(checkpoint[<span class="string">&#x27;state_dict&#x27;</span>])  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 解冻所有层的参数，让整个模型都可以,参与训练</span></span><br><span class="line">    <span class="keyword">for</span> param <span class="keyword">in</span> _model.parameters():  </span><br><span class="line">        param.requires_grad = <span class="literal">True</span>  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 调低学习率</span></span><br><span class="line">    _optimizer_next = optim.Adam(_model.parameters(), lr=<span class="number">1e-3</span>)  </span><br><span class="line">    <span class="comment"># 每7个epoch让学习率衰减一次（*0.1）</span></span><br><span class="line">    _scheduler_next = optim.lr_scheduler.StepLR(optimizer_ft, step_size=<span class="number">7</span>, gamma=<span class="number">0.1</span>)  </span><br><span class="line">    <span class="comment"># 重新训练</span></span><br><span class="line">    train_model(_model, _train_dl, _valid_dl, _criterion, _optimizer_next, _scheduler_next, <span class="number">10</span>, get_device(), _model_name)</span><br></pre></td></tr></table></figure>
+
+<p>二次训练较一次模型训练结果有改善</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">---------------------------------------------------------------------------------</span><br><span class="line">Epoch:<span class="number">9</span>/<span class="number">10</span></span><br><span class="line">Time elapsed: 16m 47s</span><br><span class="line">Train Loss: <span class="number">0.6153</span> Acc: <span class="number">0.8155</span></span><br><span class="line">Valid Loss: <span class="number">1.6921</span> Acc: <span class="number">0.6051</span></span><br><span class="line">Optimizer learning rate : <span class="number">0.0010000</span></span><br><span class="line">---------------------------------------------------------------------------------</span><br><span class="line">Epoch:<span class="number">10</span>/<span class="number">10</span></span><br><span class="line">Time elapsed: 18m 36s</span><br><span class="line">Train Loss: <span class="number">0.5529</span> Acc: <span class="number">0.8361</span></span><br><span class="line">Valid Loss: <span class="number">1.6800</span> Acc: <span class="number">0.5941</span></span><br><span class="line">Optimizer learning rate : <span class="number">0.0010000</span></span><br><span class="line">---------------------------------------------------------------------------------</span><br><span class="line">Training complete <span class="keyword">in</span> 18m 36s</span><br><span class="line">Best validation Acc: <span class="number">0.6051</span></span><br></pre></td></tr></table></figure>
+
+<p>两轮训练完最终对于测试集的验证正确率是59.41%</p>
+<h2 id="5-模型测试"><a href="#5-模型测试" class="headerlink" title="5.模型测试"></a>5.模型测试</h2><p>展示真实标签和模型预测的对比图，如果预测错误标题显示红色</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">show_predicted</span>(<span class="params">_model_name</span>):</span><br><span class="line">    <span class="comment"># 初始化一个新模型，类别数 num_classes=102</span></span><br><span class="line">    <span class="comment"># 加载已有模型的权重，恢复之前训练好的参数</span></span><br><span class="line">    _model = init_model(num_classes=<span class="number">102</span>)  </span><br><span class="line">    checkpoint = torch.load(_model_name, weights_only=<span class="literal">True</span>)  </span><br><span class="line">    _model.load_state_dict(checkpoint[<span class="string">&#x27;state_dict&#x27;</span>])  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 花的名称</span></span><br><span class="line">    label_name = load_label_name()  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 取一批验证集的数据</span></span><br><span class="line">    images, labels = <span class="built_in">next</span>(<span class="built_in">iter</span>(valid_dl))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 进行预测</span></span><br><span class="line">    _model.<span class="built_in">eval</span>()  </span><br><span class="line">    output = _model(images)  </span><br><span class="line">    _, predicted_tensor = torch.<span class="built_in">max</span>(output, <span class="number">1</span>)  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 处理预测结果</span></span><br><span class="line">    train_on_gpu = torch.cuda.is_available()  </span><br><span class="line">    predicted = np.squeeze(predicted_tensor.numpy()) <span class="keyword">if</span> <span class="keyword">not</span> train_on_gpu <span class="keyword">else</span> np.squeeze(predicted_tensor.cpu().numpy())</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 画出8张预测图</span></span><br><span class="line">    fig, axes = plt.subplots(<span class="number">2</span>, <span class="number">4</span>, figsize=(<span class="number">12</span>, <span class="number">6</span>))  <span class="comment"># 创建 2x4 的子图网格  </span></span><br><span class="line">    axes = axes.flatten()  </span><br><span class="line">    <span class="comment"># 显示每张图像及预测结果</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">8</span>):  </span><br><span class="line">        img = denormalize(images[i])  <span class="comment"># 反标准化  </span></span><br><span class="line">        axes[i].imshow(img)  <span class="comment"># 显示图片  </span></span><br><span class="line">        axes[i].axis(<span class="string">&quot;off&quot;</span>)  <span class="comment"># 关闭坐标轴  </span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 设置标题：真实vs预测</span></span><br><span class="line">        predicted_label = label_name.get(<span class="built_in">str</span>(predicted[i]), <span class="string">&quot;Unknown&quot;</span>)  </span><br><span class="line">        true_label = label_name.get(<span class="built_in">str</span>(labels[i].item()), <span class="string">&quot;Unknown&quot;</span>)  </span><br><span class="line">        title_color = <span class="string">&quot;green&quot;</span> <span class="keyword">if</span> predicted_label == true_label <span class="keyword">else</span> <span class="string">&quot;red&quot;</span>  </span><br><span class="line">        axes[i].set_title(<span class="string">&quot;&#123;&#125; (&#123;&#125;)&quot;</span>.<span class="built_in">format</span>(predicted_label, true_label), color=( </span><br><span class="line">            title_color))  <span class="comment"># 显示标签  </span></span><br><span class="line">    plt.tight_layout()  </span><br><span class="line">    plt.show()</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250307155124.png"></p>
+<h2 id="6-总结"><a href="#6-总结" class="headerlink" title="6.总结"></a>6.总结</h2><p>本文主要讲的是如何利用预训练模型（ResNet-18）在新数据集上做微调。先冻结大部分网络层，只留最后一层全连接层，再经过训练集训练后解冻全部参数，继续训练，以适应新数据集。<br>完整流程：</p>
+<ol>
+<li>加载 ResNet-18 预训练模型</li>
+<li>修改 fc 层，适配新任务</li>
+<li>冻结特征层，仅训练 fc 层（特征提取模式）</li>
+<li>设置优化器，仅更新 fc 层参数</li>
+<li>使用 StepLR 进行学习率衰减</li>
+<li>训练（前向传播 + 反向传播 + 梯度更新）</li>
+<li>验证模型性能（不更新梯度）</li>
+<li>保存最佳模型（防止过拟合）</li>
+<li>微调（解冻全部参数，降低学习率）</li>
+<li>可视化预测结果，检查分类准确率</li>
+</ol>
+<h2 id="7-模型优化"><a href="#7-模型优化" class="headerlink" title="7.模型优化"></a>7.模型优化</h2><p>八张图片中有两张识别错误，模型的识别准确率还有提升的空间，如何要进一步提高准确率该怎样做？查了一下，大致可以有以下几种方法：</p>
+<ol>
+<li>使用ResNet-50，ResNet-50由于参数更多，可以学习更复杂的特征，分类效果通常更好</li>
+<li>采用更好的优化器，例如<strong>AdamW</strong>（更稳定，L2 正则化）、<strong>SGD + Momentum</strong>（更适合 Fine-tuning）等</li>
+<li>优化学习率调度策略，例如<strong>ReduceLROnPlateau</strong>（监控验证集 Loss 下降才调整学习率）、<strong>CosineAnnealingLR</strong>（余弦退火，适用于 Fine-tuning）、<strong>OneCycleLR</strong>（加速收敛）等</li>
+<li>冻结更多层后逐步解冻，先只训练 fc 层，再解冻 ResNet 最后 1-2 个 block，最后解冻整个 ResNet 进行 Fine-tuning</li>
+<li>增加 Dropout 防止过拟合</li>
+<li>使用 Label Smoothing，目前的 CrossEntropyLoss 过于严格，可以用 <strong>Label Smoothing</strong>，防止过拟合</li>
+<li>使用混合精度训练（加速 + 提高泛化能力）</li>
+<li>使用 Early Stopping，训练更久的同时还能防止过拟合</li>
+</ol>
+<h2 id="8-备注"><a href="#8-备注" class="headerlink" title="8.备注"></a>8.备注</h2><p>环境：</p>
+<ul>
+<li>mac: 15.2</li>
+<li>python: 3.12.4</li>
+<li>pytorch: 2.5.1</li>
+<li>matplotlib: 3.8.4</li>
+<li>numpy: 1.26.4</li>
+</ul>
+<p>数据集：<br>	<a target="_blank" rel="noopener" href="https://github.com/keychankc/dl_code_for_blog/tree/main/004_cnn_classification_flowers/data">https://github.com/keychankc/dl_code_for_blog/tree/main/004_cnn_classification_flowers/data</a></p>
+<p>完整代码：<br>	<a target="_blank" rel="noopener" href="https://github.com/keychankc/dl_code_for_blog/blob/main/004_cnn_classification_flowers/main.py">https://github.com/keychankc/dl_code_for_blog/blob/main/004_cnn_classification_flowers/main.py</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://keychankc.github.io/2025/03/07/004-cnn-identify-flowers/" title="基于迁移学习(ResNet-18)的花卉识别">https://keychankc.github.io/2025/03/07/004-cnn-identify-flowers/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/Python/" rel="tag"># Python</a>
+              <a href="/tags/PyTorch/" rel="tag"># PyTorch</a>
+              <a href="/tags/%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83/" rel="tag"># 模型训练</a>
+              <a href="/tags/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" rel="tag"># 卷积神经网络</a>
+              <a href="/tags/matplotlib/" rel="tag"># matplotlib</a>
+              <a href="/tags/%E8%BF%81%E7%A7%BB%E5%AD%A6%E4%B9%A0/" rel="tag"># 迁移学习</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/03/02/003-cnn-digital-recognition/" rel="prev" title="利用卷积神经网络实现手写字体识别">
+                  <i class="fa fa-angle-left"></i> 利用卷积神经网络实现手写字体识别
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/03/14/005-rnn-classification-text/" rel="next" title="基于循环神经网络的文本分类实践">
+                  基于循环神经网络的文本分类实践 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">166k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.mengyajia.com","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2025/03/07/004-cnn-identify-flowers/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>

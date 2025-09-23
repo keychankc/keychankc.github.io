@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"keychankc.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="1.实现流程 训练基于VGG16的迁移学习图像分类模型，使其能够分类每个车位有车或者没车 通过OpenCV处理停车场图片，分割成单个车位图像数据 基于训练模型识别并绘制出空车位  2.模型训练1.VGG16VGG16 是由牛津大学 Visual Geometry Group（VGG）在 2014 年提出的经典卷积神经网络（CNN）模型，主要用于图像分类任务。其核心特点是：  ​结构简单但深度大：由">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OpenCV之停车场车位识别">
+<meta property="og:url" content="https://keychankc.github.io/2025/03/31/008-opencv-park/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s blog">
+<meta property="og:description" content="1.实现流程 训练基于VGG16的迁移学习图像分类模型，使其能够分类每个车位有车或者没车 通过OpenCV处理停车场图片，分割成单个车位图像数据 基于训练模型识别并绘制出空车位  2.模型训练1.VGG16VGG16 是由牛津大学 Visual Geometry Group（VGG）在 2014 年提出的经典卷积神经网络（CNN）模型，主要用于图像分类任务。其核心特点是：  ​结构简单但深度大：由">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-31_15-02-45.jpg">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-31_15-02-54.jpg">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-31_15-03-03.jpg">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-31_15-10-04.jpg">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-31_15-10-14.jpg">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-31_15-16-20.jpg">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-31_15-16-27.jpg">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-31_15-19-42.jpg">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-31_15-59-43.jpg">
+<meta property="article:published_time" content="2025-03-31T02:29:12.000Z">
+<meta property="article:modified_time" content="2025-09-21T12:04:48.537Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="图像处理">
+<meta property="article:tag" content="计算机视觉">
+<meta property="article:tag" content="图像识别">
+<meta property="article:tag" content="OpenCV">
+<meta property="article:tag" content="图像分割">
+<meta property="article:tag" content="keras">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-31_15-02-45.jpg">
+
+
+<link rel="canonical" href="https://keychankc.github.io/2025/03/31/008-opencv-park/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/2025/03/31/008-opencv-park/","path":"2025/03/31/008-opencv-park/","title":"OpenCV之停车场车位识别"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>OpenCV之停车场车位识别 | KeyChan's blog</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.mengyajia.com">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's blog" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E5%AE%9E%E7%8E%B0%E6%B5%81%E7%A8%8B"><span class="nav-text">1.实现流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83"><span class="nav-text">2.模型训练</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-VGG16"><span class="nav-text">1.VGG16</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E7%BD%91%E7%BB%9C%E7%BB%93%E6%9E%84"><span class="nav-text">1.网络结构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E8%BF%81%E7%A7%BB%E5%AD%A6%E4%B9%A0"><span class="nav-text">2.迁移学习</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E5%B1%80%E9%99%90%E6%80%A7"><span class="nav-text">3.局限性</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86"><span class="nav-text">2.数据处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%A8%A1%E5%9E%8B%E8%87%AA%E5%AE%9A%E4%B9%89"><span class="nav-text">3.模型自定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83"><span class="nav-text">4.模型训练</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E8%BD%A6%E4%BD%8D%E5%88%86%E5%89%B2"><span class="nav-text">3.车位分割</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%9B%BE%E5%83%8F%E9%A2%84%E5%A4%84%E7%90%86"><span class="nav-text">1.图像预处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E8%BD%A6%E4%BD%8D%E5%8C%BA%E5%9F%9F%E9%80%89%E6%8B%A9"><span class="nav-text">2.车位区域选择</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E8%BD%A6%E4%BD%8D%E7%BA%BF%E6%A3%80%E6%B5%8B%E4%B8%8E%E8%81%9A%E7%B1%BB"><span class="nav-text">3.车位线检测与聚类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E8%BD%A6%E4%BD%8D%E5%88%92%E5%88%86%E4%B8%8E%E7%BC%96%E5%8F%B7"><span class="nav-text">4.车位划分与编号</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E8%BD%A6%E4%BD%8D%E7%8A%B6%E6%80%81%E9%A2%84%E6%B5%8B"><span class="nav-text">4.车位状态预测</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%9B%BE%E7%89%87%E9%A2%84%E6%B5%8B"><span class="nav-text">1.图片预测</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E8%A7%86%E9%A2%91%E9%A2%84%E6%B5%8B"><span class="nav-text">2.视频预测</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E4%B8%BB%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8"><span class="nav-text">3.主方法调用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E6%80%BB%E7%BB%93"><span class="nav-text">5.总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83"><span class="nav-text">1.模型训练</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E8%BD%A6%E4%BD%8D%E5%88%86%E5%89%B2"><span class="nav-text">2.车位分割</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E5%A4%87%E6%B3%A8"><span class="nav-text">6.备注</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83"><span class="nav-text">环境</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B5%84%E6%BA%90%E5%92%8C%E4%BB%A3%E7%A0%81"><span class="nav-text">资源和代码</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">30</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">39</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/keychankc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://keychankc.github.io/2025/03/31/008-opencv-park/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's blog">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="OpenCV之停车场车位识别 | KeyChan's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          OpenCV之停车场车位识别
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-31 10:29:12" itemprop="dateCreated datePublished" datetime="2025-03-31T10:29:12+08:00">2025-03-31</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-09-21 20:04:48" itemprop="dateModified" datetime="2025-09-21T20:04:48+08:00">2025-09-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2025/03/31/008-opencv-park/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2025/03/31/008-opencv-park/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>4.5k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>16 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="1-实现流程"><a href="#1-实现流程" class="headerlink" title="1.实现流程"></a>1.实现流程</h2><ol>
+<li>训练基于VGG16的迁移学习图像分类模型，使其能够分类每个车位有车或者没车</li>
+<li>通过OpenCV处理停车场图片，分割成单个车位图像数据</li>
+<li>基于训练模型识别并绘制出空车位</li>
+</ol>
+<h2 id="2-模型训练"><a href="#2-模型训练" class="headerlink" title="2.模型训练"></a>2.模型训练</h2><h3 id="1-VGG16"><a href="#1-VGG16" class="headerlink" title="1.VGG16"></a>1.VGG16</h3><p><strong>VGG16</strong> 是由牛津大学 Visual Geometry Group（VGG）在 2014 年提出的经典卷积神经网络（CNN）模型，主要用于图像分类任务。其核心特点是：</p>
+<ul>
+<li>​<strong>结构简单但深度大</strong>：由 ​<strong>16 层</strong>​（13 个卷积层 + 3 个全连接层）组成，使用 ​<strong>3x3 小卷积核堆叠</strong>​（通过多层小卷积核模拟大感受野）。</li>
+<li>​<strong>ImageNet 竞赛的里程碑</strong>：在 2014 年 ImageNet 大规模视觉识别挑战赛（ILSVRC）中取得第二名（Top-5 错误率 7.3%），证明了深度网络对视觉任务的重要性。</li>
+<li>​<strong>标准化设计</strong>：所有卷积层使用相同配置（3x3 卷积核，步长 1，填充 same），全连接层统一为 4096 个神经元。</li>
+</ul>
+<span id="more"></span>
+<h4 id="1-网络结构"><a href="#1-网络结构" class="headerlink" title="1.网络结构"></a>1.网络结构</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">输入层 (224x224x3)</span><br><span class="line">→ 2层卷积 (64通道) → 最大池化</span><br><span class="line">→ 2层卷积 (128通道) → 最大池化</span><br><span class="line">→ 3层卷积 (256通道) → 最大池化</span><br><span class="line">→ 3层卷积 (512通道) → 最大池化</span><br><span class="line">→ 3层卷积 (512通道) → 最大池化</span><br><span class="line">→ 全连接层 (4096神经元) → Dropout</span><br><span class="line">→ 全连接层 (4096神经元) → Dropout</span><br><span class="line">→ 输出层 (1000神经元，对应ImageNet的1000类)</span><br></pre></td></tr></table></figure>
+<h4 id="2-迁移学习"><a href="#2-迁移学习" class="headerlink" title="2.迁移学习"></a>2.迁移学习</h4><p>迁移学习（Transfer Learning）的核心思想是：​<strong>利用在大规模数据集（如 ImageNet）上预训练的网络，提取通用视觉特征，迁移到新任务中</strong>。VGG16 成为迁移学习经典选择的原因：</p>
+<ol>
+<li>强大的特征提取能力<ul>
+<li>​<strong>通用底层特征</strong>：VGG16 的浅层卷积层（前几层）学习到的是边缘、颜色、纹理等<strong>通用视觉特征</strong>，这些特征对大多数图像任务（如物体检测、分类）都有效</li>
+<li>​<strong>深层语义特征</strong>：深层卷积层（后几层）捕捉的是更高层次的语义特征（如车轮、车窗、车身结构等），适用于复杂任务</li>
+</ul>
+</li>
+<li>预训练权重优势<ul>
+<li>​<strong>大规模数据训练</strong>：VGG16 在 ImageNet（1400万张图片，1000类别）上训练，学习到了丰富的视觉模式</li>
+<li>​<strong>参数有效性</strong>：其 3x3 卷积核堆叠的方式，能高效提取特征，且权重分布稳定</li>
+</ul>
+</li>
+<li>迁移学习适配性<ul>
+<li>​<strong>冻结部分层</strong>：可以冻结前几层（保留通用特征），只微调深层（适配特定任务），如在本文中冻结前 10 层</li>
+<li><strong>灵活替换顶层</strong>：移除原模型的分类层（ImageNet 的 1000 类输出），替换为自定义分类层（如示例中的二分类）</li>
+</ul>
+</li>
+</ol>
+<h4 id="3-局限性"><a href="#3-局限性" class="headerlink" title="3.局限性"></a>3.局限性</h4><p>尽管VGG16适合迁移学习，但也有明显缺点：</p>
+<ul>
+<li>​<strong>参数量大</strong>：全连接层占用大量参数（约 1.38 亿），容易过拟合</li>
+<li>​<strong>计算成本高</strong>：较深的网络导致训练和推理速度较慢</li>
+<li>​<strong>被新模型超越</strong>：后续模型（如 ResNet、EfficientNet）在性能和效率上更优</li>
+</ul>
+<h3 id="2-数据处理"><a href="#2-数据处理" class="headerlink" title="2.数据处理"></a>2.数据处理</h3><p><code>_load_data_generator</code>用于加载和预处理图像数据，以便用于训练深度学习模型。它使用 ImageDataGenerator 进行数据增强和归一化，并返回训练集和验证集的数据生成。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_load_data_generator</span>(<span class="params">_train_data_dir, _valid_data_dir, _img_width, _img_height, _batch_size</span>):</span><br><span class="line">    <span class="comment"># 1️⃣ 移除 .DS_Store 文件（仅适用于 macOS)</span></span><br><span class="line">    <span class="keyword">for</span> directory <span class="keyword">in</span> [_train_data_dir, _valid_data_dir]:  </span><br><span class="line">        ds_store_path = os.path.join(directory, <span class="string">&quot;.DS_Store&quot;</span>)  </span><br><span class="line">        <span class="keyword">if</span> os.path.exists(ds_store_path):  </span><br><span class="line">            os.remove(ds_store_path)  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 2️⃣ 数据增强器,对训练数据进行增强，防止过拟合，提高模型的泛化能力</span></span><br><span class="line">    train_datagen = ImageDataGenerator(  </span><br><span class="line">        rescale=<span class="number">1.0</span> / <span class="number">255</span>,       <span class="comment"># 将像素值归一化到 [0,1]（原始范围[0,255]）        </span></span><br><span class="line">        horizontal_flip=<span class="literal">True</span>,    <span class="comment"># 随机水平翻转，适用于左右对称的物体（如汽车、动物）  </span></span><br><span class="line">        fill_mode=<span class="string">&quot;nearest&quot;</span>,     <span class="comment"># 在图像转换时，缺失的像素用最近的像素填充  </span></span><br><span class="line">        zoom_range=<span class="number">0.1</span>,          <span class="comment"># 图像随机缩放 10%</span></span><br><span class="line">        width_shift_range=<span class="number">0.1</span>,   <span class="comment"># 10% 随机水平平移  </span></span><br><span class="line">        height_shift_range=<span class="number">0.1</span>,  <span class="comment"># 10% 随机垂直平移  </span></span><br><span class="line">        rotation_range=<span class="number">5</span>         <span class="comment"># 随机旋转图像 ±5 度 </span></span><br><span class="line">    )  </span><br><span class="line">    <span class="comment"># 3️⃣ 验证集数据只进行归一化，不使用数据增强  </span></span><br><span class="line">    valid_datagen = ImageDataGenerator(rescale=<span class="number">1.</span> / <span class="number">255</span>)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 4️⃣ 生成数据集和验证数据</span></span><br><span class="line">    train_generator = train_datagen.flow_from_directory(  </span><br><span class="line">        _train_data_dir,  </span><br><span class="line">        target_size=(_img_height, _img_width),  <span class="comment"># 调整图像大小</span></span><br><span class="line">        batch_size=_batch_size,  </span><br><span class="line">        class_mode=<span class="string">&quot;categorical&quot;</span>  <span class="comment"># 适用于多类别分类问题（独热编码，如 [1,0,0]）  </span></span><br><span class="line">    )  </span><br><span class="line">    validation_generator = valid_datagen.flow_from_directory(  </span><br><span class="line">        _valid_data_dir,  </span><br><span class="line">        target_size=(_img_height, _img_width),  </span><br><span class="line">        batch_size=_batch_size,  </span><br><span class="line">        class_mode=<span class="string">&quot;categorical&quot;</span>  </span><br><span class="line">    )  </span><br><span class="line">    <span class="keyword">return</span> train_generator, validation_generator</span><br></pre></td></tr></table></figure>
+<h3 id="3-模型自定义"><a href="#3-模型自定义" class="headerlink" title="3.模型自定义"></a>3.模型自定义</h3><p>使用<code>VGG16</code>并添加自定义的全连接层，以构建一个<strong>用于多类别分类</strong>（停车&#x2F;不停车）的深度学习模型，同时对部分层进行微调</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">load_model</span>(<span class="params">_img_width, _img_height, _num_classes</span>):  </span><br><span class="line">    <span class="comment"># 1️⃣ 加载 VGG16 预训练模型（weights 在ImageNet数据集上训练好的权重）  </span></span><br><span class="line">    <span class="comment"># include_top=False：去掉 VGG16 的全连接层，只保留卷积部分（用于特征提取）  </span></span><br><span class="line">    <span class="comment"># input_shape 3表示RGB颜色通道</span></span><br><span class="line">    model = applications.VGG16(weights=<span class="string">&#x27;imagenet&#x27;</span>, include_top=<span class="literal">False</span>, input_shape=(_img_width, _img_height, <span class="number">3</span>))  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 2️⃣ 让前10层的参数不参与训练，只使用它们的预训练权重，避免过拟合，并且加快训练速度  </span></span><br><span class="line">    <span class="keyword">for</span> layer <span class="keyword">in</span> model.layers[:<span class="number">10</span>]:  </span><br><span class="line">        layer.trainable = <span class="literal">False</span>  <span class="comment"># 冻结VGG16的前10层  </span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 3️⃣ 展平特征图</span></span><br><span class="line">    x = model.output  <span class="comment"># VGG16最后的卷积层的输出特征图 </span></span><br><span class="line">    x = Flatten()(x)  <span class="comment"># 展平数据（变成一维向量)以便用于全连接层</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 4️⃣ 添加自定义全连接层  </span></span><br><span class="line">    <span class="comment"># 全连接层，输出 num_classes 个类别</span></span><br><span class="line">    <span class="comment"># softmax激活函数：用于分类任务，输出每个类别的概率  </span></span><br><span class="line">    predictions = Dense(_num_classes, activation=<span class="string">&quot;softmax&quot;</span>)(x)  <span class="comment"># 输出层（2 分类）  </span></span><br><span class="line">    <span class="comment"># 5️⃣ 构建完整模型</span></span><br><span class="line">    <span class="comment"># 输入:VGG16的输入层  输出:自定义的分类层predictions  </span></span><br><span class="line">    model = Model(inputs=model.<span class="built_in">input</span>, outputs=predictions)  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 6️⃣ 编译模型</span></span><br><span class="line">    <span class="comment"># loss=&quot;categorical_crossentropy&quot;, 用于多类别分类任务</span></span><br><span class="line">    <span class="comment"># optimizer 随机梯度下降（SGD）优化器 learning_rate=0.0001 控制学习步长（较小的学习率有助于稳定训练） momentum=0.9 让优化器记住之前的梯度，减少震荡，提高收敛速度</span></span><br><span class="line">    model.<span class="built_in">compile</span>(loss=<span class="string">&quot;categorical_crossentropy&quot;</span>,  <span class="comment"># 用于多类别分类任务  </span></span><br><span class="line">                  optimizer=optimizers.SGD(learning_rate=<span class="number">0.0001</span>, momentum=<span class="number">0.9</span>), </span><br><span class="line">                  metrics=[<span class="string">&quot;accuracy&quot;</span>])  <span class="comment"># 训练时监控准确率  </span></span><br><span class="line">    <span class="keyword">return</span> model</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-模型训练"><a href="#4-模型训练" class="headerlink" title="4.模型训练"></a>4.模型训练</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">train</span>():  </span><br><span class="line">    <span class="comment"># 1️⃣ 设置训练参数</span></span><br><span class="line">    train_data_dir = <span class="string">&quot;data/train&quot;</span>  <span class="comment"># 训练集文件夹</span></span><br><span class="line">    valid_data_dir = <span class="string">&quot;data/valid&quot;</span>  <span class="comment"># 验证集文件夹</span></span><br><span class="line">    train_files_count = _files_count(train_data_dir)  <span class="comment"># 图片数量</span></span><br><span class="line">    valid_files_count = _files_count(valid_data_dir)  </span><br><span class="line">    batch_size = <span class="number">32</span>  <span class="comment"># 每批次训练32张图片</span></span><br><span class="line">    epochs = <span class="number">15</span>  <span class="comment"># 训练15轮</span></span><br><span class="line">    num_classes = <span class="number">2</span>  <span class="comment"># 二分类任务（停车/不停车）</span></span><br><span class="line">    img_width = <span class="number">32</span>  <span class="comment"># 图片大小（VGG16预处理需要固定尺寸）</span></span><br><span class="line">    img_height = <span class="number">32</span>  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 2️⃣ 加载模型</span></span><br><span class="line">    model = load_model(img_width, img_height, num_classes)  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 3️⃣ 加载数据</span></span><br><span class="line">    train_generator, validation_generator = _load_data_generator(train_data_dir, valid_data_dir, img_width, img_height, batch_size)  </span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 4️⃣ 训练回调  </span></span><br><span class="line">    <span class="comment"># 模型检查点</span></span><br><span class="line">    <span class="comment"># val_accuracy最高时自动保存最佳模型car1.keras</span></span><br><span class="line">    <span class="comment"># save_best_only=True 只保存最佳模型</span></span><br><span class="line">    <span class="comment"># save_weights_only=False 保存完整模型（结构+权重）</span></span><br><span class="line">    checkpoint = ModelCheckpoint(<span class="string">&quot;car1.keras&quot;</span>, monitor=<span class="string">&#x27;val_accuracy&#x27;</span>, verbose=<span class="number">1</span>, save_best_only=<span class="literal">True</span>, save_weights_only=<span class="literal">False</span>, mode=<span class="string">&#x27;auto&#x27;</span>)  </span><br><span class="line">    <span class="comment"># 早停机制  </span></span><br><span class="line">    early = EarlyStopping(monitor=<span class="string">&#x27;val_accuracy&#x27;</span>,  <span class="comment"># 10轮内没有提升，停止训练</span></span><br><span class="line">                          min_delta=<span class="number">0</span>,  </span><br><span class="line">                          patience=<span class="number">10</span>,  <span class="comment"># 最多等待10轮</span></span><br><span class="line">                          verbose=<span class="number">1</span>,  </span><br><span class="line">                          mode=<span class="string">&#x27;max&#x27;</span>)  <span class="comment"># val_accuracy最大化</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 5️⃣ 计算步数 计算每轮训练的批次数</span></span><br><span class="line">    steps_per_epoch = np.ceil(train_files_count / batch_size).astype(<span class="built_in">int</span>)  </span><br><span class="line">    validation_steps = np.ceil(valid_files_count / batch_size).astype(<span class="built_in">int</span>)  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># 6️⃣ 训练模型</span></span><br><span class="line">    model.fit(  </span><br><span class="line">        train_generator,  <span class="comment"># 训练数据  </span></span><br><span class="line">        steps_per_epoch=steps_per_epoch,  <span class="comment"># 每个epoch运行多少个batch（训练批次）  </span></span><br><span class="line">        epochs=epochs,  <span class="comment"># 训练 15 轮  </span></span><br><span class="line">        validation_data=validation_generator,  <span class="comment"># 验证数据集  </span></span><br><span class="line">        validation_steps=validation_steps,  <span class="comment"># 验证批次数  </span></span><br><span class="line">        callbacks=[checkpoint, early]  </span><br><span class="line">    )</span><br></pre></td></tr></table></figure>
+<p>model.fit() 训练过程中自动生成的日志信息，如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">Epoch 13/15</span><br><span class="line">12/12 ━━━━━━━━━━━━━━━━━━━━ 0s 452ms/step - accuracy: 0.9705 - loss: 0.0595</span><br><span class="line">Epoch 13: val_accuracy did not improve from 0.94512</span><br><span class="line">12/12 ━━━━━━━━━━━━━━━━━━━━ 6s 546ms/step - accuracy: 0.9712 - loss: 0.0587 - val_accuracy: 0.9451 - val_loss: 0.1267</span><br><span class="line">Epoch 14/15</span><br><span class="line">12/12 ━━━━━━━━━━━━━━━━━━━━ 0s 444ms/step - accuracy: 0.9904 - loss: 0.0406</span><br><span class="line">Epoch 14: val_accuracy improved from 0.94512 to 0.95122, saving model to car1.keras</span><br><span class="line">12/12 ━━━━━━━━━━━━━━━━━━━━ 7s 547ms/step - accuracy: 0.9905 - loss: 0.0403 - val_accuracy: 0.9512 - val_loss: 0.1178</span><br><span class="line">Epoch 15/15</span><br><span class="line">12/12 ━━━━━━━━━━━━━━━━━━━━ 0s 458ms/step - accuracy: 0.9963 - loss: 0.0310</span><br><span class="line">Epoch 15: val_accuracy did not improve from 0.95122</span><br><span class="line">12/12 ━━━━━━━━━━━━━━━━━━━━ 7s 552ms/step - accuracy: 0.9960 - loss: 0.0314 - val_accuracy: 0.9390 - val_loss: 0.1335</span><br></pre></td></tr></table></figure>
+<p>模型训练完会生成一个<code>car1.keras</code>文件</p>
+<h2 id="3-车位分割"><a href="#3-车位分割" class="headerlink" title="3.车位分割"></a>3.车位分割</h2><h3 id="1-图像预处理"><a href="#1-图像预处理" class="headerlink" title="1.图像预处理"></a>1.图像预处理</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 提取出白色和黄色的区域(车位线)，并返回一个掩码后的图像  </span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">select_rgb_white_yellow</span>(<span class="params">image</span>):  </span><br><span class="line">    lower = np.uint8([<span class="number">120</span>, <span class="number">120</span>, <span class="number">120</span>])  </span><br><span class="line">    upper = np.uint8([<span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span>])  </span><br><span class="line">    <span class="comment"># 提取lower和upper之间颜色  </span></span><br><span class="line">    <span class="comment"># mask是一个二值图像，白色区域表示符合颜色范围的像素，黑色区域表示不符合的像素  </span></span><br><span class="line">    mask = cv2.inRange(image, lower, upper)  </span><br><span class="line">    <span class="comment"># 保留掩码中白色区域对应的像素，其余区域置为黑色  </span></span><br><span class="line">    masked = cv2.bitwise_and(image, image, mask=mask)  </span><br><span class="line">    <span class="keyword">return</span> masked  </span><br><span class="line"></span><br><span class="line"><span class="comment"># 转灰度图，便于后续边缘检测</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">convert_gray</span>(<span class="params">image</span>):  </span><br><span class="line">    <span class="keyword">return</span> cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)  </span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用Canny算法检测图像边缘，返回二值化的边缘图像</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">detect_edges</span>(<span class="params">image, low_threshold=<span class="number">50</span>, high_threshold=<span class="number">200</span></span>):  </span><br><span class="line">    <span class="comment"># low_threshold：低阈值，用于边缘连接  high_threshold：高阈值，用于强边缘检测  </span></span><br><span class="line">    <span class="comment"># 二值图像，其中边缘像素为白色（255），非边缘像素为黑色（0）  </span></span><br><span class="line">    <span class="keyword">return</span> cv2.Canny(image, low_threshold, high_threshold)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">white_yellow_image = parking.select_rgb_white_yellow(_image)  </span><br><span class="line">cv_show(<span class="string">&quot;white_yellow_images&quot;</span>, white_yellow_image)  </span><br><span class="line">gray_image = parking.convert_gray(white_yellow_image)  </span><br><span class="line">cv_show(<span class="string">&quot;gray_image&quot;</span>, gray_image)  </span><br><span class="line">edges_image = parking.detect_edges(gray_image)  </span><br><span class="line">cv_show(<span class="string">&quot;edges_image&quot;</span>, edges_image)</span><br></pre></td></tr></table></figure>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-31_15-02-45.jpg"><br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-31_15-02-54.jpg"><br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-31_15-03-03.jpg"></p>
+<h3 id="2-车位区域选择"><a href="#2-车位区域选择" class="headerlink" title="2.车位区域选择"></a>2.车位区域选择</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义停车场的多边形区域顶点（通过手动标定），返回顶点坐标和标记顶点后的图像</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">select_region</span>(<span class="params">image</span>):  </span><br><span class="line">    rows, cols = image.shape[:<span class="number">2</span>]  </span><br><span class="line">    pt_1 = [<span class="built_in">int</span>(cols * <span class="number">0.05</span>), <span class="built_in">int</span>(rows * <span class="number">0.90</span>)]  </span><br><span class="line">    pt_2 = [<span class="built_in">int</span>(cols * <span class="number">0.05</span>), <span class="built_in">int</span>(rows * <span class="number">0.70</span>)]  </span><br><span class="line">    pt_3 = [<span class="built_in">int</span>(cols * <span class="number">0.30</span>), <span class="built_in">int</span>(rows * <span class="number">0.55</span>)]  </span><br><span class="line">    pt_4 = [<span class="built_in">int</span>(cols * <span class="number">0.6</span>), <span class="built_in">int</span>(rows * <span class="number">0.13</span>)]  </span><br><span class="line">    pt_5 = [<span class="built_in">int</span>(cols * <span class="number">0.90</span>), <span class="built_in">int</span>(rows * <span class="number">0.15</span>)]  </span><br><span class="line">    pt_6 = [<span class="built_in">int</span>(cols * <span class="number">0.90</span>), <span class="built_in">int</span>(rows * <span class="number">0.95</span>)]  </span><br><span class="line">  </span><br><span class="line">    vertices = np.array([pt_1, pt_2, pt_3, pt_4, pt_5, pt_6], dtype=np.int32)  </span><br><span class="line">    cv_vertices = [vertices.reshape(-<span class="number">1</span>, <span class="number">1</span>, <span class="number">2</span>)]  <span class="comment"># 转换为OpenCV多边形格式  </span></span><br><span class="line">  </span><br><span class="line">    point_img = image.copy()  </span><br><span class="line">    point_img = cv2.cvtColor(point_img, cv2.COLOR_GRAY2RGB)  </span><br><span class="line">    <span class="keyword">for</span> point <span class="keyword">in</span> vertices:  </span><br><span class="line">        cv2.circle(point_img, (point[<span class="number">0</span>], point[<span class="number">1</span>]), <span class="number">5</span>, (<span class="number">0</span>, <span class="number">0</span>, <span class="number">255</span>), <span class="number">2</span>)  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">return</span> point_img, cv_vertices  </span><br><span class="line"></span><br><span class="line"><span class="comment"># 根据顶点坐标生成掩码，过滤出停车区域，忽略无关背景</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">filter_region</span>(<span class="params">image, vertices</span>):  </span><br><span class="line">    mask = np.zeros_like(image)  </span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(mask.shape) == <span class="number">2</span>:  </span><br><span class="line">        cv2.fillPoly(mask, vertices, <span class="number">255</span>)  <span class="comment"># 绘制停车区域  </span></span><br><span class="line">    <span class="keyword">return</span> cv2.bitwise_and(image, mask)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">(point_img, vertices) = parking.select_region(edges_image)  </span><br><span class="line">cv_show(<span class="string">&quot;point_img&quot;</span>, point_img)</span><br><span class="line">filter_region_image = parking.filter_region(edges_image, vertices)  </span><br><span class="line">cv_show(<span class="string">&quot;filter_region_image&quot;</span>, filter_region_image)</span><br></pre></td></tr></table></figure>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-31_15-10-04.jpg"><br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-31_15-10-14.jpg"></p>
+<h3 id="3-车位线检测与聚类"><a href="#3-车位线检测与聚类" class="headerlink" title="3.车位线检测与聚类"></a>3.车位线检测与聚类</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 用霍夫变换检测直线（车位线），返回线段的起点和终点坐标</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">hough_lines</span>(<span class="params">image</span>):  </span><br><span class="line">    <span class="comment"># 能够检测出图像中的线段，并返回每条线段的起点和终点坐标  </span></span><br><span class="line">    <span class="comment"># image 输入图像，必须是单通道的二值图像（通常是经过边缘检测后的图像，如 Canny 边缘检测的结果  </span></span><br><span class="line">    <span class="comment"># rho 直线检测的精度（以像素为单位），默认值：0.1。值越小，检测精度越高  </span></span><br><span class="line">    <span class="comment"># theta 直线检测的角度精度（以弧度为单位）。默认值：np.pi / 10（即 18 度）。值越小，检测角度越精细  </span></span><br><span class="line">    <span class="comment"># threshold 累加器阈值，用于确定检测到的直线。默认值：15。值越小，检测到的直线越多；值越大，检测到的直线越少  </span></span><br><span class="line">    <span class="comment"># minLineLength 线段的最小长度。默认值：9 小于此长度的线段会被忽略  </span></span><br><span class="line">    <span class="comment"># maxLineGap 线段之间的最大间隙 默认值：4 如果两条线段之间的间隙小于此值，它们会被合并为一条线段  </span></span><br><span class="line">    <span class="keyword">return</span> cv2.HoughLinesP(image, rho=<span class="number">0.1</span>, theta=np.pi / <span class="number">10</span>, threshold=<span class="number">15</span>, minLineLength=<span class="number">9</span>, maxLineGap=<span class="number">4</span>)  </span><br><span class="line"></span><br><span class="line"><span class="comment"># 过滤并绘制符合条件的线段（水平且长度在25-55像素之间）</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">draw_lines</span>(<span class="params">image, lines</span>):  </span><br><span class="line">    <span class="comment"># 过滤霍夫变换检测到直线  </span></span><br><span class="line">    image = np.copy(image)  </span><br><span class="line">    cleaned = []  </span><br><span class="line">    <span class="keyword">for</span> line <span class="keyword">in</span> lines:  </span><br><span class="line">        <span class="keyword">for</span> x1, y1, x2, y2 <span class="keyword">in</span> line:  </span><br><span class="line">            <span class="keyword">if</span> <span class="built_in">abs</span>(y2 - y1) &lt;= <span class="number">1</span> <span class="keyword">and</span> <span class="number">25</span> &lt;= <span class="built_in">abs</span>(x2 - x1) &lt;= <span class="number">55</span>:  </span><br><span class="line">                cleaned.append((x1, y1, x2, y2))  </span><br><span class="line">                cv2.line(image, (x1, y1), (x2, y2), [<span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>], <span class="number">1</span>)  </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;No lines detected: &quot;</span>, <span class="built_in">len</span>(cleaned))  </span><br><span class="line">    <span class="keyword">return</span> image  </span><br><span class="line"></span><br><span class="line"><span class="comment"># 对检测到的线段按列聚类（每列为一排车位），计算每列的矩形边界框</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">identify_blocks</span>(<span class="params">image, lines</span>):  </span><br><span class="line">    _new_image = np.copy(image)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 1️⃣ 过滤部分直线  </span></span><br><span class="line">    cleaned = []  </span><br><span class="line">    <span class="keyword">for</span> line <span class="keyword">in</span> lines:  </span><br><span class="line">        <span class="keyword">for</span> x1, y1, x2, y2 <span class="keyword">in</span> line:  </span><br><span class="line">            <span class="keyword">if</span> <span class="built_in">abs</span>(y2 - y1) &lt;= <span class="number">1</span> <span class="keyword">and</span> <span class="number">25</span> &lt;= <span class="built_in">abs</span>(x2 - x1) &lt;= <span class="number">55</span>:  </span><br><span class="line">                cleaned.append((x1, y1, x2, y2))  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 2️⃣ 对直线按照x1进行排序  </span></span><br><span class="line">    <span class="keyword">import</span> operator  </span><br><span class="line">    list1 = <span class="built_in">sorted</span>(cleaned, key=operator.itemgetter(<span class="number">0</span>, <span class="number">1</span>))  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 3️⃣ 找到多个列，相当于每列是一排车  </span></span><br><span class="line">    clusters = &#123;&#125;  </span><br><span class="line">    d_index = <span class="number">0</span>  </span><br><span class="line">    clus_dist = <span class="number">10</span>  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(list1) - <span class="number">1</span>):  </span><br><span class="line">        distance = <span class="built_in">abs</span>(list1[i + <span class="number">1</span>][<span class="number">0</span>] - list1[i][<span class="number">0</span>])  </span><br><span class="line">        <span class="keyword">if</span> distance &lt;= clus_dist:  </span><br><span class="line">            <span class="keyword">if</span> <span class="keyword">not</span> d_index <span class="keyword">in</span> clusters.keys():  </span><br><span class="line">                clusters[d_index] = []  </span><br><span class="line">            clusters[d_index].append(list1[i])  </span><br><span class="line">            clusters[d_index].append(list1[i + <span class="number">1</span>])  </span><br><span class="line">        <span class="keyword">else</span>:  </span><br><span class="line">            d_index += <span class="number">1</span>  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 4️⃣ 得到坐标  </span></span><br><span class="line">    rects = &#123;&#125;  </span><br><span class="line">    i = <span class="number">0</span>  </span><br><span class="line">    <span class="keyword">for</span> key <span class="keyword">in</span> clusters:  </span><br><span class="line">        all_list = clusters[key]  </span><br><span class="line">        cleaned = <span class="built_in">list</span>(<span class="built_in">set</span>(all_list))  </span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(cleaned) &gt; <span class="number">5</span>:  </span><br><span class="line">            cleaned = <span class="built_in">sorted</span>(cleaned, key=<span class="keyword">lambda</span> tup: tup[<span class="number">1</span>])  </span><br><span class="line">            avg_y1 = cleaned[<span class="number">0</span>][<span class="number">1</span>]  </span><br><span class="line">            avg_y2 = cleaned[-<span class="number">1</span>][<span class="number">1</span>]  </span><br><span class="line">            avg_x1 = <span class="number">0</span>  </span><br><span class="line">            avg_x2 = <span class="number">0</span>  </span><br><span class="line">            <span class="keyword">for</span> tup <span class="keyword">in</span> cleaned:  </span><br><span class="line">                avg_x1 += tup[<span class="number">0</span>]  </span><br><span class="line">                avg_x2 += tup[<span class="number">2</span>]  </span><br><span class="line">            avg_x1 = avg_x1 / <span class="built_in">len</span>(cleaned)  </span><br><span class="line">            avg_x2 = avg_x2 / <span class="built_in">len</span>(cleaned)  </span><br><span class="line">            rects[i] = (avg_x1, avg_y1, avg_x2, avg_y2)  </span><br><span class="line">            i += <span class="number">1</span>  </span><br><span class="line">  </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Num Parking Lanes: &quot;</span>, <span class="built_in">len</span>(rects))  </span><br><span class="line">    <span class="comment"># 5️⃣ 把列矩形画出来  </span></span><br><span class="line">    buff = <span class="number">7</span>  </span><br><span class="line">    <span class="keyword">for</span> key <span class="keyword">in</span> rects:  </span><br><span class="line">        tup_top_left = (<span class="built_in">int</span>(rects[key][<span class="number">0</span>] - buff), <span class="built_in">int</span>(rects[key][<span class="number">1</span>]))  </span><br><span class="line">        tup_bot_right = (<span class="built_in">int</span>(rects[key][<span class="number">2</span>] + buff), <span class="built_in">int</span>(rects[key][<span class="number">3</span>]))  </span><br><span class="line">        cv2.rectangle(_new_image, tup_top_left, tup_bot_right, (<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>), <span class="number">1</span>)  </span><br><span class="line">    <span class="keyword">return</span> _new_image, rects</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">lines = parking.hough_lines(filter_region_image)  </span><br><span class="line">line_image = parking.draw_lines(_image, lines)  </span><br><span class="line">cv_show(<span class="string">&quot;line_image&quot;</span>, line_image)  </span><br><span class="line">rect_image, rects = parking.identify_blocks(_image, lines)  </span><br><span class="line">cv_show(<span class="string">&quot;rect_image&quot;</span>, rect_image)</span><br></pre></td></tr></table></figure>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-31_15-16-20.jpg"><br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-31_15-16-27.jpg"></p>
+<h3 id="4-车位划分与编号"><a href="#4-车位划分与编号" class="headerlink" title="4.车位划分与编号"></a>4.车位划分与编号</h3><p>根据矩形边界框划分车位：</p>
+<ul>
+<li>在每列内按固定间距（<code>gap=15.5</code>）绘制水平线，表示车位分隔</li>
+<li>对中间列添加垂直线，将车位分为左右两部分</li>
+<li>微调坐标（<code>adj_x1</code>, <code>adj_y1</code>等）以适配实际场景</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">draw_parking</span>(<span class="params">image, rects, thickness=<span class="number">1</span>, save=<span class="literal">False</span></span>):  </span><br><span class="line">    color = [<span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>]  </span><br><span class="line">    new_image = np.copy(image)  </span><br><span class="line">    gap = <span class="number">15.5</span>  </span><br><span class="line">    cur_len = <span class="number">0</span>  </span><br><span class="line">    spot_dict = &#123;&#125;  <span class="comment"># 字典：一个车位对应一个位置  </span></span><br><span class="line">    tot_spots = <span class="number">0</span>  </span><br><span class="line">    <span class="comment"># 微调  </span></span><br><span class="line">    adj_y1 = &#123;<span class="number">0</span>: <span class="number">20</span>, <span class="number">1</span>: -<span class="number">10</span>, <span class="number">2</span>: <span class="number">0</span>, <span class="number">3</span>: -<span class="number">11</span>, <span class="number">4</span>: <span class="number">28</span>, <span class="number">5</span>: <span class="number">5</span>, <span class="number">6</span>: -<span class="number">15</span>, <span class="number">7</span>: -<span class="number">15</span>, <span class="number">8</span>: -<span class="number">10</span>, <span class="number">9</span>: -<span class="number">30</span>, <span class="number">10</span>: <span class="number">9</span>, <span class="number">11</span>: -<span class="number">32</span>&#125;  </span><br><span class="line">    adj_y2 = &#123;<span class="number">0</span>: <span class="number">30</span>, <span class="number">1</span>: <span class="number">50</span>, <span class="number">2</span>: <span class="number">15</span>, <span class="number">3</span>: <span class="number">10</span>, <span class="number">4</span>: -<span class="number">15</span>, <span class="number">5</span>: <span class="number">15</span>, <span class="number">6</span>: <span class="number">15</span>, <span class="number">7</span>: -<span class="number">20</span>, <span class="number">8</span>: <span class="number">15</span>, <span class="number">9</span>: <span class="number">15</span>, <span class="number">10</span>: <span class="number">0</span>, <span class="number">11</span>: <span class="number">30</span>&#125;  </span><br><span class="line">  </span><br><span class="line">    adj_x1 = &#123;<span class="number">0</span>: -<span class="number">8</span>, <span class="number">1</span>: -<span class="number">15</span>, <span class="number">2</span>: -<span class="number">15</span>, <span class="number">3</span>: -<span class="number">15</span>, <span class="number">4</span>: -<span class="number">15</span>, <span class="number">5</span>: -<span class="number">15</span>, <span class="number">6</span>: -<span class="number">15</span>, <span class="number">7</span>: -<span class="number">15</span>, <span class="number">8</span>: -<span class="number">10</span>, <span class="number">9</span>: -<span class="number">10</span>, <span class="number">10</span>: -<span class="number">10</span>, <span class="number">11</span>: <span class="number">0</span>&#125;  </span><br><span class="line">    adj_x2 = &#123;<span class="number">0</span>: <span class="number">0</span>, <span class="number">1</span>: <span class="number">15</span>, <span class="number">2</span>: <span class="number">15</span>, <span class="number">3</span>: <span class="number">15</span>, <span class="number">4</span>: <span class="number">15</span>, <span class="number">5</span>: <span class="number">15</span>, <span class="number">6</span>: <span class="number">15</span>, <span class="number">7</span>: <span class="number">15</span>, <span class="number">8</span>: <span class="number">10</span>, <span class="number">9</span>: <span class="number">10</span>, <span class="number">10</span>: <span class="number">10</span>, <span class="number">11</span>: <span class="number">0</span>&#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">for</span> key <span class="keyword">in</span> rects:  </span><br><span class="line">        tup = rects[key]  </span><br><span class="line">        <span class="comment"># 使用 dict.get 方法，为不存在的键提供默认值 0        </span></span><br><span class="line">        x1 = <span class="built_in">int</span>(tup[<span class="number">0</span>] + adj_x1.get(key, <span class="number">0</span>))  </span><br><span class="line">        x2 = <span class="built_in">int</span>(tup[<span class="number">2</span>] + adj_x2.get(key, <span class="number">0</span>))  </span><br><span class="line">        y1 = <span class="built_in">int</span>(tup[<span class="number">1</span>] + adj_y1.get(key, <span class="number">0</span>))  </span><br><span class="line">        y2 = <span class="built_in">int</span>(tup[<span class="number">3</span>] + adj_y2.get(key, <span class="number">0</span>))  </span><br><span class="line">        cv2.rectangle(new_image, (x1, y1), (x2, y2), (<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>), <span class="number">1</span>)  </span><br><span class="line">        num_splits = <span class="built_in">int</span>(<span class="built_in">abs</span>(y2 - y1) // gap)  </span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>, num_splits + <span class="number">1</span>):  </span><br><span class="line">            y = <span class="built_in">int</span>(y1 + i * gap)  </span><br><span class="line">            cv2.line(new_image, (x1, y), (x2, y), color, thickness)  </span><br><span class="line">        <span class="keyword">if</span> <span class="number">0</span> &lt; key &lt; <span class="built_in">len</span>(rects) - <span class="number">1</span>:  </span><br><span class="line">            <span class="comment"># 竖直线  </span></span><br><span class="line">            x = <span class="built_in">int</span>((x1 + x2) / <span class="number">2</span>)  </span><br><span class="line">            cv2.line(new_image, (x, y1), (x, y2), color, thickness)  </span><br><span class="line">        <span class="comment"># 计算数量  </span></span><br><span class="line">        <span class="keyword">if</span> key == <span class="number">0</span> <span class="keyword">or</span> key == (<span class="built_in">len</span>(rects) - <span class="number">1</span>):  </span><br><span class="line">            tot_spots += num_splits + <span class="number">1</span>  </span><br><span class="line">        <span class="keyword">else</span>:  </span><br><span class="line">            tot_spots += <span class="number">2</span> * (num_splits + <span class="number">1</span>)  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 字典对应好  </span></span><br><span class="line">        <span class="keyword">if</span> key == <span class="number">0</span> <span class="keyword">or</span> key == (<span class="built_in">len</span>(rects) - <span class="number">1</span>):  </span><br><span class="line">            <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>, num_splits + <span class="number">1</span>):  </span><br><span class="line">                cur_len = <span class="built_in">len</span>(spot_dict)  </span><br><span class="line">                y = <span class="built_in">int</span>(y1 + i * gap)  </span><br><span class="line">                spot_dict[(x1, y, x2, y + gap)] = cur_len + <span class="number">1</span>  </span><br><span class="line">        <span class="keyword">else</span>:  </span><br><span class="line">            <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>, num_splits + <span class="number">1</span>):  </span><br><span class="line">                cur_len = <span class="built_in">len</span>(spot_dict)  </span><br><span class="line">                y = <span class="built_in">int</span>(y1 + i * gap)  </span><br><span class="line">                x = <span class="built_in">int</span>((x1 + x2) / <span class="number">2</span>)  </span><br><span class="line">                spot_dict[(x1, y, x, y + gap)] = cur_len + <span class="number">1</span>  </span><br><span class="line">                spot_dict[(x, y, x2, y + gap)] = cur_len + <span class="number">2</span>  </span><br><span class="line">  </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;total parking spaces: <span class="subst">&#123;tot_spots&#125;</span>, len: <span class="subst">&#123;cur_len&#125;</span> &quot;</span>)  </span><br><span class="line">    <span class="keyword">if</span> save:  </span><br><span class="line">        filename = <span class="string">f&#x27;with_parking_<span class="subst">&#123;<span class="built_in">str</span>(random.randint(<span class="number">1000</span>, <span class="number">9999</span>))&#125;</span>.jpg&#x27;</span>  </span><br><span class="line">        cv2.imwrite(filename, new_image)  </span><br><span class="line">    <span class="keyword">return</span> new_image, spot_dict</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">draw_parking_image, _spot_dict = parking.draw_parking(_image, rects)  </span><br><span class="line">cv_show(<span class="string">&quot;draw_parking_image&quot;</span>, draw_parking_image)</span><br></pre></td></tr></table></figure>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-31_15-19-42.jpg"><br>最终生成车位字典 <code>spot_dict</code>，记录每个车位的坐标和编号</p>
+<h2 id="4-车位状态预测"><a href="#4-车位状态预测" class="headerlink" title="4.车位状态预测"></a>4.车位状态预测</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 使用预训练模型，预测车位状态empty或occupied</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">make_prediction</span>(<span class="params">image, model, class_dictionary</span>):  </span><br><span class="line">    <span class="comment"># 预处理  </span></span><br><span class="line">    img = image / <span class="number">255.</span>  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 转换成4D tensor  </span></span><br><span class="line">    image = np.expand_dims(img, axis=<span class="number">0</span>)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 用训练好的模型进行训练  </span></span><br><span class="line">    class_predicted = model.predict(image)  </span><br><span class="line">    in_id = np.argmax(class_predicted[<span class="number">0</span>])  </span><br><span class="line">    label = class_dictionary[in_id]  </span><br><span class="line">    <span class="keyword">return</span> label  </span><br></pre></td></tr></table></figure>
+<h3 id="1-图片预测"><a href="#1-图片预测" class="headerlink" title="1.图片预测"></a>1.图片预测</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 遍历所有车位，调用模型预测状态，并在图像上标记空车位（绿色半透明矩形）</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">predict_on_image</span>(<span class="params">image, spot_dict, model, class_dictionary, color=<span class="literal">None</span>, alpha=<span class="number">0.5</span></span>):  </span><br><span class="line">    <span class="keyword">if</span> color <span class="keyword">is</span> <span class="literal">None</span>:  </span><br><span class="line">        color = [<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>]  </span><br><span class="line">    new_image = np.copy(image)  </span><br><span class="line">    overlay = np.copy(image)  </span><br><span class="line">    cnt_empty = <span class="number">0</span>  </span><br><span class="line">    all_spots = <span class="number">0</span>  </span><br><span class="line">    <span class="keyword">for</span> spot <span class="keyword">in</span> spot_dict.keys():  </span><br><span class="line">        all_spots += <span class="number">1</span>  </span><br><span class="line">        (x1, y1, x2, y2) = spot  </span><br><span class="line">        (x1, y1, x2, y2) = (<span class="built_in">int</span>(x1), <span class="built_in">int</span>(y1), <span class="built_in">int</span>(x2), <span class="built_in">int</span>(y2))  </span><br><span class="line">        spot_img = image[y1:y2, x1:x2]  </span><br><span class="line">        spot_img = cv2.resize(spot_img, (<span class="number">32</span>, <span class="number">32</span>))  </span><br><span class="line">  </span><br><span class="line">        label = make_prediction(spot_img, model, class_dictionary)  </span><br><span class="line">        <span class="keyword">if</span> label == <span class="string">&#x27;empty&#x27;</span>:  </span><br><span class="line">            cv2.rectangle(overlay, (<span class="built_in">int</span>(x1), <span class="built_in">int</span>(y1)), (<span class="built_in">int</span>(x2), <span class="built_in">int</span>(y2)), color, -<span class="number">1</span>)  </span><br><span class="line">            cnt_empty += <span class="number">1</span>  </span><br><span class="line">  </span><br><span class="line">    cv2.addWeighted(overlay, alpha, new_image, <span class="number">1</span> - alpha, <span class="number">0</span>, new_image)  </span><br><span class="line">  </span><br><span class="line">    cv2.putText(new_image, <span class="string">&quot;Available: %d spots&quot;</span> % cnt_empty, (<span class="number">30</span>, <span class="number">95</span>),  </span><br><span class="line">                cv2.FONT_HERSHEY_SIMPLEX,  </span><br><span class="line">                <span class="number">0.7</span>, (<span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span>), <span class="number">2</span>)  </span><br><span class="line">  </span><br><span class="line">    cv2.putText(new_image, <span class="string">&quot;Total: %d spots&quot;</span> % all_spots, (<span class="number">30</span>, <span class="number">125</span>),  </span><br><span class="line">                cv2.FONT_HERSHEY_SIMPLEX,  </span><br><span class="line">                <span class="number">0.7</span>, (<span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span>), <span class="number">2</span>)  </span><br><span class="line">    <span class="keyword">return</span> new_image  </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="2-视频预测"><a href="#2-视频预测" class="headerlink" title="2.视频预测"></a>2.视频预测</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 对视频隔帧处理，实时检测车位状态并输出结果视频</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">predict_on_video</span>(<span class="params">video_name, spot_dict, model, class_dictionary, output_name=<span class="string">&quot;parking_video_output.mp4&quot;</span></span>):  </span><br><span class="line">    cap = cv2.VideoCapture(video_name)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 获取视频帧率、分辨率  </span></span><br><span class="line">    fps = <span class="built_in">int</span>(cap.get(cv2.CAP_PROP_FPS))  </span><br><span class="line">    frame_width = <span class="built_in">int</span>(cap.get(cv2.CAP_PROP_FRAME_WIDTH))  </span><br><span class="line">    frame_height = <span class="built_in">int</span>(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 设置视频写入器（MP4 格式）  </span></span><br><span class="line">    fourcc = cv2.VideoWriter_fourcc(*<span class="string">&#x27;mp4v&#x27;</span>)  <span class="comment"># 编码格式  </span></span><br><span class="line">    out = cv2.VideoWriter(output_name, fourcc, fps, (frame_width, frame_height))  </span><br><span class="line">  </span><br><span class="line">    frame_count = <span class="number">0</span>  </span><br><span class="line">    alpha = <span class="number">0.5</span>  <span class="comment"># 透明度  </span></span><br><span class="line">    color = (<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>)  <span class="comment"># 绿色  </span></span><br><span class="line">  </span><br><span class="line">    <span class="keyword">while</span> cap.isOpened():  </span><br><span class="line">        ret, frame = cap.read()  </span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> ret:  </span><br><span class="line">            <span class="keyword">break</span>  <span class="comment"># 读取失败，退出循环  </span></span><br><span class="line">  </span><br><span class="line">        frame_count += <span class="number">1</span>  </span><br><span class="line">        <span class="keyword">if</span> frame_count % <span class="number">20</span> != <span class="number">0</span>:  <span class="comment"># 每20帧处理一次，提高性能  </span></span><br><span class="line">            out.write(frame)  <span class="comment"># 直接写入原始帧  </span></span><br><span class="line">            <span class="keyword">continue</span>  </span><br><span class="line">  </span><br><span class="line">        overlay = frame.copy()  </span><br><span class="line">        empty_spots = <span class="number">0</span>  </span><br><span class="line">        total_spots = <span class="built_in">len</span>(spot_dict)  </span><br><span class="line">  </span><br><span class="line">        <span class="keyword">for</span> (x1, y1, x2, y2) <span class="keyword">in</span> spot_dict.keys():  </span><br><span class="line">            x1, y1, x2, y2 = <span class="built_in">map</span>(<span class="built_in">int</span>, [x1, y1, x2, y2])  <span class="comment"># 确保坐标为整数  </span></span><br><span class="line">            spot_img = frame[y1:y2, x1:x2]  </span><br><span class="line">  </span><br><span class="line">            <span class="keyword">if</span> spot_img.size == <span class="number">0</span>:  </span><br><span class="line">                <span class="keyword">continue</span>  <span class="comment"># 避免无效的裁剪区域  </span></span><br><span class="line">  </span><br><span class="line">            spot_img = cv2.resize(spot_img, (<span class="number">32</span>, <span class="number">32</span>))  </span><br><span class="line">            label = make_prediction(spot_img, model, class_dictionary)  </span><br><span class="line">  </span><br><span class="line">            <span class="keyword">if</span> label == <span class="string">&#x27;empty&#x27;</span>:  </span><br><span class="line">                cv2.rectangle(overlay, (x1, y1), (x2, y2), color, -<span class="number">1</span>)  </span><br><span class="line">                empty_spots += <span class="number">1</span>  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 叠加透明遮罩  </span></span><br><span class="line">        cv2.addWeighted(overlay, alpha, frame, <span class="number">1</span> - alpha, <span class="number">0</span>, frame)  </span><br><span class="line">  </span><br><span class="line">        <span class="comment"># 显示车位信息  </span></span><br><span class="line">        cv2.putText(frame, <span class="string">f&quot;Available: <span class="subst">&#123;empty_spots&#125;</span> spots&quot;</span>, (<span class="number">30</span>, <span class="number">95</span>),  </span><br><span class="line">                    cv2.FONT_HERSHEY_SIMPLEX, <span class="number">0.7</span>, (<span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span>), <span class="number">2</span>)  </span><br><span class="line">        cv2.putText(frame, <span class="string">f&quot;Total: <span class="subst">&#123;total_spots&#125;</span> spots&quot;</span>, (<span class="number">30</span>, <span class="number">125</span>),  </span><br><span class="line">                    cv2.FONT_HERSHEY_SIMPLEX, <span class="number">0.7</span>, (<span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span>), <span class="number">2</span>)  </span><br><span class="line">  </span><br><span class="line">        out.write(frame)  <span class="comment"># 将帧写入输出视频文件  </span></span><br><span class="line">        <span class="comment"># cv_show(&#x27;Parking Detection&#x27;, frame)  </span></span><br><span class="line">  </span><br><span class="line">        <span class="keyword">if</span> cv2.waitKey(<span class="number">10</span>) &amp; <span class="number">0xFF</span> == <span class="built_in">ord</span>(<span class="string">&#x27;q&#x27;</span>):  </span><br><span class="line">            <span class="keyword">break</span>  </span><br><span class="line">  </span><br><span class="line">    cap.release()  </span><br><span class="line">    out.release()  </span><br><span class="line">    cv2.destroyAllWindows()  </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;Processed video saved as <span class="subst">&#123;output_name&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="3-主方法调用"><a href="#3-主方法调用" class="headerlink" title="3.主方法调用"></a>3.主方法调用</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 测试单张图片，显示原始图片&amp;预测结果</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">image_test</span>(<span class="params">_image, _area_dict, _model, _class_dict</span>):  </span><br><span class="line">    cv_show(<span class="string">&quot;image&quot;</span>, _image)  </span><br><span class="line">    predicted_image = parking.predict_on_image(_image, _area_dict, _model, _class_dict)  </span><br><span class="line">    cv_show(<span class="string">&quot;predicted_image&quot;</span>, predicted_image)  <span class="comment"># 显示预测后的图片</span></span><br><span class="line">    filename = <span class="string">f&#x27;with_marking_<span class="subst">&#123;<span class="built_in">str</span>(random.randint(<span class="number">1000</span>, <span class="number">9999</span>))&#125;</span>.jpg&#x27;</span>  </span><br><span class="line">    cv2.imwrite(filename, predicted_image)  <span class="comment"># 保存标记后的图片</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 测试视频</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">video_test</span>(<span class="params">video_name, _area_dict, _model, _class_dict</span>):  </span><br><span class="line">    parking.predict_on_video(video_name, _area_dict, _model, _class_dict)  </span><br><span class="line">  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:  </span><br><span class="line">    <span class="comment"># 1.模型训练，生成car1.keras  </span></span><br><span class="line">    <span class="comment"># train_model.train()    </span></span><br><span class="line">    model = load_model(<span class="string">&quot;car1.keras&quot;</span>)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 2.获取停车场车位区域  </span></span><br><span class="line">    image = cv2.imread(<span class="string">&quot;images/frame_0006.jpg&quot;</span>)  </span><br><span class="line">    area_dict = get_parking_area(image)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 3.图片（标出空车位）  </span></span><br><span class="line">    class_dict = &#123;<span class="number">0</span>: <span class="string">&#x27;empty&#x27;</span>, <span class="number">1</span>: <span class="string">&#x27;occupied&#x27;</span>&#125;  </span><br><span class="line">    image_test(image, area_dict, model, class_dict)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 4.视频（标出空车位）  </span></span><br><span class="line">    <span class="comment"># video_test(&#x27;parking_video.mp4&#x27;, area_dict, model, class_dict)</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Xnip2025-03-31_15-59-43.jpg"><br>视频效果可以自己跑下看看</p>
+<h2 id="5-总结"><a href="#5-总结" class="headerlink" title="5.总结"></a>5.总结</h2><h3 id="1-模型训练"><a href="#1-模型训练" class="headerlink" title="1.模型训练"></a>1.模型训练</h3><ul>
+<li>使用 VGG16 预训练模型，去除全连接层，仅保留卷积部分用于特征提取</li>
+<li>迁移学习：冻结前 10 层，仅微调深层，提高泛化能力</li>
+<li>数据预处理：<ul>
+<li>数据增强（翻转、缩放、平移、旋转）防止过拟合</li>
+<li>归一化（像素值缩放至 [0,1]）</li>
+</ul>
+</li>
+<li>自定义分类层：<ul>
+<li>全连接层 + softmax 激活函数进行二分类（空&#x2F;占）</li>
+</ul>
+</li>
+<li>模型训练：<ul>
+<li><code>categorical_crossentropy</code>作为损失函数，SGD 作为优化器</li>
+<li>早停机制 + 最优模型保存 (car1.keras)</li>
+</ul>
+</li>
+</ul>
+<h3 id="2-车位分割"><a href="#2-车位分割" class="headerlink" title="2.车位分割"></a>2.车位分割</h3><ul>
+<li>图像预处理：<ul>
+<li>选取 <strong>白色&#x2F;黄色车位线</strong>，转换为灰度图</li>
+<li>Canny 边缘检测提取车位边缘</li>
+</ul>
+</li>
+<li>车位区域选择：<ul>
+<li>手动标定停车场区域，提取有效部分</li>
+<li>生成 <strong>掩码</strong>，忽略背景干扰</li>
+</ul>
+</li>
+<li>车位线检测与聚类：<ul>
+<li>霍夫变换检测水平车位线</li>
+<li>聚类分析划分停车列，计算每列矩形边界框</li>
+</ul>
+</li>
+</ul>
+<h2 id="6-备注"><a href="#6-备注" class="headerlink" title="6.备注"></a>6.备注</h2><h3 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h3><ul>
+<li>mac: 15.2</li>
+<li>python: 3.12.4</li>
+<li>numpy: 1.26.4</li>
+<li>opencv-python: 4.11.0.86</li>
+<li>keras: 3.9.0</li>
+</ul>
+<h3 id="资源和代码"><a href="#资源和代码" class="headerlink" title="资源和代码"></a>资源和代码</h3><pre><code>https://github.com/keychankc/dl_code_for_blog/tree/main/008_opencv_park
+</code></pre>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://keychankc.github.io/2025/03/31/008-opencv-park/" title="OpenCV之停车场车位识别">https://keychankc.github.io/2025/03/31/008-opencv-park/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/" rel="tag"># 图像处理</a>
+              <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/" rel="tag"># 计算机视觉</a>
+              <a href="/tags/%E5%9B%BE%E5%83%8F%E8%AF%86%E5%88%AB/" rel="tag"># 图像识别</a>
+              <a href="/tags/OpenCV/" rel="tag"># OpenCV</a>
+              <a href="/tags/%E5%9B%BE%E5%83%8F%E5%88%86%E5%89%B2/" rel="tag"># 图像分割</a>
+              <a href="/tags/keras/" rel="tag"># keras</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/03/24/007-opencv-image-stitching/" rel="prev" title="OpenCV之全景图像拼接">
+                  <i class="fa fa-angle-left"></i> OpenCV之全景图像拼接
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/04/08/009-opencv-tracking/" rel="next" title="OpenCV之目标追踪">
+                  OpenCV之目标追踪 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">166k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.mengyajia.com","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2025/03/31/008-opencv-park/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>

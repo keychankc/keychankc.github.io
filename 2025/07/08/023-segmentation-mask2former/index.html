@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"keychankc.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="1.MaskFormer概述1.背景在图像分割任务中，传统方法如 U-Net、DeepLab 系列通常采用“逐像素点分类”的策略：模型需要判断图像中每一个像素所属的类别。这种方式在语义分割中表现出色，但在实例分割场景下却存在明显的局限性。例如，同一类别的多个实例往往难以区分，因此仅靠逐像素分类很难准确完成实例级的区域划分。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从像素到区域：MaskFormer 系列详解">
+<meta property="og:url" content="https://keychankc.github.io/2025/07/08/023-segmentation-mask2former/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s blog">
+<meta property="og:description" content="1.MaskFormer概述1.背景在图像分割任务中，传统方法如 U-Net、DeepLab 系列通常采用“逐像素点分类”的策略：模型需要判断图像中每一个像素所属的类别。这种方式在语义分割中表现出色，但在实例分割场景下却存在明显的局限性。例如，同一类别的多个实例往往难以区分，因此仅靠逐像素分类很难准确完成实例级的区域划分。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250702143815.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250702153232.png">
+<meta property="article:published_time" content="2025-07-08T05:54:12.000Z">
+<meta property="article:modified_time" content="2025-09-21T12:04:48.541Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="PyTorch">
+<meta property="article:tag" content="计算机视觉">
+<meta property="article:tag" content="目标分割">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250702143815.png">
+
+
+<link rel="canonical" href="https://keychankc.github.io/2025/07/08/023-segmentation-mask2former/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/2025/07/08/023-segmentation-mask2former/","path":"2025/07/08/023-segmentation-mask2former/","title":"从像素到区域：MaskFormer 系列详解"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>从像素到区域：MaskFormer 系列详解 | KeyChan's blog</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.mengyajia.com">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's blog" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-MaskFormer%E6%A6%82%E8%BF%B0"><span class="nav-text">1.MaskFormer概述</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E8%83%8C%E6%99%AF"><span class="nav-text">1.背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3"><span class="nav-text">2.核心思想</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%A4%A7%E8%87%B4%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF"><span class="nav-text">3.大致实现思路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E4%BC%98%E5%8A%BF%E4%B8%8E%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-text">4.优势与适用场景</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-MaskFormer%E6%A8%A1%E5%9E%8B%E8%A7%A3%E6%9E%90"><span class="nav-text">2.MaskFormer模型解析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Pixel-Level-Module%EF%BC%88%E5%83%8F%E7%B4%A0%E7%BA%A7%E6%A8%A1%E5%9D%97%EF%BC%89"><span class="nav-text">1.Pixel-Level Module（像素级模块）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-Backbone%EF%BC%88%E4%B8%BB%E5%B9%B2%E7%BD%91%E7%BB%9C%EF%BC%89"><span class="nav-text">1.Backbone（主干网络）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-Pixel-Decoder%EF%BC%88%E5%83%8F%E7%B4%A0%E8%A7%A3%E7%A0%81%E5%99%A8%EF%BC%89"><span class="nav-text">2.Pixel Decoder（像素解码器）</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Transformer-Module%EF%BC%88Transformer-%E6%A8%A1%E5%9D%97%EF%BC%89"><span class="nav-text">2.Transformer Module（Transformer 模块）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-Learnable-Queries%EF%BC%88%E5%8F%AF%E5%AD%A6%E4%B9%A0%E6%9F%A5%E8%AF%A2%EF%BC%89"><span class="nav-text">1.Learnable Queries（可学习查询）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-Transformer-Decoder"><span class="nav-text">2.Transformer Decoder</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E8%BE%93%E5%87%BA%E4%B8%A4%E7%B1%BB%E5%90%91%E9%87%8F%EF%BC%88%E6%9D%A5%E8%87%AA%E6%AF%8F%E4%B8%AA-Query%EF%BC%89"><span class="nav-text">3.输出两类向量（来自每个 Query）</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-%E7%B1%BB%E5%88%AB%E9%A2%84%E6%B5%8B%E5%90%91%E9%87%8F%EF%BC%88Classification-Head%EF%BC%89"><span class="nav-text">1.类别预测向量（Classification Head）</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-Mask-Embedding-%E5%90%91%E9%87%8F%EF%BC%88Mask-Head%EF%BC%89"><span class="nav-text">2.Mask Embedding 向量（Mask Head）</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Segmentation-Module%EF%BC%88%E5%88%86%E5%89%B2%E6%A8%A1%E5%9D%97%EF%BC%89"><span class="nav-text">3.Segmentation Module（分割模块）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E6%8E%A9%E7%A0%81%E7%94%9F%E6%88%90%EF%BC%88Mask-Generation%EF%BC%89"><span class="nav-text">1.掩码生成（Mask Generation）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E7%9B%91%E7%9D%A3%E4%BF%A1%E5%8F%B7%EF%BC%88%E8%AE%AD%E7%BB%83%E9%98%B6%E6%AE%B5%EF%BC%89"><span class="nav-text">2.监督信号（训练阶段）</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-%E5%88%86%E7%B1%BB%E6%8D%9F%E5%A4%B1%EF%BC%88Classification-Loss%EF%BC%89"><span class="nav-text">1. 分类损失（Classification Loss）</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-%E6%8E%A9%E7%A0%81%E6%8D%9F%E5%A4%B1%EF%BC%88Mask-Loss%EF%BC%89"><span class="nav-text">2. 掩码损失（Mask Loss）</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-Hungarian-Matching%EF%BC%88%E5%8C%88%E7%89%99%E5%88%A9%E5%8C%B9%E9%85%8D%EF%BC%89%E6%9C%BA%E5%88%B6"><span class="nav-text">3. Hungarian Matching（匈牙利匹配）机制</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E6%8E%A8%E7%90%86%E9%98%B6%E6%AE%B5%EF%BC%88Inference-Only%EF%BC%89"><span class="nav-text">3.推理阶段（Inference Only）</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E6%80%BB%E7%BB%93"><span class="nav-text">4.总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-Mask2Former"><span class="nav-text">3.Mask2Former</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%A6%82%E8%BF%B0"><span class="nav-text">1.概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%B7%A6%E4%BE%A7%EF%BC%9AMask2Former-%E7%9A%84%E6%95%B4%E4%BD%93%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="nav-text">2.左侧：Mask2Former 的整体流程图</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-Backbone-Pixel-Decoder"><span class="nav-text">1.Backbone + Pixel Decoder</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-Backbone"><span class="nav-text">1.Backbone</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-Pixel-Decoder"><span class="nav-text">2.Pixel Decoder</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-Transformer-Decoder-1"><span class="nav-text">2.Transformer Decoder</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%8F%B3%E4%BE%A7%EF%BC%9ADecoder-Block-%E5%86%85%E9%83%A8%E7%BB%93%E6%9E%84"><span class="nav-text">3.右侧：Decoder Block 内部结构</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E6%80%BB%E7%BB%93-1"><span class="nav-text">4.总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E5%A4%87%E6%B3%A8"><span class="nav-text">5.备注</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">30</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">39</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/keychankc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://keychankc.github.io/2025/07/08/023-segmentation-mask2former/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's blog">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="从像素到区域：MaskFormer 系列详解 | KeyChan's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          从像素到区域：MaskFormer 系列详解
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-07-08 13:54:12" itemprop="dateCreated datePublished" datetime="2025-07-08T13:54:12+08:00">2025-07-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-09-21 20:04:48" itemprop="dateModified" datetime="2025-09-21T20:04:48+08:00">2025-09-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2025/07/08/023-segmentation-mask2former/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2025/07/08/023-segmentation-mask2former/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>4.4k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>16 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="1-MaskFormer概述"><a href="#1-MaskFormer概述" class="headerlink" title="1.MaskFormer概述"></a>1.MaskFormer概述</h2><h3 id="1-背景"><a href="#1-背景" class="headerlink" title="1.背景"></a>1.背景</h3><p>在图像分割任务中，传统方法如 U-Net、DeepLab 系列通常采用“逐像素点分类”的策略：模型需要判断图像中每一个像素所属的类别。这种方式在语义分割中表现出色，但在实例分割场景下却存在明显的局限性。例如，同一类别的多个实例往往难以区分，因此仅靠逐像素分类很难准确完成实例级的区域划分。</p>
+<span id="more"></span>
+<p>针对这一问题，Facebook Research 团队提出了 MaskFormer，其核心思想是将图像分割任务从“逐像素点分类”转化为“mask 分类”，即：不是预测每一个像素的类别，而是直接预测整块区域（mask）的类别标签。</p>
+<h3 id="2-核心思想"><a href="#2-核心思想" class="headerlink" title="2.核心思想"></a>2.核心思想</h3><p>传统的图像分割方法采用逐像素分类的方式，就像是在工厂里进行质检——每一颗螺丝钉、每一块电路板都要单独检查，每一个细节都不能放过。这种方式追求的是精细度，每一个像素都必须被准确判断属于哪个类别。<br>而 MaskFormer 提出的“mask 分类”方法，更像是仓库管理中的“整托管理”：不再一件一件地点数、检查，而是直接判断“这一整箱是什么货物”，例如“这托盘上是饮料”、“那一堆是书籍”。它关注的是区域的整体语义，而不是逐个像素的归属。<br>也就是说，传统方法在做“逐件清点”，而 MaskFormer 在做“批量识别”。  </p>
+<h3 id="3-大致实现思路"><a href="#3-大致实现思路" class="headerlink" title="3.大致实现思路"></a>3.大致实现思路</h3><p>MaskFormer 的结构中存在多个查询（queries），可以将其理解为有多个“工人”，每一个工人负责“识别一类区域”。具体机制如下：</p>
+<ul>
+<li><strong>每个查询输出一个二分类 mask</strong>：例如某个查询预测“这是肝脏 vs 不是肝脏”，另一个查询预测“这是肺 vs 不是肺”，如此类推</li>
+<li><strong>每个查询对应一个全局类别标签</strong>：也就是说，每个 mask 预测结果不仅是一个区域，还附带一个类别标签，用于告诉我们“这块区域是什么”</li>
+<li><strong>竞争机制</strong>：多个查询可能会关注相似区域（比如两个都关注白菜），但最终只有得分最高的一个查询会被采纳为最终结果。其他无效或重复的查询则被归为“背景”</li>
+<li><strong>多余查询的处理</strong>：例如在一个三类别的任务中，模型可能有 100 个查询，大多数查询关注的是背景。只有前几个最有信心的查询会被保留用于预测输出</li>
+</ul>
+<p>这种机制避免了像素级预测中复杂的后处理流程（如 NMS、聚类等），而是直接在 mask 层面做预测和分类，从而实现更简洁高效的分割流程。</p>
+<h3 id="4-优势与适用场景"><a href="#4-优势与适用场景" class="headerlink" title="4.优势与适用场景"></a>4.优势与适用场景</h3><p>MaskFormer 的设计带来了几个明显优势：</p>
+<ul>
+<li><strong>统一的框架</strong>：语义分割、实例分割、全景分割都可在同一结构下完成</li>
+<li><strong>模块兼容性强</strong>：可直接兼容以往网络中的编码器、损失函数、训练流程，无需大规模修改</li>
+<li><strong>适用于复杂任务</strong>：尤其在类别数量较多（如超过 30 类、50 类等）时，mask 分类相较于逐像素分类更具优势</li>
+<li><strong>易于扩展</strong>：为后续改进提供了清晰方向，例如更强的查询机制、更灵活的匹配策略等</li>
+</ul>
+<p>在面对众多分割模型时，如果优先选择具有代表性、通用性和先进性的模型，MaskFormer 无疑是值得深入研究和学习的对象。</p>
+<h2 id="2-MaskFormer模型解析"><a href="#2-MaskFormer模型解析" class="headerlink" title="2.MaskFormer模型解析"></a>2.MaskFormer模型解析</h2><p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250702143815.png"><br>这张图正是 <strong>MaskFormer</strong> 的大致的模型结构图，它展示了从输入图像到最终语义分割结果的完整流程，模型可以分为三个主要模块：</p>
+<h3 id="1-Pixel-Level-Module（像素级模块）"><a href="#1-Pixel-Level-Module（像素级模块）" class="headerlink" title="1.Pixel-Level Module（像素级模块）"></a>1.Pixel-Level Module（像素级模块）</h3><p>这一部分主要负责从图像中提取逐像素的语义表示，构建“图像的细节描述”。</p>
+<h4 id="1-Backbone（主干网络）"><a href="#1-Backbone（主干网络）" class="headerlink" title="1.Backbone（主干网络）"></a>1.Backbone（主干网络）</h4><p>提取图像的多尺度特征，这是整个模型的信息“感知器”。</p>
+<p>具体机制：<br>给定一张原始图像（比如 512×512 的 RGB 图像），Backbone（通常是 <strong>ResNet</strong>、<strong>Swin Transformer</strong> 等）会对图像进行多层次的卷积或注意力计算，提取出多个尺度的特征图，例如：</p>
+<ul>
+<li>第一级：分辨率较高但语义浅（比如 1&#x2F;4 尺寸）</li>
+<li>第四级：分辨率低但语义强（比如 1&#x2F;32 尺寸）</li>
+</ul>
+<p>这些不同尺度的特征图分别编码了从<strong>边缘细节</strong>到<strong>语义概念</strong>的各种信息。</p>
+<p>输出多组不同分辨率的特征图，记作：<br>$$ \mathcal{F}_1, \mathcal{F}_2, …, \mathcal{F}_n $$<br>它们是接下来 <strong>Pixel Decoder</strong> 的输入。</p>
+<p>打个比方，Backbone 就像是一台照X光的扫描仪，它能从一张图片中“看出”不同层级的结构——既能看到轮廓边缘，也能识别出深层语义，比如“这里可能是猫脸”，“那边是草地”。</p>
+<h4 id="2-Pixel-Decoder（像素解码器）"><a href="#2-Pixel-Decoder（像素解码器）" class="headerlink" title="2.Pixel Decoder（像素解码器）"></a>2.Pixel Decoder（像素解码器）</h4><p>目的是多尺度特征融合，恢复高分辨率空间，并为每个像素构建语义向量。</p>
+<p>具体机制：<br>输入是刚才<strong>Backbone</strong>输出的多组特征图 $\mathcal{F}_i$，输出是一张大小为 $H \times W$、每个位置是一个 $C$ 维特征的图，这叫做 <strong>pixel embedding map</strong>。<br>这一步的主要逻辑包括：    </p>
+<ol>
+<li><strong>多尺度融合</strong>：将不同分辨率的特征图通过上采样、卷积等方式融合（类似 FPN 或 Transformer-FPN）</li>
+<li><strong>空间还原</strong>：恢复到原图大小或接近原图大小</li>
+<li><strong>语义压缩</strong>：将融合后的特征，压缩成每个像素点的语义向量（类似 per-pixel descriptor）</li>
+</ol>
+<p>打个比方，<strong>Pixel Decoder</strong> 就像一台“语义地图生成机”——它接收从 <strong>backbone</strong> 来的各种“粗略草图”，将它们拼接整合，最终生成一张每个像素都带有“身份描述”的地图。比如说，这个像素的 embedding 可能意味着“它很有可能属于猫耳朵区域”，另一个像素的embedding 表示“它看起来像是马路的一部分”。</p>
+<h3 id="2-Transformer-Module（Transformer-模块）"><a href="#2-Transformer-Module（Transformer-模块）" class="headerlink" title="2.Transformer Module（Transformer 模块）"></a>2.Transformer Module（Transformer 模块）</h3><p>这一部分是模型的“理解引擎”，它尝试从图像中识别出语义区域（或称为 mask 对象），其中每个区域对应一个查询。</p>
+<h4 id="1-Learnable-Queries（可学习查询）"><a href="#1-Learnable-Queries（可学习查询）" class="headerlink" title="1.Learnable Queries（可学习查询）"></a>1.Learnable Queries（可学习查询）</h4><p>作为“假设区域”的探针，每个 query 对应图中潜在的一个语义区域。</p>
+<p>具体机制：<br>模型预设了 $N$ 个 learnable queries（通常是长度为 $d$ 的向量），可以理解为“区域建议器”。这些 queries 是参数向量，<strong>在训练中不断被优化</strong>，学习如何“提问”或“寻找”图像中的不同语义区域。</p>
+<p>打个比方，想象图像是一幅地图，这些 learnable queries 就像是一群探险家，每人带着一个任务：“你去找猫”，“你去找人”，“你去找建筑”……虽然最开始大家是“盲猜”，但经过一轮轮训练后，他们会越来越擅长精准找到自己“负责的区域”。</p>
+<h4 id="2-Transformer-Decoder"><a href="#2-Transformer-Decoder" class="headerlink" title="2.Transformer Decoder"></a>2.Transformer Decoder</h4><p>将每个 query 与图像特征交互，理解并捕捉对应的语义区域。</p>
+<p>具体机制</p>
+<ol>
+<li><strong>输入</strong>：<br> 图像的语义特征图（来自 pixel decoder） $\mathcal{E}_{\text{pixel}} \in \mathbb{R}^{C \times H \times W}$ 以及 Learnable queries $\mathcal{Q} \in \mathbb{R}^{N \times d}$</li>
+<li><strong>交互过程</strong>：<br> 每一层 decoder 都会进行：<ul>
+<li>Self-Attention（query 之间互动，协调信息）</li>
+<li>Cross-Attention（query 和图像像素特征互动，定位语义区域）</li>
+<li>FeedForward（更新 query 表示）</li>
+</ul>
+</li>
+<li><strong>输出</strong>：<br> 得到 $N$ 个 enriched query 表示，每个 query 现在“知道自己该关注哪里了”</li>
+</ol>
+<p>打个比方，decoder 是一个开会的过程，每个 query 是一个代表，会议中它不仅要和其他代表沟通（self-attention），还要去图像里取证、调研（cross-attention），最后形成报告（输出表示），告诉你它代表的是什么区域、区域是什么类别。</p>
+<h4 id="3-输出两类向量（来自每个-Query）"><a href="#3-输出两类向量（来自每个-Query）" class="headerlink" title="3.输出两类向量（来自每个 Query）"></a>3.输出两类向量（来自每个 Query）</h4><p>Decoder 最终输出 $N$ 个 query 向量，模型会将它们分成两个不同用途的分支：</p>
+<h5 id="1-类别预测向量（Classification-Head）"><a href="#1-类别预测向量（Classification-Head）" class="headerlink" title="1.类别预测向量（Classification Head）"></a>1.类别预测向量（Classification Head）</h5><p>每个 query 输出一个向量 $q_i$，送入一个小的 MLP → 输出维度为 $K+1$（$K$ 个类别 + 1 个“无效&#x2F;空”类），表示这个 query 所代表的区域是哪个语义类别。训练时通过 cross-entropy loss 与 ground truth 类别对齐。</p>
+<h5 id="2-Mask-Embedding-向量（Mask-Head）"><a href="#2-Mask-Embedding-向量（Mask-Head）" class="headerlink" title="2.Mask Embedding 向量（Mask Head）"></a>2.Mask Embedding 向量（Mask Head）</h5><p>同一个 query 还会输出一个 embedding（或将 query 自身作为 embedding）→ 记为 $e_i$。这个 embedding 会去和 Pixel Decoder 输出的每个像素向量做<strong>点积匹配</strong>，生成该 query 对应的<strong>全图掩码</strong>。每个 query 相当于“用自己的形状模板”去和整张图进行匹配，得出一个 mask。</p>
+<p>每个 query 其实就像一名记者：</p>
+<ul>
+<li>他写了一篇报道（query 向量），说明自己发现了什么（这个区域是猫还是人）</li>
+<li>他还画了一张地图（mask embedding），标记出“这片区域就是我看到的对象”</li>
+</ul>
+<h3 id="3-Segmentation-Module（分割模块）"><a href="#3-Segmentation-Module（分割模块）" class="headerlink" title="3.Segmentation Module（分割模块）"></a>3.Segmentation Module（分割模块）</h3><p>这一部分负责根据 mask embedding 和逐像素特征之间的相似度，生成每个 query 对应的空间掩码，即哪些位置属于这个 query 表示的区域。</p>
+<h4 id="1-掩码生成（Mask-Generation）"><a href="#1-掩码生成（Mask-Generation）" class="headerlink" title="1.掩码生成（Mask Generation）"></a>1.掩码生成（Mask Generation）</h4><p>根据每个 query 的语义“印象”，判断图中哪些像素属于这个区域。</p>
+<p>具体机制</p>
+<ul>
+<li><strong>输入</strong>：<ul>
+<li>每个 query 输出的 <strong>mask embedding 向量</strong>（记为 $e_i$）</li>
+<li>来自 Pixel Decoder 的 <strong>每个像素的语义向量</strong>（记为 $\mathcal{E}_{\text{pixel}}(x, y)$）</li>
+</ul>
+</li>
+<li><strong>操作</strong>：<br>  对每个 query $i$，通过点积方式得到一张大小为 $H \times W$ 的 mask heatmap，表示每个像素属于该区域的“相似度”。</li>
+<li><strong>输出</strong>：<br>  共得到 $N$ 张掩码图，每张对应一个 query 的区域分布，通常这个 mask heatmap 会再过一个 sigmoid 函数，将其映射为 [0, 1] 区间，用作 <strong>概率图</strong> 或 <strong>soft mask</strong></li>
+</ul>
+<p>把 mask embedding 想象成“某个物体的特征模板”，然后它去整张图里“匹配相似的像素”。比如：一个 embedding 是“猫”的特征，那么当它与每个像素点比较时，猫脸、猫耳朵的区域点积值就会更高，从而生成对应的“猫 mask”。</p>
+<h4 id="2-监督信号（训练阶段）"><a href="#2-监督信号（训练阶段）" class="headerlink" title="2.监督信号（训练阶段）"></a>2.监督信号（训练阶段）</h4><p>训练时，需要对分类和掩码两个部分分别进行监督。</p>
+<h5 id="1-分类损失（Classification-Loss）"><a href="#1-分类损失（Classification-Loss）" class="headerlink" title="1. 分类损失（Classification Loss）"></a><strong>1. 分类损失（Classification Loss）</strong></h5><p>每个 query 会预测一个类别（$K+1$ 类，包括一个“空”类别）。使用 <strong>Cross-Entropy Loss</strong> 计算预测类别和 Ground Truth 类别之间的差距。如果一个 query 没有匹配任何真实目标，它应被分类为“空”类。</p>
+<h5 id="2-掩码损失（Mask-Loss）"><a href="#2-掩码损失（Mask-Loss）" class="headerlink" title="2. 掩码损失（Mask Loss）"></a><strong>2. 掩码损失（Mask Loss）</strong></h5><p>每个 query 对应的 mask 会与 Ground Truth 的真实 mask 进行比较。<br>损失通常包括两部分：</p>
+<ul>
+<li><strong>Binary Cross Entropy (BCE) Loss</strong>：逐像素的概率误差。     </li>
+<li><strong>Dice Loss</strong> 或 <strong>Focal Loss</strong>：用于处理不平衡或边界模糊的情况。<br>只有被匹配到的 query（非空）才会参与 mask loss 的计算。</li>
+</ul>
+<h5 id="3-Hungarian-Matching（匈牙利匹配）机制"><a href="#3-Hungarian-Matching（匈牙利匹配）机制" class="headerlink" title="3. Hungarian Matching（匈牙利匹配）机制"></a><strong>3. Hungarian Matching（匈牙利匹配）机制</strong></h5><p>为了让 query 与 Ground Truth 区域一一对应（而不是乱序配对），采用 <strong>匈牙利匹配算法</strong> 计算最佳一对一分配。依据分类损失 + 掩码损失的总和来找最优匹配方案。</p>
+<p>就像在考试中，每个学生（query）要回答一个问题（类别），还要画一张图（mask）。<br>评分时：先通过“匈牙利匹配”来决定谁答哪道题，然后评分两部分：答对题（分类损失）+ 图画得准（掩码损失）。</p>
+<h4 id="3-推理阶段（Inference-Only）"><a href="#3-推理阶段（Inference-Only）" class="headerlink" title="3.推理阶段（Inference Only）"></a>3.推理阶段（Inference Only）</h4><p>在测试或实际使用时，模型只进行前向传播，不再使用损失函数，而是基于预测结果生成最终分割图。</p>
+<p>推理流程：</p>
+<ol>
+<li><strong>丢弃无效 query</strong>：<br> 分类结果为 “空类” 的 query 所生成的 mask 丢弃（这些 query 被认为没有匹配到任何真实区域）。</li>
+<li><strong>有效 query 的融合</strong>：<br> 每个剩下的有效 query 会输出一个类别概率：表示它认为这个区域属于哪个类。soft mask（$H \times W$）：表示区域的空间分布。把每个 mask 乘上其对应类别的概率分数，得到加权掩码：<br>$$<br> \text{Mask}_i(x, y) &#x3D; p_i^{\text{class}} \cdot \sigma(\hat{M}_i(x, y))<br> $$</li>
+<li><strong>最终语义图组合</strong>：<br> 所有有效 query 的掩码叠加，按每个像素的最大响应决定最终类别。得到一个语义分割图：<br> $$<br> \text{Segmentation map} \in \mathbb{R}^{K \times H \times W}<br> $$</li>
+</ol>
+<p>想象你组织一场采访活动，最终要做一张报道图：</p>
+<ul>
+<li>有些记者（query）啥也没采访到（被丢弃）</li>
+<li>剩下的记者提交了采访对象（类别）和报道区域（mask）</li>
+<li>你把他们的图和打分叠加起来，就能合成一张完整的语义地图</li>
+</ul>
+<h3 id="4-总结"><a href="#4-总结" class="headerlink" title="4.总结"></a>4.总结</h3><p>MaskFormer 把语义分割转换为一个“mask + 分类”的任务，而不是传统的“逐像素分类”。</p>
+<p>每个 query 就像一个“候选语义区域”，模型只需判断它是什么类别，以及它的区域范围即可。这种做法统一了语义分割、实例分割和全景分割的形式，也为后来的 <strong>Mask2Former</strong> 奠定了基础。</p>
+<h2 id="3-Mask2Former"><a href="#3-Mask2Former" class="headerlink" title="3.Mask2Former"></a>3.Mask2Former</h2><h3 id="1-概述"><a href="#1-概述" class="headerlink" title="1.概述"></a>1.概述</h3><p><strong>Mask2Former（CVPR 2022）</strong> 对 MaskFormer 做了全面升级，它不仅保留了“<strong>mask 分类</strong>”的核心思想，还引入了一系列结构性改进，使其能更好地适配 <strong>语义分割、实例分割、全景分割</strong> 三大任务。</p>
+<p>Mask2Former是在 MaskFormer 基础上做了一些改进，它使用 query 自身预测出的 mask 来引导 attention 位置，既提升了效率，又提高了准确率，<strong>Masked Cross Attention &#x3D; Mask2Former 的精髓</strong>，如下图是 Mask2Former 的核心结构图：</p>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250702153232.png"></p>
+<h3 id="2-左侧：Mask2Former-的整体流程图"><a href="#2-左侧：Mask2Former-的整体流程图" class="headerlink" title="2.左侧：Mask2Former 的整体流程图"></a>2.左侧：Mask2Former 的整体流程图</h3><h4 id="1-Backbone-Pixel-Decoder"><a href="#1-Backbone-Pixel-Decoder" class="headerlink" title="1.Backbone + Pixel Decoder"></a>1.Backbone + Pixel Decoder</h4><h5 id="1-Backbone"><a href="#1-Backbone" class="headerlink" title="1.Backbone"></a>1.Backbone</h5><p>从图像中提取出多层次的语义特征，常见结构：如 <strong>ResNet</strong>, <strong>Swin Transformer</strong> 等，输出：多个不同尺度的 feature maps，例如：</p>
+<ul>
+<li>P2（高分辨率，低语义）</li>
+<li>P3、P4、P5（越来越低分辨率，但语义更强）</li>
+</ul>
+<p>打个比方，Backbone 就像一个分层的“观察塔”，从近处细节（P2）到远处全貌（P5），逐层提取不同抽象层次的特征。</p>
+<h5 id="2-Pixel-Decoder"><a href="#2-Pixel-Decoder" class="headerlink" title="2.Pixel Decoder"></a>2.Pixel Decoder</h5><p>将多尺度的特征（P2 ~ P5）进行<strong>融合与还原</strong>，得到一张高分辨率、语义丰富的“统一特征图”。使用的机制：<strong>Multi-scale Deformable Attention</strong>：从不同层中灵活采样关键点，类似于升级版的 FPN，更智能、更灵活。<br>输出：一张尺寸为 $H \times W$ 的融合特征图，记作：<br>$$<br>\mathcal{E}_{\text{pixel}} \in \mathbb{R}^{C \times H \times W}<br>$$<br>Pixel Decoder 就像一台“图像语义压缩&#x2F;拼接机”，把从各层收集到的信息拼成一张“每个像素都有语义”的地图，供后续模块查询。</p>
+<h4 id="2-Transformer-Decoder-1"><a href="#2-Transformer-Decoder-1" class="headerlink" title="2.Transformer Decoder"></a>2.Transformer Decoder</h4><p>这个部分是整个模型的“理解中心”，负责根据图像特征，<strong>挖掘图像中可能存在的语义区域（mask）</strong>，并识别出它们是什么类别。</p>
+<p>相比 MaskFormer 做了如下改进：</p>
+<table>
+<thead>
+<tr>
+<th><strong>改进点</strong></th>
+<th><strong>MaskFormer</strong></th>
+<th><strong>Mask2Former</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>1. 注意力方式</strong></td>
+<td>标准 Cross-Attention（无区域引导）</td>
+<td><strong>掩码引导注意力（Mask Attention）</strong>：只在 mask 区域交互</td>
+</tr>
+<tr>
+<td><strong>2. 掩码生成时机</strong></td>
+<td>mask embedding 点积后独立生成</td>
+<td>每层 decoder block 都生成 mask，引导下一轮交互</td>
+</tr>
+<tr>
+<td><strong>3. 多层级特征交互</strong></td>
+<td>单一分辨率特征（decoder 与 pixel decoder 输出交互）</td>
+<td>使用 pixel decoder 输出的<strong>多尺度特征</strong> + deformable attention</td>
+</tr>
+<tr>
+<td><strong>4. 解码方式</strong></td>
+<td>decoder 后直接分类 &amp; mask 输出</td>
+<td>decoder <strong>迭代 refinement</strong>，每轮都更新 mask、区域逐步清晰</td>
+</tr>
+<tr>
+<td><strong>5. 计算效率优化</strong></td>
+<td>全图 dense 运算，显存开销大</td>
+<td>支持<strong>稀疏点采样</strong>，显存和训练效率提升显著</td>
+</tr>
+</tbody></table>
+<p>Mask2Former 对 Transformer Decoder 做了结构和机制上的全面升级，核心是“区域感知 + 多尺度特征融合 + 高效监督”。它让每个 query 更专注、训练更高效、分割结果更准确，是真正从“dense 交互”迈向“精细区域建模”的一步飞跃。</p>
+<h3 id="3-右侧：Decoder-Block-内部结构"><a href="#3-右侧：Decoder-Block-内部结构" class="headerlink" title="3.右侧：Decoder Block 内部结构"></a>3.右侧：Decoder Block 内部结构</h3><p>这部分展示的是 <strong>Transformer Decoder 的单个 Block</strong>，重点是它采用了 <strong>Masked Attention</strong>。</p>
+<p>相比 MaskFormer 做了如下改进：</p>
+<table>
+<thead>
+<tr>
+<th><strong>组件</strong></th>
+<th><strong>MaskFormer</strong></th>
+<th><strong>Mask2Former</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Cross Attention</strong></td>
+<td>标准 cross-attention（无引导）</td>
+<td><strong>Masked Cross Attention（掩码引导交互）</strong></td>
+</tr>
+<tr>
+<td><strong>Query 区域建模</strong></td>
+<td>全图注意力：不知目标在哪</td>
+<td>通过 mask（soft mask）控制 attention 区域：更聚焦、更高效</td>
+</tr>
+<tr>
+<td><strong>信息更新频率</strong></td>
+<td>只在最后一层 decoder 生成 mask</td>
+<td><strong>每一层 decoder 都生成 mask，循环 refine</strong></td>
+</tr>
+<tr>
+<td><strong>训练计算量</strong></td>
+<td>Dense 全图交互，开销大</td>
+<td>掩码调制 attention weights，显著减少冗余计算</td>
+</tr>
+</tbody></table>
+<p>Mask2Former 的 Decoder Block 在结构形式上延续了 Transformer 架构（Self-Attn + Cross-Attn + FFN），但核心创新是：引入掩码引导机制（Masked Cross Attention），并将 mask 迭代融入每一层中，使得每个 query 更高效、专注地定位并 refine 自己的目标区域。</p>
+<p>这使得它比 MaskFormer 更准确、更高效、更适配大图像和多目标场景。</p>
+<h2 id="4-总结-1"><a href="#4-总结-1" class="headerlink" title="4.总结"></a>4.总结</h2><p>MaskFormer 系列从本质上<strong>重塑了我们对“分割任务”的理解</strong>：它不再执着于像素级判断，而是从“区域感知”角度出发，将分割任务提升到一个更结构化、更具扩展性的层次。</p>
+<p>Mask 分类范式的提出不仅解决了过去的一些效率与精度问题，更为图像理解、交互式分割、跨模态建模等方向铺平了道路。未来，<strong>我们可以期待更多融合前景估计、跨模态 prompt、稀疏 attention 的分割模型，真正做到“高效、通用、可控”的视觉理解系统</strong>。</p>
+<h2 id="5-备注"><a href="#5-备注" class="headerlink" title="5.备注"></a>5.备注</h2><ul>
+<li>MaskFormer : <a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2107.06278">https://arxiv.org/pdf/2107.06278</a></li>
+<li>Mask2Former:  <a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2112.01527">https://arxiv.org/pdf/2112.01527</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://keychankc.github.io/2025/07/08/023-segmentation-mask2former/" title="从像素到区域：MaskFormer 系列详解">https://keychankc.github.io/2025/07/08/023-segmentation-mask2former/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/Python/" rel="tag"># Python</a>
+              <a href="/tags/PyTorch/" rel="tag"># PyTorch</a>
+              <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/" rel="tag"># 计算机视觉</a>
+              <a href="/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/" rel="tag"># 目标分割</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/07/02/022-vision-transformer/" rel="prev" title="ViT — Transformer在视觉领域应用代码解析">
+                  <i class="fa fa-angle-left"></i> ViT — Transformer在视觉领域应用代码解析
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/07/14/024-reinforcement-learning-start/" rel="next" title="强化学习 — 试错、策略与长期奖励">
+                  强化学习 — 试错、策略与长期奖励 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">166k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.mengyajia.com","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2025/07/08/023-segmentation-mask2former/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>

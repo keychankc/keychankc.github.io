@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"keychankc.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="1. Transformer我们可以尝试用一个例子来理解 Transformer 的各个概念。学生在课堂上进行小组讨论写作文：一个班级里有一群学生，每个学生负责贡献一句话来完成一篇作文。他们必须交流彼此的观点（信息），形成一篇通顺的文章。这就像 Transformer 处理一个序列（比如一句话）时的过程。 1. 输入嵌入（Input Embedding）将原始的输入（如词、图像特征等）映射到一个高">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于Transformer的detr目标检测算法思路分析">
+<meta property="og:url" content="https://keychankc.github.io/2025/05/13/015-transformer-to-detr/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s blog">
+<meta property="og:description" content="1. Transformer我们可以尝试用一个例子来理解 Transformer 的各个概念。学生在课堂上进行小组讨论写作文：一个班级里有一群学生，每个学生负责贡献一句话来完成一篇作文。他们必须交流彼此的观点（信息），形成一篇通顺的文章。这就像 Transformer 处理一个序列（比如一句话）时的过程。 1. 输入嵌入（Input Embedding）将原始的输入（如词、图像特征等）映射到一个高">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250512154553.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250512134715.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250512154621.png">
+<meta property="article:published_time" content="2025-05-13T07:50:12.000Z">
+<meta property="article:modified_time" content="2025-09-21T12:04:48.539Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="计算机视觉">
+<meta property="article:tag" content="目标检测">
+<meta property="article:tag" content="detr">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250512154553.png">
+
+
+<link rel="canonical" href="https://keychankc.github.io/2025/05/13/015-transformer-to-detr/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/2025/05/13/015-transformer-to-detr/","path":"2025/05/13/015-transformer-to-detr/","title":"基于Transformer的detr目标检测算法思路分析"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>基于Transformer的detr目标检测算法思路分析 | KeyChan's blog</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.mengyajia.com">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's blog" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-Transformer"><span class="nav-text">1. Transformer</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E8%BE%93%E5%85%A5%E5%B5%8C%E5%85%A5%EF%BC%88Input-Embedding%EF%BC%89"><span class="nav-text">1. 输入嵌入（Input Embedding）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E4%BD%8D%E7%BD%AE%E7%BC%96%E7%A0%81%EF%BC%88Positional-Encoding%EF%BC%89"><span class="nav-text">2.位置编码（Positional Encoding）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E8%87%AA%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6%EF%BC%88Self-Attention%EF%BC%89"><span class="nav-text">3.自注意力机制（Self-Attention）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%A4%9A%E5%A4%B4%E6%B3%A8%E6%84%8F%E5%8A%9B%EF%BC%88Multi-Head-Attention%EF%BC%89"><span class="nav-text">4.多头注意力（Multi-Head Attention）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E5%89%8D%E9%A6%88%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88FFN%EF%BC%89"><span class="nav-text">5.前馈神经网络（FFN）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-%E6%AE%8B%E5%B7%AE%E8%BF%9E%E6%8E%A5-LayerNorm"><span class="nav-text">6.残差连接 + LayerNorm</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-%E7%BC%96%E7%A0%81%E5%99%A8%EF%BC%88Encoder%EF%BC%89"><span class="nav-text">7.编码器（Encoder）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-%E8%A7%A3%E7%A0%81%E5%99%A8%EF%BC%88Decoder%EF%BC%89"><span class="nav-text">8.解码器（Decoder）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-%E6%8E%A9%E7%A0%81%E6%9C%BA%E5%88%B6%EF%BC%88Masking%EF%BC%89"><span class="nav-text">9.掩码机制（Masking）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-%E6%9C%80%E7%BB%88%E8%BE%93%E5%87%BA"><span class="nav-text">10.最终输出</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-DETR%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E6%9C%AC%E6%80%9D%E6%83%B3"><span class="nav-text">2.DETR目标检测基本思想</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E4%BC%A0%E7%BB%9F%E7%9A%84%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B"><span class="nav-text">1.传统的目标检测</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-NMS-%E7%9A%84%E5%BC%8A%E7%AB%AF"><span class="nav-text">2.NMS 的弊端</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-DETR-%E7%9A%84%E6%80%9D%E8%B7%AF"><span class="nav-text">3.DETR 的思路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%9B%BA%E5%AE%9A%E6%95%B0%E9%87%8F%E7%9A%84%E9%A2%84%E6%B5%8B%E6%A1%86"><span class="nav-text">4.固定数量的预测框</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84"><span class="nav-text">3.网络架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-DETR-%E7%9A%84%E7%BC%96%E7%A0%81%E5%99%A8%EF%BC%88Encoder%EF%BC%89"><span class="nav-text">1.DETR 的编码器（Encoder）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-DETR-%E7%9A%84%E8%A7%A3%E7%A0%81%E5%99%A8%EF%BC%88Decoder%EF%BC%89"><span class="nav-text">2.DETR 的解码器（Decoder）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Prediction-Heads%EF%BC%88%E9%A2%84%E6%B5%8B%E5%A4%B4%EF%BC%89"><span class="nav-text">3.Prediction Heads（预测头）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E4%B8%BB%E6%B5%81%E7%A8%8B"><span class="nav-text">4.主流程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E4%BD%8D%E7%BD%AE%E4%BF%A1%E6%81%AF%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-text">4.位置信息初始化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E8%83%BD%E7%9B%B4%E6%8E%A5%E7%94%A8-CNN-%E5%81%9A%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%EF%BC%9F"><span class="nav-text">为什么不能直接用 CNN 做特征提取？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#decoder-%E6%98%AF%E6%80%8E%E4%B9%88%E8%B5%B7%E4%BD%9C%E7%94%A8%E7%9A%84%EF%BC%9F"><span class="nav-text">decoder 是怎么起作用的？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E8%BF%99%E4%B9%88%E5%81%9A%EF%BC%9F"><span class="nav-text">为什么要这么做？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E7%BB%93%EF%BC%9A"><span class="nav-text">总结：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6"><span class="nav-text">5.注意力机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Decoder-%E7%9A%84%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6%EF%BC%88%E4%BB%A5-DETR-%E4%B8%BA%E4%BE%8B%EF%BC%89"><span class="nav-text">1.Decoder 的工作机制（以 DETR 为例）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-Self-Attention%EF%BC%88%E8%87%AA%E6%88%91%E4%BA%A4%E6%B5%81%EF%BC%89"><span class="nav-text">1.Self-Attention（自我交流）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-Cross-Attention%EF%BC%88%E5%85%B3%E6%B3%A8%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%EF%BC%89"><span class="nav-text">3.Cross-Attention（关注图像特征）</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E6%A0%B8%E5%BF%83%E6%B5%81%E7%A8%8B"><span class="nav-text">2.核心流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%85%B3%E4%BA%8E-Mask-%E7%9A%84%E5%A4%84%E7%90%86"><span class="nav-text">3.关于 Mask 的处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%A4%9A%E5%B1%82-Decoder-Block"><span class="nav-text">4.多层 Decoder Block</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E8%AE%AD%E7%BB%83%E8%BF%87%E7%A8%8B"><span class="nav-text">6.训练过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Decoder-%E7%9A%84%E7%BB%93%E6%9E%84%E4%B8%8E%E6%B5%81%E7%A8%8B%EF%BC%88%E4%BB%A5-DETR-%E4%B8%BA%E4%BE%8B%EF%BC%89"><span class="nav-text">1.Decoder 的结构与流程（以 DETR 为例）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-Self-Attention-%E8%87%AA%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6"><span class="nav-text">1.Self-Attention 自注意力机制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-Cross-Attention-%E4%B8%8E-Encoder-%E4%BA%A4%E4%BA%92"><span class="nav-text">2.Cross-Attention 与 Encoder 交互</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E6%8D%9F%E5%A4%B1%E8%AE%A1%E7%AE%97%E4%B8%AD%E7%9A%84%E5%8C%88%E7%89%99%E5%88%A9%E5%8C%B9%E9%85%8D%EF%BC%88Hungarian-Matching%EF%BC%89"><span class="nav-text">3.损失计算中的匈牙利匹配（Hungarian Matching）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E6%B3%A8%E6%84%8F%E5%8A%9B%E5%8F%AF%E8%A7%86%E5%8C%96"><span class="nav-text">4.注意力可视化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-%E5%A4%9A%E5%B1%82%E7%9B%91%E7%9D%A3%EF%BC%88Intermediate-Supervision%EF%BC%89"><span class="nav-text">5.多层监督（Intermediate Supervision）</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E5%85%B3%E9%94%AE%E5%AF%B9%E6%AF%94"><span class="nav-text">7.关键对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E6%80%BB%E7%BB%93"><span class="nav-text">8.总结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">30</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">39</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/keychankc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://keychankc.github.io/2025/05/13/015-transformer-to-detr/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's blog">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="基于Transformer的detr目标检测算法思路分析 | KeyChan's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          基于Transformer的detr目标检测算法思路分析
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-05-13 15:50:12" itemprop="dateCreated datePublished" datetime="2025-05-13T15:50:12+08:00">2025-05-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-09-21 20:04:48" itemprop="dateModified" datetime="2025-09-21T20:04:48+08:00">2025-09-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2025/05/13/015-transformer-to-detr/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2025/05/13/015-transformer-to-detr/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>5.1k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>19 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="1-Transformer"><a href="#1-Transformer" class="headerlink" title="1. Transformer"></a>1. Transformer</h2><p>我们可以尝试用一个例子来理解 Transformer 的各个概念。学生在课堂上进行小组讨论写作文：一个班级里有一群学生，每个学生负责贡献一句话来完成一篇作文。他们必须交流彼此的观点（信息），形成一篇通顺的文章。这就像 Transformer 处理一个序列（比如一句话）时的过程。</p>
+<h3 id="1-输入嵌入（Input-Embedding）"><a href="#1-输入嵌入（Input-Embedding）" class="headerlink" title="1. 输入嵌入（Input Embedding）"></a>1. 输入嵌入（Input Embedding）</h3><p>将原始的输入（如词、图像特征等）映射到一个高维向量空间中，便于 Transformer 网络进行后续处理。</p>
+<p>就像每个学生都先写好一句话的草稿，用于后续讨论。每句话被转成一个有意义的表达——每个词转成向量。</p>
+<span id="more"></span>
+<h3 id="2-位置编码（Positional-Encoding）"><a href="#2-位置编码（Positional-Encoding）" class="headerlink" title="2.位置编码（Positional Encoding）"></a>2.位置编码（Positional Encoding）</h3><p>Transformer 的核心​<strong>自注意力机制（Self-Attention）​</strong>，它可以捕捉序列中任意两个元素之间的关系。但自注意力本身是 ​<strong>位置无关的</strong>​：无论词在序列中的位置如何，其计算方式完全相同。例如：句子 <code>猫 坐 在 垫子 上</code> 和 <code>垫子 坐 在 猫 上</code> 对自注意力来说，仅通过词嵌入无法区分两者的位置差异。因此，必须显式注入位置信息，否则模型无法理解顺序（如时间、空间顺序）。</p>
+<p>就像学生按顺序坐在座位上，这样大家知道谁先说谁后说。否则你只看学生内容（词向量）是看不出顺序的。</p>
+<h3 id="3-自注意力机制（Self-Attention）"><a href="#3-自注意力机制（Self-Attention）" class="headerlink" title="3.自注意力机制（Self-Attention）"></a>3.自注意力机制（Self-Attention）</h3><p>自注意力机制（Self-Attention）是 Transformer 模型的核心组件，它通过动态计算序列中每个元素与其他元素的关联权重，捕捉全局依赖关系。这样可以有效解决长距离依赖问题，替代 RNN 的串行计算和 CNN 的局部感受野限制。<br>核心思想：每个位置的表示可以参考序列中所有其他位置的信息。输入向量被分别线性映射为： <strong>Query（Q）</strong>、<strong>Key（K）</strong>、<strong>Value（V）</strong></p>
+<p>每位学生（Query）在发言前，都会环顾四周，看看别人写了什么（Key），判断谁的信息最值得参考（注意力分数），然后重点参考这些同学的原始观点（Value），用来丰富自己这次的发言。</p>
+<h3 id="4-多头注意力（Multi-Head-Attention）"><a href="#4-多头注意力（Multi-Head-Attention）" class="headerlink" title="4.多头注意力（Multi-Head Attention）"></a>4.多头注意力（Multi-Head Attention）</h3><p><strong>单一注意力头</strong>​ 只能捕捉一种语义模式（如语法结构或词义关系），而 ​<strong>多个头</strong>​ 允许模型从不同维度理解上下文。可以这么类比：人类观察物体时，通过多个感官（视觉、听觉、触觉）综合理解信息。<br>将 Q、K、V 划分成多个头（head），在不同子空间中并行计算注意力。让模型从不同的表示子空间中学习信息，最终结果是多个头的输出拼接后线性变换。</p>
+<p>学生不仅从一个角度看别人说了什么，而是从多个角度来看（语法角度、情感角度、逻辑结构等），综合判断。</p>
+<h3 id="5-前馈神经网络（FFN）"><a href="#5-前馈神经网络（FFN）" class="headerlink" title="5.前馈神经网络（FFN）"></a>5.前馈神经网络（FFN）</h3><p><strong>前馈神经网络（Feed-Forward Network, FFN）​</strong>​ 是每个编码器和解码器层的核心组件之一，负责对自注意力或交叉注意力的输出进行非线性变换，增强模型的表达能力。</p>
+<p>每位学生在吸收别人的意见后，会自己再加工一下：加些修饰、润色语句，让发言更通顺。</p>
+<h3 id="6-残差连接-LayerNorm"><a href="#6-残差连接-LayerNorm" class="headerlink" title="6.残差连接 + LayerNorm"></a>6.残差连接 + LayerNorm</h3><p>每个子层（如多头注意力、FFN）后都有残差连接和 LayerNorm：LayerNorm(x + Sublayer(x))。<br>主要作用是训练深层模型，避免梯度消失，促进信息直接传递。</p>
+<p>学生在参考别人的意见后，还保留了自己最初的观点（残差），并统一风格、语气（归一化），让整体更协调。</p>
+<h3 id="7-编码器（Encoder）"><a href="#7-编码器（Encoder）" class="headerlink" title="7.编码器（Encoder）"></a>7.编码器（Encoder）</h3><p>编码器负责将输入序列（如文本、图像块）转换为富含上下文信息的隐藏表示。其核心任务包括：</p>
+<ul>
+<li>​<strong>捕捉全局依赖</strong>​：通过自注意力机制建立序列内任意位置的关联</li>
+<li>​<strong>特征抽象</strong>​：逐层提取高层次语义信息</li>
+<li>​<strong>位置感知</strong>​：显式注入位置编码，弥补无卷积&#x2F;循环结构的不足</li>
+</ul>
+<p>在这个类比中，就像老师帮助每个小组整理他们的想法（编码），形成一套清晰的观点集。</p>
+<h3 id="8-解码器（Decoder）"><a href="#8-解码器（Decoder）" class="headerlink" title="8.解码器（Decoder）"></a>8.解码器（Decoder）</h3><p>解码器负责将编码器生成的上下文信息转换为目标序列（如翻译结果、生成文本），核心作用有：</p>
+<ul>
+<li>​<strong>自回归生成</strong>​：逐个生成目标序列元素（如逐词生成翻译结果）</li>
+<li>​<strong>上下文融合</strong>​：通过交叉注意力关联源序列与目标序列</li>
+<li>​<strong>位置感知</strong>​：防止解码时“偷看”未来信息（通过掩码机制）​</li>
+</ul>
+<p>学生们根据讨论成果（Encoder 输出），开始一段一段地写作文。每写一句，就回顾前面的句子，看看是否连贯。</p>
+<h3 id="9-掩码机制（Masking）"><a href="#9-掩码机制（Masking）" class="headerlink" title="9.掩码机制（Masking）"></a>9.掩码机制（Masking）</h3><p>掩码机制（Masking）是控制模型信息流动的核心设计，其主要作用</p>
+<ul>
+<li><strong>防止信息泄漏</strong>​（解码器）：确保自回归生成时，模型无法“偷看”未来信息</li>
+<li><strong>处理填充符（Padding）​</strong>​（编码器&#x2F;解码器）：忽略无效位置（如填充符<code>&lt;PAD&gt;</code>）的影响</li>
+<li><strong>动态注意力控制</strong>​：根据任务需求屏蔽特定区域（如局部注意力、稀疏注意力）</li>
+</ul>
+<p>防止某些学生提前偷看别人的后一句发言，只能参考已发言内容，保证作文是一步一步写出来的。</p>
+<h3 id="10-最终输出"><a href="#10-最终输出" class="headerlink" title="10.最终输出"></a>10.最终输出</h3><p>最终所有学生的发言被串联起来，组成一篇内容连贯、参考了各自观点、逻辑清晰的作文——这就是 Transformer 输出的序列。</p>
+<h2 id="2-DETR目标检测基本思想"><a href="#2-DETR目标检测基本思想" class="headerlink" title="2.DETR目标检测基本思想"></a>2.DETR目标检测基本思想</h2><p>DETR 证明了 Transformer 不仅可以做特征提取（Encoder），也可以直接参与下游任务的预测（Decoder），而且，它是第一个真正做到端到端目标检测的 Transformer 模型，很具有代表性。</p>
+<h3 id="1-传统的目标检测"><a href="#1-传统的目标检测" class="headerlink" title="1.传统的目标检测"></a>1.传统的目标检测</h3><p>说到目标检测，大家可能脑海里已经浮现出几个关键词，比如 R-CNN 系列、YOLO 系列等等。</p>
+<ul>
+<li><strong>Fast R-CNN</strong>：在 2015 年非常火，它是 R-CNN 系列的代表之一，使用了 Region Proposal（候选区域）的方法去做目标检测。</li>
+<li><strong>YOLO</strong>：2016 年崛起的代表，它的优势是把整个流程做得更简单、更统一。但它和 R-CNN 一样，仍然依赖一种叫做“anchor”（锚框）的机制。</li>
+</ul>
+<p>不管是 Fast R-CNN 还是 YOLO，它们大多都是基于锚框（anchor-based）机制来做目标检测的，然后再用 <strong>非极大值抑制（NMS）</strong> 去过滤掉重叠的框。</p>
+<blockquote>
+<p>NMS（Non-Maximum Suppression）是目标检测中的一种后处理算法，用于<strong>从多个重叠的预测框中选择最靠谱的一个</strong>，去掉冗余和低质量的框。</p>
+</blockquote>
+<h3 id="2-NMS-的弊端"><a href="#2-NMS-的弊端" class="headerlink" title="2.NMS 的弊端"></a>2.NMS 的弊端</h3><p>比如一张图像中只有一个人，但模型可能预测出多个框（蓝色、绿色、黑色），都在那个位置附近。为了只保留一个，我们就需要 NMS。但 NMS 效率不高，处理过程也繁琐，而且并不是端到端可学习的。<br>所以我们想：有没有可能不依赖 anchor，也不使用 NMS，就能完成目标检测任务？</p>
+<h3 id="3-DETR-的思路"><a href="#3-DETR-的思路" class="headerlink" title="3.DETR 的思路"></a>3.DETR 的思路</h3><p>这时，DETR 出现了。DETR 是一个 <strong>完全基于 Transformer 架构</strong> 的目标检测方法，不依赖锚框、不用 NMS，甚至不需要传统意义上的候选框生成模块。<br>它的思路很新颖：</p>
+<ol>
+<li><strong>图像编码</strong>：输入图像首先被切分为 patch 或通过 CNN 编码成特征图</li>
+<li><strong>Transformer 编码器（Encoder）</strong>：对这些特征进行全局建模，提取高级语义</li>
+<li><strong>Transformer 解码器（Decoder）</strong>：引入一组 <strong>固定数量的查询向量（object queries）</strong>，每个向量学习预测一个物体</li>
+</ol>
+<h3 id="4-固定数量的预测框"><a href="#4-固定数量的预测框" class="headerlink" title="4.固定数量的预测框"></a>4.固定数量的预测框</h3><p>一个关键点是：<strong>无论图像中有几个目标，DETR 都输出固定数量（比如 100 个）框的预测结果。</strong></p>
+<ul>
+<li>如果图中实际有 2 个物体，那另外的 98 个框就代表“背景”或“无物体”。 </li>
+<li>最终通过和 Ground Truth（真值、真实标签）的匹配 Hungarian Algorithm（匈牙利匹配）来对齐这 100 个框中哪些是真正的目标，哪些是背景。</li>
+</ul>
+<p>这个思路让 DETR 可以实现 <strong>端到端的训练和推理流程</strong>，不需要像 YOLO 那样做预定义 anchor，也不需要 Fast R-CNN 的 Region Proposal 模块。</p>
+<blockquote>
+<p>Ground Truth（真值、真实标签） 是监督学习中用于训练的“正确答案”。<br>在目标检测任务中，Ground Truth 通常包括：</p>
+<ol>
+<li><strong>目标类别（class label）</strong>：例如“人”、“猫”、“车”</li>
+<li><strong>边界框（bounding box）</strong>：表示物体的位置 [x, y, w, h] 或 [x1, y1, x2, y2]</li>
+<li><strong>（可选）分割掩码、关键点等其他信息</strong><br>它是 <strong>我们希望模型最终预测出的结果</strong>，训练的目标就是让模型的输出尽量接近 Ground Truth</li>
+</ol>
+</blockquote>
+<blockquote>
+<p>Hungarian Algorithm（匈牙利匹配），一种经典的 <strong>最小代价二分图匹配算法</strong>，用来在“两组对象”之间寻找最优一对一匹配方案。<br>在目标检测中，一边是 N 个 <strong>模型预测的框</strong>（如 100 个）；一边是 M 个 <strong>Ground Truth 真实框</strong>（如 7 个）；我们要找到一组 <strong>最优的</strong>一一匹配，使得每个真实框都分配一个预测框；没被分配的预测框，视为背景；然后匹配的总代价还要最小。</p>
+</blockquote>
+<h2 id="3-网络架构"><a href="#3-网络架构" class="headerlink" title="3.网络架构"></a>3.网络架构</h2><p>先回顾一下ViT（Vision Transformer），它是 Google 在 2020 年提出的视觉领域首个纯 Transformer 架构，核心思想是把图片当作「句子」，把图像块当作「单词」，用 NLP 里成功的 Transformer 模型来处理视觉任务。它主要分为两个部分：</p>
+<ul>
+<li><strong>Encoder</strong>：对图像进行 patch 分割 + 编码，通过Transformer结构提取全局特征</li>
+<li><strong>Decoder</strong>：在ViT中没有用 decoder，因为我们只做分类。但在DETR中，这个 decoder 就是目标检测的关键<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250512154553.png"></li>
+</ul>
+<h3 id="1-DETR-的编码器（Encoder）"><a href="#1-DETR-的编码器（Encoder）" class="headerlink" title="1.DETR 的编码器（Encoder）"></a>1.DETR 的编码器（Encoder）</h3><p><strong>作用</strong>：提取图像的全局特征。</p>
+<ul>
+<li>输入图像先通过 CNN（如ResNet）编码，转化为 patch 特征</li>
+<li>每个 patch 会加上 <strong>位置编码</strong>（2D位置编码，用于保留空间位置信息），得到加了位置编码的图像特征</li>
+<li>通过自注意力机制建模图像内不同区域之间的全局依赖关系，输出仍是一组图像特征表示（包含上下文关系的表示）</li>
+</ul>
+<blockquote>
+<p>为何需要添加位置编码（positional encoding）？<br>因为 Transformer 自身不具备空间结构感知能力，位置编码用于保留图像中“哪里”的信息</p>
+</blockquote>
+<h3 id="2-DETR-的解码器（Decoder）"><a href="#2-DETR-的解码器（Decoder）" class="headerlink" title="2.DETR 的解码器（Decoder）"></a>2.DETR 的解码器（Decoder）</h3><p>与 NLP 不同，不生成词语，而是直接生成目标框（bounding boxes）和类别</p>
+<ul>
+<li>我们不再按 NLP 那种方式“一个词一个词”串行预测，而是<strong>一次性并行预测100个目标框</strong></li>
+<li>这些框不是 anchor-based 的，而是来自一组 <strong>初始化的 Learnable Queries（可学习向量）</strong></li>
+</ul>
+<h3 id="3-Prediction-Heads（预测头）"><a href="#3-Prediction-Heads（预测头）" class="headerlink" title="3.Prediction Heads（预测头）"></a>3.Prediction Heads（预测头）</h3><p>每个解码器输出都送入一个小的 <strong>前馈网络（FFN）</strong>：</p>
+<ul>
+<li>输出类别概率（包含“no object”类）</li>
+<li>输出边界框坐标（通常是中心点 + 宽高）</li>
+</ul>
+<p>图中右边框显示：红色与黄色框成功预测了两只海鸥，绿色与蓝色框预测为“no object”</p>
+<h3 id="4-主流程"><a href="#4-主流程" class="headerlink" title="4.主流程"></a>4.主流程</h3><ol>
+<li><strong>初始化100个query向量</strong>：<ul>
+<li>每一个向量的任务就是预测一个目标框 + 一个类别</li>
+<li>可以把它们想象成“探测器”，去图像中找自己感兴趣的目标</li>
+</ul>
+</li>
+<li><strong>每个query去encoder输出中“敲门”</strong>：<ul>
+<li>每个 query 是一个 <strong>Q</strong>（Query）</li>
+<li>它去 encoder 提供的所有 patch 特征中查找关联区域（K 和 V）</li>
+<li>本质就是一个 attention 过程 —— “我该关注图像的哪一块？”</li>
+</ul>
+</li>
+<li><strong>多个query并行执行</strong>：<ul>
+<li>不是像机器翻译那样，先有第一个词再预测第二个词，而是100个query <strong>同时查图</strong></li>
+<li>所以是并行的，不是串行的</li>
+</ul>
+</li>
+<li><strong>每个query接一个全连接层</strong>：<ul>
+<li>输出一个预测框（4个值）+ 一个类别分布（比如80个类别的softmax）。</li>
+<li>某些query可能对应的是背景或者没有目标，训练时会自动学习到。</li>
+</ul>
+</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th><strong>模块</strong></th>
+<th><strong>功能</strong></th>
+<th><strong>关键点</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Encoder</td>
+<td>提取图像全局特征</td>
+<td>CNN + Pos Encoding → K&#x2F;V</td>
+</tr>
+<tr>
+<td>Decoder</td>
+<td>预测目标框和分类</td>
+<td>100个 learnable query 并行预测</td>
+</tr>
+</tbody></table>
+<p>DETR的核心创新在于通过使用 Transformer 直接检测，而不依赖 anchor、不使用NMS、直接回归框。</p>
+<h2 id="4-位置信息初始化"><a href="#4-位置信息初始化" class="headerlink" title="4.位置信息初始化"></a>4.位置信息初始化</h2><h3 id="为什么不能直接用-CNN-做特征提取？"><a href="#为什么不能直接用-CNN-做特征提取？" class="headerlink" title="为什么不能直接用 CNN 做特征提取？"></a><strong>为什么不能直接用 CNN 做特征提取？</strong></h3><p>我们可以思考一个问题：如果目标检测只需要输出几个 bbox，那直接用 CNN 抽特征，然后做分类和回归就行了，为什么还要用 transformer encoder？</p>
+<p>从论文里可以知道答案：<strong>encoder 是通过 self-attention 把图像中“重要的区域”表示出来，尤其在存在遮挡时，它能更好地“指引 decoder 去关注哪里”。</strong><br>简单来说，<strong>encoder 是告诉 decoder：“嘿，这块儿有个目标，你重点看这儿。”</strong><br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250512134715.png"><br>比如图中有两头牛，虽然有遮挡，self-attention 能把一头牛的注意力集中在图像上半部分，另一头集中在下半部分。这说明即使目标被遮挡，encoder 也能有效定位注意区域。</p>
+<h3 id="decoder-是怎么起作用的？"><a href="#decoder-是怎么起作用的？" class="headerlink" title="decoder 是怎么起作用的？"></a><strong>decoder 是怎么起作用的？</strong></h3><p>论文设置了 100 个 decoder 的查询向量（queries），这些向量的任务是从 encoder 输出中“选出目标”。就像一个选秀节目：100 个选手来选目标，选出来的几个是“最终预测的目标”，剩下的是陪跑的。<br>这些 decoder queries 一开始是 <strong>怎么初始化的？</strong></p>
+<ul>
+<li>一开始是 <strong>全 0 向量</strong>（比如维度是 768 全为 0）；</li>
+<li>然后加上 <strong>位置编码</strong>：这相当于告诉每个 query：你去“关注”一个特定的位置区域。</li>
+</ul>
+<p>这种设计的用意是：<strong>一开始我先给每个 decoder query 一个不同的位置感知能力</strong>，让它们关注图像的不同区域，避免都聚焦在一块，提升模型的多样性和泛化能力。</p>
+<h3 id="为什么要这么做？"><a href="#为什么要这么做？" class="headerlink" title="为什么要这么做？"></a><strong>为什么要这么做？</strong></h3><p>目标检测跟“位置”密切相关。直接用随机向量初始化 decoder queries 可能无法传递出“我要关注图像哪个区域”的这种信息。<br>而使用“全零 + 位置编码”的方式初始化，就相当于让 decoder queries 一开始就有“自己负责哪块区域”的暗示。这是为了：</p>
+<ul>
+<li>增强模型的空间感知能力</li>
+<li>避免多个 queries 都关注到相同区域，导致预测冗余</li>
+<li>提升遮挡、密集目标下的检测效果</li>
+</ul>
+<h3 id="总结："><a href="#总结：" class="headerlink" title="总结："></a><strong>总结：</strong></h3><p>DETR用 transformer encoder 来精准提取注意区域，即使有遮挡也不怕；再用 decoder 通过“全零 + 位置编码”初始化的查询向量，像选秀一样挑出目标，从而实现 end-to-end 的目标检测。</p>
+<h2 id="5-注意力机制"><a href="#5-注意力机制" class="headerlink" title="5.注意力机制"></a>5.注意力机制</h2><h3 id="1-Decoder-的工作机制（以-DETR-为例）"><a href="#1-Decoder-的工作机制（以-DETR-为例）" class="headerlink" title="1.Decoder 的工作机制（以 DETR 为例）"></a>1.Decoder 的工作机制（以 DETR 为例）</h3><p>DETR 的 decoder 本质上由多个 <strong>Transformer Decoder Block</strong> 叠加组成，每一个 Block 分两步：</p>
+<ol>
+<li>Self-Attention（自己和自己交流）</li>
+<li>Cross-Attention（和 encoder 的输出交互）</li>
+</ol>
+<h4 id="1-Self-Attention（自我交流）"><a href="#1-Self-Attention（自我交流）" class="headerlink" title="1.Self-Attention（自我交流）"></a>1.Self-Attention（自我交流）</h4><p>目的：分工明确，别重复劳动<br>100 个初始化的向量（称作 object queries）一开始是全零 + 各自的 <strong>位置编码</strong>。自注意力让这 100 个向量“开个会”，互相说清楚：谁关注哪个区域、谁负责啥任务（比如这个管车，那个管人）。<br>本质上是：让这些向量的 Query 形成一定的多样性，避免后续都盯着同一块区域看。</p>
+<h4 id="3-Cross-Attention（关注图像特征）"><a href="#3-Cross-Attention（关注图像特征）" class="headerlink" title="3.Cross-Attention（关注图像特征）"></a>3.Cross-Attention（关注图像特征）</h4><p>目的：去图像里“找对象”<br>Decoder 每个向量带着自己的 Query，去 encoder 的输出（图像特征）中，查找哪些地方值得注意。Encoder 提供 Key 和 Value，Decoder 提供 Query，通过 attention 找到图像上相关区域，把信息拿回来“强化自己”。</p>
+<h3 id="2-核心流程"><a href="#2-核心流程" class="headerlink" title="2.核心流程"></a>2.核心流程</h3><ul>
+<li>Decoder 的每个 Query（向量）就像一个侦察兵，它想抓一个目标（如一个物体），但它不知道目标在哪</li>
+<li>所以它通过 Cross-Attention 去 encoder 提供的图像特征里“探查”</li>
+<li>多层 decoder 的堆叠，就是不断 refine 这个 Query，让它越来越“懂得自己要找什么”</li>
+</ul>
+<h3 id="3-关于-Mask-的处理"><a href="#3-关于-Mask-的处理" class="headerlink" title="3.关于 Mask 的处理"></a>3.关于 Mask 的处理</h3><ul>
+<li>传统 NLP 的 Decoder（如 GPT）中使用 mask 是因为语言是顺序性的，预测下一个词时不能看后面的词（防止“透题”）</li>
+<li>但在 DETR 这种目标检测里，Decoder 的输入是 100 个 object queries，它们是并列的、没有顺序的</li>
+<li>所以这里 <strong>不需要 mask</strong>，大家可以并行计算、互不干扰</li>
+</ul>
+<h3 id="4-多层-Decoder-Block"><a href="#4-多层-Decoder-Block" class="headerlink" title="4.多层 Decoder Block"></a>4.多层 Decoder Block</h3><ul>
+<li><strong>只有第一层用 self-attention</strong> 来“分配任务”。</li>
+<li>后续层不再重复 self-attention，而是持续用 cross-attention 来强化 query 表示。</li>
+<li>每个 Block 后都有 FFN（全连接）进一步提取特征。</li>
+</ul>
+<p>这个机制体现出 DETR 最大的创新之一：<strong>用 set-based 的 query + cross attention 来直接回归目标，而不是用 anchor 或 dense head。</strong></p>
+<h2 id="6-训练过程"><a href="#6-训练过程" class="headerlink" title="6.训练过程"></a>6.训练过程</h2><h3 id="1-Decoder-的结构与流程（以-DETR-为例）"><a href="#1-Decoder-的结构与流程（以-DETR-为例）" class="headerlink" title="1.Decoder 的结构与流程（以 DETR 为例）"></a>1.Decoder 的结构与流程（以 DETR 为例）</h3><h4 id="1-Self-Attention-自注意力机制"><a href="#1-Self-Attention-自注意力机制" class="headerlink" title="1.Self-Attention 自注意力机制"></a>1.Self-Attention 自注意力机制</h4><p>在 decoder 的第一层，每一个 query 向量自己和自己“开会”，彼此之间进行信息交互，但<strong>不涉及 encoder 的输出</strong>。<br>像是 100 个当家聚会，各自说清楚“自己要干什么”，比如谁管吃喝，谁管武器，谁管杂务，提前定好各自负责区域。<br>为每一个 query 向量初始化做准备，<strong>先做一个合理的任务划分（也就是“分地盘”）</strong>。</p>
+<h4 id="2-Cross-Attention-与-Encoder-交互"><a href="#2-Cross-Attention-与-Encoder-交互" class="headerlink" title="2.Cross-Attention 与 Encoder 交互"></a>2.Cross-Attention 与 Encoder 交互</h4><p>从第二步起，不再使用 self-attention，decoder 的每个 query 只用自身向量作为 q，然后从 encoder 的输出中取 k 和 v。<br>decoder 的 query 向量拿着自己的身份去 encoder 里“查”，看看有哪些特征对自己是重要的，然后基于 q-k-v attention 机制，重新构造 query 特征。<br>核心任务：</p>
+<ul>
+<li>query 是整个生命周期的核心</li>
+<li>最终每一个 query 会输出一个检测结果（bounding box + class）</li>
+</ul>
+<h4 id="3-损失计算中的匈牙利匹配（Hungarian-Matching）"><a href="#3-损失计算中的匈牙利匹配（Hungarian-Matching）" class="headerlink" title="3.损失计算中的匈牙利匹配（Hungarian Matching）"></a>3.损失计算中的匈牙利匹配（Hungarian Matching）</h4><p>decoder 输出的是一组固定数量的预测（如100个），但真实目标只有若干（如2个）。可以采用匈牙利算法将预测与真实标注进行<strong>最优匹配</strong>（最小化 loss）。<br>匈牙利匹配标准：</p>
+<ul>
+<li>可能包括多个损失项，例如分类损失、边框损失（如L1、GIoU）。</li>
+<li>找出最适合匹配的两个 query，其余当作背景处理。</li>
+</ul>
+<h4 id="4-注意力可视化"><a href="#4-注意力可视化" class="headerlink" title="4.注意力可视化"></a>4.注意力可视化</h4><p>实验现象：即使目标之间存在<strong>严重遮挡或重叠</strong>，不同 query 的注意力区域仍能<strong>清晰分辨物体局部</strong>（如象腿、斑马蹄子）。<br>Transformer 的注意力机制对遮挡非常鲁棒，能分清复杂结构中哪些区域属于哪个目标。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250512154621.png"></p>
+<h4 id="5-多层监督（Intermediate-Supervision）"><a href="#5-多层监督（Intermediate-Supervision）" class="headerlink" title="5.多层监督（Intermediate Supervision）"></a>5.多层监督（Intermediate Supervision）</h4><p>只在 decoder 最后一层加 loss，无法监督中间层的学习质量，若中间某层“出错”，后面层也会受影响。<br><strong>解决思路</strong>：每一层 decoder 都加 loss（即每层 query 都参与分类+回归的训练）。<br><strong>好处</strong>：促进逐层学习质量提升，类似“每个阶段都考试”，而不是等到最后一锤定音。</p>
+<h2 id="7-关键对比"><a href="#7-关键对比" class="headerlink" title="7.关键对比"></a>7.关键对比</h2><table>
+<thead>
+<tr>
+<th><strong>特性</strong>​</th>
+<th>​<strong>传统方法（如YOLO、Faster R-CNN）​</strong>​</th>
+<th>​<strong>DETR</strong>​</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>​<strong>依赖锚框</strong>​</td>
+<td>是，需预设锚框调整预测</td>
+<td>否，直接回归边界框</td>
+</tr>
+<tr>
+<td>​<strong>后处理NMS</strong>​</td>
+<td>是，过滤重叠框</td>
+<td>否，匈牙利匹配解决冗余</td>
+</tr>
+<tr>
+<td>​<strong>端到端</strong>​</td>
+<td>否，分阶段训练（候选区域+分类回归）</td>
+<td>是，编码器-解码器联合训练</td>
+</tr>
+<tr>
+<td>​<strong>全局建模能力</strong>​</td>
+<td>有限，依赖CNN局部感受野</td>
+<td>强，自注意力捕捉长程依赖</td>
+</tr>
+<tr>
+<td>​<strong>处理遮挡目标</strong>​</td>
+<td>易漏检或重复预测</td>
+<td>鲁棒，注意力区分物体局部</td>
+</tr>
+</tbody></table>
+<h2 id="8-总结"><a href="#8-总结" class="headerlink" title="8.总结"></a>8.总结</h2><ul>
+<li>​<strong>Transformer</strong>​ 通过自注意力和位置编码处理序列，解决了长距离依赖和位置感知问题。</li>
+<li>​<strong>DETR</strong>​ 创新性地将Transformer应用于目标检测，摒弃传统锚框和NMS，通过可学习查询向量和匈牙利匹配实现端到端检测，在复杂场景（如遮挡、密集目标）中表现优异。其核心在于全局特征建模与并行预测机制的统一。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://keychankc.github.io/2025/05/13/015-transformer-to-detr/" title="基于Transformer的detr目标检测算法思路分析">https://keychankc.github.io/2025/05/13/015-transformer-to-detr/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/" rel="tag"># 计算机视觉</a>
+              <a href="/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/" rel="tag"># 目标检测</a>
+              <a href="/tags/detr/" rel="tag"># detr</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/05/07/014-yolo-yolov5-code-detail/" rel="prev" title="[YOLO系列④] YOLOv5模型训练与流程解析">
+                  <i class="fa fa-angle-left"></i> [YOLO系列④] YOLOv5模型训练与流程解析
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/05/19/016-image-segmentation-u-net/" rel="next" title="图像分割与U-Net系列模型解析">
+                  图像分割与U-Net系列模型解析 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">166k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.mengyajia.com","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2025/05/13/015-transformer-to-detr/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>
