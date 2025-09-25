@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-09-21T12:04:48.542Z</updated>
+  <updated>2025-09-25T09:47:11.748Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -15,6 +15,31 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>从Widget到Layer：Flutter引擎与渲染管线解析</title>
+    <link href="https://keychankc.github.io/2025/09/25/030-flutter-engine-and-rendering-pipeline/"/>
+    <id>https://keychankc.github.io/2025/09/25/030-flutter-engine-and-rendering-pipeline/</id>
+    <published>2025-09-25T09:40:12.000Z</published>
+    <updated>2025-09-25T09:47:11.748Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-概述&quot;&gt;&lt;a href=&quot;#1-概述&quot; class=&quot;headerlink&quot; title=&quot;1. 概述&quot;&gt;&lt;/a&gt;1. 概述&lt;/h2&gt;&lt;h3 id=&quot;1-1-为什么要理解-Flutter-渲染原理&quot;&gt;&lt;a href=&quot;#1-1-为什么要理解-Flutter-渲染原理&quot; class=&quot;headerlink&quot; title=&quot;1.1 为什么要理解 Flutter 渲染原理&quot;&gt;&lt;/a&gt;1.1 为什么要理解 Flutter 渲染原理&lt;/h3&gt;&lt;p&gt;可能很多人刚接触 Flutter 时，往往只关心“怎么写 Widget”。但是当项目复杂度增加，就会遇到各种疑惑：为什么页面会掉帧？为什么某个布局报错“RenderBox was not laid out”？为什么同样的动画，有的流畅，有的卡顿？这些问题的根源，几乎都藏在 Flutter 的渲染机制里。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="跨平台框架" scheme="https://keychankc.github.io/categories/%E8%B7%A8%E5%B9%B3%E5%8F%B0%E6%A1%86%E6%9E%B6/"/>
+    
+    
+    <category term="Flutter" scheme="https://keychankc.github.io/tags/Flutter/"/>
+    
+    <category term="GPU渲染" scheme="https://keychankc.github.io/tags/GPU%E6%B8%B2%E6%9F%93/"/>
+    
+    <category term="Skia" scheme="https://keychankc.github.io/tags/Skia/"/>
+    
+    <category term="Impeller" scheme="https://keychankc.github.io/tags/Impeller/"/>
+    
+  </entry>
   
   <entry>
     <title>A3C 算法原理与超级马里奥实践（下）</title>
@@ -502,30 +527,6 @@
     
     
     <summary type="html">&lt;h2 id=&quot;1-YOLOv2改进概述&quot;&gt;&lt;a href=&quot;#1-YOLOv2改进概述&quot; class=&quot;headerlink&quot; title=&quot;1.YOLOv2改进概述&quot;&gt;&lt;/a&gt;1.YOLOv2改进概述&lt;/h2&gt;&lt;p&gt;YOLOv2 的改进围绕 ​&lt;strong&gt;稳定性&lt;/strong&gt;​（BN、位置预测）、&lt;strong&gt;灵活性&lt;/strong&gt;​（全卷积、多尺度）、&lt;strong&gt;数据驱动&lt;/strong&gt;​（锚框聚类）展开，同时通过&lt;strong&gt;结构优化&lt;/strong&gt;（Darknet-19、Passthrough）平衡速度与精度，为后续YOLO版本再改进奠定基础。&lt;br&gt;&lt;img src=&quot;https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/202504161606.jpg&quot;&gt;&lt;br&gt;如上图是YOLOv2的新特性和mAP（mean Average Precision，平均精度均值）之间的相关性。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
-    
-    
-    <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
-    
-    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
-    
-    <category term="YOLO" scheme="https://keychankc.github.io/tags/YOLO/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>[YOLO系列①] 物体检测评估指标和YOLO-v1实现思路</title>
-    <link href="https://keychankc.github.io/2025/04/17/011-yolo-eval-metrics-yolov1/"/>
-    <id>https://keychankc.github.io/2025/04/17/011-yolo-eval-metrics-yolov1/</id>
-    <published>2025-04-17T04:29:12.000Z</published>
-    <updated>2025-09-21T12:04:48.538Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-物体检测评估指标&quot;&gt;&lt;a href=&quot;#1-物体检测评估指标&quot; class=&quot;headerlink&quot; title=&quot;1.物体检测评估指标&quot;&gt;&lt;/a&gt;1.物体检测评估指标&lt;/h2&gt;&lt;h3 id=&quot;1-TP-FP-FN-TN&quot;&gt;&lt;a href=&quot;#1-TP-FP-FN-TN&quot; class=&quot;headerlink&quot; title=&quot;1.TP &amp;#x2F; FP &amp;#x2F; FN &amp;#x2F; TN&quot;&gt;&lt;/a&gt;1.TP &amp;#x2F; FP &amp;#x2F; FN &amp;#x2F; TN&lt;/h3&gt;&lt;p&gt;这四个指标是分类任务的基础：&lt;br&gt;• &lt;strong&gt;TP（True Positive）&lt;/strong&gt;：预测为正，且是真正的正样本（比如检测到了一个人，且确实是人）&lt;br&gt;• &lt;strong&gt;FP（False Positive）&lt;/strong&gt;：预测为正，但实际上是负样本（检测到了人，但其实是背景或别的物体）&lt;br&gt;• &lt;strong&gt;FN（False Negative）&lt;/strong&gt;：实际是正样本，但没检测出来（图里有人，模型没发现）&lt;br&gt;• &lt;strong&gt;TN（True Negative）&lt;/strong&gt;：负样本预测为负（对物体检测来说，通常不关注 TN）&lt;/p&gt;
-&lt;p&gt;举个例子&lt;/p&gt;</summary>
     
     
     
