@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-09-25T09:47:11.748Z</updated>
+  <updated>2025-09-26T07:24:32.511Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="https://keychankc.github.io/2025/09/25/030-flutter-engine-and-rendering-pipeline/"/>
     <id>https://keychankc.github.io/2025/09/25/030-flutter-engine-and-rendering-pipeline/</id>
     <published>2025-09-25T09:40:12.000Z</published>
-    <updated>2025-09-25T09:47:11.748Z</updated>
+    <updated>2025-09-26T07:24:32.511Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-概述&quot;&gt;&lt;a href=&quot;#1-概述&quot; class=&quot;headerlink&quot; title=&quot;1. 概述&quot;&gt;&lt;/a&gt;1. 概述&lt;/h2&gt;&lt;h3 id=&quot;1-1-为什么要理解-Flutter-渲染原理&quot;&gt;&lt;a href=&quot;#1-1-为什么要理解-Flutter-渲染原理&quot; class=&quot;headerlink&quot; title=&quot;1.1 为什么要理解 Flutter 渲染原理&quot;&gt;&lt;/a&gt;1.1 为什么要理解 Flutter 渲染原理&lt;/h3&gt;&lt;p&gt;可能很多人刚接触 Flutter 时，往往只关心“怎么写 Widget”。但是当项目复杂度增加，就会遇到各种疑惑：为什么页面会掉帧？为什么某个布局报错“RenderBox was not laid out”？为什么同样的动画，有的流畅，有的卡顿？这些问题的根源，几乎都藏在 Flutter 的渲染机制里。&lt;/p&gt;</summary>
