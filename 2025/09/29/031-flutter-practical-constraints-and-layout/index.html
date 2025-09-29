@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"keychankc.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="1. 为什么要写自定义 RenderObject在 Flutter 中，我们开发中最常打交道的是 Widget。它们像是 UI 的“配置表”，描述界面要长什么样。但 Widget 并不真正负责绘制，它只是告诉框架“我要一个红色的方块”或者“我要一个可滚动的列表”。真正负责把这些需求落到屏幕上的，是更底层的 RenderObject。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="约束与布局：深入 RenderObject、CustomPaint 与 Sliver 协议">
+<meta property="og:url" content="https://keychankc.github.io/2025/09/29/031-flutter-practical-constraints-and-layout/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s blog">
+<meta property="og:description" content="1. 为什么要写自定义 RenderObject在 Flutter 中，我们开发中最常打交道的是 Widget。它们像是 UI 的“配置表”，描述界面要长什么样。但 Widget 并不真正负责绘制，它只是告诉框架“我要一个红色的方块”或者“我要一个可滚动的列表”。真正负责把这些需求落到屏幕上的，是更底层的 RenderObject。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250928161914.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250928171554.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250928193515.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250928194317.png">
+<meta property="article:published_time" content="2025-09-29T15:40:12.000Z">
+<meta property="article:modified_time" content="2025-09-29T15:56:53.271Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="Flutter">
+<meta property="article:tag" content="布局">
+<meta property="article:tag" content="底层原理">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250928161914.png">
+
+
+<link rel="canonical" href="https://keychankc.github.io/2025/09/29/031-flutter-practical-constraints-and-layout/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/2025/09/29/031-flutter-practical-constraints-and-layout/","path":"2025/09/29/031-flutter-practical-constraints-and-layout/","title":"约束与布局：深入 RenderObject、CustomPaint 与 Sliver 协议"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>约束与布局：深入 RenderObject、CustomPaint 与 Sliver 协议 | KeyChan's blog</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.mengyajia.com">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's blog" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%86%99%E8%87%AA%E5%AE%9A%E4%B9%89-RenderObject"><span class="nav-text">1. 为什么要写自定义 RenderObject</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-RenderObject"><span class="nav-text">2. RenderObject</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-RenderObject-%E5%8A%9F%E8%83%BD"><span class="nav-text">2.1 RenderObject 功能</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E7%9A%84%E5%85%B3%E9%94%AE%E6%96%B9%E6%B3%95"><span class="nav-text">2.2 生命周期的关键方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-computeDryLayout-%E7%9A%84%E6%84%8F%E4%B9%89"><span class="nav-text">2.3 computeDryLayout 的意义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-markNeedsLayout-markNeedsPaint"><span class="nav-text">2.4 markNeedsLayout &#x2F; markNeedsPaint</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-%E8%87%AA%E5%AE%9A%E4%B9%89-RenderBox-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="nav-text">2.5 自定义 RenderBox 生命周期</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-CustomPainter-%E4%B8%8E-Canvas"><span class="nav-text">3. CustomPainter 与 Canvas</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-CustomPainter-%E7%9A%84%E5%AE%9A%E4%BD%8D"><span class="nav-text">3.1 CustomPainter 的定位</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E4%B8%8E-shouldRepaint"><span class="nav-text">3.2 生命周期与 shouldRepaint</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-PictureRecorder-%E4%B8%8E%E7%BC%93%E5%AD%98%E6%80%9D%E8%B7%AF"><span class="nav-text">3.3 PictureRecorder 与缓存思路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-Layer-%E4%B8%8E%E7%BB%98%E5%88%B6%E5%88%86%E5%B1%82"><span class="nav-text">3.4 Layer 与绘制分层</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-5-%E7%A4%BA%E4%BE%8B%EF%BC%9A%E5%9C%86%E7%8E%AF%E8%BF%9B%E5%BA%A6%E6%9D%A1"><span class="nav-text">3.5 示例：圆环进度条</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-5-1-%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="nav-text">3.5.1 代码实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-5-2-%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B"><span class="nav-text">3.5.2 使用示例</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E8%87%AA%E5%AE%9A%E4%B9%89-RenderBox"><span class="nav-text">4. 自定义 RenderBox</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-RenderBox-%E7%9A%84%E5%AE%9A%E4%BD%8D"><span class="nav-text">4.1 RenderBox 的定位</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#4-1-1-constraints-%E5%92%8C-size-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-text">4.1.1 constraints 和 size 的关系</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-1-2-%E5%A6%82%E4%BD%95%E8%B0%83%E7%94%A8layoutChild"><span class="nav-text">4.1.2 如何调用layoutChild</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-1-3-paint-%E9%98%B6%E6%AE%B5%E5%A6%82%E4%BD%95%E6%AD%A3%E7%A1%AE%E7%BB%98%E5%88%B6"><span class="nav-text">4.1.3 paint 阶段如何正确绘制</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E5%9C%86%E5%BD%A2%E8%BF%9B%E5%BA%A6%E6%9D%A1-RenderBox"><span class="nav-text">4.2 圆形进度条 RenderBox</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#4-2-1-%E6%A0%B8%E5%BF%83%E6%B5%81%E7%A8%8B"><span class="nav-text">4.2.1 核心流程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-2-2-%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="nav-text">4.2.2 代码实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-2-3-%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B"><span class="nav-text">4.2.3 使用示例</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-%E8%87%AA%E5%AE%9A%E4%B9%89%E4%B8%A4%E5%88%97%E7%BD%91%E6%A0%BC-RenderBox"><span class="nav-text">4.3 自定义两列网格 RenderBox</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#4-3-1-%E5%85%B3%E9%94%AE%E7%82%B9"><span class="nav-text">4.3.1 关键点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-3-2-%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="nav-text">4.3.2 代码实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-3-3-%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B"><span class="nav-text">4.3.3 使用示例</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-%E5%B8%B8%E8%A7%81%E5%9D%91"><span class="nav-text">4.4 常见坑</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E5%8F%AF%E4%BA%A4%E4%BA%92%E7%9A%84-RenderBox"><span class="nav-text">5. 可交互的 RenderBox</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%A8%A1%E5%9E%8B%E5%9B%9E%E9%A1%BE"><span class="nav-text">5.1 事件分发模型回顾</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-hitTest%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-text">5.2 hitTest的实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%EF%BC%9AhandleEvent"><span class="nav-text">5.3 事件处理：handleEvent</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-%E8%87%AA%E5%AE%9A%E4%B9%89-Slider"><span class="nav-text">5.4 自定义 Slider</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#5-4-1-%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="nav-text">5.4.1 代码实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-4-2-%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B"><span class="nav-text">5.4.2 使用示例</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-5-%E6%8B%96%E6%8B%BD%E5%B0%8F%E7%90%83"><span class="nav-text">5.5 拖拽小球</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#5-5-1-%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="nav-text">5.5.1 代码实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-5-2-%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B"><span class="nav-text">5.5.2 使用示例</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-6-%E5%B8%B8%E8%A7%81%E5%9D%91"><span class="nav-text">5.6 常见坑</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-Sliver-%E5%8D%8F%E8%AE%AE%E4%B8%8E%E9%AB%98%E6%80%A7%E8%83%BD%E6%BB%9A%E5%8A%A8"><span class="nav-text">6. Sliver 协议与高性能滚动</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-Sliver-%E7%9A%84%E7%BA%A6%E6%9D%9F%E7%B3%BB%E7%BB%9F"><span class="nav-text">6.1 Sliver 的约束系统</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-Viewport-%E4%B8%8E-child-%E7%AE%A1%E7%90%86"><span class="nav-text">6.2 Viewport 与 child 管理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-KeepAlive-%E7%9A%84%E6%84%8F%E4%B9%89"><span class="nav-text">6.3 KeepAlive 的意义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-4-%E8%87%AA%E5%AE%9A%E4%B9%89-SliverPersistentHeader%EF%BC%88%E4%BC%B8%E7%BC%A9%E5%A4%B4%E9%83%A8view%EF%BC%89"><span class="nav-text">6.4 自定义 SliverPersistentHeader（伸缩头部view）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#6-4-1-%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="nav-text">6.4.1 代码实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-4-2-%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B"><span class="nav-text">6.4.2 使用示例</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-5-%E8%87%AA%E5%AE%9A%E4%B9%89-SliverList%EF%BC%88%E6%87%92%E5%8A%A0%E8%BD%BD%EF%BC%89"><span class="nav-text">6.5 自定义 SliverList（懒加载）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E5%A4%8D%E5%90%88%E6%B8%B2%E6%9F%93%E4%B8%8E%E5%90%88%E6%88%90%E4%BC%98%E5%8C%96"><span class="nav-text">7. 复合渲染与合成优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#7-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-Layer"><span class="nav-text">7.1 为什么需要 Layer</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-2-%E5%B8%B8%E8%A7%81%E7%9A%84-Layer-%E7%B1%BB%E5%9E%8B"><span class="nav-text">7.2 常见的 Layer 类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-3-%E5%90%88%E6%88%90%E8%BE%B9%E7%95%8C%E7%9A%84%E6%84%8F%E4%B9%89"><span class="nav-text">7.3 合成边界的意义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-4-OpacityLayer-%E4%B8%8E%E7%9B%B4%E6%8E%A5%E7%BB%98%E5%88%B6"><span class="nav-text">7.4 OpacityLayer 与直接绘制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-5-BackdropFilter-%E7%9A%84%E6%80%A7%E8%83%BD%E6%B6%88%E8%80%97"><span class="nav-text">7.5 BackdropFilter 的性能消耗</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E6%80%BB%E7%BB%93"><span class="nav-text">8. 总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-%E5%A4%87%E6%B3%A8"><span class="nav-text">9. 备注</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">32</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/keychankc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://keychankc.github.io/2025/09/29/031-flutter-practical-constraints-and-layout/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's blog">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="约束与布局：深入 RenderObject、CustomPaint 与 Sliver 协议 | KeyChan's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          约束与布局：深入 RenderObject、CustomPaint 与 Sliver 协议
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2025-09-29 23:40:12 / 修改时间：23:56:53" itemprop="dateCreated datePublished" datetime="2025-09-29T23:40:12+08:00">2025-09-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%B7%A8%E5%B9%B3%E5%8F%B0%E6%A1%86%E6%9E%B6/" itemprop="url" rel="index"><span itemprop="name">跨平台框架</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2025/09/29/031-flutter-practical-constraints-and-layout/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2025/09/29/031-flutter-practical-constraints-and-layout/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>7.1k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>26 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="1-为什么要写自定义-RenderObject"><a href="#1-为什么要写自定义-RenderObject" class="headerlink" title="1. 为什么要写自定义 RenderObject"></a>1. 为什么要写自定义 RenderObject</h2><p>在 Flutter 中，我们开发中最常打交道的是 <strong>Widget</strong>。它们像是 UI 的“配置表”，描述界面要长什么样。但 Widget 并不真正负责绘制，它只是告诉框架“我要一个红色的方块”或者“我要一个可滚动的列表”。真正负责把这些需求落到屏幕上的，是更底层的 <strong>RenderObject</strong>。</p>
+<span id="more"></span>
+<p>Flutter 的渲染体系大致可以理解为三层：</p>
+<ul>
+<li><strong>Widget</strong>：声明式配置，告诉框架“我要什么”。</li>
+<li><strong>Element</strong>：连接桥梁，管理生命周期和树的更新。</li>
+<li><strong>RenderObject</strong>：执行者，负责布局、绘制和命中测试。</li>
+</ul>
+<p>在日常开发中，我们绝大多数场景只需要写 Widget 就够了。但有时候，我们会发现 <strong>Widget 层的封装并不能完全满足需求</strong>：</p>
+<ul>
+<li>比如说要画一个圆形进度条，官方库里没有现成组件。用 Container + Stack + 各种组合方式，性能和灵活性都不理想。</li>
+<li>想在滚动场景下实现特殊效果（比如一个“可伸缩的头部”或“性能更优的超大网格”），现成的 SliverList、GridView 就显得有点力不从心。</li>
+<li>想在优化性能时，发现 Widget 组合太复杂，层级过深，导致频繁 rebuild &#x2F; relayout，渲染卡顿。</li>
+</ul>
+<p>这时候，就需要“下潜”到 <strong>RenderObject 层</strong>，去直接操作布局和绘制逻辑了。  </p>
+<p>写自定义 RenderObject 看似“黑魔法”，但本质上它只是更贴近底层的工具：我们可以跳过 Widget 的限制，直接告诉 Flutter 如何计算子元素的大小、如何摆放、如何在画布上绘制。这样做既能提升性能，也能实现官方组件做不到的效果。</p>
+<h2 id="2-RenderObject"><a href="#2-RenderObject" class="headerlink" title="2. RenderObject"></a>2. RenderObject</h2><p>在 Flutter 中，<strong>RenderObject 是真正负责布局与绘制的执行者</strong>，但它并不是单一的存在，而是一个家族，有着不同的分工与扩展。理解这些角色和它们的生命周期方法，是写自定义渲染器的前提。</p>
+<h3 id="2-1-RenderObject-功能"><a href="#2-1-RenderObject-功能" class="headerlink" title="2.1 RenderObject 功能"></a>2.1 RenderObject 功能</h3><p>可以把 Widget 树想象成一份 <strong>设计图纸</strong>，而 RenderObject 树就是负责施工的 <strong>工程队</strong>。在工程队内部，不同工种各司其职：</p>
+<ul>
+<li><strong>RenderObject</strong><br>  所有渲染对象的基类。定义了最核心的接口：布局（layout）、绘制（paint）、事件响应（hitTest）等。但它本身比较抽象，很少直接继承。</li>
+<li><strong>RenderBox</strong><br>  最常用的子类，它采用二维 <strong>盒模型（box model）</strong>，约束（constraints）决定宽高，最终计算出 size。大部分常见组件（Text、Container、Image）底层都是 RenderBox。</li>
+<li><strong>RenderSliver</strong><br>  专为滚动场景设计。它不直接用宽高描述大小，而是使用 <strong>SliverConstraints &#x2F; SliverGeometry</strong>，能描述“在可见窗口里渲染多少像素”。像 ListView、GridView 的底层都是基于 RenderSliver。</li>
+</ul>
+<p>简而言之，RenderObject 是 <strong>抽象基类</strong>；RenderBox 负责 <strong>常规布局</strong>；RenderSliver 负责 <strong>滚动优化</strong>。</p>
+<h3 id="2-2-生命周期的关键方法"><a href="#2-2-生命周期的关键方法" class="headerlink" title="2.2 生命周期的关键方法"></a>2.2 生命周期的关键方法</h3><p>RenderObject 的生命周期可以理解为一套流水线：<strong>布局 → 绘制 → 事件响应</strong>。</p>
+<ul>
+<li><strong>performLayout</strong>：负责测量和确定自身（以及子节点）的大小与位置。在 RenderBox 中，这通常就是根据 BoxConstraints 计算 size。</li>
+<li><strong>paint</strong>：负责把内容画到画布（Canvas）上。例如绘制矩形、圆形、图片等。paint 不关心布局，只关心“怎么画”。</li>
+<li><strong>hitTest</strong>：处理事件响应，判断点击、拖拽等交互是否落在当前区域，如果返回 true，事件就会被传递给对应的子节点。</li>
+</ul>
+<p>这三个方法是自定义 RenderObject 时最常 override 的。</p>
+<h3 id="2-3-computeDryLayout-的意义"><a href="#2-3-computeDryLayout-的意义" class="headerlink" title="2.3 computeDryLayout 的意义"></a>2.3 computeDryLayout 的意义</h3><p>在 Flutter 2.0 之后，框架引入了 <strong>computeDryLayout</strong> 方法，用于在不真正触发布局的情况下 <strong>预估大小</strong>。</p>
+<p>为什么需要这个？<br>因为某些父组件（比如 IntrinsicWidth、IntrinsicHeight）需要提前知道子组件的理想尺寸，但又不能真的触发 layout。而computeDryLayout 提供了一个“试算”机会，可以在不影响布局树的前提下返回一个 Size。<br>因此，当我们写 RenderBox 时，推荐同时实现 performLayout 和 computeDryLayout，确保你的控件在各种情况下表现一致。</p>
+<h3 id="2-4-markNeedsLayout-markNeedsPaint"><a href="#2-4-markNeedsLayout-markNeedsPaint" class="headerlink" title="2.4 markNeedsLayout &#x2F; markNeedsPaint"></a>2.4 markNeedsLayout &#x2F; markNeedsPaint</h3><p>除了生命周期方法，RenderObject 还提供了“通知系统需要重新计算”的机制：</p>
+<ul>
+<li><strong>markNeedsLayout</strong>：告诉框架“我的布局无效了，需要重新走 performLayout”。常见于属性变化影响大小时。</li>
+<li><strong>markNeedsPaint</strong>：告诉框架“我的绘制内容变了，需要重绘”。常见于颜色、进度值变化但不影响大小时。</li>
+</ul>
+<p>这两个方法会把节点标记为 dirty，等待下一帧统一处理，从而避免重复计算。</p>
+<h3 id="2-5-自定义-RenderBox-生命周期"><a href="#2-5-自定义-RenderBox-生命周期" class="headerlink" title="2.5 自定义 RenderBox 生命周期"></a>2.5 自定义 RenderBox 生命周期</h3><p>下面是一个示例，打印布局和绘制的调用顺序：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DebugBox</span> <span class="keyword">extends</span> <span class="title">RenderBox</span> </span>&#123;</span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="keyword">void</span> performLayout() &#123;</span><br><span class="line">    <span class="comment">// 假设固定大小 100x100</span></span><br><span class="line">    size = constraints.constrain(Size(<span class="number">100</span>, <span class="number">100</span>));</span><br><span class="line">    debugPrint(<span class="string">&#x27;performLayout called, size = <span class="subst">$size</span>&#x27;</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="keyword">void</span> paint(PaintingContext context, Offset offset) &#123;</span><br><span class="line">    debugPrint(<span class="string">&#x27;paint called at <span class="subst">$offset</span>&#x27;</span>);</span><br><span class="line">    <span class="keyword">final</span> Paint paint = Paint()..color = <span class="keyword">const</span> Color(<span class="number">0xFF42A5F5</span>);</span><br><span class="line">    context.canvas.drawRect(offset &amp; size, paint);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="built_in">bool</span> hitTestSelf(Offset position) &#123;</span><br><span class="line">    debugPrint(<span class="string">&#x27;hitTest at <span class="subst">$position</span>&#x27;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">true</span>; <span class="comment">// 点击区域有效</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当我们在界面中嵌入这个组件时，可以看到：先走 performLayout，接着 paint，最后在点击时触发 hitTest。这就是 RenderObject 的完整工作流程。</p>
+<h2 id="3-CustomPainter-与-Canvas"><a href="#3-CustomPainter-与-Canvas" class="headerlink" title="3. CustomPainter 与 Canvas"></a>3. CustomPainter 与 Canvas</h2><p>在真正深入 RenderObject 的 paint 方法之前，我们先从一个更易上手的入口切入：<strong>CustomPainter</strong>。它是 Flutter 提供的“绘制接口”，我们可以在其中直接操作 Canvas，实现各种自定义图形，而不必一开始就写 RenderBox。</p>
+<h3 id="3-1-CustomPainter-的定位"><a href="#3-1-CustomPainter-的定位" class="headerlink" title="3.1 CustomPainter 的定位"></a>3.1 CustomPainter 的定位</h3><p>如果把 Flutter 的绘制体系比作“造房子”：</p>
+<ul>
+<li><strong>Widget</strong> 是户型设计图</li>
+<li><strong>RenderBox.paint</strong> 是工人亲手砌墙、刷漆</li>
+<li><strong>CustomPainter</strong> 就像雇了一支“外包团队”，你只需定义绘制逻辑，它就能被插入到渲染流程中。</li>
+</ul>
+<p>使用 CustomPainter 有几个优点：</p>
+<ul>
+<li><strong>快速验证绘制逻辑</strong>，不用直接继承 RenderBox。</li>
+<li><strong>高度灵活</strong>，可随时挂到 CustomPaint Widget 上。</li>
+<li><strong>天然支持组合</strong>，一个界面可以有多个 CustomPainter 叠加绘制。</li>
+</ul>
+<p>因此，CustomPainter 往往是初学者进入 RenderObject 世界的第一步。</p>
+<h3 id="3-2-生命周期与-shouldRepaint"><a href="#3-2-生命周期与-shouldRepaint" class="headerlink" title="3.2 生命周期与 shouldRepaint"></a>3.2 生命周期与 shouldRepaint</h3><p>编写 CustomPainter 时，必须实现 paint 和 shouldRepaint：</p>
+<ul>
+<li><code>paint(Canvas, Size)</code>：在这里写绘制逻辑，例如画矩形、圆形、路径等。</li>
+<li><code>shouldRepaint(CustomPainter oldDelegate)</code>：用来判断“是否需要重绘”。如果返回 true，Flutter 会在下一帧重新调用 paint。</li>
+</ul>
+<p>很多初学者会偷懒，直接这样写：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@override</span></span><br><span class="line"><span class="built_in">bool</span> shouldRepaint(<span class="keyword">covariant</span> CustomPainter oldDelegate) =&gt; <span class="keyword">true</span>;</span><br></pre></td></tr></table></figure>
+<p>这样虽然简单，但意味着 <strong>每一帧都会重绘</strong>，即使内容没变化，也会浪费性能。</p>
+<p>正确做法是：比较关键属性是否变化。</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RingPainter</span> <span class="keyword">extends</span> <span class="title">CustomPainter</span> </span>&#123;</span><br><span class="line">  <span class="keyword">final</span> <span class="built_in">double</span> progress;</span><br><span class="line">  RingPainter(<span class="keyword">this</span>.progress);</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="keyword">void</span> paint(Canvas canvas, Size size) &#123;</span><br><span class="line">    <span class="keyword">final</span> Paint paint = Paint()</span><br><span class="line">      ..color = <span class="keyword">const</span> Color(<span class="number">0xFF42A5F5</span>)</span><br><span class="line">      ..strokeWidth = <span class="number">8</span></span><br><span class="line">      ..style = PaintingStyle.stroke;</span><br><span class="line">    <span class="keyword">final</span> Rect rect = Offset.zero &amp; size;</span><br><span class="line">    canvas.drawArc(rect, -<span class="number">3.14</span> / <span class="number">2</span>, <span class="number">2</span> * <span class="number">3.14</span> * progress, <span class="keyword">false</span>, paint);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="built_in">bool</span> shouldRepaint(<span class="keyword">covariant</span> RingPainter oldDelegate) &#123;</span><br><span class="line">    <span class="keyword">return</span> oldDelegate.progress != progress;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样只有进度变化时才触发重绘，大大减少无效开销。</p>
+<h3 id="3-3-PictureRecorder-与缓存思路"><a href="#3-3-PictureRecorder-与缓存思路" class="headerlink" title="3.3 PictureRecorder 与缓存思路"></a>3.3 PictureRecorder 与缓存思路</h3><p>有时绘制逻辑非常复杂（例如地图瓦片、复杂曲线），哪怕 shouldRepaint 正确实现，也可能导致性能瓶颈。<br>这时我们可以借助 <strong>PictureRecorder</strong>，它可以提前把绘制内容“录制”成 Picture 对象，下次需要绘制时，直接复用 Picture，而不是重新执行绘制逻辑。</p>
+<p>例如：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> recorder = PictureRecorder();</span><br><span class="line"><span class="keyword">final</span> canvas = Canvas(recorder);</span><br><span class="line">drawSomething(canvas); <span class="comment">// 只绘制一次</span></span><br><span class="line"><span class="keyword">final</span> picture = recorder.endRecording();</span><br><span class="line"><span class="comment">// 下次复用 picture，避免重复计算</span></span><br></pre></td></tr></table></figure>
+<p>这就是 Flutter 内部很多控件（如 Icon）的缓存思路。</p>
+<h3 id="3-4-Layer-与绘制分层"><a href="#3-4-Layer-与绘制分层" class="headerlink" title="3.4 Layer 与绘制分层"></a>3.4 Layer 与绘制分层</h3><p>Flutter 的绘制不是一次性画到底，而是基于 <strong>Layer Tree</strong>。每个 Layer 都可以单独缓存和复用，例如：</p>
+<ul>
+<li><strong>PictureLayer</strong>：存放实际绘制内容</li>
+<li><strong>TransformLayer</strong>：存放矩阵变换</li>
+<li><strong>ClipLayer</strong>：存放裁剪区域</li>
+</ul>
+<p>得益于分层机制，Flutter 可以只重绘变化的部分，而不是整个画布。</p>
+<p>例如一个固定背景 + 移动小球的场景：</p>
+<ul>
+<li>背景可以缓存到 PictureLayer，不必每帧重绘。</li>
+<li>只有小球的 Layer 每帧更新，节省大量性能。</li>
+</ul>
+<p>这也是为什么在复杂界面中，合理拆分 Layer 和缓存，是性能优化的关键。</p>
+<h3 id="3-5-示例：圆环进度条"><a href="#3-5-示例：圆环进度条" class="headerlink" title="3.5 示例：圆环进度条"></a>3.5 示例：圆环进度条</h3><h4 id="3-5-1-代码实现"><a href="#3-5-1-代码实现" class="headerlink" title="3.5.1 代码实现"></a>3.5.1 代码实现</h4><p>结合上面的知识，我们用 CustomPainter 实现一个圆环进度条：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/// <span class="language-markdown">一个圆环进度条组件，外层还是普通的 StatelessWidget，  </span></span></span><br><span class="line"><span class="comment">/// <span class="language-markdown">只是内部用 CustomPaint 来承载真正的绘制逻辑。  </span></span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RingProgress</span> <span class="keyword">extends</span> <span class="title">StatelessWidget</span> </span>&#123;  </span><br><span class="line">  <span class="keyword">final</span> <span class="built_in">double</span> progress; <span class="comment">// 进度值：0.0 ~ 1.0  </span></span><br><span class="line">  <span class="keyword">final</span> <span class="built_in">double</span> strokeWidth; <span class="comment">// 圆环宽度  </span></span><br><span class="line">  <span class="keyword">final</span> Color color; <span class="comment">// 主色  </span></span><br><span class="line">  <span class="keyword">final</span> Size size; <span class="comment">// 尺寸  </span></span><br><span class="line">  </span><br><span class="line">  <span class="keyword">const</span> RingProgress(&#123;  </span><br><span class="line">    <span class="keyword">super</span>.key,  </span><br><span class="line">    <span class="keyword">required</span> <span class="keyword">this</span>.progress,  </span><br><span class="line">    <span class="keyword">this</span>.strokeWidth = <span class="number">6.0</span>,  </span><br><span class="line">    <span class="keyword">this</span>.color = Colors.blue,   </span><br><span class="line">    <span class="keyword">this</span>.size = <span class="keyword">const</span> Size(<span class="number">100.0</span>, <span class="number">100.0</span>),  </span><br><span class="line">  &#125;);  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  Widget build(BuildContext context) &#123;  </span><br><span class="line">    <span class="keyword">return</span> CustomPaint(  </span><br><span class="line">      <span class="comment">// 指定画布的大小（也可以由父布局约束决定）  </span></span><br><span class="line">      size: size,  </span><br><span class="line">      <span class="comment">// painter 就是具体的绘制逻辑  </span></span><br><span class="line">      painter: _RingPainter(  </span><br><span class="line">        progress: progress,  </span><br><span class="line">        strokeWidth: strokeWidth,  </span><br><span class="line">        color: color,  </span><br><span class="line">      ),  </span><br><span class="line">    );  </span><br><span class="line">  &#125;  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="comment">/// <span class="language-markdown">自定义 Painter，真正负责绘制  </span></span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">_RingPainter</span> <span class="keyword">extends</span> <span class="title">CustomPainter</span> </span>&#123;  </span><br><span class="line">  <span class="keyword">final</span> <span class="built_in">double</span> progress;  </span><br><span class="line">  <span class="keyword">final</span> <span class="built_in">double</span> strokeWidth;  </span><br><span class="line">  <span class="keyword">final</span> Color color;  </span><br><span class="line">  </span><br><span class="line">  _RingPainter(&#123;  </span><br><span class="line">    <span class="keyword">required</span> <span class="keyword">this</span>.progress,  </span><br><span class="line">    <span class="keyword">required</span> <span class="keyword">this</span>.strokeWidth,  </span><br><span class="line">    <span class="keyword">required</span> <span class="keyword">this</span>.color,  </span><br><span class="line">  &#125;);  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  <span class="keyword">void</span> paint(Canvas canvas, Size size) &#123;  </span><br><span class="line">    <span class="comment">// 圆心点  </span></span><br><span class="line">    <span class="keyword">final</span> Offset center = size.center(Offset.zero);  </span><br><span class="line">    <span class="comment">// 半径 = 最短边减去线宽的一半  </span></span><br><span class="line">    <span class="keyword">final</span> <span class="built_in">double</span> radius = (size.shortestSide - strokeWidth) / <span class="number">2</span>;  </span><br><span class="line">  </span><br><span class="line">    <span class="comment">// 创建画笔  </span></span><br><span class="line">    <span class="keyword">final</span> Paint paint = Paint()  </span><br><span class="line">      ..style = PaintingStyle  </span><br><span class="line">          .stroke <span class="comment">// 画线模式（不是填充）  </span></span><br><span class="line">      ..strokeWidth = strokeWidth  </span><br><span class="line">      ..strokeCap = StrokeCap.round; <span class="comment">// 圆角收尾  </span></span><br><span class="line">  </span><br><span class="line">    <span class="comment">// 1. 先画一层半透明的背景圆环  </span></span><br><span class="line">    paint.color = color.withValues(alpha: <span class="number">0.2</span>);  </span><br><span class="line">    canvas.drawCircle(center, radius, paint);  </span><br><span class="line">  </span><br><span class="line">    <span class="comment">// 2. 再画进度弧线  </span></span><br><span class="line">    paint.color = color;  </span><br><span class="line">    <span class="keyword">final</span> Rect rect = Rect.fromCircle(center: center, radius: radius);  </span><br><span class="line">    <span class="keyword">final</span> <span class="built_in">double</span> sweepAngle = <span class="number">2</span> * math.pi * progress; <span class="comment">// 进度 → 弧度  </span></span><br><span class="line">    canvas.drawArc(  </span><br><span class="line">      rect,  </span><br><span class="line">      -math.pi / <span class="number">2</span>, <span class="comment">// 起点角度：-90°，让进度从正上方开始  </span></span><br><span class="line">      sweepAngle,  </span><br><span class="line">      <span class="keyword">false</span>, <span class="comment">// 只画弧线，不连接圆心  </span></span><br><span class="line">      paint,  </span><br><span class="line">    );  </span><br><span class="line">  &#125;  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  <span class="built_in">bool</span> shouldRepaint(<span class="keyword">covariant</span> _RingPainter oldDelegate) &#123;  </span><br><span class="line">    <span class="comment">// 只有当进度、颜色或线宽变化时，才需要重绘  </span></span><br><span class="line">    <span class="keyword">return</span> oldDelegate.progress != progress ||  </span><br><span class="line">        oldDelegate.color != color ||  </span><br><span class="line">        oldDelegate.strokeWidth != strokeWidth;  </span><br><span class="line">  &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当 progress 更新时，只有进度条需要重绘；如果保持不变，就不会触发多余的 paint，保证帧率稳定。</p>
+<h4 id="3-5-2-使用示例"><a href="#3-5-2-使用示例" class="headerlink" title="3.5.2 使用示例"></a>3.5.2 使用示例</h4><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyApp</span> <span class="keyword">extends</span> <span class="title">StatelessWidget</span> </span>&#123;  </span><br><span class="line">  <span class="keyword">const</span> MyApp(&#123;<span class="keyword">super</span>.key&#125;);  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  Widget build(BuildContext context) &#123;  </span><br><span class="line">    <span class="keyword">return</span> MaterialApp(  </span><br><span class="line">      title: <span class="string">&#x27;CustomPainter Demo&#x27;</span>,  </span><br><span class="line">      theme: ThemeData(primarySwatch: Colors.blue),  </span><br><span class="line">      home: <span class="keyword">const</span> Scaffold(body: Center(child: RingProgress(progress: <span class="number">0.4</span>),),),  </span><br><span class="line">    );  </span><br><span class="line">  &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250928161914.png" alt="圆环进度条" width="50%">
+
+<h2 id="4-自定义-RenderBox"><a href="#4-自定义-RenderBox" class="headerlink" title="4. 自定义 RenderBox"></a>4. 自定义 RenderBox</h2><p>在上一节里，我们用 <strong>CustomPainter</strong> 画了一个圆环进度条。但 CustomPainter 仍然依赖于现成的 <strong>RenderBox</strong>，它只接管了绘制逻辑。要想彻底理解 Flutter 渲染体系，我们必须自己动手写一个 <strong>RenderBox</strong> ——从布局到绘制都掌控在手。</p>
+<p>这一节，我们会通过两个案例，完整体验 RenderBox 的工作流程：</p>
+<ol>
+<li><strong>圆形进度条 RenderBox</strong>：无子组件，练习 constraints → size → paint 的基本流程。</li>
+<li><strong>自定义两列网格 RenderBox</strong>：有子组件，演示如何调用 layoutChild。</li>
+</ol>
+<p>同时，我们还会穿插讲解一些常见坑（如约束报错、无限大小）和性能注意点。</p>
+<h3 id="4-1-RenderBox-的定位"><a href="#4-1-RenderBox-的定位" class="headerlink" title="4.1 RenderBox 的定位"></a>4.1 RenderBox 的定位</h3><p>Flutter 的渲染管线是分层的：</p>
+<ul>
+<li><strong>Widget</strong>：配置数据，声明 UI。</li>
+<li><strong>Element</strong>：Widget 的实例，负责管理生命周期。</li>
+<li><strong>RenderObject</strong>：真正执行 <strong>布局和绘制</strong> 的对象。</li>
+</ul>
+<p>而 RenderBox 是 RenderObject 的一个子类，采用 <strong>盒模型（Box Constraints）</strong> 协议，最常见的 UI 元素（Container、Text、Image 等）都基于它。</p>
+<h4 id="4-1-1-constraints-和-size-的关系"><a href="#4-1-1-constraints-和-size-的关系" class="headerlink" title="4.1.1 constraints 和 size 的关系"></a>4.1.1 constraints 和 size 的关系</h4><p>在 RenderBox 里，<strong>constraints（约束）决定了可用空间</strong>，而我们必须在 performLayout 里通过 size &#x3D; … 来给自己定一个最终尺寸。<br>BoxConstraints 提供了 <strong>最小&#x2F;最大宽高</strong>：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">constraints.minWidth, constraints.maxWidth</span><br><span class="line">constraints.minHeight, constraints.maxHeight</span><br></pre></td></tr></table></figure>
+<p>规则：    </p>
+<ol>
+<li>不能超出 maxWidth &#x2F; maxHeight        </li>
+<li>不能小于 minWidth &#x2F; minHeight        </li>
+<li>如果你随便赋值一个 size 不满足 constraints，就会报错</li>
+</ol>
+<h4 id="4-1-2-如何调用layoutChild"><a href="#4-1-2-如何调用layoutChild" class="headerlink" title="4.1.2 如何调用layoutChild"></a>4.1.2 如何调用layoutChild</h4><p>子组件必须通过 <code>child.layout(constraints, parentUsesSize: true)</code> 来进行布局，constraints就是要给它分配的空间，parentUsesSize: true：表示父组件会依赖子组件的大小（否则访问 child.size 会报错）</p>
+<p><strong>注意</strong>：layoutChild 本质就是上面这行，只不过在 MultiChildRenderObjectWidget 的封装里会帮我们循环调用。</p>
+<h4 id="4-1-3-paint-阶段如何正确绘制"><a href="#4-1-3-paint-阶段如何正确绘制" class="headerlink" title="4.1.3 paint 阶段如何正确绘制"></a>4.1.3 paint 阶段如何正确绘制</h4><p>在 paint 方法里，你可以用 Canvas 来画东西，或者把子组件画出来。</p>
+<ul>
+<li>绘制自身：</li>
+</ul>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@override</span></span><br><span class="line"><span class="keyword">void</span> paint(PaintingContext context, Offset offset) &#123;</span><br><span class="line">  <span class="keyword">final</span> canvas = context.canvas;</span><br><span class="line">  <span class="keyword">final</span> Paint paint = Paint()..color = Colors.blue;</span><br><span class="line">  canvas.drawCircle(offset + size.center(Offset.zero), size.shortestSide / <span class="number">2</span>, paint);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>绘制子组件：</li>
+</ul>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">context.paintChild(child, childParentData.offset + offset);</span><br></pre></td></tr></table></figure>
+<p>这里 childParentData.offset 是在 performLayout 时保存的位置</p>
+<p>我们写自定义 RenderBox，就是直接操作约束、大小和绘制逻辑，拥有很高的自由度。</p>
+<h3 id="4-2-圆形进度条-RenderBox"><a href="#4-2-圆形进度条-RenderBox" class="headerlink" title="4.2 圆形进度条 RenderBox"></a>4.2 圆形进度条 RenderBox</h3><p>我们先从最简单的“无子节点” RenderBox 开始：一个圆环进度条。</p>
+<h4 id="4-2-1-核心流程"><a href="#4-2-1-核心流程" class="headerlink" title="4.2.1 核心流程"></a>4.2.1 核心流程</h4><ol>
+<li><strong>布局（performLayout）</strong><br> RenderBox 必须设置自己的 size，否则会报错。constraints 提供父组件给的最大&#x2F;最小宽高。 我们需要根据 constraints 决定最终大小。</li>
+<li><strong>绘制（paint）</strong><br> 获取 Canvas，调用绘制 API。使用进度值决定圆弧角度。</li>
+</ol>
+<h4 id="4-2-2-代码实现"><a href="#4-2-2-代码实现" class="headerlink" title="4.2.2 代码实现"></a>4.2.2 代码实现</h4><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="string">&#x27;dart:math&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="string">&#x27;package:flutter/rendering.dart&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="string">&#x27;package:flutter/widgets.dart&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/// <span class="language-markdown">圆形进度条 RenderObjectWidget</span></span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RingProgressBox</span> <span class="keyword">extends</span> <span class="title">LeafRenderObjectWidget</span> </span>&#123;</span><br><span class="line">  <span class="keyword">final</span> <span class="built_in">double</span> progress; <span class="comment">// 0~1</span></span><br><span class="line">  <span class="keyword">final</span> <span class="built_in">double</span> strokeWidth;</span><br><span class="line">  <span class="keyword">final</span> Color color;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> RingProgressBox(&#123;</span><br><span class="line">    <span class="keyword">super</span>.key,</span><br><span class="line">    <span class="keyword">required</span> <span class="keyword">this</span>.progress,</span><br><span class="line">    <span class="keyword">this</span>.strokeWidth = <span class="number">10</span>,</span><br><span class="line">    <span class="keyword">this</span>.color = <span class="keyword">const</span> Color(<span class="number">0xFF2196F3</span>),</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  RenderObject createRenderObject(BuildContext context) &#123;</span><br><span class="line">    <span class="keyword">return</span> _RenderRingProgress(progress, strokeWidth, color);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="keyword">void</span> updateRenderObject(</span><br><span class="line">      BuildContext context, <span class="keyword">covariant</span> _RenderRingProgress renderObject) &#123;</span><br><span class="line">    renderObject</span><br><span class="line">      ..progress = progress</span><br><span class="line">      ..strokeWidth = strokeWidth</span><br><span class="line">      ..color = color;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/// <span class="language-markdown">真正的 RenderBox</span></span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">_RenderRingProgress</span> <span class="keyword">extends</span> <span class="title">RenderBox</span> </span>&#123;</span><br><span class="line">  <span class="built_in">double</span> _progress;</span><br><span class="line">  <span class="built_in">double</span> _strokeWidth;</span><br><span class="line">  Color _color;</span><br><span class="line"></span><br><span class="line">  _RenderRingProgress(<span class="keyword">this</span>._progress, <span class="keyword">this</span>._strokeWidth, <span class="keyword">this</span>._color);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">set</span> progress(<span class="built_in">double</span> value) &#123;</span><br><span class="line">    <span class="keyword">if</span> (_progress != value) &#123;</span><br><span class="line">      _progress = value;</span><br><span class="line">      markNeedsPaint(); <span class="comment">// 通知重绘</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">set</span> strokeWidth(<span class="built_in">double</span> value) &#123;</span><br><span class="line">    <span class="keyword">if</span> (_strokeWidth != value) &#123;</span><br><span class="line">      _strokeWidth = value;</span><br><span class="line">      markNeedsLayout(); <span class="comment">// 大小可能变化</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">set</span> color(Color value) &#123;</span><br><span class="line">    <span class="keyword">if</span> (_color != value) &#123;</span><br><span class="line">      _color = value;</span><br><span class="line">      markNeedsPaint();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="keyword">void</span> performLayout() &#123;</span><br><span class="line">    <span class="comment">// 确定自己的大小</span></span><br><span class="line">    <span class="keyword">final</span> sizeValue = constraints.hasBoundedWidth &amp;&amp; constraints.hasBoundedHeight</span><br><span class="line">        ? Size(constraints.maxWidth, constraints.maxHeight)</span><br><span class="line">        : <span class="keyword">const</span> Size(<span class="number">100</span>, <span class="number">100</span>); <span class="comment">// 如果父约束无限，就默认 100×100</span></span><br><span class="line"></span><br><span class="line">    size = sizeValue;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="keyword">void</span> paint(PaintingContext context, Offset offset) &#123;</span><br><span class="line">    <span class="keyword">final</span> canvas = context.canvas;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> center = offset + Offset(size.width / <span class="number">2</span>, size.height / <span class="number">2</span>);</span><br><span class="line">    <span class="keyword">final</span> radius = size.shortestSide / <span class="number">2</span> - _strokeWidth / <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> backgroundPaint = Paint()</span><br><span class="line">      ..color = _color.withValues(alpha: <span class="number">0.2</span>)</span><br><span class="line">      ..style = PaintingStyle.stroke</span><br><span class="line">      ..strokeWidth = _strokeWidth;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> progressPaint = Paint()</span><br><span class="line">      ..color = _color</span><br><span class="line">      ..style = PaintingStyle.stroke</span><br><span class="line">      ..strokeCap = StrokeCap.round</span><br><span class="line">      ..strokeWidth = _strokeWidth;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 背景圆环</span></span><br><span class="line">    canvas.drawCircle(center, radius, backgroundPaint);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 进度圆弧</span></span><br><span class="line">    <span class="keyword">final</span> sweepAngle = <span class="number">2</span> * pi * _progress;</span><br><span class="line">    canvas.drawArc(</span><br><span class="line">      Rect.fromCircle(center: center, radius: radius),</span><br><span class="line">      -pi / <span class="number">2</span>,</span><br><span class="line">      sweepAngle,</span><br><span class="line">      <span class="keyword">false</span>,</span><br><span class="line">      progressPaint,</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样我们就完全绕过了 CustomPainter，直接从 RenderBox 层实现了进度条。</p>
+<h4 id="4-2-3-使用示例"><a href="#4-2-3-使用示例" class="headerlink" title="4.2.3 使用示例"></a>4.2.3 使用示例</h4><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Center(</span><br><span class="line">  child: RingProgressBox(progress: <span class="number">0.6</span>),</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<h3 id="4-3-自定义两列网格-RenderBox"><a href="#4-3-自定义两列网格-RenderBox" class="headerlink" title="4.3 自定义两列网格 RenderBox"></a>4.3 自定义两列网格 RenderBox</h3><p>我们再来一个更复杂的例子：实现一个 <strong>两列网格布局</strong>，内部可以放子组件。</p>
+<h4 id="4-3-1-关键点"><a href="#4-3-1-关键点" class="headerlink" title="4.3.1 关键点"></a>4.3.1 关键点</h4><ul>
+<li>RenderBox 支持子组件时，需要继承 RenderBox + ContainerRenderObjectMixin。</li>
+<li>调用 layoutChild(child, constraints) 来让子组件自己布局。</li>
+<li>再根据子组件的大小，决定整个父 RenderBox 的大小。</li>
+</ul>
+<h4 id="4-3-2-代码实现"><a href="#4-3-2-代码实现" class="headerlink" title="4.3.2 代码实现"></a>4.3.2 代码实现</h4><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="string">&#x27;package:flutter/material.dart&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="string">&#x27;package:flutter/rendering.dart&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="string">&#x27;dart:math&#x27;</span> <span class="keyword">as</span> math;</span><br><span class="line"></span><br><span class="line"><span class="comment">/// <span class="language-markdown"><span class="bullet">1.</span> Widget 层：对外暴露的组件  </span></span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TwoColumnGrid</span> <span class="keyword">extends</span> <span class="title">MultiChildRenderObjectWidget</span> </span>&#123;  </span><br><span class="line">  <span class="keyword">const</span> TwoColumnGrid(&#123;<span class="keyword">super</span>.key, <span class="keyword">required</span> <span class="keyword">super</span>.children&#125;);  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  RenderObject createRenderObject(BuildContext context) &#123;  </span><br><span class="line">    <span class="keyword">return</span> RenderTwoColumnGrid();  </span><br><span class="line">  &#125;  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="comment">/// <span class="language-markdown"><span class="bullet">2.</span> 自定义 ParentData</span></span></span><br><span class="line"><span class="comment">/// <span class="language-markdown">每个子组件都会持有一份 ParentData，用于保存偏移量等信息  </span></span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TwoColumnParentData</span> <span class="keyword">extends</span> <span class="title">ContainerBoxParentData</span>&lt;<span class="title">RenderBox</span>&gt; </span>&#123;&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="comment">/// <span class="language-markdown"><span class="bullet">3.</span> RenderObject 层：真正的布局和绘制逻辑  </span></span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RenderTwoColumnGrid</span> <span class="keyword">extends</span> <span class="title">RenderBox</span> <span class="title">with</span>  </span></span><br><span class="line"><span class="class">        <span class="title">ContainerRenderObjectMixin</span>&lt;<span class="title">RenderBox</span>, <span class="title">TwoColumnParentData</span>&gt;,  </span></span><br><span class="line"><span class="class">        <span class="title">RenderBoxContainerDefaultsMixin</span>&lt;<span class="title">RenderBox</span>, <span class="title">TwoColumnParentData</span>&gt; </span>&#123;  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  <span class="keyword">void</span> setupParentData(RenderBox child) &#123;  </span><br><span class="line">    <span class="keyword">if</span> (child.parentData <span class="keyword">is</span>! TwoColumnParentData) &#123;  </span><br><span class="line">      child.parentData = TwoColumnParentData();  </span><br><span class="line">    &#125;  </span><br><span class="line">  &#125;  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  <span class="keyword">void</span> performLayout() &#123;  </span><br><span class="line">    <span class="keyword">final</span> <span class="built_in">double</span> maxWidth = constraints.hasBoundedWidth  </span><br><span class="line">        ? constraints.maxWidth : <span class="number">300</span>;  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">final</span> <span class="built_in">double</span> childMaxWidth = maxWidth / <span class="number">2</span>;  </span><br><span class="line">  </span><br><span class="line">    <span class="built_in">double</span> dx = <span class="number">0</span>; <span class="comment">// 当前子组件的横坐标  </span></span><br><span class="line">    <span class="built_in">double</span> dy = <span class="number">0</span>; <span class="comment">// 当前子组件的纵坐标  </span></span><br><span class="line">    <span class="built_in">double</span> rowHeight = <span class="number">0</span>; <span class="comment">// 当前行的最大高度  </span></span><br><span class="line">  </span><br><span class="line">    RenderBox? child = firstChild;  </span><br><span class="line">    <span class="built_in">int</span> column = <span class="number">0</span>; <span class="comment">// 当前列（0=左，1=右）  </span></span><br><span class="line">  </span><br><span class="line">    <span class="keyword">while</span> (child != <span class="keyword">null</span>) &#123;  </span><br><span class="line">      <span class="keyword">final</span> childParentData = child.parentData <span class="keyword">as</span> TwoColumnParentData;  </span><br><span class="line">  </span><br><span class="line">      <span class="comment">// 给子组件传递约束  </span></span><br><span class="line">      child.layout(  </span><br><span class="line">        BoxConstraints(maxWidth: childMaxWidth),  </span><br><span class="line">        parentUsesSize: <span class="keyword">true</span>,  </span><br><span class="line">      );  </span><br><span class="line">  </span><br><span class="line">      <span class="comment">// 设置子组件的位置  </span></span><br><span class="line">      childParentData.offset = Offset(dx, dy);  </span><br><span class="line">  </span><br><span class="line">      <span class="comment">// 更新当前行的最大高度  </span></span><br><span class="line">      rowHeight = math.max(rowHeight, child.size.height);  </span><br><span class="line">  </span><br><span class="line">      <span class="comment">// 切换到下一列 / 换行  </span></span><br><span class="line">      <span class="keyword">if</span> (column == <span class="number">0</span>) &#123;  </span><br><span class="line">        dx = childMaxWidth; <span class="comment">// 下一列  </span></span><br><span class="line">        column = <span class="number">1</span>;  </span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;  </span><br><span class="line">        dx = <span class="number">0</span>;  </span><br><span class="line">        dy += rowHeight; <span class="comment">// 换行  </span></span><br><span class="line">        rowHeight = <span class="number">0</span>;  </span><br><span class="line">        column = <span class="number">0</span>;  </span><br><span class="line">      &#125;  </span><br><span class="line">  </span><br><span class="line">      child = childParentData.nextSibling;  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="comment">// 设置自身的 size    </span></span><br><span class="line">    size = constraints.constrain(Size(maxWidth, dy + rowHeight));  </span><br><span class="line">  &#125;  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  <span class="keyword">void</span> paint(PaintingContext context, Offset offset) &#123;  </span><br><span class="line">    defaultPaint(context, offset);  </span><br><span class="line">  &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个例子展示了如何 <strong>遍历子组件 → 调用 layout → 决定偏移量 → 设定 size</strong>。</p>
+<h4 id="4-3-3-使用示例"><a href="#4-3-3-使用示例" class="headerlink" title="4.3.3 使用示例"></a>4.3.3 使用示例</h4><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyApp</span> <span class="keyword">extends</span> <span class="title">StatelessWidget</span> </span>&#123;  </span><br><span class="line">  <span class="keyword">const</span> MyApp(&#123;<span class="keyword">super</span>.key&#125;);  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  Widget build(BuildContext context) &#123;  </span><br><span class="line">    <span class="keyword">return</span> MaterialApp(  </span><br><span class="line">      home: Scaffold(  </span><br><span class="line">        body: Center(  </span><br><span class="line">          child: SizedBox(  </span><br><span class="line">            width: <span class="number">300</span>,  </span><br><span class="line">            child: TwoColumnGrid(  </span><br><span class="line">              children: <span class="built_in">List</span>.generate(  </span><br><span class="line">                <span class="number">5</span>,  </span><br><span class="line">                (i) =&gt; Container(  </span><br><span class="line">                  height: <span class="number">50.0</span> + (i * <span class="number">10</span>),  </span><br><span class="line">                  color: Colors.primaries[i % Colors.primaries.length],  </span><br><span class="line">                  alignment: Alignment.center,  </span><br><span class="line">                  child: Text(<span class="string">&quot;Item <span class="subst">$i</span>&quot;</span>),  </span><br><span class="line">                ),  </span><br><span class="line">              ),  </span><br><span class="line">            ),  </span><br><span class="line">          ),  </span><br><span class="line">        ),  </span><br><span class="line">      ),  </span><br><span class="line">    );  </span><br><span class="line">  &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250928171554.png" alt="自定义两列网格" width="50%">
+
+<h3 id="4-4-常见坑"><a href="#4-4-常见坑" class="headerlink" title="4.4 常见坑"></a>4.4 常见坑</h3><ol>
+<li><strong>忘记设置 size</strong><br> 如果 performLayout 里没有给 size 赋值，Flutter 会报错。所以需要始终保证 size &#x3D; …。</li>
+<li><strong>遇到无限约束报错</strong><br> 例如放在 ListView 里时，可能 constraints 为 unbounded。一般需要给定一个默认大小（如 100×100）。</li>
+<li><strong>重绘过多</strong><br> 不要在 paint 里做状态修改。属性变化时用 markNeedsPaint 或 markNeedsLayout，否则会造成死循环或性能问题</li>
+</ol>
+<h2 id="5-可交互的-RenderBox"><a href="#5-可交互的-RenderBox" class="headerlink" title="5. 可交互的 RenderBox"></a>5. 可交互的 RenderBox</h2><p>在前面，我们主要写的是 <strong>静态的 RenderBox</strong> ——它们能测量大小、布局子组件、在画布上绘制图形。但在实际业务里，很多控件需要 <strong>交互</strong>，比如点击、拖拽、滑动。要让 RenderBox 响应用户操作，就要深入理解 <strong>事件分发机制</strong> 和 <strong>hitTest 流程</strong>。</p>
+<h3 id="5-1-事件分发模型回顾"><a href="#5-1-事件分发模型回顾" class="headerlink" title="5.1 事件分发模型回顾"></a>5.1 事件分发模型回顾</h3><p>Flutter 的事件分发路径大致分为三步：</p>
+<ol>
+<li><strong>PointerEvent 从引擎传入</strong> → 交给 RenderView 根节点。</li>
+<li><strong>hitTest 阶段</strong>：从树顶往下遍历，判断哪些 RenderObject 被命中。每个 RenderBox 会根据自己是否包含触点决定是否加入 HitTestResult。顺序是“父先检查，再传给子”。</li>
+<li><strong>事件派发阶段</strong>：事件会倒序传递给命中的对象（子优先），调用它们的 handleEvent 方法。</li>
+</ol>
+<p>一句话概括：<strong>hitTest 决定能不能点到，handleEvent 决定点到后做什么。</strong></p>
+<h3 id="5-2-hitTest的实现"><a href="#5-2-hitTest的实现" class="headerlink" title="5.2 hitTest的实现"></a>5.2 hitTest的实现</h3><p>在 RenderBox 里，通常我们会重写 hitTestSelf 或 hitTestChildren。</p>
+<ul>
+<li><code>hitTestSelf(Offset position)</code>：决定当前控件是否接收事件（true 表示命中自己）。</li>
+<li><code>hitTestChildren(HitTestResult result, Offset position)</code>：决定是否把事件继续传递给子组件。</li>
+</ul>
+<p><strong>例子：圆形区域命中检测</strong></p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@override</span></span><br><span class="line"><span class="built_in">bool</span> hitTestSelf(Offset position) &#123;</span><br><span class="line">  <span class="comment">// 只允许点击圆形区域</span></span><br><span class="line">  <span class="keyword">final</span> <span class="built_in">double</span> radius = size.shortestSide / <span class="number">2</span>;</span><br><span class="line">  <span class="keyword">return</span> (position - size.center(Offset.zero)).distance &lt;= radius;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样，用户点击在圆圈外部时，事件就不会触发。</p>
+<h3 id="5-3-事件处理：handleEvent"><a href="#5-3-事件处理：handleEvent" class="headerlink" title="5.3 事件处理：handleEvent"></a>5.3 事件处理：handleEvent</h3><p>当命中成功后，事件会传给 handleEvent。<br>这里我们可以判断事件类型（按下、移动、抬起），并执行相应逻辑：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@override</span></span><br><span class="line"><span class="keyword">void</span> handleEvent(PointerEvent event, HitTestEntry entry) &#123;</span><br><span class="line">  <span class="keyword">if</span> (event <span class="keyword">is</span> PointerDownEvent) &#123;</span><br><span class="line">    <span class="comment">// 记录按下位置</span></span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (event <span class="keyword">is</span> PointerMoveEvent) &#123;</span><br><span class="line">    <span class="comment">// 根据拖动更新状态</span></span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (event <span class="keyword">is</span> PointerUpEvent) &#123;</span><br><span class="line">    <span class="comment">// 松开时重置或触发回调</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="5-4-自定义-Slider"><a href="#5-4-自定义-Slider" class="headerlink" title="5.4 自定义 Slider"></a>5.4 自定义 Slider</h3><p>下面我们来实现一个Slider，包含一条线和一个可拖动的小圆点。</p>
+<h4 id="5-4-1-代码实现"><a href="#5-4-1-代码实现" class="headerlink" title="5.4.1 代码实现"></a>5.4.1 代码实现</h4><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="string">&#x27;package:flutter/material.dart&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/// <span class="language-markdown">Widget 层包装 RenderBox</span></span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CustomSlider</span> <span class="keyword">extends</span> <span class="title">LeafRenderObjectWidget</span> </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> CustomSlider(&#123;</span><br><span class="line">    <span class="keyword">super</span>.key,</span><br><span class="line">    <span class="keyword">required</span> <span class="keyword">this</span>.value,</span><br><span class="line">    <span class="keyword">required</span> <span class="keyword">this</span>.onChanged,</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">final</span> <span class="built_in">double</span> value;</span><br><span class="line">  <span class="keyword">final</span> ValueChanged&lt;<span class="built_in">double</span>&gt; onChanged;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  RenderObject createRenderObject(BuildContext context) &#123;</span><br><span class="line">    <span class="keyword">return</span> RenderCustomSlider()</span><br><span class="line">      ..value = value</span><br><span class="line">      ..onChanged = onChanged;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="keyword">void</span> updateRenderObject(</span><br><span class="line">      BuildContext context, <span class="keyword">covariant</span> RenderCustomSlider renderObject) &#123;</span><br><span class="line">    renderObject</span><br><span class="line">      ..value = value</span><br><span class="line">      ..onChanged = onChanged;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/// <span class="language-markdown">RenderBox 层实现 Slider</span></span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RenderCustomSlider</span> <span class="keyword">extends</span> <span class="title">RenderBox</span> </span>&#123;</span><br><span class="line">  <span class="built_in">double</span> _value = <span class="number">0.0</span>;</span><br><span class="line">  ValueChanged&lt;<span class="built_in">double</span>&gt;? _onChanged;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">double</span> <span class="keyword">get</span> value =&gt; _value;</span><br><span class="line">  <span class="keyword">set</span> value(<span class="built_in">double</span> v) &#123;</span><br><span class="line">    v = v.clamp(<span class="number">0.0</span>, <span class="number">1.0</span>);</span><br><span class="line">    <span class="keyword">if</span> (_value == v) <span class="keyword">return</span>;</span><br><span class="line">    _value = v;</span><br><span class="line">    markNeedsPaint();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  ValueChanged&lt;<span class="built_in">double</span>&gt;? <span class="keyword">get</span> onChanged =&gt; _onChanged;</span><br><span class="line">  <span class="keyword">set</span> onChanged(ValueChanged&lt;<span class="built_in">double</span>&gt;? cb) &#123;</span><br><span class="line">    _onChanged = cb;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">final</span> <span class="built_in">double</span> _thumbRadius = <span class="number">10</span>;</span><br><span class="line">  <span class="keyword">final</span> <span class="built_in">double</span> _trackHeight = <span class="number">6</span>;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="keyword">void</span> performLayout() &#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="built_in">double</span> height = constraints.hasBoundedHeight</span><br><span class="line">        ? constraints.maxHeight</span><br><span class="line">        : _thumbRadius * <span class="number">2</span> + <span class="number">4</span>;</span><br><span class="line">    <span class="keyword">final</span> <span class="built_in">double</span> width =</span><br><span class="line">        constraints.hasBoundedWidth ? constraints.maxWidth : <span class="number">200</span>;</span><br><span class="line">    size = Size(width, height);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="keyword">void</span> paint(PaintingContext context, Offset offset) &#123;</span><br><span class="line">    <span class="keyword">final</span> Canvas canvas = context.canvas;</span><br><span class="line">    <span class="keyword">final</span> <span class="built_in">double</span> centerY = size.height / <span class="number">2</span>; <span class="comment">// 局部坐标，offset 会加上</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 轨道背景</span></span><br><span class="line">    <span class="keyword">final</span> Paint trackPaint = Paint()</span><br><span class="line">      ..color = Colors.grey.shade300</span><br><span class="line">      ..strokeWidth = _trackHeight</span><br><span class="line">      ..strokeCap = StrokeCap.round;</span><br><span class="line">    canvas.drawLine(</span><br><span class="line">      offset + Offset(_thumbRadius, centerY),</span><br><span class="line">      offset + Offset(size.width - _thumbRadius, centerY),</span><br><span class="line">      trackPaint,</span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 已完成进度</span></span><br><span class="line">    <span class="keyword">final</span> <span class="built_in">double</span> progressX =</span><br><span class="line">        _thumbRadius + _value * (size.width - <span class="number">2</span> * _thumbRadius);</span><br><span class="line">    <span class="keyword">final</span> Paint progressPaint = Paint()</span><br><span class="line">      ..color = Colors.blue</span><br><span class="line">      ..strokeWidth = _trackHeight</span><br><span class="line">      ..strokeCap = StrokeCap.round;</span><br><span class="line">    canvas.drawLine(</span><br><span class="line">      offset + Offset(_thumbRadius, centerY),</span><br><span class="line">      offset + Offset(progressX, centerY),</span><br><span class="line">      progressPaint,</span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 滑块</span></span><br><span class="line">    <span class="keyword">final</span> Paint thumbPaint = Paint()..color = Colors.blue;</span><br><span class="line">    canvas.drawCircle(offset + Offset(progressX, centerY), _thumbRadius, thumbPaint);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="built_in">bool</span> hitTestSelf(Offset position) =&gt; <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="keyword">void</span> handleEvent(PointerEvent event, HitTestEntry entry) &#123;</span><br><span class="line">    <span class="keyword">if</span> (event <span class="keyword">is</span> PointerDownEvent || event <span class="keyword">is</span> PointerMoveEvent) &#123;</span><br><span class="line">      <span class="keyword">final</span> <span class="built_in">double</span> x =</span><br><span class="line">          (event.localPosition.dx - _thumbRadius).clamp(<span class="number">0.0</span>, size.width - <span class="number">2</span> * _thumbRadius);</span><br><span class="line">      value = x / (size.width - <span class="number">2</span> * _thumbRadius);</span><br><span class="line">      _onChanged?.call(value);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="5-4-2-使用示例"><a href="#5-4-2-使用示例" class="headerlink" title="5.4.2 使用示例"></a>5.4.2 使用示例</h4><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">HomePage</span> <span class="keyword">extends</span> <span class="title">StatefulWidget</span> </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> HomePage(&#123;<span class="keyword">super</span>.key&#125;);</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  State&lt;HomePage&gt; createState() =&gt; _HomePageState();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">_HomePageState</span> <span class="keyword">extends</span> <span class="title">State</span>&lt;<span class="title">HomePage</span>&gt; </span>&#123;</span><br><span class="line">  <span class="built_in">double</span> sliderValue = <span class="number">0.5</span>;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  Widget build(BuildContext context) &#123;</span><br><span class="line">    <span class="keyword">return</span> Scaffold(</span><br><span class="line">      appBar: AppBar(title: <span class="keyword">const</span> Text(<span class="string">&quot;Custom Slider Demo&quot;</span>)),</span><br><span class="line">      body: Center(</span><br><span class="line">        child: SizedBox(</span><br><span class="line">          width: <span class="number">300</span>,</span><br><span class="line">          height: <span class="number">60</span>,</span><br><span class="line">          child: CustomSlider(</span><br><span class="line">            value: sliderValue,</span><br><span class="line">            onChanged: (v) =&gt; setState(() =&gt; sliderValue = v),</span><br><span class="line">          ),</span><br><span class="line">        ),</span><br><span class="line">      ),</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250928193515.png" alt="自定义slider" width="50%">
+
+<h3 id="5-5-拖拽小球"><a href="#5-5-拖拽小球" class="headerlink" title="5.5 拖拽小球"></a>5.5 拖拽小球</h3><p>再看一个更直观的例子：一个可拖动的小球。</p>
+<h4 id="5-5-1-代码实现"><a href="#5-5-1-代码实现" class="headerlink" title="5.5.1 代码实现"></a>5.5.1 代码实现</h4><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/// <span class="language-markdown">LeafRenderObjectWidget 包装 RenderBox</span></span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DraggableBallWidget</span> <span class="keyword">extends</span> <span class="title">LeafRenderObjectWidget</span> </span>&#123;  </span><br><span class="line">  <span class="keyword">const</span> DraggableBallWidget(&#123;<span class="keyword">super</span>.key&#125;);  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  RenderObject createRenderObject(BuildContext context) &#123;  </span><br><span class="line">    <span class="keyword">return</span> RenderDraggableBall();  </span><br><span class="line">  &#125;  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="comment">/// <span class="language-markdown">RenderBox 自定义控件  </span></span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RenderDraggableBall</span> <span class="keyword">extends</span> <span class="title">RenderBox</span> </span>&#123;  </span><br><span class="line">  Offset _center = <span class="keyword">const</span> Offset(<span class="number">50</span>, <span class="number">50</span>); <span class="comment">// 初始小球位置  </span></span><br><span class="line">  <span class="keyword">final</span> <span class="built_in">double</span> _radius = <span class="number">20</span>;  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  <span class="keyword">void</span> performLayout() &#123;  </span><br><span class="line">    <span class="comment">// 设置 RenderBox 的大小  </span></span><br><span class="line">    size = constraints.constrain(<span class="keyword">const</span> Size(<span class="number">200</span>, <span class="number">200</span>));  </span><br><span class="line">  &#125;  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  <span class="keyword">void</span> paint(PaintingContext context, Offset offset) &#123;  </span><br><span class="line">    <span class="keyword">final</span> Canvas canvas = context.canvas;  </span><br><span class="line">    <span class="keyword">final</span> Paint paint = Paint()..color = Colors.red;  </span><br><span class="line">    canvas.drawCircle(offset + _center, _radius, paint);  </span><br><span class="line">  &#125;  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  <span class="built_in">bool</span> hitTestSelf(Offset position) &#123;  </span><br><span class="line">    <span class="comment">// 仅当点击在小球内才响应事件  </span></span><br><span class="line">    <span class="keyword">return</span> (position - _center).distance &lt;= _radius;  </span><br><span class="line">  &#125;  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  <span class="keyword">void</span> handleEvent(PointerEvent event, HitTestEntry entry) &#123;  </span><br><span class="line">    <span class="comment">// 只处理拖动事件  </span></span><br><span class="line">    <span class="keyword">if</span> (event <span class="keyword">is</span> PointerMoveEvent) &#123;  </span><br><span class="line">      _center = event.localPosition; <span class="comment">// 更新小球位置  </span></span><br><span class="line">      markNeedsPaint(); <span class="comment">// 触发重绘  </span></span><br><span class="line">    &#125;  </span><br><span class="line">  &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="5-5-2-使用示例"><a href="#5-5-2-使用示例" class="headerlink" title="5.5.2 使用示例"></a>5.5.2 使用示例</h4><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyApp</span> <span class="keyword">extends</span> <span class="title">StatelessWidget</span> </span>&#123;  </span><br><span class="line">  <span class="keyword">const</span> MyApp(&#123;<span class="keyword">super</span>.key&#125;);  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  Widget build(BuildContext context) &#123;  </span><br><span class="line">    <span class="keyword">return</span> MaterialApp(  </span><br><span class="line">      title: <span class="string">&#x27;Draggable Ball Demo&#x27;</span>,  </span><br><span class="line">      home: Scaffold(  </span><br><span class="line">        appBar: AppBar(title: <span class="keyword">const</span> Text(<span class="string">&#x27;Draggable Ball Demo&#x27;</span>)),  </span><br><span class="line">        body: <span class="keyword">const</span> Center(  </span><br><span class="line">          child: SizedBox(  </span><br><span class="line">            width: <span class="number">200</span>,  </span><br><span class="line">            height: <span class="number">200</span>,  </span><br><span class="line">            child: DraggableBallWidget(),  </span><br><span class="line">          ),  </span><br><span class="line">        ),  </span><br><span class="line">      ),  </span><br><span class="line">    );  </span><br><span class="line">  &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行后，你可以直接拖动小球到区域内的任意位置。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250928194317.png" alt="Draggable Ball" width="50%"></p>
+<h3 id="5-6-常见坑"><a href="#5-6-常见坑" class="headerlink" title="5.6 常见坑"></a>5.6 常见坑</h3><ol>
+<li><strong>命中区域没写对</strong>：如果 hitTestSelf 一直返回 false，控件永远点不到。</li>
+<li><strong>忘记 markNeedsPaint</strong>：事件更新了状态但没调用 markNeedsPaint()，UI 不会刷新。</li>
+<li><strong>无限大小报错</strong>：交互组件也要有明确的 size，否则 hitTest 时坐标无法判断。</li>
+</ol>
+<h2 id="6-Sliver-协议与高性能滚动"><a href="#6-Sliver-协议与高性能滚动" class="headerlink" title="6. Sliver 协议与高性能滚动"></a>6. Sliver 协议与高性能滚动</h2><p>在 Flutter 中，滚动视图（ScrollView）不仅仅是简单地把 Widget 堆在一起，它内部有一个高性能的 <strong>Sliver 协议</strong> 来控制布局与渲染。Sliver 是 RenderObject 层的一类特殊布局协议，它关注的是 <strong>可见区域、滚动偏移和子元素管理</strong>。通过 Sliver，Flutter 能够只布局和绘制当前屏幕可见的部分，从而实现大列表的高性能滚动。</p>
+<h3 id="6-1-Sliver-的约束系统"><a href="#6-1-Sliver-的约束系统" class="headerlink" title="6.1 Sliver 的约束系统"></a>6.1 Sliver 的约束系统</h3><p>Sliver 的核心是 <strong>SliverConstraints</strong> 和 <strong>SliverGeometry</strong>：</p>
+<ul>
+<li><p><strong>SliverConstraints</strong>：父（viewport）传给 Sliver 的约束信息，包括：</p>
+<ul>
+<li>scrollOffset：当前滚动偏移量</li>
+<li>overlap：Sliver 与前一个 Sliver 的重叠</li>
+<li>viewportMainAxisExtent：viewport 在主轴方向的长度</li>
+<li>crossAxisExtent：cross 轴的尺寸</li>
+<li>growthDirection：滚动方向（向前&#x2F;向后）</li>
+</ul>
+<p>  换句话说，它告诉 Sliver：“你的显示窗口范围是这里，你应该从什么偏移开始布局”。    </p>
+</li>
+<li><p><strong>SliverGeometry</strong>：Sliver 返回给父的信息，告诉 viewport：</p>
+<ul>
+<li>scrollExtent：当前 Sliver 占据的滚动空间</li>
+<li>paintExtent：可见区域的长度</li>
+<li>maxPaintExtent：内容的最大长度</li>
+<li>hasVisualOverflow：内容是否超出 viewport</li>
+<li>hitTestExtent：用于事件命中检测</li>
+</ul>
+<p>  打个比方：SliverConstraints 是父给你的“作业单”，SliverGeometry 是你交回的“作业完成情况”。通过这个机制，viewport 可以精确管理滚动、重绘和子组件可见性。</p>
+</li>
+</ul>
+<h3 id="6-2-Viewport-与-child-管理"><a href="#6-2-Viewport-与-child-管理" class="headerlink" title="6.2 Viewport 与 child 管理"></a>6.2 Viewport 与 child 管理</h3><p>Viewport 是 Sliver 的父级容器，负责 <strong>滚动偏移和子组件管理</strong>：</p>
+<ol>
+<li>Viewport 根据滚动偏移（scrollOffset）确定 <strong>可见范围</strong>。</li>
+<li>对每个子 Sliver 调用 layout 方法，传入 SliverConstraints。</li>
+<li>子 Sliver 返回 SliverGeometry，告诉 viewport：<ul>
+<li>我占用了多少滚动空间</li>
+<li>可见区域在哪</li>
+</ul>
+</li>
+<li>Viewport 根据 geometry 信息决定：<ul>
+<li>哪些子 Sliver 可见 → 调用 paint</li>
+<li>哪些子 Sliver 不可见 → 可能回收或缓存（keepAlive）</li>
+</ul>
+</li>
+</ol>
+<p>在大列表中，只有可见区域的子 Sliver 被 layout 和 paint，这就是 <strong>懒加载</strong>，也是高性能滚动的核心。</p>
+<h3 id="6-3-KeepAlive-的意义"><a href="#6-3-KeepAlive-的意义" class="headerlink" title="6.3 KeepAlive 的意义"></a>6.3 KeepAlive 的意义</h3><p>在滚动中，如果一个 Sliver 内的子元素被移出可见区域，它可能会被销毁以节省内存。<strong>keepAlive</strong> 的作用是：</p>
+<ul>
+<li>保持移出屏幕的子元素状态（比如滑动位置、输入内容）。</li>
+<li>避免重复布局和状态丢失，提高用户体验。</li>
+</ul>
+<p>在自定义 SliverList 或 SliverGrid 时，可以通过 RenderSliverMultiBoxAdaptor 提供的 keepAlive 机制管理子节点状态。</p>
+<h3 id="6-4-自定义-SliverPersistentHeader（伸缩头部view）"><a href="#6-4-自定义-SliverPersistentHeader（伸缩头部view）" class="headerlink" title="6.4 自定义 SliverPersistentHeader（伸缩头部view）"></a>6.4 自定义 SliverPersistentHeader（伸缩头部view）</h3><h4 id="6-4-1-代码实现"><a href="#6-4-1-代码实现" class="headerlink" title="6.4.1 代码实现"></a>6.4.1 代码实现</h4><p>伸缩头部是 Sliver 中的经典用法，常见于 Collapsing Toolbar：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="string">&#x27;package:flutter/material.dart&#x27;</span>;</span><br><span class="line"><span class="comment">/// <span class="language-markdown">自定义 Header Delegate</span></span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyHeaderDelegate</span> <span class="keyword">extends</span> <span class="title">SliverPersistentHeaderDelegate</span> </span>&#123;  </span><br><span class="line">  <span class="keyword">final</span> <span class="built_in">double</span> maxHeight;  </span><br><span class="line">  <span class="keyword">final</span> <span class="built_in">double</span> minHeight;  </span><br><span class="line">  </span><br><span class="line">  MyHeaderDelegate(&#123;<span class="keyword">this</span>.maxHeight = <span class="number">200</span>, <span class="keyword">this</span>.minHeight = <span class="number">80</span>&#125;);  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  <span class="built_in">double</span> <span class="keyword">get</span> minExtent =&gt; minHeight;  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  <span class="built_in">double</span> <span class="keyword">get</span> maxExtent =&gt; maxHeight;  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  Widget build(BuildContext context, <span class="built_in">double</span> shrinkOffset, <span class="built_in">bool</span> overlapsContent) &#123;  </span><br><span class="line">    <span class="comment">// 计算收缩进度 0~1    </span></span><br><span class="line">    <span class="keyword">final</span> <span class="built_in">double</span> progress = (shrinkOffset / (maxExtent - minExtent)).clamp(<span class="number">0.0</span>, <span class="number">1.0</span>); </span><br><span class="line">  </span><br><span class="line">    <span class="comment">// 背景颜色渐变：深蓝 -&gt; 浅蓝  </span></span><br><span class="line">    <span class="keyword">final</span> Color backgroundColor = Color.lerp(Colors.blue, Colors.lightBlue, progress)!;  </span><br><span class="line">  </span><br><span class="line">    <span class="comment">// 文字大小渐变：24 -&gt; 16  </span></span><br><span class="line">    <span class="keyword">final</span> <span class="built_in">double</span> fontSize = <span class="number">24</span> * (<span class="number">1</span> - progress) + <span class="number">16</span> * progress;  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">return</span> Container(  </span><br><span class="line">      color: backgroundColor,  </span><br><span class="line">      alignment: Alignment.center,  </span><br><span class="line">      child: Text(  </span><br><span class="line">        <span class="string">&quot;Header&quot;</span>,  </span><br><span class="line">        style: TextStyle(  </span><br><span class="line">          color: Colors.white,  </span><br><span class="line">          fontSize: fontSize,  </span><br><span class="line">          fontWeight: FontWeight.bold,  </span><br><span class="line">        ),  </span><br><span class="line">      ),  </span><br><span class="line">    );  </span><br><span class="line">  &#125;  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  <span class="built_in">bool</span> shouldRebuild(<span class="keyword">covariant</span> MyHeaderDelegate oldDelegate) &#123;  </span><br><span class="line">    <span class="keyword">return</span> maxHeight != oldDelegate.maxHeight || minHeight != oldDelegate.minHeight;  </span><br><span class="line">  &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当滚动时，shrinkOffset 会增加，头部逐渐收缩。SliverPersistentHeader 会返回合适的 SliverGeometry，viewport 根据 geometry 控制可见范围和绘制。</p>
+<h4 id="6-4-2-使用示例"><a href="#6-4-2-使用示例" class="headerlink" title="6.4.2 使用示例"></a>6.4.2 使用示例</h4><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">HomePage</span> <span class="keyword">extends</span> <span class="title">StatelessWidget</span> </span>&#123;  </span><br><span class="line">  <span class="keyword">const</span> HomePage(&#123;<span class="keyword">super</span>.key&#125;);  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  Widget build(BuildContext context) &#123;  </span><br><span class="line">    <span class="keyword">return</span> Scaffold(  </span><br><span class="line">      body: CustomScrollView(  </span><br><span class="line">        slivers: [  </span><br><span class="line">          <span class="comment">// 伸缩头部  </span></span><br><span class="line">          SliverPersistentHeader(  </span><br><span class="line">            pinned: <span class="keyword">true</span>, <span class="comment">// 固定在顶部  </span></span><br><span class="line">            delegate: MyHeaderDelegate(  </span><br><span class="line">              maxHeight: <span class="number">200</span>,  </span><br><span class="line">              minHeight: <span class="number">80</span>,  </span><br><span class="line">            ),  </span><br><span class="line">          ),  </span><br><span class="line">          <span class="comment">// 列表内容  </span></span><br><span class="line">          SliverList(  </span><br><span class="line">            delegate: SliverChildBuilderDelegate(  </span><br><span class="line">                  (context, index) =&gt; ListTile(  </span><br><span class="line">                title: Text(<span class="string">&quot;Item <span class="subst">$index</span>&quot;</span>),  </span><br><span class="line">              ),  </span><br><span class="line">              childCount: <span class="number">30</span>,  </span><br><span class="line">            ),  </span><br><span class="line">          ),  </span><br><span class="line">        ],  </span><br><span class="line">      ),  </span><br><span class="line">    );  </span><br><span class="line">  &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><video src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/sliver_persistent_header.mp4" controls="controls" width="50%"></video></p>
+<h3 id="6-5-自定义-SliverList（懒加载）"><a href="#6-5-自定义-SliverList（懒加载）" class="headerlink" title="6.5 自定义 SliverList（懒加载）"></a>6.5 自定义 SliverList（懒加载）</h3><p>在大列表中，完全构建 1,000 个 Widget 会很慢。自定义 SliverList 可以只构建可见的子 Widget：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">HomePage</span> <span class="keyword">extends</span> <span class="title">StatelessWidget</span> </span>&#123;  </span><br><span class="line">  <span class="keyword">const</span> HomePage(&#123;<span class="keyword">super</span>.key&#125;);  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  Widget build(BuildContext context) &#123;  </span><br><span class="line">    <span class="keyword">return</span> Scaffold(  </span><br><span class="line">      body: MySliverList(),  </span><br><span class="line">    );  </span><br><span class="line">  &#125;  </span><br><span class="line">&#125;  </span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MySliverList</span> <span class="keyword">extends</span> <span class="title">StatelessWidget</span> </span>&#123;  </span><br><span class="line">  <span class="keyword">const</span> MySliverList(&#123;<span class="keyword">super</span>.key&#125;);  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  Widget build(BuildContext context) &#123;  </span><br><span class="line">    <span class="keyword">return</span> CustomScrollView(  </span><br><span class="line">      slivers: [  </span><br><span class="line">        SliverList(  </span><br><span class="line">          delegate: SliverChildBuilderDelegate(  </span><br><span class="line">                (context, index) =&gt; ListTile(title: Text(<span class="string">&quot;Item <span class="subst">$index</span>&quot;</span>)),  </span><br><span class="line">            childCount: <span class="number">1000</span>, <span class="comment">// 数量很大也不会卡  </span></span><br><span class="line">          ),  </span><br><span class="line">        ),  </span><br><span class="line">      ],  </span><br><span class="line">    );  </span><br><span class="line">  &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>SliverChildBuilderDelegate 会按需构建子 Widget。不可见的子 Widget 会被缓存或销毁，配合 keepAlive 可保持状态。</p>
+<p>理解 Sliver 协议，就可以实现各种滚动效果，如 <strong>折叠头部、横向列表、瀑布流</strong>，同时保证 <strong>高性能滚动和可扩展性</strong>。</p>
+<h2 id="7-复合渲染与合成优化"><a href="#7-复合渲染与合成优化" class="headerlink" title="7. 复合渲染与合成优化"></a>7. 复合渲染与合成优化</h2><h3 id="7-1-为什么需要-Layer"><a href="#7-1-为什么需要-Layer" class="headerlink" title="7.1 为什么需要 Layer"></a>7.1 为什么需要 Layer</h3><p>在 Flutter 的渲染管线中，RenderObject 负责布局与绘制，而最终交给 GPU 的并不是单个个体的绘制指令，而是一棵 <strong>Layer 树</strong>（Layer Tree）。</p>
+<p>可以这么理解<strong>RenderObject Tree</strong>描述“该画什么”，而<strong>Layer Tree</strong>描述“如何组合这些画面”。<br>Layer 就像是“舞台布景”或“滤镜叠层”，它决定了最终画面如何被合成。</p>
+<p>Flutter 中每一帧都会把 <strong>Layer Tree</strong> 提交给 GPU 合成（compositing）。因此，合理使用 Layer 可以带来 <strong>灵活的特效</strong>，但滥用则会增加内存与 GPU 的负担。</p>
+<h3 id="7-2-常见的-Layer-类型"><a href="#7-2-常见的-Layer-类型" class="headerlink" title="7.2 常见的 Layer 类型"></a>7.2 常见的 Layer 类型</h3><p>Flutter 提供了多种常见 Layer，用来支持各种渲染效果：</p>
+<ol>
+<li><strong>OpacityLayer</strong>：让子节点整体透明，而不是逐个子节点单独绘制透明度。这样可以避免重复绘制，提升性能。<br> 典型应用：Opacity Widget、FadeTransition。</li>
+<li><strong>TransformLayer</strong>：对子树进行缩放、旋转、平移等操作。<br> 应用场景：页面切换动画、缩放列表项。</li>
+<li><strong>ClipRectLayer &#x2F; ClipRRectLayer &#x2F; ClipPathLayer</strong>：限定绘制区域。但过度使用裁剪会增加 GPU 负担。<br> 应用场景：圆角裁剪、图片遮罩。    </li>
+<li><strong>BackdropFilterLayer</strong>：实现毛玻璃（模糊）等效果，比较耗性能，谨慎使用。<br> 应用场景：半透明背景、弹窗毛玻璃。</li>
+</ol>
+<h3 id="7-3-合成边界的意义"><a href="#7-3-合成边界的意义" class="headerlink" title="7.3 合成边界的意义"></a>7.3 合成边界的意义</h3><p>默认情况下，多个 RenderObject 会被合并到一个 Layer 里绘制。但在某些情况下，我们希望“强制隔离”，给某一部分单独建一个 Layer，这就是 <strong>合成边界</strong>（Compositing Boundary）。</p>
+<p>典型例子：</p>
+<ul>
+<li><code>RepaintBoundary</code>：强制子树绘制结果缓存到一个独立的 Layer，下次如果没有变化就直接复用。</li>
+<li><code>CompositedTransformTarget / CompositedTransformFollower</code>：依赖独立 Layer 来实现精准的坐标跟随。</li>
+</ul>
+<p>合成边界的好处有：避免重复绘制（缓存复用），还可以支持局部坐标系变换。代价是增加内存（每个 Layer 都要缓存位图），GPU 合成负担变大。<br>所以，如果小组件会频繁变动，建议不要随便加 Layer。如果大片区域有着稳定的内容（如复杂背景），就比较适合单独成 Layer。</p>
+<h3 id="7-4-OpacityLayer-与直接绘制"><a href="#7-4-OpacityLayer-与直接绘制" class="headerlink" title="7.4 OpacityLayer 与直接绘制"></a>7.4 OpacityLayer 与直接绘制</h3><p>假设有一个自定义 RenderBox，需要整体半透明：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RenderOpacityBox</span> <span class="keyword">extends</span> <span class="title">RenderProxyBox</span> </span>&#123;</span><br><span class="line">  <span class="built_in">double</span> opacity;</span><br><span class="line">  RenderOpacityBox(&#123;<span class="keyword">this</span>.opacity = <span class="number">1.0</span>, RenderBox? child&#125;) : <span class="keyword">super</span>(child);</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="keyword">void</span> paint(PaintingContext context, Offset offset) &#123;</span><br><span class="line">    <span class="keyword">if</span> (opacity == <span class="number">1.0</span>) &#123;</span><br><span class="line">      <span class="keyword">super</span>.paint(context, offset); <span class="comment">// 正常绘制</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 创建一个新的 OpacityLayer</span></span><br><span class="line">      context.pushOpacity(offset, (opacity * <span class="number">255</span>).toInt(), <span class="keyword">super</span>.paint);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果直接在每个子节点 paint 时设置 color.withOpacity，会导致 <strong>每个子节点都被重新绘制</strong>。用 OpacityLayer 则是先绘制子树到缓存，再整体应用透明度，性能更高。</p>
+<h3 id="7-5-BackdropFilter-的性能消耗"><a href="#7-5-BackdropFilter-的性能消耗" class="headerlink" title="7.5 BackdropFilter 的性能消耗"></a>7.5 BackdropFilter 的性能消耗</h3><p>用作毛玻璃效果的 BackdropFilter 看起来很炫酷，但其实代价很大。因为它需要：</p>
+<ol>
+<li>先把背景内容先缓存到一个纹理。</li>
+<li>再对纹理做 GPU 模糊。</li>
+<li>再与前景内容合成。</li>
+</ol>
+<p>这意味着每一帧都要额外做一遍缓存 + 模糊运算。</p>
+<p>因此，只适合用在小区域（如导航栏模糊背景），如果用在全屏背景（如整页模糊）则很可能掉帧。<br>如果只是想要“半透明”效果，可以用 <code>Colors.white.withOpacity(0.5)</code>，避免使用 BackdropFilter。</p>
+<p>首先不要盲目加 Layer，对于<strong>复杂但不常变化</strong>的区域可以加合成边界。对于<strong>频繁更新</strong>的小组件，让系统自动合成即可。对于使用 BackdropFilter 等高成本 Layer要谨慎。<br>理解 Layer 的取舍，本质就是在 <strong>性能（减少绘制）</strong> 和 <strong>内存&#x2F;GPU 开销</strong> 之间做平衡。</p>
+<h2 id="8-总结"><a href="#8-总结" class="headerlink" title="8. 总结"></a>8. 总结</h2><p>RenderObject是Flutter渲染体系的底层核心，负责真正的布局和绘制。当需要极致性能或特殊效果时，就需要绕过Widget直接操作RenderObject。</p>
+<p>​<strong>三个关键方法：​</strong>​</p>
+<ul>
+<li><code>performLayout</code>：根据约束计算大小</li>
+<li><code>paint</code>：在画布上绘制内容</li>
+<li><code>hitTest</code>：处理交互事件</li>
+</ul>
+<p>​<strong>性能要点：​</strong>​</p>
+<ul>
+<li>正确使用<code>markNeedsLayout</code>&#x2F;<code>markNeedsPaint</code>可以避免过度重绘</li>
+<li>复杂内容考虑用<code>PictureRecorder</code>缓存</li>
+<li>滚动场景使用Sliver协议实现懒加载</li>
+</ul>
+<p>​<strong>选择建议：​</strong>​</p>
+<ul>
+<li>简单绘制 → CustomPainter</li>
+<li>复杂布局&#x2F;交互 → 自定义RenderBox</li>
+<li>长列表优化 → RenderSliver</li>
+</ul>
+<p>掌握RenderObject让你能突破Widget限制，实现高性能自定义UI。</p>
+<h2 id="9-备注"><a href="#9-备注" class="headerlink" title="9. 备注"></a>9. 备注</h2><p>环境：</p>
+<ul>
+<li>mac: 15.2</li>
+<li>fluttter: 3.35.4</li>
+</ul>
+<p>参考：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://docs.flutter.dev/">https://docs.flutter.dev/</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://keychankc.github.io/2025/09/29/031-flutter-practical-constraints-and-layout/" title="约束与布局：深入 RenderObject、CustomPaint 与 Sliver 协议">https://keychankc.github.io/2025/09/29/031-flutter-practical-constraints-and-layout/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/Flutter/" rel="tag"># Flutter</a>
+              <a href="/tags/%E5%B8%83%E5%B1%80/" rel="tag"># 布局</a>
+              <a href="/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/" rel="tag"># 底层原理</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/09/25/030-flutter-engine-and-rendering-pipeline/" rel="prev" title="从Widget到Layer：Flutter引擎与渲染管线解析">
+                  <i class="fa fa-angle-left"></i> 从Widget到Layer：Flutter引擎与渲染管线解析
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">188k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.mengyajia.com","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2025/09/29/031-flutter-practical-constraints-and-layout/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>

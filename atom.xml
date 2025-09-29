@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-09-26T07:24:32.511Z</updated>
+  <updated>2025-09-29T15:56:53.271Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -17,11 +17,34 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>约束与布局：深入 RenderObject、CustomPaint 与 Sliver 协议</title>
+    <link href="https://keychankc.github.io/2025/09/29/031-flutter-practical-constraints-and-layout/"/>
+    <id>https://keychankc.github.io/2025/09/29/031-flutter-practical-constraints-and-layout/</id>
+    <published>2025-09-29T15:40:12.000Z</published>
+    <updated>2025-09-29T15:56:53.271Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-为什么要写自定义-RenderObject&quot;&gt;&lt;a href=&quot;#1-为什么要写自定义-RenderObject&quot; class=&quot;headerlink&quot; title=&quot;1. 为什么要写自定义 RenderObject&quot;&gt;&lt;/a&gt;1. 为什么要写自定义 RenderObject&lt;/h2&gt;&lt;p&gt;在 Flutter 中，我们开发中最常打交道的是 &lt;strong&gt;Widget&lt;/strong&gt;。它们像是 UI 的“配置表”，描述界面要长什么样。但 Widget 并不真正负责绘制，它只是告诉框架“我要一个红色的方块”或者“我要一个可滚动的列表”。真正负责把这些需求落到屏幕上的，是更底层的 &lt;strong&gt;RenderObject&lt;/strong&gt;。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="跨平台框架" scheme="https://keychankc.github.io/categories/%E8%B7%A8%E5%B9%B3%E5%8F%B0%E6%A1%86%E6%9E%B6/"/>
+    
+    
+    <category term="Flutter" scheme="https://keychankc.github.io/tags/Flutter/"/>
+    
+    <category term="布局" scheme="https://keychankc.github.io/tags/%E5%B8%83%E5%B1%80/"/>
+    
+    <category term="底层原理" scheme="https://keychankc.github.io/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
+    
+  </entry>
+  
+  <entry>
     <title>从Widget到Layer：Flutter引擎与渲染管线解析</title>
     <link href="https://keychankc.github.io/2025/09/25/030-flutter-engine-and-rendering-pipeline/"/>
     <id>https://keychankc.github.io/2025/09/25/030-flutter-engine-and-rendering-pipeline/</id>
     <published>2025-09-25T09:40:12.000Z</published>
-    <updated>2025-09-26T07:24:32.511Z</updated>
+    <updated>2025-09-26T14:21:21.901Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-概述&quot;&gt;&lt;a href=&quot;#1-概述&quot; class=&quot;headerlink&quot; title=&quot;1. 概述&quot;&gt;&lt;/a&gt;1. 概述&lt;/h2&gt;&lt;h3 id=&quot;1-1-为什么要理解-Flutter-渲染原理&quot;&gt;&lt;a href=&quot;#1-1-为什么要理解-Flutter-渲染原理&quot; class=&quot;headerlink&quot; title=&quot;1.1 为什么要理解 Flutter 渲染原理&quot;&gt;&lt;/a&gt;1.1 为什么要理解 Flutter 渲染原理&lt;/h3&gt;&lt;p&gt;可能很多人刚接触 Flutter 时，往往只关心“怎么写 Widget”。但是当项目复杂度增加，就会遇到各种疑惑：为什么页面会掉帧？为什么某个布局报错“RenderBox was not laid out”？为什么同样的动画，有的流畅，有的卡顿？这些问题的根源，几乎都藏在 Flutter 的渲染机制里。&lt;/p&gt;</summary>
@@ -32,6 +55,8 @@
     
     
     <category term="Flutter" scheme="https://keychankc.github.io/tags/Flutter/"/>
+    
+    <category term="底层原理" scheme="https://keychankc.github.io/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
     
     <category term="GPU渲染" scheme="https://keychankc.github.io/tags/GPU%E6%B8%B2%E6%9F%93/"/>
     
@@ -504,29 +529,6 @@
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;/ul&gt;</summary>
-    
-    
-    
-    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
-    
-    
-    <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
-    
-    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
-    
-    <category term="YOLO" scheme="https://keychankc.github.io/tags/YOLO/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>[YOLO系列②] YOLOv2十大改进点解析</title>
-    <link href="https://keychankc.github.io/2025/04/21/012-yolo-yolov2/"/>
-    <id>https://keychankc.github.io/2025/04/21/012-yolo-yolov2/</id>
-    <published>2025-04-21T08:29:12.000Z</published>
-    <updated>2025-09-21T12:04:48.538Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-YOLOv2改进概述&quot;&gt;&lt;a href=&quot;#1-YOLOv2改进概述&quot; class=&quot;headerlink&quot; title=&quot;1.YOLOv2改进概述&quot;&gt;&lt;/a&gt;1.YOLOv2改进概述&lt;/h2&gt;&lt;p&gt;YOLOv2 的改进围绕 ​&lt;strong&gt;稳定性&lt;/strong&gt;​（BN、位置预测）、&lt;strong&gt;灵活性&lt;/strong&gt;​（全卷积、多尺度）、&lt;strong&gt;数据驱动&lt;/strong&gt;​（锚框聚类）展开，同时通过&lt;strong&gt;结构优化&lt;/strong&gt;（Darknet-19、Passthrough）平衡速度与精度，为后续YOLO版本再改进奠定基础。&lt;br&gt;&lt;img src=&quot;https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/202504161606.jpg&quot;&gt;&lt;br&gt;如上图是YOLOv2的新特性和mAP（mean Average Precision，平均精度均值）之间的相关性。&lt;/p&gt;</summary>
     
     
     

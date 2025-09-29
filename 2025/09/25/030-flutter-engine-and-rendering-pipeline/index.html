@@ -34,9 +34,10 @@
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250924145520.png">
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250924172335.png">
 <meta property="article:published_time" content="2025-09-25T09:40:12.000Z">
-<meta property="article:modified_time" content="2025-09-26T07:24:32.511Z">
+<meta property="article:modified_time" content="2025-09-26T14:21:21.901Z">
 <meta property="article:author" content="KeyChan">
 <meta property="article:tag" content="Flutter">
+<meta property="article:tag" content="底层原理">
 <meta property="article:tag" content="GPU渲染">
 <meta property="article:tag" content="Skia">
 <meta property="article:tag" content="Impeller">
@@ -165,7 +166,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">31</span>
+          <span class="site-state-item-count">32</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -176,7 +177,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-count">45</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -253,7 +254,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-09-26 15:24:32" itemprop="dateModified" datetime="2025-09-26T15:24:32+08:00">2025-09-26</time>
+      <time title="修改时间：2025-09-26 22:21:21" itemprop="dateModified" datetime="2025-09-26T22:21:21+08:00">2025-09-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -886,12 +887,8 @@
 <td>成熟，跨平台验证多年</td>
 <td>目前仍在逐步 rollout（Android 支持中，iOS 更稳定）</td>
 </tr>
-<tr>
-<td>对开发者来说，<strong>Flutter 的绘制 API 不变</strong>。依旧是 CustomPainter，但引擎底层从 Skia 换成 Impeller 后，Shader 编译、内存占用和动画流畅度会直接改善。</td>
-<td></td>
-<td></td>
-</tr>
 </tbody></table>
+<p>对开发者来说，<strong>Flutter 的绘制 API 不变</strong>。依旧是 CustomPainter，但引擎底层从 Skia 换成 Impeller 后，Shader 编译、内存占用和动画流畅度会直接改善。</p>
 <p>Skia 是一个成熟的跨平台 2D 引擎，但运行时 Shader 编译成为性能瓶颈；Impeller 则通过 <strong>预编译 Shader</strong> + <strong>Tile-based 渲染优化</strong>，带来了更稳定、更流畅的体验。未来随着 Impeller 在 Android 全面启用，Flutter 的渲染性能将进一步接近原生体验。</p>
 <h2 id="8-平台差异与未来展望"><a href="#8-平台差异与未来展望" class="headerlink" title="8. 平台差异与未来展望"></a>8. 平台差异与未来展望</h2><p>Flutter 的一个最大优势，是「一次编写，跨平台运行」。但由于底层操作系统和渲染机制的差异，不同平台上的渲染表现并不完全一致。理解这些差异，能帮助开发者更好地调优应用体验。</p>
 <h3 id="8-1-iOS-vs-Android-渲染差异"><a href="#8-1-iOS-vs-Android-渲染差异" class="headerlink" title="8.1 iOS vs Android 渲染差异"></a>8.1 iOS vs Android 渲染差异</h3><ul>
@@ -964,6 +961,7 @@
 
           <div class="post-tags">
               <a href="/tags/Flutter/" rel="tag"># Flutter</a>
+              <a href="/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/" rel="tag"># 底层原理</a>
               <a href="/tags/GPU%E6%B8%B2%E6%9F%93/" rel="tag"># GPU渲染</a>
               <a href="/tags/Skia/" rel="tag"># Skia</a>
               <a href="/tags/Impeller/" rel="tag"># Impeller</a>
@@ -978,6 +976,9 @@
                 </a>
             </div>
             <div class="post-nav-item">
+                <a href="/2025/09/29/031-flutter-practical-constraints-and-layout/" rel="next" title="约束与布局：深入 RenderObject、CustomPaint 与 Sliver 协议">
+                  约束与布局：深入 RenderObject、CustomPaint 与 Sliver 协议 <i class="fa fa-angle-right"></i>
+                </a>
             </div>
           </div>
     </footer>
@@ -1010,7 +1011,7 @@
       <i class="fa fa-chart-line"></i>
     </span>
       <span>站点总字数：</span>
-    <span title="站点总字数">180k</span>
+    <span title="站点总字数">188k</span>
   </span>
 </div>
 <div class="busuanzi-count">
