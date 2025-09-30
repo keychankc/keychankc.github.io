@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-09-29T15:56:53.271Z</updated>
+  <updated>2025-09-30T01:56:23.307Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -17,14 +17,14 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>约束与布局：深入 RenderObject、CustomPaint 与 Sliver 协议</title>
+    <title>约束与布局：深入理解 RenderObject、CustomPaint 与 Sliver 协议</title>
     <link href="https://keychankc.github.io/2025/09/29/031-flutter-practical-constraints-and-layout/"/>
     <id>https://keychankc.github.io/2025/09/29/031-flutter-practical-constraints-and-layout/</id>
     <published>2025-09-29T15:40:12.000Z</published>
-    <updated>2025-09-29T15:56:53.271Z</updated>
+    <updated>2025-09-30T01:56:23.307Z</updated>
     
     
-    <summary type="html">&lt;h2 id=&quot;1-为什么要写自定义-RenderObject&quot;&gt;&lt;a href=&quot;#1-为什么要写自定义-RenderObject&quot; class=&quot;headerlink&quot; title=&quot;1. 为什么要写自定义 RenderObject&quot;&gt;&lt;/a&gt;1. 为什么要写自定义 RenderObject&lt;/h2&gt;&lt;p&gt;在 Flutter 中，我们开发中最常打交道的是 &lt;strong&gt;Widget&lt;/strong&gt;。它们像是 UI 的“配置表”，描述界面要长什么样。但 Widget 并不真正负责绘制，它只是告诉框架“我要一个红色的方块”或者“我要一个可滚动的列表”。真正负责把这些需求落到屏幕上的，是更底层的 &lt;strong&gt;RenderObject&lt;/strong&gt;。&lt;/p&gt;</summary>
+    <summary type="html">&lt;h2 id=&quot;1-为什么要自定义-RenderObject&quot;&gt;&lt;a href=&quot;#1-为什么要自定义-RenderObject&quot; class=&quot;headerlink&quot; title=&quot;1. 为什么要自定义 RenderObject&quot;&gt;&lt;/a&gt;1. 为什么要自定义 RenderObject&lt;/h2&gt;&lt;p&gt;在 Flutter 中，我们平时开发中最常打交道的是 &lt;strong&gt;Widget&lt;/strong&gt;。它们像是 UI 的“配置表”，描述界面要长什么样。但 Widget 并不真正负责绘制，它只是告诉框架“我要一个红色的方块”或者“我要一个可滚动的列表”。真正负责把这些需求落到屏幕上的，是底层的 &lt;strong&gt;RenderObject&lt;/strong&gt;。&lt;/p&gt;</summary>
     
     
     
@@ -218,9 +218,9 @@
     <category term="强化学习" scheme="https://keychankc.github.io/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/"/>
     
     
-    <category term="策略梯度" scheme="https://keychankc.github.io/tags/%E7%AD%96%E7%95%A5%E6%A2%AF%E5%BA%A6/"/>
-    
     <category term="非马尔可夫环境" scheme="https://keychankc.github.io/tags/%E9%9D%9E%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E7%8E%AF%E5%A2%83/"/>
+    
+    <category term="策略梯度" scheme="https://keychankc.github.io/tags/%E7%AD%96%E7%95%A5%E6%A2%AF%E5%BA%A6/"/>
     
   </entry>
   

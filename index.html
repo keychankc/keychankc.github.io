@@ -221,7 +221,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/09/29/031-flutter-practical-constraints-and-layout/" class="post-title-link" itemprop="url">约束与布局：深入 RenderObject、CustomPaint 与 Sliver 协议</a>
+          <a href="/2025/09/29/031-flutter-practical-constraints-and-layout/" class="post-title-link" itemprop="url">约束与布局：深入理解 RenderObject、CustomPaint 与 Sliver 协议</a>
         </h2>
 
         <div class="post-meta-container">
@@ -231,9 +231,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2025-09-29 23:40:12 / 修改时间：23:56:53" itemprop="dateCreated datePublished" datetime="2025-09-29T23:40:12+08:00">2025-09-29</time>
+      <time title="创建时间：2025-09-29 23:40:12" itemprop="dateCreated datePublished" datetime="2025-09-29T23:40:12+08:00">2025-09-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-09-30 09:56:23" itemprop="dateModified" datetime="2025-09-30T09:56:23+08:00">2025-09-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -272,7 +278,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="1-为什么要写自定义-RenderObject"><a href="#1-为什么要写自定义-RenderObject" class="headerlink" title="1. 为什么要写自定义 RenderObject"></a>1. 为什么要写自定义 RenderObject</h2><p>在 Flutter 中，我们开发中最常打交道的是 <strong>Widget</strong>。它们像是 UI 的“配置表”，描述界面要长什么样。但 Widget 并不真正负责绘制，它只是告诉框架“我要一个红色的方块”或者“我要一个可滚动的列表”。真正负责把这些需求落到屏幕上的，是更底层的 <strong>RenderObject</strong>。</p>
+          <h2 id="1-为什么要自定义-RenderObject"><a href="#1-为什么要自定义-RenderObject" class="headerlink" title="1. 为什么要自定义 RenderObject"></a>1. 为什么要自定义 RenderObject</h2><p>在 Flutter 中，我们平时开发中最常打交道的是 <strong>Widget</strong>。它们像是 UI 的“配置表”，描述界面要长什么样。但 Widget 并不真正负责绘制，它只是告诉框架“我要一个红色的方块”或者“我要一个可滚动的列表”。真正负责把这些需求落到屏幕上的，是底层的 <strong>RenderObject</strong>。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2025/09/29/031-flutter-practical-constraints-and-layout/#more" rel="contents">
