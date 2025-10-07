@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"keychankc.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="1. 引言：从“能跑”到“可扩展、可维护”平时开发中，很多开发者虽然能把视图（Widgets）按页面或组件拆成不同的文件，但业务逻辑和状态处理往往直接写在 Widget 内部，依赖 setState 或零散的单例&#x2F;全局变量来管理。这种“分文件但逻辑内聚”的灵活方式虽然能在小项目里能快速迭代、方便验证想法，但不讲究长期维护，就像临时搭建的一间小屋。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="状态管理与项目架构：模块化、依赖注入与可维护性实践">
+<meta property="og:url" content="https://keychankc.github.io/2025/10/07/032-flutter-state-management-project-architecture/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s blog">
+<meta property="og:description" content="1. 引言：从“能跑”到“可扩展、可维护”平时开发中，很多开发者虽然能把视图（Widgets）按页面或组件拆成不同的文件，但业务逻辑和状态处理往往直接写在 Widget 内部，依赖 setState 或零散的单例&#x2F;全局变量来管理。这种“分文件但逻辑内聚”的灵活方式虽然能在小项目里能快速迭代、方便验证想法，但不讲究长期维护，就像临时搭建的一间小屋。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-10-07T07:40:12.000Z">
+<meta property="article:modified_time" content="2025-10-07T08:38:22.045Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="Flutter">
+<meta property="article:tag" content="状态管理">
+<meta property="article:tag" content="依赖注入">
+<meta property="article:tag" content="路由">
+<meta property="article:tag" content="模块化">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://keychankc.github.io/2025/10/07/032-flutter-state-management-project-architecture/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/2025/10/07/032-flutter-state-management-project-architecture/","path":"2025/10/07/032-flutter-state-management-project-architecture/","title":"状态管理与项目架构：模块化、依赖注入与可维护性实践"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>状态管理与项目架构：模块化、依赖注入与可维护性实践 | KeyChan's blog</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.mengyajia.com">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's blog" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E5%BC%95%E8%A8%80%EF%BC%9A%E4%BB%8E%E2%80%9C%E8%83%BD%E8%B7%91%E2%80%9D%E5%88%B0%E2%80%9C%E5%8F%AF%E6%89%A9%E5%B1%95%E3%80%81%E5%8F%AF%E7%BB%B4%E6%8A%A4%E2%80%9D"><span class="nav-text">1. 引言：从“能跑”到“可扩展、可维护”</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86%E5%85%A8%E6%99%AF%E4%B8%8E%E8%AE%BE%E8%AE%A1%E5%86%B3%E7%AD%96"><span class="nav-text">2. 状态管理全景与设计决策</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E5%B8%B8%E8%A7%81%E6%96%B9%E6%A1%88%E6%A6%82%E8%A7%88"><span class="nav-text">2.1 常见方案概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-%E4%BC%98%E7%BC%BA%E7%82%B9%E4%B8%8E%E5%8D%8F%E4%BD%9C%E9%80%82%E9%85%8D%E5%BA%A6"><span class="nav-text">2.2 优缺点与协作适配度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-%E7%8A%B6%E6%80%81%E5%88%86%E5%B1%82%EF%BC%9AUI-State%E3%80%81Domain-State%E3%80%81Infra-State"><span class="nav-text">2.3 状态分层：UI-State、Domain-State、Infra-State</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-%E5%8D%95%E5%90%91%E6%95%B0%E6%8D%AE%E6%B5%81-vs-%E5%8F%8C%E5%90%91%E7%BB%91%E5%AE%9A"><span class="nav-text">2.4 单向数据流 vs 双向绑定</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-%E9%80%89%E6%8B%A9%E6%80%9D%E8%B7%AF"><span class="nav-text">2.5 选择思路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-6-%E4%BB%A3%E7%A0%81%E5%AF%B9%E6%AF%94%E7%A4%BA%E4%BE%8B"><span class="nav-text">2.6 代码对比示例</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-6-1-%E7%94%A8-setState-%E5%AE%9E%E7%8E%B0"><span class="nav-text">2.6.1 用 setState 实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-6-2-%E7%94%A8-Provider-%E5%AE%9E%E7%8E%B0"><span class="nav-text">2.6.2 用 Provider 实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-6-3-%E7%94%A8-Riverpod-%E5%AE%9E%E7%8E%B0"><span class="nav-text">2.6.3 用 Riverpod 实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-6-4-%E7%94%A8-Bloc-%E5%AE%9E%E7%8E%B0"><span class="nav-text">2.6.4 用 Bloc 实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-6-5-%E7%94%A8-GetX-%E5%AE%9E%E7%8E%B0"><span class="nav-text">2.6.5 用 GetX 实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-6-6-%E7%94%A8-MobX-%E5%AE%9E%E7%8E%B0"><span class="nav-text">2.6.6 用 MobX 实现</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%EF%BC%88DI%EF%BC%89%E4%B8%8E%E6%9C%8D%E5%8A%A1%E5%AE%9A%E4%BD%8D"><span class="nav-text">3. 依赖注入（DI）与服务定位</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E4%B8%89%E7%A7%8D%E5%B8%B8%E8%A7%81%E6%A8%A1%E5%BC%8F"><span class="nav-text">3.1 三种常见模式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-1-get-it%EF%BC%88%E6%9C%8D%E5%8A%A1%E5%AE%9A%E4%BD%8D%E5%99%A8%E6%A8%A1%E5%BC%8F%EF%BC%89"><span class="nav-text">3.1.1 get_it（服务定位器模式）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-2-Riverpod-Provider%EF%BC%88%E4%BE%9D%E8%B5%96%E6%A0%91%E7%AE%A1%E7%90%86%EF%BC%89"><span class="nav-text">3.1.2 Riverpod Provider（依赖树管理）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-3-%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0%E6%B3%A8%E5%85%A5%EF%BC%88%E7%BA%AF-Dart-%E6%80%9D%E8%B7%AF%EF%BC%89"><span class="nav-text">3.1.3 构造函数注入（纯 Dart 思路）</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E7%AE%A1%E7%90%86"><span class="nav-text">3.2 生命周期管理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-DI-%E5%9C%A8%E5%A4%A7%E9%A1%B9%E7%9B%AE%E4%B8%AD%E7%9A%84%E8%A7%92%E8%89%B2"><span class="nav-text">3.3 DI 在大项目中的角色</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E8%B7%AF%E7%94%B1%E6%9E%B6%E6%9E%84%E4%B8%8E%E9%A1%B5%E9%9D%A2%E8%A7%A3%E8%80%A6"><span class="nav-text">4. 路由架构与页面解耦</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-Navigator-1-0%EF%BC%9A%E5%91%BD%E4%BB%A4%E5%BC%8F%E5%AF%BC%E8%88%AA%E7%9A%84%E8%B5%B7%E7%82%B9"><span class="nav-text">4.1 Navigator 1.0：命令式导航的起点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E5%B0%8F%E5%B9%85%E5%A2%9E%E5%BC%BA%EF%BC%9AonGenerateRoute-%E7%9A%84%E5%8A%A8%E6%80%81%E6%8B%A6%E6%88%AA"><span class="nav-text">4.2 小幅增强：onGenerateRoute 的动态拦截</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-Navigator-2-0%EF%BC%9A%E5%A3%B0%E6%98%8E%E5%BC%8F%E5%AF%BC%E8%88%AA"><span class="nav-text">4.3 Navigator 2.0：声明式导航</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#4-3-1-%E6%A0%B8%E5%BF%83%E7%BB%93%E6%9E%84%EF%BC%9ARouterDelegate-%E4%B8%8E-RouteInformationParser"><span class="nav-text">4.3.1 核心结构：RouterDelegate 与 RouteInformationParser</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-%E8%B7%AF%E7%94%B1%E5%AE%88%E5%8D%AB%EF%BC%9A%E7%99%BB%E5%BD%95%E4%B8%8E%E6%9D%83%E9%99%90%E6%8E%A7%E5%88%B6"><span class="nav-text">4.4 路由守卫：登录与权限控制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#4-4-1-%E7%A4%BA%E4%BE%8B"><span class="nav-text">4.4.1 示例</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#4-4-1-1-%E5%9C%BA%E6%99%AF%E9%9C%80%E6%B1%82"><span class="nav-text">4.4.1.1 场景需求</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#4-4-1-2-%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="nav-text">4.4.1.2 代码实现</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-5-%E6%B7%B1%E5%BA%A6%E9%93%BE%E6%8E%A5%E4%B8%8E%E6%8E%88%E6%9D%83%E6%B5%81"><span class="nav-text">4.5 深度链接与授权流</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-6-%E8%B7%AF%E7%94%B1%E4%B8%8E%E6%A8%A1%E5%9D%97%E5%8C%96%E6%9E%B6%E6%9E%84"><span class="nav-text">4.6 路由与模块化架构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-7-%E9%80%89%E5%9E%8B%E5%BB%BA%E8%AE%AE"><span class="nav-text">4.7 选型建议</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E6%A8%A1%E5%9D%97%E5%8C%96%E4%B8%8E%E5%8C%85%E8%AE%BE%E8%AE%A1"><span class="nav-text">5. 模块化与包设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-%E6%A8%A1%E5%9D%97%E5%8C%96%E7%9A%84%E7%9B%AE%E6%A0%87"><span class="nav-text">5.1 模块化的目标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-%E5%8C%85%E5%88%92%E5%88%86%E6%96%B9%E5%BC%8F"><span class="nav-text">5.2 包划分方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-Flutter-%E5%8C%85%E7%B1%BB%E5%9E%8B%E9%80%89%E6%8B%A9"><span class="nav-text">5.3 Flutter 包类型选择</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-%E6%8F%92%E5%9B%BE%E5%BC%8F%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84"><span class="nav-text">5.4 插图式目录结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-5-%E5%86%85%E9%83%A8%E5%8C%85%E7%AE%A1%E7%90%86%E4%B8%8E%E7%89%88%E6%9C%AC%E7%AD%96%E7%95%A5"><span class="nav-text">5.5 内部包管理与版本策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-6-Checklist%EF%BC%9A%E4%BD%95%E6%97%B6%E6%8A%BD%E6%88%90%E7%8B%AC%E7%AB%8B%E5%8C%85%EF%BC%9F"><span class="nav-text">5.6 Checklist：何时抽成独立包？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E5%AE%9E%E6%88%98%E6%A1%88%E4%BE%8B%EF%BC%9A%E5%8D%95%E4%BD%93-App-%E2%86%92-%E6%A8%A1%E5%9D%97%E5%8C%96%E5%B7%A5%E7%A8%8B"><span class="nav-text">6. 实战案例：单体 App → 模块化工程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-%E5%88%9D%E5%A7%8B%E7%8A%B6%E6%80%81%EF%BC%9A%E5%8D%95%E4%BD%93%E5%BA%94%E7%94%A8%E7%9A%84%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="nav-text">6.1 初始状态：单体应用的常见问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-%E6%A8%A1%E5%9D%97%E5%8C%96%E8%BF%81%E7%A7%BB%E7%9A%84%E6%80%BB%E4%BD%93%E8%B7%AF%E7%BA%BF"><span class="nav-text">6.2 模块化迁移的总体路线</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#6-2-1-%E6%8A%BD%E7%A6%BB%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86"><span class="nav-text">6.2.1 抽离状态管理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-2-2-%E5%BC%95%E5%85%A5-DI-%E5%AE%B9%E5%99%A8"><span class="nav-text">6.2.2 引入 DI 容器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-2-3-%E6%8B%86%E5%88%86%E7%9B%AE%E5%BD%95-%E2%86%92-%E9%80%90%E6%AD%A5%E6%8A%BD%E6%88%90-packages"><span class="nav-text">6.2.3 拆分目录 → 逐步抽成 packages</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-2-4-%E9%85%8D%E7%BD%AE%E8%B7%AF%E7%94%B1%E5%AE%88%E5%8D%AB%E4%B8%8E%E6%A8%A1%E5%9D%97%E8%BE%B9%E7%95%8C"><span class="nav-text">6.2.4 配置路由守卫与模块边界</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-Before-vs-After%EF%BC%9A%E7%BB%93%E6%9E%84%E5%AF%B9%E6%AF%94%E5%9B%BE"><span class="nav-text">6.3 Before vs After：结构对比图</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-4-%E8%BF%81%E7%A7%BB-Checklist"><span class="nav-text">6.4 迁移 Checklist</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-5-%E6%A8%A1%E5%9D%97%E9%97%B4%E9%80%9A%E4%BF%A1%E4%B8%8E%E4%BE%9D%E8%B5%96%E5%85%B3%E7%B3%BB%E8%AE%BE%E8%AE%A1"><span class="nav-text">6.5 模块间通信与依赖关系设计</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#6-5-1-%E7%90%86%E6%83%B3%E7%9B%AE%E6%A0%87%EF%BC%9A%E9%AB%98%E5%86%85%E8%81%9A%E3%80%81%E4%BD%8E%E8%80%A6%E5%90%88"><span class="nav-text">6.5.1 理想目标：高内聚、低耦合</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-5-2-%E4%B8%89%E7%A7%8D%E4%B8%BB%E6%B5%81%E9%80%9A%E4%BF%A1%E6%96%B9%E5%BC%8F"><span class="nav-text">6.5.2 三种主流通信方式</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#6-5-2-1-Interface-%E5%B1%82"><span class="nav-text">6.5.2.1 Interface 层</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#6-5-2-2-Event-Bus"><span class="nav-text">6.5.2.2 Event Bus</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#6-5-2-3-Service-Locator"><span class="nav-text">6.5.2.3 Service Locator</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-5-3-%E6%A8%A1%E5%9D%97%E4%BE%9D%E8%B5%96%E5%9B%BE%E7%A4%BA%E4%BE%8B"><span class="nav-text">6.5.3 模块依赖图示例</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-5-4-%E6%8E%A8%E8%8D%90%E7%BB%84%E5%90%88%E7%AD%96%E7%95%A5"><span class="nav-text">6.5.4 推荐组合策略</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E6%95%B0%E6%8D%AE%E5%B1%82%E4%B8%8E%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86"><span class="nav-text">7. 数据层与错误处理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#7-1-%E6%95%B0%E6%8D%AE%E5%88%86%E5%B1%82"><span class="nav-text">7.1 数据分层</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-2-%E9%94%99%E8%AF%AF%E5%88%86%E7%B1%BB%E4%B8%8E%E5%A4%84%E7%90%86%E7%AD%96%E7%95%A5"><span class="nav-text">7.2 错误分类与处理策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-3-%E7%A6%BB%E7%BA%BF%E7%BC%93%E5%AD%98%EF%BC%88Offline-first%EF%BC%89%E7%AD%96%E7%95%A5"><span class="nav-text">7.3 离线缓存（Offline-first）策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-4-%E6%95%B0%E6%8D%AE%E5%B1%82%E7%9A%84%E6%BC%94%E8%BF%9B%E6%96%B9%E5%90%91"><span class="nav-text">7.4 数据层的演进方向</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E5%9B%A2%E9%98%9F%E5%8D%8F%E4%BD%9C%E4%B8%8E%E5%B7%A5%E7%A8%8B%E6%95%88%E7%8E%87"><span class="nav-text">8. 团队协作与工程效率</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#8-1-%E4%BB%A3%E7%A0%81%E8%B4%A8%E9%87%8F%EF%BC%9A%E4%BB%8E%E9%A3%8E%E6%A0%BC%E5%88%B0%E4%BD%93%E7%B3%BB"><span class="nav-text">8.1 代码质量：从风格到体系</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#8-1-1-%E7%BB%9F%E4%B8%80%E4%B8%8E%E5%85%B1%E4%BA%AB%E7%BB%84%E4%BB%B6%E5%BA%93"><span class="nav-text">8.1.1 统一与共享组件库</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#8-1-2-Lint-%E4%B8%8E%E6%A0%BC%E5%BC%8F%E5%8C%96%EF%BC%9A%E7%BB%9F%E4%B8%80%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83"><span class="nav-text">8.1.2 Lint 与格式化：统一代码规范</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#8-1-3-Review-%E4%B8%8E-Commit-%E8%A7%84%E8%8C%83"><span class="nav-text">8.1.3 Review 与 Commit 规范</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-2-%E5%B7%A5%E7%A8%8B%E6%95%88%E7%8E%87%EF%BC%9A%E8%AE%A9%E5%BC%80%E5%8F%91%E8%8A%82%E5%A5%8F%E6%9B%B4%E9%A1%BA%E7%95%85"><span class="nav-text">8.2 工程效率：让开发节奏更顺畅</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#8-2-1-%E6%9C%AC%E5%9C%B0-Mock-Stub-%E6%95%B0%E6%8D%AE%E6%BA%90"><span class="nav-text">8.2.1 本地 Mock &#x2F; Stub 数据源</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#8-2-2-%E7%83%AD%E9%87%8D%E8%BD%BD-%E6%A8%A1%E5%9D%97%E5%8C%96%E5%B7%A5%E4%BD%9C%E6%B5%81"><span class="nav-text">8.2.2 热重载 + 模块化工作流</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#8-2-3-CI-CD-%E8%87%AA%E5%8A%A8%E5%8C%96%EF%BC%9A%E6%B5%8B%E8%AF%95-%E2%86%92-%E6%9E%84%E5%BB%BA-%E2%86%92-%E5%8F%91%E5%B8%83"><span class="nav-text">8.2.3 CI&#x2F;CD 自动化：测试 → 构建 → 发布</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-3-%E5%9B%A2%E9%98%9F%E5%88%86%E5%B7%A5%E4%B8%8E%E5%8D%8F%E4%BD%9C%E6%A8%A1%E5%BC%8F"><span class="nav-text">8.3 团队分工与协作模式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#8-3-1-%E6%A8%A1%E5%9D%97%E8%B4%9F%E8%B4%A3%E4%BA%BA%E5%88%B6"><span class="nav-text">8.3.1 模块负责人制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#8-3-2-%E6%8E%A5%E5%8F%A3%E5%A5%91%E7%BA%A6%E4%B8%8E%E8%81%94%E8%B0%83%E6%9C%BA%E5%88%B6"><span class="nav-text">8.3.2 接口契约与联调机制</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-%E6%80%BB%E7%BB%93"><span class="nav-text">9. 总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-%E5%A4%87%E6%B3%A8"><span class="nav-text">10. 备注</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">33</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">49</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/keychankc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://keychankc.github.io/2025/10/07/032-flutter-state-management-project-architecture/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's blog">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="状态管理与项目架构：模块化、依赖注入与可维护性实践 | KeyChan's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          状态管理与项目架构：模块化、依赖注入与可维护性实践
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2025-10-07 15:40:12 / 修改时间：16:38:22" itemprop="dateCreated datePublished" datetime="2025-10-07T15:40:12+08:00">2025-10-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%B7%A8%E5%B9%B3%E5%8F%B0%E6%A1%86%E6%9E%B6/" itemprop="url" rel="index"><span itemprop="name">跨平台框架</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2025/10/07/032-flutter-state-management-project-architecture/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2025/10/07/032-flutter-state-management-project-architecture/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>11k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>39 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="1-引言：从“能跑”到“可扩展、可维护”"><a href="#1-引言：从“能跑”到“可扩展、可维护”" class="headerlink" title="1. 引言：从“能跑”到“可扩展、可维护”"></a>1. 引言：从“能跑”到“可扩展、可维护”</h2><p>平时开发中，很多开发者虽然能把视图（Widgets）按页面或组件拆成不同的文件，但业务逻辑和状态处理往往直接写在 Widget 内部，依赖 setState 或零散的单例&#x2F;全局变量来管理。这种“分文件但逻辑内聚”的灵活方式虽然能在小项目里能快速迭代、方便验证想法，但不讲究长期维护，就像临时搭建的一间小屋。</p>
+<span id="more"></span>
+<p>尤其当项目规模扩大到几十甚至上百个页面，复杂度骤然提升：</p>
+<ul>
+<li><strong>状态杂乱</strong>：多个页面依赖同一份数据，却各自管理更新，导致 UI 不一致；</li>
+<li><strong>耦合严重</strong>：业务逻辑直接写在 Widget 里，牵一发动全身；</li>
+<li><strong>难以测试</strong>：想单独测试一个功能，结果被页面渲染逻辑绑死；</li>
+<li><strong>团队分工困难</strong>：多人开发时，改动一个模块可能牵连整个项目。</li>
+</ul>
+<p>这时候再用“小房子”的方式来搭建，往往会让项目变得难以维护，甚至寸步难行。真正要做大中型应用，就必须像建造大楼一样，有清晰的图纸、合理的分工和长期可扩展的架构。</p>
+<h2 id="2-状态管理全景与设计决策"><a href="#2-状态管理全景与设计决策" class="headerlink" title="2. 状态管理全景与设计决策"></a>2. 状态管理全景与设计决策</h2><p>状态管理几乎是 Flutter 项目架构的核心问题。对于小型应用，用 setState 足够，但一旦应用复杂度提升，状态管理就决定了项目能否扩展、能否多人协作、能否长期维护。本章将从常见方案、状态分层、数据流模式和决策思路几个角度，建立状态管理的全景视图。</p>
+<h3 id="2-1-常见方案概览"><a href="#2-1-常见方案概览" class="headerlink" title="2.1 常见方案概览"></a>2.1 常见方案概览</h3><p>Flutter 生态中涌现了多种状态管理方案，它们背后代表着不同的心智模型和工程哲学。</p>
+<table>
+<thead>
+<tr>
+<th><strong>方案</strong></th>
+<th><strong>心智模型</strong></th>
+<th><strong>优点</strong></th>
+<th><strong>缺点</strong></th>
+<th><strong>适用场景</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>setState</strong></td>
+<td>手动触发刷新（局部重建）</td>
+<td>简单直接，上手快，无需额外依赖</td>
+<td>状态分散，逻辑耦合 UI，难以复用</td>
+<td>Demo、小应用</td>
+</tr>
+<tr>
+<td><strong>Provider</strong></td>
+<td>依赖注入 + InheritedWidget</td>
+<td>Flutter 官方推荐，社区成熟，和 MVVM 接近</td>
+<td>模板代码偏多，状态监听不够灵活</td>
+<td>中小型项目，团队协作起步</td>
+</tr>
+<tr>
+<td><strong>Riverpod</strong></td>
+<td>声明式 Provider + 自动依赖管理</td>
+<td>编译时安全、无全局 context、测试友好</td>
+<td>学习曲线稍高，API 迭代快</td>
+<td>中大型项目，追求可维护性</td>
+</tr>
+<tr>
+<td><strong>Bloc &#x2F; Cubit</strong></td>
+<td>单向数据流（Event → State）</td>
+<td>严格分层，状态可预测，适合复杂业务</td>
+<td>模板代码多，学习门槛高</td>
+<td>大型项目，追求可维护性</td>
+</tr>
+<tr>
+<td><strong>GetX</strong></td>
+<td>响应式 + 服务定位器</td>
+<td>API 简洁，开发效率高</td>
+<td>隐式依赖多，项目大后难控边界</td>
+<td>小团队快速开发，原型验证</td>
+</tr>
+<tr>
+<td><strong>MobX</strong></td>
+<td>响应式编程（观察者模式）</td>
+<td>响应式体验好，代码简洁</td>
+<td>需代码生成，生态相对小</td>
+<td>偏好响应式范式的团队</td>
+</tr>
+</tbody></table>
+<h3 id="2-2-优缺点与协作适配度"><a href="#2-2-优缺点与协作适配度" class="headerlink" title="2.2 优缺点与协作适配度"></a>2.2 优缺点与协作适配度</h3><ul>
+<li><strong>setState</strong>：适合简单 UI 交互，例如计数器 Demo。但一旦跨页面共享状态，就会陷入“全局变量”陷阱。</li>
+<li><strong>Provider</strong>：逻辑与视图分离，依赖注入清晰，适合逐步工程化的中型项目。</li>
+<li><strong>Riverpod</strong>：在 Provider 思路上进化，消除了 context 限制，依赖关系更自动化，测试性和长期维护性更强。</li>
+<li><strong>Bloc</strong>：事件驱动，单向数据流清晰。非常适合大型、多人协作项目，因为它约束强，能减少团队分歧。</li>
+<li><strong>GetX</strong>：极简 API，入门快，但项目大后依赖隐式化严重，容易产生“魔法”。</li>
+<li><strong>MobX</strong>：响应式风格优雅，但需要生成代码，生态体量不如 Provider&#x2F;Riverpod。</li>
+</ul>
+<p>从协作角度看：</p>
+<ul>
+<li>小团队&#x2F;单人开发：Provider &#x2F; GetX；</li>
+<li>中型团队（多人协作）：Riverpod；</li>
+<li>大型团队（强规范、长生命周期）：Bloc。</li>
+</ul>
+<h3 id="2-3-状态分层：UI-State、Domain-State、Infra-State"><a href="#2-3-状态分层：UI-State、Domain-State、Infra-State" class="headerlink" title="2.3 状态分层：UI-State、Domain-State、Infra-State"></a>2.3 状态分层：UI-State、Domain-State、Infra-State</h3><p>在大中型项目里，单靠“选对框架”还不够，更关键的是要<strong>划清状态边界</strong>：</p>
+<ol>
+<li><strong>UI-State</strong>（界面临时状态）：一般是短生命周期，局限于某个页面或组件。比如说当前 Tab 索引、是否展开某个卡片。<br> 实现：setState 或局部 Provider 足够。</li>
+<li><strong>Domain-State</strong>（业务状态）：可以跨页面共享，需要一致性和可追踪。比如说购物车商品列表、用户登录信息。<br> 实现：Provider、Riverpod、Bloc 等。</li>
+<li><strong>Infra-State</strong>（基础设施状态）：一般是有全局性，与业务解耦。比如说网络连接状态、缓存是否加载完成。<br> 实现：DI 容器中的全局 service 提供。</li>
+</ol>
+<h3 id="2-4-单向数据流-vs-双向绑定"><a href="#2-4-单向数据流-vs-双向绑定" class="headerlink" title="2.4 单向数据流 vs 双向绑定"></a>2.4 单向数据流 vs 双向绑定</h3><ul>
+<li><strong>单向数据流</strong>（如 Bloc、Redux 思路）：数据从 action → state → UI 单向流动，易追踪、调试方便。<br>  缺点：代码冗长、心智模型复杂。</li>
+<li><strong>双向绑定</strong>（如 GetX、MobX）：数据改动即刻反映到 UI，开发效率高。<br>  缺点：数据流动路径隐式，调试困难。</li>
+</ul>
+<p>在大型团队协作中，<strong>单向数据流更利于维护</strong>；在快速迭代或原型场景，<strong>双向绑定更高效</strong>。</p>
+<h3 id="2-5-选择思路"><a href="#2-5-选择思路" class="headerlink" title="2.5 选择思路"></a>2.5 选择思路</h3><p>那么，在实际项目中如何选择呢？</p>
+<ul>
+<li><strong>项目规模小 &#x2F; Demo &#x2F; MVP</strong> 可以选择 setState 或 GetX</li>
+<li><strong>中型项目（多人协作，复杂度中等）</strong> 可以选择  Provider &#x2F; Riverpod</li>
+<li><strong>大型项目（强制规范、可预测性要求高）</strong> 可以选择 Bloc</li>
+<li><strong>偏好响应式编程风格</strong> 可以选择  MobX</li>
+</ul>
+<p>换句话说：<strong>没有“最佳”方案，只有最契合团队规模、协作方式和业务复杂度的方案</strong>。</p>
+<h3 id="2-6-代码对比示例"><a href="#2-6-代码对比示例" class="headerlink" title="2.6 代码对比示例"></a>2.6 代码对比示例</h3><p>为了直观对比，来看一个最经典的“计数器”例子。</p>
+<h4 id="2-6-1-用-setState-实现"><a href="#2-6-1-用-setState-实现" class="headerlink" title="2.6.1 用 setState 实现"></a>2.6.1 用 setState 实现</h4><p>实现：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="string">&#x27;package:flutter/material.dart&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CounterSetState</span> <span class="keyword">extends</span> <span class="title">StatefulWidget</span> </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> CounterSetState(&#123;<span class="keyword">super</span>.key&#125;);</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  State&lt;CounterSetState&gt; createState() =&gt; _CounterSetStateState();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">_CounterSetStateState</span> <span class="keyword">extends</span> <span class="title">State</span>&lt;<span class="title">CounterSetState</span>&gt; </span>&#123;</span><br><span class="line">  <span class="built_in">int</span> _count = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">void</span> _increment() &#123;</span><br><span class="line">    setState(() &#123;</span><br><span class="line">      _count++;</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  Widget build(BuildContext context) &#123;</span><br><span class="line">    <span class="keyword">return</span> Scaffold(</span><br><span class="line">      body: Center(child: Text(<span class="string">&quot;Count: <span class="subst">$_count</span>&quot;</span>)),</span><br><span class="line">      floatingActionButton: FloatingActionButton(</span><br><span class="line">        onPressed: _increment,</span><br><span class="line">        child: <span class="keyword">const</span> Icon(Icons.add),</span><br><span class="line">      ),</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="2-6-2-用-Provider-实现"><a href="#2-6-2-用-Provider-实现" class="headerlink" title="2.6.2 用 Provider 实现"></a>2.6.2 用 Provider 实现</h4><p>依赖：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">dependencies:</span></span><br><span class="line">  <span class="attr">provider:</span> <span class="string">^6.1.5</span></span><br></pre></td></tr></table></figure>
+<p>实现：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="string">&#x27;package:flutter/material.dart&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="string">&#x27;package:provider/provider.dart&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CounterModel</span> <span class="title">with</span> <span class="title">ChangeNotifier</span> </span>&#123;  </span><br><span class="line">  <span class="built_in">int</span> _count = <span class="number">0</span>;  </span><br><span class="line">  <span class="built_in">int</span> <span class="keyword">get</span> count =&gt; _count;  </span><br><span class="line">  </span><br><span class="line">  <span class="keyword">void</span> increment() &#123;  </span><br><span class="line">    _count++;  </span><br><span class="line">    notifyListeners();  </span><br><span class="line">  &#125;  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CounterProvider</span> <span class="keyword">extends</span> <span class="title">StatelessWidget</span> </span>&#123;  </span><br><span class="line">  <span class="keyword">const</span> CounterProvider(&#123;<span class="keyword">super</span>.key&#125;);  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  Widget build(BuildContext context) &#123;  </span><br><span class="line">    <span class="keyword">return</span> ChangeNotifierProvider(  </span><br><span class="line">      create: (_) =&gt; CounterModel(),  </span><br><span class="line">      child: Scaffold(  </span><br><span class="line">        body: Center(  </span><br><span class="line">          child: Consumer&lt;CounterModel&gt;(  </span><br><span class="line">            builder: (_, counter, __) =&gt; Text(<span class="string">&quot;Count: <span class="subst">$&#123;counter.count&#125;</span>&quot;</span>),  </span><br><span class="line">          ),  </span><br><span class="line">        ),  </span><br><span class="line">        floatingActionButton: Consumer&lt;CounterModel&gt;(  </span><br><span class="line">          builder: (_, counter, __) =&gt; FloatingActionButton(  </span><br><span class="line">            onPressed: counter.increment,  </span><br><span class="line">            child: <span class="keyword">const</span> Icon(Icons.add),  </span><br><span class="line">          ),  </span><br><span class="line">        ),  </span><br><span class="line">      ),  </span><br><span class="line">    );  </span><br><span class="line">  &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="2-6-3-用-Riverpod-实现"><a href="#2-6-3-用-Riverpod-实现" class="headerlink" title="2.6.3 用 Riverpod 实现"></a>2.6.3 用 Riverpod 实现</h4><p>依赖：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">dependencies:</span></span><br><span class="line">  <span class="attr">flutter_riverpod:</span> <span class="string">^3.0.0</span></span><br></pre></td></tr></table></figure>
+<p>实现：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="string">&#x27;package:flutter/material.dart&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="string">&#x27;package:flutter_riverpod/flutter_riverpod.dart&#x27;</span>;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">void</span> main() &#123;  </span><br><span class="line">  runApp(  </span><br><span class="line">    ProviderScope(  </span><br><span class="line">      child: MyApp(),  </span><br><span class="line">    ),  </span><br><span class="line">  );  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyApp</span> <span class="keyword">extends</span> <span class="title">StatelessWidget</span> </span>&#123;  </span><br><span class="line">  <span class="keyword">const</span> MyApp(&#123;<span class="keyword">super</span>.key&#125;);  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  Widget build(BuildContext context) &#123;  </span><br><span class="line">    <span class="keyword">return</span> MaterialApp(  </span><br><span class="line">      home: CounterRiverpod(),  </span><br><span class="line">    );  </span><br><span class="line">  &#125;  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">final</span> counterProvider = StateProvider&lt;<span class="built_in">int</span>&gt;((ref) =&gt; <span class="number">0</span>);  </span><br><span class="line">  </span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CounterRiverpod</span> <span class="keyword">extends</span> <span class="title">ConsumerWidget</span> </span>&#123;  </span><br><span class="line">  <span class="keyword">const</span> CounterRiverpod(&#123;<span class="keyword">super</span>.key&#125;);  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  Widget build(BuildContext context, WidgetRef ref) &#123;  </span><br><span class="line">    <span class="keyword">final</span> count = ref.watch(counterProvider);  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">return</span> Scaffold(  </span><br><span class="line">      body: Center(child: Text(<span class="string">&quot;Count: <span class="subst">$count</span>&quot;</span>)),  </span><br><span class="line">      floatingActionButton: FloatingActionButton(  </span><br><span class="line">        onPressed: () =&gt; ref.read(counterProvider.notifier).state++,  </span><br><span class="line">        child: <span class="keyword">const</span> Icon(Icons.add),  </span><br><span class="line">      ),  </span><br><span class="line">    );  </span><br><span class="line">  &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="2-6-4-用-Bloc-实现"><a href="#2-6-4-用-Bloc-实现" class="headerlink" title="2.6.4 用 Bloc 实现"></a>2.6.4 用 Bloc 实现</h4><p>依赖：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">dependencies:</span></span><br><span class="line">  <span class="attr">flutter_bloc:</span> <span class="string">^9.1.1</span></span><br></pre></td></tr></table></figure>
+<p>实现：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="string">&#x27;package:flutter/material.dart&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="string">&#x27;package:flutter_bloc/flutter_bloc.dart&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyApp</span> <span class="keyword">extends</span> <span class="title">StatelessWidget</span> </span>&#123;  </span><br><span class="line">  <span class="keyword">const</span> MyApp(&#123;<span class="keyword">super</span>.key&#125;);  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  Widget build(BuildContext context) &#123;  </span><br><span class="line">    <span class="keyword">return</span> MaterialApp(  </span><br><span class="line">      home: BlocProvider(  </span><br><span class="line">        create: (_) =&gt; CounterCubit(),  </span><br><span class="line">        child: CounterBloc(),  </span><br><span class="line">      ),  </span><br><span class="line">    );  </span><br><span class="line">  &#125;  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CounterCubit</span> <span class="keyword">extends</span> <span class="title">Cubit</span>&lt;<span class="title">int</span>&gt; </span>&#123;  </span><br><span class="line">  CounterCubit() : <span class="keyword">super</span>(<span class="number">0</span>);  </span><br><span class="line">  </span><br><span class="line">  <span class="keyword">void</span> increment() =&gt; emit(state + <span class="number">1</span>);  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CounterBloc</span> <span class="keyword">extends</span> <span class="title">StatelessWidget</span> </span>&#123;  </span><br><span class="line">  <span class="keyword">const</span> CounterBloc(&#123;<span class="keyword">super</span>.key&#125;);  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  Widget build(BuildContext context) &#123;  </span><br><span class="line">    <span class="keyword">return</span> BlocProvider(  </span><br><span class="line">      create: (_) =&gt; CounterCubit(),  </span><br><span class="line">      child: Scaffold(  </span><br><span class="line">        body: Center(  </span><br><span class="line">          child: BlocBuilder&lt;CounterCubit, <span class="built_in">int</span>&gt;(  </span><br><span class="line">            builder: (_, count) =&gt; Text(<span class="string">&quot;Count: <span class="subst">$count</span>&quot;</span>),  </span><br><span class="line">          ),  </span><br><span class="line">        ),  </span><br><span class="line">        floatingActionButton: BlocBuilder&lt;CounterCubit, <span class="built_in">int</span>&gt;(  </span><br><span class="line">          builder: (context, _) =&gt; FloatingActionButton(  </span><br><span class="line">            onPressed: () =&gt; context.read&lt;CounterCubit&gt;().increment(),  </span><br><span class="line">            child: <span class="keyword">const</span> Icon(Icons.add),  </span><br><span class="line">          ),  </span><br><span class="line">        ),  </span><br><span class="line">      ),  </span><br><span class="line">    );  </span><br><span class="line">  &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="2-6-5-用-GetX-实现"><a href="#2-6-5-用-GetX-实现" class="headerlink" title="2.6.5 用 GetX 实现"></a>2.6.5 用 GetX 实现</h4><p>依赖：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">dependencies:</span></span><br><span class="line">  <span class="attr">get:</span> <span class="string">^4.7.2</span></span><br></pre></td></tr></table></figure>
+<p>实现：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="string">&#x27;package:flutter/material.dart&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="string">&#x27;package:get/get.dart&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyApp</span> <span class="keyword">extends</span> <span class="title">StatelessWidget</span> </span>&#123;  </span><br><span class="line">  <span class="keyword">const</span> MyApp(&#123;<span class="keyword">super</span>.key&#125;);  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  Widget build(BuildContext context) &#123;  </span><br><span class="line">    <span class="keyword">return</span> MaterialApp(  </span><br><span class="line">      home: CounterGetX(),  </span><br><span class="line">    );  </span><br><span class="line">  &#125;  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CounterController</span> <span class="keyword">extends</span> <span class="title">GetxController</span> </span>&#123;  </span><br><span class="line">  <span class="keyword">var</span> count = <span class="number">0</span>.obs;  </span><br><span class="line">  </span><br><span class="line">  <span class="keyword">void</span> increment() =&gt; count++;  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CounterGetX</span> <span class="keyword">extends</span> <span class="title">StatelessWidget</span> </span>&#123;  </span><br><span class="line">  <span class="keyword">final</span> CounterController controller = Get.put(CounterController());  </span><br><span class="line">  </span><br><span class="line">  CounterGetX(&#123;<span class="keyword">super</span>.key&#125;);  </span><br><span class="line">  </span><br><span class="line">  <span class="meta">@override</span>  </span><br><span class="line">  Widget build(BuildContext context) &#123;  </span><br><span class="line">    <span class="keyword">return</span> Scaffold(  </span><br><span class="line">      body: Center(child: Obx(() =&gt; Text(<span class="string">&quot;Count: <span class="subst">$&#123;controller.count&#125;</span>&quot;</span>))),  </span><br><span class="line">      floatingActionButton: FloatingActionButton(  </span><br><span class="line">        onPressed: controller.increment,  </span><br><span class="line">        child: <span class="keyword">const</span> Icon(Icons.add),  </span><br><span class="line">      ),  </span><br><span class="line">    );  </span><br><span class="line">  &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="2-6-6-用-MobX-实现"><a href="#2-6-6-用-MobX-实现" class="headerlink" title="2.6.6 用 MobX 实现"></a>2.6.6 用 MobX 实现</h4><p>依赖：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">dependencies:</span>    </span><br><span class="line">  <span class="attr">mobx:</span> <span class="string">^2.5.0</span>          <span class="comment"># 状态管理核心库  </span></span><br><span class="line">  <span class="attr">flutter_mobx:</span> <span class="string">^2.3.0</span>  <span class="comment"># Flutter集成  </span></span><br><span class="line">  </span><br><span class="line"><span class="attr">dev_dependencies:</span>  </span><br><span class="line">  <span class="attr">build_runner:</span> <span class="string">^2.8.0</span>  </span><br><span class="line">  <span class="attr">mobx_codegen:</span> <span class="string">^2.7.4</span></span><br></pre></td></tr></table></figure>
+<p>实现：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">lib/counter_store.dart</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="string">&#x27;package:mobx/mobx.dart&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">part</span> <span class="string">&#x27;counter_store.g.dart&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Store</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CounterStore</span> = <span class="title">_CounterStore</span> <span class="title">with</span> <span class="title">_</span>$<span class="title">CounterStore</span>;</span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class"><span class="title">abstract</span> <span class="title">class</span> <span class="title">_CounterStore</span> <span class="title">with</span> <span class="title">Store</span> </span>&#123;</span><br><span class="line">  <span class="meta">@observable</span></span><br><span class="line">  <span class="built_in">int</span> count = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@action</span></span><br><span class="line">  <span class="keyword">void</span> increment() =&gt; count++;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>生成代码，在项目根目录运行：<code>flutter pub run build_runner build</code> 生成<code>counter_store.g.dart</code></p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">lib/main.dart</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="string">&#x27;package:flutter/material.dart&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="string">&#x27;package:flutter_mobx/flutter_mobx.dart&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="string">&#x27;counter_store.dart&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> main() &#123;</span><br><span class="line">  runApp(<span class="keyword">const</span> MyApp());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyApp</span> <span class="keyword">extends</span> <span class="title">StatelessWidget</span> </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> MyApp(&#123;<span class="keyword">super</span>.key&#125;);</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  Widget build(BuildContext context) &#123;</span><br><span class="line">    <span class="keyword">return</span> MaterialApp(</span><br><span class="line">      title: <span class="string">&#x27;MobX Counter Demo&#x27;</span>,</span><br><span class="line">      theme: ThemeData(primarySwatch: Colors.blue),</span><br><span class="line">      home: CounterMobX(),</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CounterMobX</span> <span class="keyword">extends</span> <span class="title">StatelessWidget</span> </span>&#123;</span><br><span class="line">  <span class="keyword">final</span> CounterStore store = CounterStore();</span><br><span class="line"></span><br><span class="line">  CounterMobX(&#123;<span class="keyword">super</span>.key&#125;);</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  Widget build(BuildContext context) &#123;</span><br><span class="line">    <span class="keyword">return</span> Scaffold(</span><br><span class="line">      appBar: AppBar(title: <span class="keyword">const</span> Text(<span class="string">&quot;MobX Counter&quot;</span>)),</span><br><span class="line">      body: Center(</span><br><span class="line">        child: Observer(</span><br><span class="line">          builder: (_) =&gt; Text(</span><br><span class="line">            <span class="string">&quot;Count: <span class="subst">$&#123;store.count&#125;</span>&quot;</span>,</span><br><span class="line">            style: <span class="keyword">const</span> TextStyle(fontSize: <span class="number">24</span>),</span><br><span class="line">          ),</span><br><span class="line">        ),</span><br><span class="line">      ),</span><br><span class="line">      floatingActionButton: FloatingActionButton(</span><br><span class="line">        onPressed: store.increment,</span><br><span class="line">        child: <span class="keyword">const</span> Icon(Icons.add),</span><br><span class="line">      ),</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过对比可以发现：</p>
+<ul>
+<li><strong>setState</strong> 胜在直观、上手快，但缺乏状态隔离和可维护性，一旦页面复杂就会迅速失控；</li>
+<li><strong>Provider</strong> 相对规整，但仍依赖 ChangeNotifier，在状态拆分和复用上略显笨重；</li>
+<li><strong>Riverpod</strong> 提供了灵活的依赖注入和无 BuildContext 的访问方式，更适合中大型项目的工程化实践；</li>
+<li><strong>Bloc</strong> 以严格的单向数据流和事件驱动为核心，虽然开发心智负担更重，但换来良好的可测试性和团队协作规范，特别适合大型团队或长生命周期项目；</li>
+<li><strong>GetX</strong> 以响应式变量和服务定位器为核心，API 简洁，上手快，开发效率高，适合小团队或快速迭代，但项目大后依赖隐式化较多，边界管理需谨慎；</li>
+<li><strong>MobX</strong> 提供响应式编程模式，观察者自动更新 UI，代码简洁优雅，适合偏好响应式风格的团队，但需要代码生成工具，生态体量不如 Provider&#x2F;Riverpod。</li>
+</ul>
+<p>Flutter 状态管理方案多样，核心在于<strong>匹配场景</strong>而非追求“唯一最佳”，更关键的是<strong>状态分层</strong>，明确 UI、业务、基础设施的边界。单向流更适合长期维护，双向绑定更适合快速开发。选型时要考虑<strong>团队规模、项目复杂度、协作方式</strong>。</p>
+<h2 id="3-依赖注入（DI）与服务定位"><a href="#3-依赖注入（DI）与服务定位" class="headerlink" title="3. 依赖注入（DI）与服务定位"></a>3. 依赖注入（DI）与服务定位</h2><p>在小项目中，我们常常会在某个类里直接 new ApiClient()，然后全局到处用。这种做法简单直观，但随着项目规模变大，问题就会出现：</p>
+<ul>
+<li>想换一个实现（比如从线上 API 换成本地 Mock），需要全局修改</li>
+<li>想做单元测试，测试代码中不得不依赖真实网络请求</li>
+<li>依赖关系杂乱，一个类可能直接 new 出好几个依赖，难以追踪</li>
+</ul>
+<p>这就是 <strong>依赖注入（Dependency Injection, DI）</strong> 要解决的问题。<br>DI 的核心思想是：<strong>类不自己创建依赖，而是“外部”提供依赖</strong>。这样做带来的好处有三点：</p>
+<ol>
+<li><strong>解耦</strong> —— 类与具体实现解耦，只依赖抽象接口。</li>
+<li><strong>可替换</strong> —— 可以轻松替换实现，比如生产环境用真实服务，测试环境用 Mock。</li>
+<li><strong>易维护</strong> —— 依赖关系清晰，方便管理生命周期。</li>
+</ol>
+<p>你可以把它类比成 <strong>水管接头</strong>：如果每个房间的水龙头都直接焊死在一根水管上，换水源会非常麻烦；如果在水龙头后装一个接头，就可以随时接不同水管（自来水&#x2F;过滤水&#x2F;热水），灵活可控。</p>
+<h3 id="3-1-三种常见模式"><a href="#3-1-三种常见模式" class="headerlink" title="3.1 三种常见模式"></a>3.1 三种常见模式</h3><p>在 Flutter 项目里，DI 有三种主流实践方式：  </p>
+<h4 id="3-1-1-get-it（服务定位器模式）"><a href="#3-1-1-get-it（服务定位器模式）" class="headerlink" title="3.1.1 get_it（服务定位器模式）"></a>3.1.1 get_it（服务定位器模式）</h4><p><a target="_blank" rel="noopener" href="https://pub.dev/packages/get_it">get_it</a> 是 Flutter 里非常常见的服务定位器库，本质是一个全局的“依赖注册表”。你可以在项目启动时，把需要的服务注册进去，然后在任何地方获取。</p>
+<p><strong>示例：注册与使用 API Client</strong></p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="string">&#x27;package:get_it/get_it.dart&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">final</span> getIt = GetIt.instance;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 假设有一个 ApiClient</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ApiClient</span> </span>&#123;</span><br><span class="line">  <span class="keyword">void</span> fetchData() =&gt; <span class="built_in">print</span>(<span class="string">&quot;Fetching data from server...&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> setup() &#123;</span><br><span class="line">  getIt.registerLazySingleton&lt;ApiClient&gt;(() =&gt; ApiClient());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> main() &#123;</span><br><span class="line">  setup();</span><br><span class="line">  <span class="keyword">final</span> apiClient = getIt&lt;ApiClient&gt;();</span><br><span class="line">  apiClient.fetchData(); <span class="comment">// ✅ 直接获取依赖</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这种方式的优点是上手快、用法简洁；全局单例管理方便。但缺点是过度使用可能导致依赖关系隐蔽，不利于追踪。</p>
+<h4 id="3-1-2-Riverpod-Provider（依赖树管理）"><a href="#3-1-2-Riverpod-Provider（依赖树管理）" class="headerlink" title="3.1.2 Riverpod Provider（依赖树管理）"></a>3.1.2 Riverpod Provider（依赖树管理）</h4><p>Riverpod 不仅是状态管理工具，也能天然充当 DI 容器。它将依赖注册在 Provider 中，由框架保证生命周期和作用域。</p>
+<p><strong>示例：用 Riverpod 提供 API Client</strong></p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="string">&#x27;package:flutter_riverpod/flutter_riverpod.dart&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="string">&#x27;package:flutter/material.dart&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ApiClient</span> </span>&#123;</span><br><span class="line">  <span class="keyword">void</span> fetchData() =&gt; <span class="built_in">print</span>(<span class="string">&quot;Fetching data from server...&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义一个 provider</span></span><br><span class="line"><span class="keyword">final</span> apiClientProvider = Provider((ref) =&gt; ApiClient());</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyApp</span> <span class="keyword">extends</span> <span class="title">ConsumerWidget</span> </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> MyApp(&#123;<span class="keyword">super</span>.key&#125;);</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  Widget build(BuildContext context, WidgetRef ref) &#123;</span><br><span class="line">    <span class="keyword">final</span> apiClient = ref.watch(apiClientProvider);</span><br><span class="line">    apiClient.fetchData();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">const</span> MaterialApp(home: Scaffold(body: Center(child: Text(<span class="string">&quot;Demo&quot;</span>))));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> main() &#123;</span><br><span class="line">  runApp(<span class="keyword">const</span> ProviderScope(child: MyApp()));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这种方式的优点是天然支持作用域（Scoped service）、生命周期跟随 Widget 树、依赖关系清晰。缺点是需要引入 Riverpod 框架；对初学者来说上手难度比较大。</p>
+<h4 id="3-1-3-构造函数注入（纯-Dart-思路）"><a href="#3-1-3-构造函数注入（纯-Dart-思路）" class="headerlink" title="3.1.3 构造函数注入（纯 Dart 思路）"></a>3.1.3 构造函数注入（纯 Dart 思路）</h4><p>这是最“干净”的做法，完全不依赖第三方库。核心思路是：一个类需要的依赖全部通过构造函数传入，而不是自己创建。<br><strong>示例：构造函数注入</strong></p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ApiClient</span> </span>&#123;</span><br><span class="line">  <span class="keyword">void</span> fetchData() =&gt; <span class="built_in">print</span>(<span class="string">&quot;Fetching data from server...&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserRepository</span> </span>&#123;</span><br><span class="line">  <span class="keyword">final</span> ApiClient apiClient;</span><br><span class="line"></span><br><span class="line">  UserRepository(<span class="keyword">this</span>.apiClient);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">void</span> loadUser() =&gt; apiClient.fetchData();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> main() &#123;</span><br><span class="line">  <span class="keyword">final</span> apiClient = ApiClient();</span><br><span class="line">  <span class="keyword">final</span> repo = UserRepository(apiClient);</span><br><span class="line">  repo.loadUser();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这种方式最直观、依赖关系显式、测试最友好。但缺点是随着依赖链增长，构造函数参数会越来越多，手动注入可能繁琐。</p>
+<h3 id="3-2-生命周期管理"><a href="#3-2-生命周期管理" class="headerlink" title="3.2 生命周期管理"></a>3.2 生命周期管理</h3><p>在大项目中，依赖并不是一旦创建就永远存在。常见的生命周期策略有：</p>
+<ul>
+<li><strong>单例（Singleton）</strong>：应用全局共享一个实例（如日志、配置）。</li>
+<li><strong>Scoped Service</strong>：跟随某个页面&#x2F;模块的作用域（如用户会话）。</li>
+<li><strong>Transient</strong>：每次使用时都创建一个新实例。</li>
+</ul>
+<p>例如，在 get_it 中可以用 registerLazySingleton（单例）、registerFactory（每次创建），在 Riverpod 中则通过 Provider 的类型（Provider vs StateNotifierProvider 等）来决定生命周期。</p>
+<h3 id="3-3-DI-在大项目中的角色"><a href="#3-3-DI-在大项目中的角色" class="headerlink" title="3.3 DI 在大项目中的角色"></a>3.3 DI 在大项目中的角色</h3><p>依赖注入并不是孤立存在的，它在大中型 Flutter 项目里扮演着“胶水”的角色：</p>
+<ul>
+<li><strong>连接状态管理</strong>：比如一个 UserNotifier 里依赖 UserRepository，而 UserRepository 依赖 ApiClient，这些都可以通过 DI 管理。</li>
+<li><strong>支撑模块化架构</strong>：每个模块可以定义自己的服务和依赖，再通过 DI 框架统一注入。</li>
+<li><strong>简化测试</strong>：测试时只需要替换掉依赖即可，例如把真实 API Client 换成 Mock。</li>
+</ul>
+<p><strong>示例：测试中的依赖替换</strong></p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MockApiClient</span> <span class="keyword">implements</span> <span class="title">ApiClient</span> </span>&#123;</span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="keyword">void</span> fetchData() =&gt; <span class="built_in">print</span>(<span class="string">&quot;Mock data for test&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> main() &#123;</span><br><span class="line">  <span class="comment">// 在测试环境下注册 Mock</span></span><br><span class="line">  getIt.registerLazySingleton&lt;ApiClient&gt;(() =&gt; MockApiClient());</span><br><span class="line"></span><br><span class="line">  <span class="keyword">final</span> apiClient = getIt&lt;ApiClient&gt;();</span><br><span class="line">  apiClient.fetchData(); <span class="comment">// 输出：Mock data for test</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>依赖注入就像“水管接头”，让我们的系统可以方便地切换不同实现（真实服务&#x2F;假服务），同时保持依赖关系清晰。</p>
+<ul>
+<li><strong>get_it</strong> 适合快速上手的小团队，灵活但容易滥用；</li>
+<li><strong>Riverpod Provider</strong> 更加结构化，适合中大型项目；</li>
+<li><strong>构造函数注入</strong> 最朴素，也最利于测试，但在复杂项目里需要搭配工厂模式或 DI 容器来减轻手工注入的负担。</li>
+</ul>
+<p>在实际工程中，往往会结合使用：比如底层依赖通过 get_it 或 Riverpod 注入，业务类通过构造函数传递，既灵活又可控。</p>
+<h2 id="4-路由架构与页面解耦"><a href="#4-路由架构与页面解耦" class="headerlink" title="4. 路由架构与页面解耦"></a>4. 路由架构与页面解耦</h2><p>在小型 Flutter 应用中，页面跳转通常只需要一行 <code>Navigator.push()</code> 就能完成。然而，当项目逐渐增长、模块增多、功能复杂（例如登录态校验、角色切换、深度链接）时，“路由”不再只是导航问题，而是<strong>应用架构的核心组成</strong>。</p>
+<p>下面将从 Flutter 路由体系的演进出发，逐步展开：</p>
+<ul>
+<li>从 <strong>Navigator 1.0 命令式导航</strong> 到 <strong>Navigator 2.0 声明式导航</strong> 的转变</li>
+<li>如何实现 <strong>路由守卫（登录&#x2F;权限拦截）</strong>?</li>
+<li>如何在大型工程中利用路由实现 <strong>模块化解耦</strong>?</li>
+</ul>
+<h3 id="4-1-Navigator-1-0：命令式导航的起点"><a href="#4-1-Navigator-1-0：命令式导航的起点" class="headerlink" title="4.1 Navigator 1.0：命令式导航的起点"></a>4.1 Navigator 1.0：命令式导航的起点</h3><p>Flutter 最早的路由系统可以叫 <strong>Navigator 1.0</strong>，以命令式方式管理页面栈。最常见的写法是：通过一个全局路由表映射字符串路径与页面组件。</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/// <span class="language-markdown">全局路由映射</span></span></span><br><span class="line"><span class="keyword">final</span> <span class="built_in">Map</span>&lt;<span class="built_in">String</span>, WidgetBuilder&gt; appRoutes = &#123;</span><br><span class="line">  <span class="string">&#x27;/&#x27;</span>: (context) =&gt; <span class="keyword">const</span> HomePage(),</span><br><span class="line">  <span class="string">&#x27;/user_home&#x27;</span>: (context) =&gt; <span class="keyword">const</span> UserHomePage(),</span><br><span class="line">  <span class="string">&#x27;/debug&#x27;</span>: (context) =&gt; <span class="keyword">const</span> DebugPage(),</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">MaterialApp(</span><br><span class="line">  initialRoute: <span class="string">&#x27;/&#x27;</span>,</span><br><span class="line">  routes: appRoutes,</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<p>这种方式的特点是：</p>
+<ul>
+<li><strong>集中管理</strong>：页面路径清晰，结构简单；</li>
+<li><strong>调用简洁</strong>：Navigator.pushNamed(context, ‘&#x2F;user_home’); 即可跳转；</li>
+<li><strong>适合中小型项目</strong>：页面不多时维护轻松。</li>
+</ul>
+<p>但随着项目增长，这种命令式方式开始暴露出局限：</p>
+<table>
+<thead>
+<tr>
+<th><strong>问题</strong></th>
+<th><strong>描述</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>参数传递繁琐</td>
+<td>需手动解析 ModalRoute.of(context)?.settings.arguments</td>
+</tr>
+<tr>
+<td>无统一守卫</td>
+<td>登录、权限逻辑需分散在每个跳转调用中</td>
+</tr>
+<tr>
+<td>深度链接支持弱</td>
+<td>处理外部 URI 或复杂授权流比较麻烦</td>
+</tr>
+</tbody></table>
+<h3 id="4-2-小幅增强：onGenerateRoute-的动态拦截"><a href="#4-2-小幅增强：onGenerateRoute-的动态拦截" class="headerlink" title="4.2 小幅增强：onGenerateRoute 的动态拦截"></a>4.2 小幅增强：onGenerateRoute 的动态拦截</h3><p>为了解决登录等简单拦截场景，可以通过 onGenerateRoute 动态生成路由：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">MaterialApp(</span><br><span class="line">  initialRoute: <span class="string">&#x27;/&#x27;</span>,</span><br><span class="line">  routes: appRoutes,</span><br><span class="line">  onGenerateRoute: (settings) &#123;</span><br><span class="line">    <span class="keyword">if</span> (settings.name == <span class="string">&#x27;/user_home&#x27;</span>) &#123;</span><br><span class="line">      <span class="keyword">if</span> (!authService.isLoggedIn) &#123;</span><br><span class="line">        <span class="keyword">return</span> MaterialPageRoute(builder: (_) =&gt; <span class="keyword">const</span> LoginPage());</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> MaterialPageRoute(builder: (_) =&gt; <span class="keyword">const</span> UserHomePage());</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">  &#125;,</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<p>这种方式可以让部分页面具备访问控制，但本质仍是命令式模式。页面跳转依旧依赖 push &#x2F; pop，无法与应用状态解耦。<br>当出现多角色、授权回调、外部跳转时，代码将变得难以维护。</p>
+<h3 id="4-3-Navigator-2-0：声明式导航"><a href="#4-3-Navigator-2-0：声明式导航" class="headerlink" title="4.3 Navigator 2.0：声明式导航"></a>4.3 Navigator 2.0：声明式导航</h3><p>为解决上述问题，Flutter 推出了 <strong>Navigator 2.0</strong>。它引入声明式 API，将“页面栈”抽象为<strong>状态的函数</strong>：</p>
+<blockquote>
+<p><strong>页面不再由命令控制，而是由应用状态驱动。</strong></p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th><strong>对比项</strong></th>
+<th><strong>Navigator 1.0</strong></th>
+<th><strong>Navigator 2.0</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>导航方式</td>
+<td>命令式：push&#x2F;pop</td>
+<td>声明式：状态驱动页面</td>
+</tr>
+<tr>
+<td>控制逻辑</td>
+<td>手动调用跳转</td>
+<td>状态变化自动刷新页面栈</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>简单页面流转</td>
+<td>多状态、深度链接、复杂授权</td>
+</tr>
+</tbody></table>
+<h4 id="4-3-1-核心结构：RouterDelegate-与-RouteInformationParser"><a href="#4-3-1-核心结构：RouterDelegate-与-RouteInformationParser" class="headerlink" title="4.3.1 核心结构：RouterDelegate 与 RouteInformationParser"></a>4.3.1 核心结构：RouterDelegate 与 RouteInformationParser</h4><p>声明式路由由两大组件驱动：</p>
+<ul>
+<li><strong>RouteInformationParser</strong>：将 URL &#x2F; 路由信息解析为内部状态；</li>
+<li><strong>RouterDelegate</strong>：根据状态构建页面栈。</li>
+</ul>
+<p>一个最小实现示例如下：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyRouterDelegate</span> <span class="keyword">extends</span> <span class="title">RouterDelegate</span>&lt;<span class="title">RouteSettings</span>&gt;</span></span><br><span class="line"><span class="class">    <span class="title">with</span> <span class="title">ChangeNotifier</span>, <span class="title">PopNavigatorRouterDelegateMixin</span>&lt;<span class="title">RouteSettings</span>&gt; </span>&#123;</span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="keyword">final</span> navigatorKey = GlobalKey&lt;NavigatorState&gt;();</span><br><span class="line"></span><br><span class="line">  <span class="built_in">bool</span> isLoggedIn = <span class="keyword">false</span>;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  Widget build(BuildContext context) &#123;</span><br><span class="line">    <span class="keyword">return</span> Navigator(</span><br><span class="line">      key: navigatorKey,</span><br><span class="line">      pages: [</span><br><span class="line">        <span class="keyword">const</span> MaterialPage(child: HomePage()),</span><br><span class="line">        <span class="keyword">if</span> (!isLoggedIn) <span class="keyword">const</span> MaterialPage(child: LoginPage()),</span><br><span class="line">        <span class="keyword">if</span> (isLoggedIn) <span class="keyword">const</span> MaterialPage(child: UserHomePage()),</span><br><span class="line">      ],</span><br><span class="line">      onPopPage: (route, result) =&gt; route.didPop(result),</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  Future&lt;<span class="keyword">void</span>&gt; setNewRoutePath(RouteSettings configuration) <span class="keyword">async</span> &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当 isLoggedIn 状态改变时，页面栈会<strong>自动同步更新</strong>。无需再写 push &#x2F; pop 逻辑，路由守卫自然生效。</p>
+<h3 id="4-4-路由守卫：登录与权限控制"><a href="#4-4-路由守卫：登录与权限控制" class="headerlink" title="4.4 路由守卫：登录与权限控制"></a>4.4 路由守卫：登录与权限控制</h3><p>声明式导航的一大优势是<strong>路由守卫天然内置在状态逻辑中</strong>。<br>例如：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@override</span></span><br><span class="line">Widget build(BuildContext context) &#123;</span><br><span class="line">  <span class="keyword">final</span> pages = &lt;Page&gt;[];</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!authService.isLoggedIn) &#123;</span><br><span class="line">    pages.add(MaterialPage(child: LoginPage(onLogin: () &#123;</span><br><span class="line">      authService.login();</span><br><span class="line">      notifyListeners();</span><br><span class="line">    &#125;)));</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    pages.add(MaterialPage(child: HomePage()));</span><br><span class="line">    <span class="keyword">if</span> (_showDetails) pages.add(MaterialPage(child: DetailPage()));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> Navigator(pages: pages, onPopPage: _onPopPage);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>登录状态的变化会直接重构页面栈，不再需要在每个跳转处手动判断权限。这也是 Navigator 2.0 在工程化路由中的最大优势。</p>
+<h4 id="4-4-1-示例"><a href="#4-4-1-示例" class="headerlink" title="4.4.1 示例"></a>4.4.1 示例</h4><p>接下来，我们通过一个例子来展示声明式路由——<strong>它不仅能定义页面跳转关系，还能以声明的方式表达页面层级和状态逻辑</strong>。</p>
+<h5 id="4-4-1-1-场景需求"><a href="#4-4-1-1-场景需求" class="headerlink" title="4.4.1.1 场景需求"></a>4.4.1.1 场景需求</h5><p>假设我们正在开发一个简单的应用，包含以下页面：</p>
+<ul>
+<li><strong>首页 &#x2F;</strong></li>
+<li><strong>登录页 &#x2F;login</strong></li>
+<li><strong>用户中心 &#x2F;user</strong><ul>
+<li>&#x2F;user&#x2F;profile：用户资料页</li>
+<li>&#x2F;user&#x2F;orders：订单列表页<br>逻辑要求：</li>
+</ul>
+</li>
+</ul>
+<ol>
+<li>未登录用户访问 &#x2F;user&#x2F;… 时，应自动跳转到 &#x2F;login；</li>
+<li>登录后访问 &#x2F;login 时，应自动回到首页；</li>
+<li>用户中心下的两个子页共享同一个顶部导航。</li>
+</ol>
+<h5 id="4-4-1-2-代码实现"><a href="#4-4-1-2-代码实现" class="headerlink" title="4.4.1.2 代码实现"></a>4.4.1.2 代码实现</h5><p>依赖：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">dependencies:</span>  </span><br><span class="line">  <span class="attr">go_router:</span> <span class="string">^16.2.4</span></span><br></pre></td></tr></table></figure>
+<p>路由配置：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="string">&#x27;package:flutter/material.dart&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="string">&#x27;package:go_router/go_router.dart&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> main() &#123;</span><br><span class="line">  runApp(MyApp());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyApp</span> <span class="keyword">extends</span> <span class="title">StatelessWidget</span> </span>&#123;</span><br><span class="line">  MyApp(&#123;<span class="keyword">super</span>.key&#125;);</span><br><span class="line"></span><br><span class="line">  <span class="comment">/// <span class="language-markdown">用 ValueNotifier 模拟登录状态（通常由 Provider 或 Riverpod 管理）</span></span></span><br><span class="line">  <span class="keyword">final</span> ValueNotifier&lt;<span class="built_in">bool</span>&gt; isLoggedIn = ValueNotifier(<span class="keyword">false</span>);</span><br><span class="line"></span><br><span class="line">  <span class="comment">/// <span class="language-markdown">声明式路由配置</span></span></span><br><span class="line">  <span class="keyword">late</span> <span class="keyword">final</span> GoRouter _router = GoRouter(</span><br><span class="line">    refreshListenable: isLoggedIn, <span class="comment">// 登录状态变化时自动刷新路由</span></span><br><span class="line">    redirect: (context, state) &#123;</span><br><span class="line">      <span class="keyword">final</span> loggedIn = isLoggedIn.value;</span><br><span class="line">      <span class="keyword">final</span> loggingIn = state.matchedLocation == <span class="string">&#x27;/login&#x27;</span>;</span><br><span class="line">      <span class="keyword">final</span> isUserRoute = state.matchedLocation.startsWith(<span class="string">&#x27;/user&#x27;</span>);</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 未登录访问用户页 → 跳转登录</span></span><br><span class="line">      <span class="keyword">if</span> (!loggedIn &amp;&amp; isUserRoute) <span class="keyword">return</span> <span class="string">&#x27;/login&#x27;</span>;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 已登录访问登录页 → 跳转首页</span></span><br><span class="line">      <span class="keyword">if</span> (loggedIn &amp;&amp; loggingIn) <span class="keyword">return</span> <span class="string">&#x27;/&#x27;</span>;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">null</span>; <span class="comment">// 其他情况不重定向</span></span><br><span class="line">    &#125;,</span><br><span class="line">    routes: [</span><br><span class="line">      <span class="comment">/// <span class="language-markdown">首页</span></span></span><br><span class="line">      GoRoute(</span><br><span class="line">        path: <span class="string">&#x27;/&#x27;</span>,</span><br><span class="line">        name: <span class="string">&#x27;home&#x27;</span>,</span><br><span class="line">        builder: (context, state) =&gt; HomePage(isLoggedIn: isLoggedIn),</span><br><span class="line">      ),</span><br><span class="line"></span><br><span class="line">      <span class="comment">/// <span class="language-markdown">登录页</span></span></span><br><span class="line">      GoRoute(</span><br><span class="line">        path: <span class="string">&#x27;/login&#x27;</span>,</span><br><span class="line">        name: <span class="string">&#x27;login&#x27;</span>,</span><br><span class="line">        builder: (context, state) =&gt; LoginPage(isLoggedIn: isLoggedIn),</span><br><span class="line">      ),</span><br><span class="line"></span><br><span class="line">      <span class="comment">/// <span class="language-markdown">用户中心（嵌套路由）</span></span></span><br><span class="line">      GoRoute(</span><br><span class="line">        path: <span class="string">&#x27;/user&#x27;</span>,</span><br><span class="line">        name: <span class="string">&#x27;user&#x27;</span>,</span><br><span class="line">        builder: (context, state) =&gt; <span class="keyword">const</span> UserShellPage(),</span><br><span class="line">        routes: [</span><br><span class="line">          GoRoute(</span><br><span class="line">            path: <span class="string">&#x27;profile&#x27;</span>,</span><br><span class="line">            name: <span class="string">&#x27;profile&#x27;</span>,</span><br><span class="line">            builder: (context, state) =&gt; <span class="keyword">const</span> ProfilePage(),</span><br><span class="line">          ),</span><br><span class="line">          GoRoute(</span><br><span class="line">            path: <span class="string">&#x27;orders&#x27;</span>,</span><br><span class="line">            name: <span class="string">&#x27;orders&#x27;</span>,</span><br><span class="line">            builder: (context, state) =&gt; <span class="keyword">const</span> OrdersPage(),</span><br><span class="line">          ),</span><br><span class="line">        ],</span><br><span class="line">      ),</span><br><span class="line">    ],</span><br><span class="line">  );</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  Widget build(BuildContext context) &#123;</span><br><span class="line">    <span class="keyword">return</span> MaterialApp.router(</span><br><span class="line">      title: <span class="string">&#x27;嵌套路由与登录守卫示例&#x27;</span>,</span><br><span class="line">      routerConfig: _router,</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>核心页面结构如下：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">HomePage</span> <span class="keyword">extends</span> <span class="title">StatelessWidget</span> </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> HomePage(&#123;<span class="keyword">super</span>.key, <span class="keyword">required</span> <span class="keyword">this</span>.isLoggedIn&#125;);</span><br><span class="line">  <span class="keyword">final</span> ValueNotifier&lt;<span class="built_in">bool</span>&gt; isLoggedIn;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  Widget build(BuildContext context) &#123;</span><br><span class="line">    <span class="keyword">return</span> Scaffold(</span><br><span class="line">      appBar: AppBar(title: <span class="keyword">const</span> Text(<span class="string">&#x27;🏠 首页&#x27;</span>)),</span><br><span class="line">      body: Center(</span><br><span class="line">        child: Column(</span><br><span class="line">          mainAxisSize: MainAxisSize.min,</span><br><span class="line">          children: [</span><br><span class="line">            ValueListenableBuilder&lt;<span class="built_in">bool</span>&gt;(</span><br><span class="line">              valueListenable: isLoggedIn,</span><br><span class="line">              builder: (context, loggedIn, _) =&gt; Text(</span><br><span class="line">                loggedIn ? <span class="string">&#x27;✅ 已登录&#x27;</span> : <span class="string">&#x27;❌ 未登录&#x27;</span>,</span><br><span class="line">                style: <span class="keyword">const</span> TextStyle(fontSize: <span class="number">18</span>),</span><br><span class="line">              ),</span><br><span class="line">            ),</span><br><span class="line">            <span class="keyword">const</span> SizedBox(height: <span class="number">12</span>),</span><br><span class="line">            ElevatedButton(</span><br><span class="line">	          <span class="comment">// 这里使用 context.go(&#x27;/xxx&#x27;) 实现声明式跳转，代替传统的 Navigator.push</span></span><br><span class="line">              onPressed: () =&gt; context.go(<span class="string">&#x27;/user/profile&#x27;</span>),</span><br><span class="line">              child: <span class="keyword">const</span> Text(<span class="string">&#x27;进入用户中心&#x27;</span>),</span><br><span class="line">            ),</span><br><span class="line">            <span class="keyword">const</span> SizedBox(height: <span class="number">12</span>),</span><br><span class="line">            ElevatedButton(</span><br><span class="line">              onPressed: () =&gt; context.go(<span class="string">&#x27;/login&#x27;</span>),</span><br><span class="line">              child: <span class="keyword">const</span> Text(<span class="string">&#x27;去登录页&#x27;</span>),</span><br><span class="line">            ),</span><br><span class="line">          ],</span><br><span class="line">        ),</span><br><span class="line">      ),</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>登录页则模拟登录操作：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">LoginPage</span> <span class="keyword">extends</span> <span class="title">StatelessWidget</span> </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> LoginPage(&#123;<span class="keyword">super</span>.key, <span class="keyword">required</span> <span class="keyword">this</span>.isLoggedIn&#125;);</span><br><span class="line">  <span class="keyword">final</span> ValueNotifier&lt;<span class="built_in">bool</span>&gt; isLoggedIn;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  Widget build(BuildContext context) &#123;</span><br><span class="line">    <span class="keyword">return</span> Scaffold(</span><br><span class="line">      appBar: AppBar(title: <span class="keyword">const</span> Text(<span class="string">&#x27;🔐 登录页&#x27;</span>)),</span><br><span class="line">      body: Center(</span><br><span class="line">        child: ElevatedButton(</span><br><span class="line">          onPressed: () &#123;</span><br><span class="line">            isLoggedIn.value = <span class="keyword">true</span>; <span class="comment">// 模拟登录成功</span></span><br><span class="line">            context.go(<span class="string">&#x27;/&#x27;</span>); <span class="comment">// 登录后跳回首页</span></span><br><span class="line">          &#125;,</span><br><span class="line">          child: <span class="keyword">const</span> Text(<span class="string">&#x27;点击登录&#x27;</span>),</span><br><span class="line">        ),</span><br><span class="line">      ),</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>用户中心的外壳页面（用于嵌套展示子页）：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserShellPage</span> <span class="keyword">extends</span> <span class="title">StatelessWidget</span> </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> UserShellPage(&#123;<span class="keyword">super</span>.key&#125;);</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  Widget build(BuildContext context) &#123;</span><br><span class="line">    <span class="keyword">return</span> Scaffold(</span><br><span class="line">      appBar: AppBar(title: <span class="keyword">const</span> Text(<span class="string">&#x27;👤 用户中心&#x27;</span>)),</span><br><span class="line">      body: Center(</span><br><span class="line">        child: Column(</span><br><span class="line">          mainAxisSize: MainAxisSize.min,</span><br><span class="line">          children: [</span><br><span class="line">            ElevatedButton(</span><br><span class="line">              onPressed: () =&gt; context.go(<span class="string">&#x27;/user/profile&#x27;</span>),</span><br><span class="line">              child: <span class="keyword">const</span> Text(<span class="string">&#x27;个人资料&#x27;</span>),</span><br><span class="line">            ),</span><br><span class="line">            ElevatedButton(</span><br><span class="line">              onPressed: () =&gt; context.go(<span class="string">&#x27;/user/orders&#x27;</span>),</span><br><span class="line">              child: <span class="keyword">const</span> Text(<span class="string">&#x27;订单列表&#x27;</span>),</span><br><span class="line">            ),</span><br><span class="line">            ElevatedButton(</span><br><span class="line">              onPressed: () =&gt; context.go(<span class="string">&#x27;/&#x27;</span>),</span><br><span class="line">              child: <span class="keyword">const</span> Text(<span class="string">&#x27;返回首页&#x27;</span>),</span><br><span class="line">            ),</span><br><span class="line">          ],</span><br><span class="line">        ),</span><br><span class="line">      ),</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ProfilePage</span> <span class="keyword">extends</span> <span class="title">StatelessWidget</span> </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> ProfilePage(&#123;<span class="keyword">super</span>.key&#125;);</span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  Widget build(BuildContext context) =&gt; <span class="keyword">const</span> SimplePage(title: <span class="string">&#x27;📄 个人资料&#x27;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">OrdersPage</span> <span class="keyword">extends</span> <span class="title">StatelessWidget</span> </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> OrdersPage(&#123;<span class="keyword">super</span>.key&#125;);</span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  Widget build(BuildContext context) =&gt; <span class="keyword">const</span> SimplePage(title: <span class="string">&#x27;🧾 我的订单&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SimplePage</span> <span class="keyword">extends</span> <span class="title">StatelessWidget</span> </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> SimplePage(&#123;<span class="keyword">super</span>.key, <span class="keyword">required</span> <span class="keyword">this</span>.title&#125;);</span><br><span class="line">  <span class="keyword">final</span> <span class="built_in">String</span> title;</span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  Widget build(BuildContext context) &#123;</span><br><span class="line">    <span class="keyword">return</span> Scaffold(</span><br><span class="line">      appBar: AppBar(title: Text(title)),</span><br><span class="line">      body: Center(</span><br><span class="line">        child: ElevatedButton(</span><br><span class="line">          onPressed: () =&gt; context.pop(),</span><br><span class="line">          child: <span class="keyword">const</span> Text(<span class="string">&#x27;返回&#x27;</span>),</span><br><span class="line">        ),</span><br><span class="line">      ),</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>相较于传统的命令式 <code>Navigator.push/pop</code>，声明式路由让「页面结构」与「状态逻辑」都能通过统一配置表达出来：</p>
+<ul>
+<li><strong>路由即状态映射</strong>：UI &#x3D; f(RouteState)</li>
+<li><strong>逻辑集中化</strong>：不再散落在各处 Navigator 调用中</li>
+<li><strong>天然支持状态监听</strong>：登录、权限、网络等状态变化都会自动触发路由更新</li>
+</ul>
+<p>这一特性使得大型 Flutter 应用的路由管理更加稳定、可维护。</p>
+<h3 id="4-5-深度链接与授权流"><a href="#4-5-深度链接与授权流" class="headerlink" title="4.5 深度链接与授权流"></a>4.5 深度链接与授权流</h3><p>移动端常见的“外部跳转”或“授权回调”场景，也可以优雅地通过声明式路由实现。</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyRouteParser</span> <span class="keyword">extends</span> <span class="title">RouteInformationParser</span>&lt;<span class="title">MyRoutePath</span>&gt; </span>&#123;</span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  Future&lt;MyRoutePath&gt; parseRouteInformation(</span><br><span class="line">      RouteInformation routeInformation) <span class="keyword">async</span> &#123;</span><br><span class="line">    <span class="keyword">final</span> uri = <span class="built_in">Uri</span>.parse(routeInformation.location!);</span><br><span class="line">    <span class="keyword">if</span> (uri.pathSegments.contains(<span class="string">&#x27;details&#x27;</span>)) &#123;</span><br><span class="line">      <span class="keyword">return</span> MyRoutePath.details();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> MyRoutePath.home();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当外部打开 myapp:&#x2F;&#x2F;details 时，RouteInformationParser 会自动识别并还原页面状态。</p>
+<p>若需要登录验证，可与“路由守卫”联动，形成完整的 <strong>授权跳转流</strong>：</p>
+<blockquote>
+<p>外部 URI → 解析路由状态 → 检查登录态 → 登录页 → 重定向目标页。</p>
+</blockquote>
+<h3 id="4-6-路由与模块化架构"><a href="#4-6-路由与模块化架构" class="headerlink" title="4.6 路由与模块化架构"></a>4.6 路由与模块化架构</h3><p>在大型项目中，路由不仅是导航，更是<strong>模块边界</strong>。</p>
+<p>一种常见的工程化方案是：</p>
+<ul>
+<li>每个业务模块（如用户、订单、支付）维护自己的路由表；</li>
+<li>主路由统一整合模块暴露的页面入口；</li>
+<li>其他模块只通过路由名访问，而不直接依赖页面类。</li>
+</ul>
+<p>这样就实现了模块之间低耦合，同样模块可替换、可单测，路由层也可以成为自然的<strong>模块通信网关</strong>。</p>
+<h3 id="4-7-选型建议"><a href="#4-7-选型建议" class="headerlink" title="4.7 选型建议"></a>4.7 选型建议</h3><table>
+<thead>
+<tr>
+<th><strong>场景</strong></th>
+<th><strong>推荐路由方式</strong></th>
+<th><strong>特点</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>页面 &lt; 30，逻辑简单</td>
+<td>Navigator 1.0 + 全局路由表</td>
+<td>直观轻便，快速实现</td>
+</tr>
+<tr>
+<td>中型项目，需登录守卫</td>
+<td>Navigator 1.0 + onGenerateRoute</td>
+<td>增量增强，易过渡</td>
+</tr>
+<tr>
+<td>大型项目，深度链接、多角色</td>
+<td>Navigator 2.0 &#x2F; go_router &#x2F; beamer</td>
+<td>声明式、状态驱动、易扩展</td>
+</tr>
+</tbody></table>
+<p>从 push 与 pop 的命令式操作，到基于状态自动更新的声明式导航，Flutter 路由体系的演进，体现了框架从“事件驱动”到“状态驱动”的思维转变。</p>
+<h2 id="5-模块化与包设计"><a href="#5-模块化与包设计" class="headerlink" title="5. 模块化与包设计"></a>5. 模块化与包设计</h2><h3 id="5-1-模块化的目标"><a href="#5-1-模块化的目标" class="headerlink" title="5.1 模块化的目标"></a>5.1 模块化的目标</h3><p>在大型 Flutter 应用中，模块化的核心目标是：</p>
+<ul>
+<li><strong>降低耦合</strong>：不同功能模块（如登录、购物车）独立演进，减少互相影响；</li>
+<li><strong>提高协作效率</strong>：多人开发时，可以并行构建不同模块；</li>
+<li><strong>可替换性与复用性</strong>：公共模块（如网络、UI 组件库）可被多个业务共用；</li>
+<li><strong>加快构建速度</strong>：仅编译或测试改动过的模块，提升开发体验。</li>
+</ul>
+<p>换句话说，模块化让 Flutter 工程从“一碗面条”变成“积木拼图”——每个包只关心自己的一块拼图，最终组合成完整的应用。</p>
+<h3 id="5-2-包划分方式"><a href="#5-2-包划分方式" class="headerlink" title="5.2 包划分方式"></a>5.2 包划分方式</h3><p>模块化设计常见两种思路：</p>
+<table>
+<thead>
+<tr>
+<th><strong>类型</strong></th>
+<th><strong>特点</strong></th>
+<th><strong>适用场景</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Feature-based</strong>（按功能拆）</td>
+<td>每个包代表一个独立功能（auth、cart、catalog 等）</td>
+<td>大型业务系统、多人协作项目</td>
+</tr>
+<tr>
+<td><strong>Layer-based</strong>（按层拆）</td>
+<td>按架构层拆分，如 core、data、ui、domain</td>
+<td>技术架构清晰、模块较少的项目</td>
+</tr>
+</tbody></table>
+<p>一般建议<strong>优先采用 Feature-based 模式</strong>，原因有三点：</p>
+<ul>
+<li>功能模块更符合团队分工</li>
+<li>测试、发布、依赖管理更直观</li>
+<li>容易逐步演进成插件化架构</li>
+</ul>
+<h3 id="5-3-Flutter-包类型选择"><a href="#5-3-Flutter-包类型选择" class="headerlink" title="5.3 Flutter 包类型选择"></a>5.3 Flutter 包类型选择</h3><table>
+<thead>
+<tr>
+<th><strong>类型</strong></th>
+<th><strong>描述</strong></th>
+<th><strong>典型用途</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Package</strong></td>
+<td>纯 Dart 包，逻辑和 UI 都可包含</td>
+<td>业务模块（如 cart、auth）</td>
+</tr>
+<tr>
+<td><strong>Plugin</strong></td>
+<td>含平台通道（Platform Channel）的包</td>
+<td>原生功能（相机、定位、蓝牙）</td>
+</tr>
+<tr>
+<td><strong>Module</strong></td>
+<td>用于将 Flutter 集成进现有原生 App</td>
+<td>混合开发场景（例如 iOS&#x2F;Android 原生项目中嵌 Flutter 页）</td>
+</tr>
+</tbody></table>
+<p>在内部模块化中，<strong>大部分业务应使用 package</strong>，plugin 仅用于底层平台能力封装，module 则更多面向外部集成场景。</p>
+<h3 id="5-4-插图式目录结构"><a href="#5-4-插图式目录结构" class="headerlink" title="5.4 插图式目录结构"></a>5.4 插图式目录结构</h3><p>假设我们在做一个电商应用，功能包括登录注册、商品展示、购物车和结算。<br>项目可拆成多个独立包，统一放在 packages&#x2F; 目录下。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">ecommerce_app/</span><br><span class="line">├── lib/</span><br><span class="line">│   └── main.dart                  # 入口：整合各功能模块</span><br><span class="line">│</span><br><span class="line">├── packages/</span><br><span class="line">│   ├── auth/                      # 登录注册模块：登录注册流程、用户信息缓存、权限校验</span><br><span class="line">│   │   ├── lib/</span><br><span class="line">│   │   │   ├── auth_page.dart</span><br><span class="line">│   │   │   └── auth_service.dart</span><br><span class="line">│   │   └── pubspec.yaml</span><br><span class="line">│   │</span><br><span class="line">│   ├── catalog/                   # 商品浏览模块：商品列表与详情展示</span><br><span class="line">│   │   ├── lib/</span><br><span class="line">│   │   │   ├── catalog_page.dart</span><br><span class="line">│   │   │   └── product_model.dart</span><br><span class="line">│   │   └── pubspec.yaml</span><br><span class="line">│   │</span><br><span class="line">│   ├── cart/                      # 购物车模块：购物车状态管理、商品增删改</span><br><span class="line">│   │   ├── lib/</span><br><span class="line">│   │   │   ├── cart_page.dart</span><br><span class="line">│   │   │   └── cart_provider.dart</span><br><span class="line">│   │   └── pubspec.yaml</span><br><span class="line">│   │</span><br><span class="line">│   ├── checkout/                  # 结算模块：订单生成、支付接口调用</span><br><span class="line">│   │   ├── lib/</span><br><span class="line">│   │   │   ├── checkout_page.dart</span><br><span class="line">│   │   │   └── order_service.dart</span><br><span class="line">│   │   └── pubspec.yaml</span><br><span class="line">│   │</span><br><span class="line">│   └── shared/                    # 公共模块：工具类、UI 组件、网络层等</span><br><span class="line">│       ├── lib/</span><br><span class="line">│       │   ├── network/</span><br><span class="line">│       │   ├── widgets/</span><br><span class="line">│       │   └── utils/</span><br><span class="line">│       └── pubspec.yaml</span><br><span class="line">│</span><br><span class="line">└── pubspec.yaml                   # 主应用配置</span><br></pre></td></tr></table></figure>
+<h3 id="5-5-内部包管理与版本策略"><a href="#5-5-内部包管理与版本策略" class="headerlink" title="5.5 内部包管理与版本策略"></a>5.5 内部包管理与版本策略</h3><p>团队内部管理多个包时，应遵循以下策略：</p>
+<ol>
+<li><strong>语义化版本号（Semantic Versioning）</strong><br> MAJOR.MINOR.PATCH，例如，auth 从 1.2.0 → 1.3.0 表示新增功能；2.0.0 表示有破坏性更新。</li>
+<li><strong>使用 path 依赖进行本地联调</strong> <figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">dependencies:</span></span><br><span class="line">  <span class="attr">auth:</span></span><br><span class="line">    <span class="attr">path:</span> <span class="string">../packages/auth</span></span><br></pre></td></tr></table></figure></li>
+<li><strong>内部发布管理</strong><br> 若多个项目共用，可搭建私有 Pub 源，或者也可使用 Git tag 进行版本控制。</li>
+<li><strong>兼容性策略</strong><br> 首先公共 API 要稳定，要避免跨模块直接访问内部类（保持封装边界），可以定义一个 shared_core 或 app_interface 包，统一暴露跨模块通信的模型和接口。</li>
+</ol>
+<h3 id="5-6-Checklist：何时抽成独立包？"><a href="#5-6-Checklist：何时抽成独立包？" class="headerlink" title="5.6 Checklist：何时抽成独立包？"></a>5.6 Checklist：何时抽成独立包？</h3><p><strong>建议抽包的情形</strong>：</p>
+<ul>
+<li>功能完整、边界清晰；</li>
+<li>被多个业务依赖（如登录、支付）；</li>
+<li>逻辑复杂、希望单独测试；</li>
+<li>团队有专门成员负责开发</li>
+</ul>
+<p><strong>不建议抽包的情形</strong>：</p>
+<ul>
+<li>功能极小、仅局部使用；</li>
+<li>模块间强耦合；</li>
+<li>拆分会导致开发或调试成本过高。</li>
+</ul>
+<p>模块化不是目的，而是为了<strong>让项目结构更清晰、开发更高效、演进更安全</strong>。一个良好的包设计，应当像搭乐高一样：<strong>既能独立运作，又能无缝拼接成整体。</strong></p>
+<h2 id="6-实战案例：单体-App-→-模块化工程"><a href="#6-实战案例：单体-App-→-模块化工程" class="headerlink" title="6. 实战案例：单体 App → 模块化工程"></a>6. 实战案例：单体 App → 模块化工程</h2><p>下面我们来看看一个典型的 Flutter <strong>单体项目</strong>，如何一步步演化为一个结构清晰、可扩展的<strong>模块化工程</strong>的。</p>
+<h3 id="6-1-初始状态：单体应用的常见问题"><a href="#6-1-初始状态：单体应用的常见问题" class="headerlink" title="6.1 初始状态：单体应用的常见问题"></a>6.1 初始状态：单体应用的常见问题</h3><p>多数 Flutter 项目起初都长这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">lib/</span><br><span class="line">├── main.dart</span><br><span class="line">├── screens/</span><br><span class="line">│   ├── login_page.dart</span><br><span class="line">│   ├── home_page.dart</span><br><span class="line">│   ├── cart_page.dart</span><br><span class="line">│   └── checkout_page.dart</span><br><span class="line">├── providers/</span><br><span class="line">│   ├── auth_provider.dart</span><br><span class="line">│   └── cart_provider.dart</span><br><span class="line">├── models/</span><br><span class="line">│   ├── product.dart</span><br><span class="line">│   └── order.dart</span><br><span class="line">└── services/</span><br><span class="line">    ├── api.dart</span><br><span class="line">    └── auth_service.dart</span><br></pre></td></tr></table></figure>
+<p>这种结构没问题，但当业务一多，问题就出现了：</p>
+<ul>
+<li>状态分散：不同 Provider 之间相互引用；</li>
+<li>依赖混乱：service 层和 UI 层容易“交叉感染”；</li>
+<li>团队协作困难：不同人修改同一目录下的文件；</li>
+<li>缺乏模块边界：难以单独测试或重用。</li>
+</ul>
+<p>最终，整个项目变成一个“胖胖的 lib 文件夹”，任何改动都有可能牵一发动全身。</p>
+<h3 id="6-2-模块化迁移的总体路线"><a href="#6-2-模块化迁移的总体路线" class="headerlink" title="6.2 模块化迁移的总体路线"></a>6.2 模块化迁移的总体路线</h3><p>模块化迁移不需要“一刀切”，完全可以渐进式推进，下面是一个四步走方案：</p>
+<h4 id="6-2-1-抽离状态管理"><a href="#6-2-1-抽离状态管理" class="headerlink" title="6.2.1 抽离状态管理"></a>6.2.1 抽离状态管理</h4><p>首先，让所有状态都“有组织地管理”起来。选择一个一致的状态管理方案（推荐 <strong>Riverpod</strong> 或 <strong>Provider</strong>），把散落在各处的局部状态收敛成<strong>全局容器统一注册</strong>。</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> authProvider = StateNotifierProvider&lt;AuthController, AuthState&gt;((ref) &#123;</span><br><span class="line">  <span class="keyword">return</span> AuthController();</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">final</span> cartProvider = StateNotifierProvider&lt;CartController, CartState&gt;((ref) &#123;</span><br><span class="line">  <span class="keyword">return</span> CartController();</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>目标：所有状态入口统一、方便依赖注入和测试。</p>
+</blockquote>
+<h4 id="6-2-2-引入-DI-容器"><a href="#6-2-2-引入-DI-容器" class="headerlink" title="6.2.2 引入 DI 容器"></a>6.2.2 引入 DI 容器</h4><p>接着，用一个依赖注入容器（例如 get_it 或 Riverpod 的 ProviderContainer）<br>来统一管理 service、repository、controller 等核心对象。</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> getIt = GetIt.instance;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> setupDI() &#123;</span><br><span class="line">  getIt.registerLazySingleton&lt;AuthService&gt;(() =&gt; AuthServiceImpl());</span><br><span class="line">  getIt.registerLazySingleton&lt;CartService&gt;(() =&gt; CartServiceImpl());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样模块之间不需要手动传 service，只要通过容器获取即可。模块内部逻辑清晰、外部依赖解耦。</p>
+<h4 id="6-2-3-拆分目录-→-逐步抽成-packages"><a href="#6-2-3-拆分目录-→-逐步抽成-packages" class="headerlink" title="6.2.3 拆分目录 → 逐步抽成 packages"></a>6.2.3 拆分目录 → 逐步抽成 packages</h4><p>当状态与依赖都整理好后，就可以“切分”出功能模块了，先在 lib&#x2F;features&#x2F; 下分出子目录，再逐步抽到 packages&#x2F; 下。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"># 拆分前</span><br><span class="line">lib/</span><br><span class="line">  ├── screens/</span><br><span class="line">  ├── providers/</span><br><span class="line">  ├── services/</span><br><span class="line">  └── models/</span><br><span class="line"></span><br><span class="line"># 拆分后</span><br><span class="line">lib/</span><br><span class="line">  └── features/</span><br><span class="line">      ├── auth/</span><br><span class="line">      │   ├── data/</span><br><span class="line">      │   ├── domain/</span><br><span class="line">      │   └── ui/</span><br><span class="line">      ├── cart/</span><br><span class="line">      ├── catalog/</span><br><span class="line">      └── checkout/</span><br><span class="line">packages/</span><br><span class="line">  ├── auth/</span><br><span class="line">  ├── cart/</span><br><span class="line">  ├── catalog/</span><br><span class="line">  └── shared/</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>拆分节奏建议：一次抽一个模块，保证能独立运行与测试；优先拆复用率高、边界清晰的功能（如 auth、shared）。</p>
+</blockquote>
+<h4 id="6-2-4-配置路由守卫与模块边界"><a href="#6-2-4-配置路由守卫与模块边界" class="headerlink" title="6.2.4 配置路由守卫与模块边界"></a>6.2.4 配置路由守卫与模块边界</h4><p>当模块拆开后，路由也要跟着调整。例如使用 GoRouter 实现模块路由守卫：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> router = GoRouter(</span><br><span class="line">  routes: [</span><br><span class="line">    GoRoute(path: <span class="string">&#x27;/login&#x27;</span>, builder: (context, _) =&gt; <span class="keyword">const</span> LoginPage()),</span><br><span class="line">    GoRoute(</span><br><span class="line">      path: <span class="string">&#x27;/cart&#x27;</span>,</span><br><span class="line">      builder: (context, _) =&gt; <span class="keyword">const</span> CartPage(),</span><br><span class="line">      redirect: (context, state) &#123;</span><br><span class="line">        <span class="keyword">final</span> isLoggedIn = context.read(authProvider).isLoggedIn;</span><br><span class="line">        <span class="keyword">return</span> isLoggedIn ? <span class="keyword">null</span> : <span class="string">&#x27;/login&#x27;</span>;</span><br><span class="line">      &#125;,</span><br><span class="line">    ),</span><br><span class="line">  ],</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<p>这一步完成后，<strong>模块间通信、跳转和权限控制</strong>都有了明确的边界。整个 App 的依赖关系就从“线团”变成了“网格结构”。</p>
+<h3 id="6-3-Before-vs-After：结构对比图"><a href="#6-3-Before-vs-After：结构对比图" class="headerlink" title="6.3 Before vs After：结构对比图"></a>6.3 Before vs After：结构对比图</h3><table>
+<thead>
+<tr>
+<th><strong>单体结构（Before）</strong></th>
+<th><strong>模块化结构（After）</strong></th>
+<th><strong>优势</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>目录结构</strong></td>
+<td>所有代码都在 lib&#x2F; 下</td>
+<td>拆成多个独立包或 feature 目录</td>
+</tr>
+<tr>
+<td><strong>状态管理</strong></td>
+<td>各自维护 Provider</td>
+<td>统一在 DI 容器中注册与管理</td>
+</tr>
+<tr>
+<td><strong>依赖关系</strong></td>
+<td>双向引用、循环依赖多</td>
+<td>单向依赖、自上而下流动</td>
+</tr>
+<tr>
+<td><strong>可测试性</strong></td>
+<td>测试耦合度高</td>
+<td>每个模块可独立测试</td>
+</tr>
+<tr>
+<td><strong>团队协作</strong></td>
+<td>文件冲突频繁</td>
+<td>可按模块独立开发、合并</td>
+</tr>
+</tbody></table>
+<p>可视化对比如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"># Before</span><br><span class="line">lib/</span><br><span class="line">├── screens/</span><br><span class="line">├── providers/</span><br><span class="line">├── models/</span><br><span class="line">└── services/</span><br><span class="line"></span><br><span class="line"># After</span><br><span class="line">lib/</span><br><span class="line">├── main.dart</span><br><span class="line">└── features/</span><br><span class="line">    ├── auth/</span><br><span class="line">    ├── catalog/</span><br><span class="line">    ├── cart/</span><br><span class="line">    ├── checkout/</span><br><span class="line">    └── shared/</span><br><span class="line">packages/</span><br><span class="line">├── auth/</span><br><span class="line">├── cart/</span><br><span class="line">├── catalog/</span><br><span class="line">└── shared/</span><br></pre></td></tr></table></figure>
+<h3 id="6-4-迁移-Checklist"><a href="#6-4-迁移-Checklist" class="headerlink" title="6.4 迁移 Checklist"></a>6.4 迁移 Checklist</h3><table>
+<thead>
+<tr>
+<th><strong>阶段</strong></th>
+<th><strong>任务</strong></th>
+<th><strong>完成标志</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>状态统一</td>
+<td>引入 Provider&#x2F;Riverpod</td>
+<td>全局状态集中在一个文件或目录中</td>
+</tr>
+<tr>
+<td>依赖注入</td>
+<td>建立 DI 容器</td>
+<td>所有 service 统一注册</td>
+</tr>
+<tr>
+<td>目录重组</td>
+<td>建立 features 子目录</td>
+<td>各功能模块分区明确</td>
+</tr>
+<tr>
+<td>包抽取</td>
+<td>抽取到 packages 下</td>
+<td>可单独编译和测试</td>
+</tr>
+<tr>
+<td>路由隔离</td>
+<td>模块独立配置路由</td>
+<td>支持登录守卫、模块跳转</td>
+</tr>
+<tr>
+<td>公共层</td>
+<td>创建 shared 包</td>
+<td>工具类、样式、基础组件共用</td>
+</tr>
+<tr>
+<td>文档化</td>
+<td>补充 README &amp; 依赖图</td>
+<td>模块接口边界清晰</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>最终目标：让你的 Flutter 项目不仅能“跑起来”，更能<strong>优雅地扩展、重构与长期维护</strong>。</p>
+</blockquote>
+<h3 id="6-5-模块间通信与依赖关系设计"><a href="#6-5-模块间通信与依赖关系设计" class="headerlink" title="6.5 模块间通信与依赖关系设计"></a>6.5 模块间通信与依赖关系设计</h3><p>当项目完成模块拆分后，新的问题出现了：</p>
+<blockquote>
+<p>模块之间如何安全通信？如何依赖彼此的能力，又不造成耦合？</p>
+</blockquote>
+<p>这就是模块化后的下一阶段挑战——<strong>跨模块协作设计</strong>。</p>
+<h4 id="6-5-1-理想目标：高内聚、低耦合"><a href="#6-5-1-理想目标：高内聚、低耦合" class="headerlink" title="6.5.1 理想目标：高内聚、低耦合"></a>6.5.1 理想目标：高内聚、低耦合</h4><p>模块之间的关系应当是：</p>
+<ul>
+<li><strong>每个模块只暴露接口（Interface）或服务入口</strong>；</li>
+<li><strong>不直接依赖对方内部实现</strong>；</li>
+<li><strong>公共依赖由 shared 或 core 层统一管理</strong>。</li>
+</ul>
+<p>理想依赖方向如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UI 层 → Feature 模块 → Domain / Service 接口 → Shared/Core 层</span><br></pre></td></tr></table></figure>
+<p>而不是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UI 层 → Feature 模块 A → Feature 模块 B → Feature 模块 C（循环依赖 ❌）</span><br></pre></td></tr></table></figure>
+<h4 id="6-5-2-三种主流通信方式"><a href="#6-5-2-三种主流通信方式" class="headerlink" title="6.5.2 三种主流通信方式"></a>6.5.2 三种主流通信方式</h4><p>下面我们通过三个常用模式，说明 Flutter 模块间的依赖解耦思路。</p>
+<h5 id="6-5-2-1-Interface-层"><a href="#6-5-2-1-Interface-层" class="headerlink" title="6.5.2.1 Interface 层"></a>6.5.2.1 Interface 层</h5><p>最推荐的方式是通过接口（抽象类）定义模块契约，让模块只依赖接口，而不是实现。</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// auth_interface.dart （在 shared_interfaces 包中）</span></span><br><span class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">AuthService</span> </span>&#123;</span><br><span class="line">  <span class="built_in">bool</span> <span class="keyword">get</span> isLoggedIn;</span><br><span class="line">  Future&lt;<span class="keyword">void</span>&gt; login(<span class="built_in">String</span> user, <span class="built_in">String</span> password);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>每个模块只依赖接口包：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="string">&#x27;package:shared_interfaces/auth_interface.dart&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p>具体实现留在 auth 模块：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AuthServiceImpl</span> <span class="keyword">implements</span> <span class="title">AuthService</span> </span>&#123;</span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="built_in">bool</span> <span class="keyword">get</span> isLoggedIn =&gt; _token != <span class="keyword">null</span>;</span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  Future&lt;<span class="keyword">void</span>&gt; login(<span class="built_in">String</span> user, <span class="built_in">String</span> password) <span class="keyword">async</span> &#123; ... &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最后通过 <strong>DI 容器（如 get_it 或 Riverpod）</strong> 在应用启动时注册实现：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">getIt.registerLazySingleton&lt;AuthService&gt;(() =&gt; AuthServiceImpl());</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>这样做的好处是：编译时安全；可替换性强（mock 实现更容易）；模块完全解耦。</p>
+</blockquote>
+<h5 id="6-5-2-2-Event-Bus"><a href="#6-5-2-2-Event-Bus" class="headerlink" title="6.5.2.2 Event Bus"></a>6.5.2.2 Event Bus</h5><p>如果多个模块需要监听事件（例如“登录成功”或“购物车更新”），可以通过 Event Bus 进行广播式通信：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="string">&#x27;package:event_bus/event_bus.dart&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">final</span> eventBus = EventBus();</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">LoginEvent</span> </span>&#123;&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CartUpdatedEvent</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/// <span class="language-markdown">发送事件</span></span></span><br><span class="line">eventBus.fire(LoginEvent());</span><br><span class="line"></span><br><span class="line"><span class="comment">/// <span class="language-markdown">监听事件</span></span></span><br><span class="line">eventBus.<span class="keyword">on</span>&lt;LoginEvent&gt;().listen((event) &#123;</span><br><span class="line">  <span class="comment">// 响应登录成功</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>适用场景：一对多通知；异步广播（不依赖状态树）；临时跨模块同步。</p>
+</blockquote>
+<blockquote>
+<p>注意点：不要滥用，复杂项目建议加事件命名空间；对关键依赖关系仍应优先使用接口模式。</p>
+</blockquote>
+<h5 id="6-5-2-3-Service-Locator"><a href="#6-5-2-3-Service-Locator" class="headerlink" title="6.5.2.3 Service Locator"></a>6.5.2.3 Service Locator</h5><p>对于需要跨模块访问的核心服务，可以用 <strong>Service Locator 模式</strong>，统一注册与获取（如 get_it）：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 注册</span></span><br><span class="line">getIt.registerLazySingleton&lt;AnalyticsService&gt;(() =&gt; FirebaseAnalyticsImpl());</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取</span></span><br><span class="line"><span class="keyword">final</span> analytics = getIt&lt;AnalyticsService&gt;();</span><br><span class="line">analytics.logEvent(<span class="string">&quot;view_cart&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>这样任意模块都可以通过 locator 获取服务，而无需导入实现模块。</p>
+<blockquote>
+<p>适用场景：全局单例；服务访问（日志、网络、配置）；模块解耦但需要共享能力。</p>
+</blockquote>
+<blockquote>
+<p>建议：只注册接口类型；在主入口（如 app.dart）集中注册，避免分散初始化。</p>
+</blockquote>
+<h4 id="6-5-3-模块依赖图示例"><a href="#6-5-3-模块依赖图示例" class="headerlink" title="6.5.3 模块依赖图示例"></a>6.5.3 模块依赖图示例</h4><p>下面是一张简化依赖结构图：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">packages/</span><br><span class="line">├── shared/</span><br><span class="line">│   ├── logger.dart</span><br><span class="line">│   ├── event_bus.dart</span><br><span class="line">│   └── interfaces/</span><br><span class="line">│       ├── auth_service.dart</span><br><span class="line">│       └── cart_service.dart</span><br><span class="line">├── auth/</span><br><span class="line">│   └── auth_service_impl.dart  (implements AuthService)</span><br><span class="line">├── cart/</span><br><span class="line">│   └── cart_service_impl.dart  (implements CartService)</span><br><span class="line">└── app/</span><br><span class="line">    ├── main.dart</span><br><span class="line">    └── di_setup.dart  (统一注册所有服务)</span><br></pre></td></tr></table></figure>
+<p>依赖方向：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">auth ──┐</span><br><span class="line">cart ──┼──▶ shared/interfaces</span><br><span class="line">app  ──┘</span><br></pre></td></tr></table></figure>
+
+<p>每个模块 <strong>依赖 shared 接口层</strong>，而不是彼此直接调用。</p>
+<h4 id="6-5-4-推荐组合策略"><a href="#6-5-4-推荐组合策略" class="headerlink" title="6.5.4 推荐组合策略"></a>6.5.4 推荐组合策略</h4><table>
+<thead>
+<tr>
+<th><strong>场景</strong></th>
+<th><strong>推荐模式</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>模块需要稳定对接</td>
+<td>Interface + DI</td>
+<td>通过统一的接口定义模块间“对话规则”，方便长期维护与替换</td>
+</tr>
+<tr>
+<td>一次性事件通知</td>
+<td>Event Bus</td>
+<td>模块之间以广播方式传递事件，不需要直接依赖</td>
+</tr>
+<tr>
+<td>全局服务（日志、配置）</td>
+<td>Service Locator</td>
+<td>集中管理全局服务，任何模块都可按需获取</td>
+</tr>
+</tbody></table>
+<p>在大型项目中，这三者常常<strong>组合使用</strong>：</p>
+<ul>
+<li>用 <strong>Interface</strong> 定义模块之间的“接口约定”**（比如登录模块要提供哪些方法、返回什么数据）；</li>
+<li>用 <strong>EventBus</strong> 处理松散事件通知，不建立直接依赖关系；</li>
+<li>用 <strong>Service Locator</strong> 统一管理全局服务，方便模块共享。</li>
+</ul>
+<blockquote>
+<p>可以把 “Interface + DI” 理解成“模块之间签了合同”。只要遵守这份“接口约定”，实现方式怎么变都不影响其他模块。</p>
+</blockquote>
+<p>最终，整个项目结构会像这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">App（入口）</span><br><span class="line"> ├── features/</span><br><span class="line"> │   ├── auth</span><br><span class="line"> │   ├── cart</span><br><span class="line"> │   ├── catalog</span><br><span class="line"> │   └── checkout</span><br><span class="line"> ├── shared/</span><br><span class="line"> │   ├── interfaces</span><br><span class="line"> │   ├── utils</span><br><span class="line"> │   └── event_bus</span><br><span class="line"> └── di_setup.dart</span><br></pre></td></tr></table></figure>
+<h2 id="7-数据层与错误处理"><a href="#7-数据层与错误处理" class="headerlink" title="7. 数据层与错误处理"></a>7. 数据层与错误处理</h2><p>在 Flutter 工程中，数据层（Data Layer）是应用的“供能系统”——它负责从外部世界（如网络、数据库、缓存）收集数据，转化为业务层可用的结构。</p>
+<p>一个合理的数据层设计，既要 <strong>分层清晰</strong>、又要 <strong>抗风险可恢复</strong>。</p>
+<h3 id="7-1-数据分层"><a href="#7-1-数据分层" class="headerlink" title="7.1 数据分层"></a>7.1 数据分层</h3><p>数据层通常分为三部分：</p>
+<table>
+<thead>
+<tr>
+<th><strong>层级</strong></th>
+<th><strong>作用</strong></th>
+<th><strong>类比</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>DTO（Data Transfer Object）</strong></td>
+<td>负责与外部接口（API&#x2F;DB）通信的数据模型。</td>
+<td>像邮差信封，装着原始数据格式。</td>
+</tr>
+<tr>
+<td><strong>Repository</strong></td>
+<td>负责封装数据获取逻辑：调用远程接口、本地缓存、转换成业务实体。</td>
+<td>像“变压器”，把复杂电流（API 数据）转成稳定电源（业务数据）。</td>
+</tr>
+<tr>
+<td><strong>UseCase（或 Service）</strong></td>
+<td>对业务层提供具体操作接口，比如 “登录”、“获取用户资料”。</td>
+<td>像“总开关”，决定什么时候供电、怎么供电。</td>
+</tr>
+</tbody></table>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// DTO：原始数据模型</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserDTO</span> </span>&#123;</span><br><span class="line">  <span class="keyword">final</span> <span class="built_in">String</span> name;</span><br><span class="line">  <span class="keyword">final</span> <span class="built_in">int</span> age;</span><br><span class="line">  UserDTO.fromJson(<span class="built_in">Map</span>&lt;<span class="built_in">String</span>, <span class="built_in">dynamic</span>&gt; json)</span><br><span class="line">      : name = json[<span class="string">&#x27;name&#x27;</span>],</span><br><span class="line">        age = json[<span class="string">&#x27;age&#x27;</span>];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Entity：业务层模型</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserEntity</span> </span>&#123;</span><br><span class="line">  <span class="keyword">final</span> <span class="built_in">String</span> name;</span><br><span class="line">  <span class="keyword">final</span> <span class="built_in">int</span> age;</span><br><span class="line">  UserEntity(<span class="keyword">this</span>.name, <span class="keyword">this</span>.age);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Repository：负责数据获取与转换</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserRepository</span> </span>&#123;</span><br><span class="line">  <span class="keyword">final</span> ApiClient api;</span><br><span class="line">  <span class="keyword">final</span> LocalCache cache;</span><br><span class="line"></span><br><span class="line">  UserRepository(<span class="keyword">this</span>.api, <span class="keyword">this</span>.cache);</span><br><span class="line"></span><br><span class="line">  Future&lt;UserEntity&gt; getUserProfile() <span class="keyword">async</span> &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">final</span> json = <span class="keyword">await</span> api.<span class="keyword">get</span>(<span class="string">&#x27;/user&#x27;</span>);</span><br><span class="line">      <span class="keyword">final</span> dto = UserDTO.fromJson(json);</span><br><span class="line">      <span class="keyword">return</span> UserEntity(dto.name, dto.age);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">      <span class="comment">// 网络失败时从缓存兜底</span></span><br><span class="line">      <span class="keyword">final</span> cached = <span class="keyword">await</span> cache.<span class="keyword">get</span>(<span class="string">&#x27;user_profile&#x27;</span>);</span><br><span class="line">      <span class="keyword">if</span> (cached != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">final</span> dto = UserDTO.fromJson(cached);</span><br><span class="line">        <span class="keyword">return</span> UserEntity(dto.name, dto.age);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">rethrow</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样分层后，业务逻辑和数据来源解耦，测试、替换都更容易。</p>
+<h3 id="7-2-错误分类与处理策略"><a href="#7-2-错误分类与处理策略" class="headerlink" title="7.2 错误分类与处理策略"></a>7.2 错误分类与处理策略</h3><p>在数据流转过程中，错误不可避免。好的架构要<strong>区分错误类型</strong>，并提供<strong>恰当的恢复策略</strong>。</p>
+<table>
+<thead>
+<tr>
+<th><strong>错误类型</strong></th>
+<th><strong>典型场景</strong></th>
+<th><strong>处理方式</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>网络错误</td>
+<td>超时、断网、DNS 解析失败</td>
+<td>重试 &#x2F; 提示“请检查网络”</td>
+</tr>
+<tr>
+<td>业务错误</td>
+<td>登录失败、权限不足</td>
+<td>显示后端返回的业务信息</td>
+</tr>
+<tr>
+<td>不可恢复错误</td>
+<td>解码异常、逻辑异常</td>
+<td>上报错误日志并终止流程</td>
+</tr>
+</tbody></table>
+<p>例如：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">Future&lt;<span class="keyword">void</span>&gt; fetchUser() <span class="keyword">async</span> &#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">final</span> user = <span class="keyword">await</span> repo.getUserProfile();</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;User loaded: <span class="subst">$&#123;user.name&#125;</span>&#x27;</span>);</span><br><span class="line">  &#125; <span class="keyword">on</span> NetworkException &#123;</span><br><span class="line">    showToast(<span class="string">&#x27;网络连接失败，请重试&#x27;</span>);</span><br><span class="line">    retry(fetchUser); <span class="comment">// 简单重试机制</span></span><br><span class="line">  &#125; <span class="keyword">on</span> BusinessException <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">    showToast(<span class="string">&#x27;操作失败：<span class="subst">$&#123;e.message&#125;</span>&#x27;</span>);</span><br><span class="line">  &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">    logError(e); <span class="comment">// 记录未知错误</span></span><br><span class="line">    showToast(<span class="string">&#x27;出现未知问题，请稍后重试&#x27;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="7-3-离线缓存（Offline-first）策略"><a href="#7-3-离线缓存（Offline-first）策略" class="headerlink" title="7.3 离线缓存（Offline-first）策略"></a>7.3 离线缓存（Offline-first）策略</h3><p>在移动端项目中，“离线缓存”是一种常见的设计：即使用户没网，也能看到最近一次的数据。</p>
+<p>实现思路：</p>
+<ol>
+<li><strong>优先读取缓存</strong>（LocalCache）；</li>
+<li><strong>后台静默刷新远程数据</strong>；</li>
+<li><strong>更新 UI + 缓存同步</strong>。</li>
+</ol>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">Future&lt;UserEntity&gt; getUserProfileOfflineFirst() <span class="keyword">async</span> &#123;</span><br><span class="line">  <span class="comment">// Step 1: 先读缓存（快速响应）</span></span><br><span class="line">  <span class="keyword">final</span> cached = <span class="keyword">await</span> cache.<span class="keyword">get</span>(<span class="string">&#x27;user_profile&#x27;</span>);</span><br><span class="line">  <span class="keyword">if</span> (cached != <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="keyword">final</span> dto = UserDTO.fromJson(cached);</span><br><span class="line">    emit(UserEntity(dto.name, dto.age)); <span class="comment">// 先显示旧数据</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Step 2: 后台请求更新（最新数据）</span></span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">final</span> json = <span class="keyword">await</span> api.<span class="keyword">get</span>(<span class="string">&#x27;/user&#x27;</span>);</span><br><span class="line">    cache.save(<span class="string">&#x27;user_profile&#x27;</span>, json);</span><br><span class="line">    <span class="keyword">final</span> dto = UserDTO.fromJson(json);</span><br><span class="line">    <span class="keyword">return</span> UserEntity(dto.name, dto.age);</span><br><span class="line">  &#125; <span class="keyword">catch</span> (_) &#123;</span><br><span class="line">    <span class="comment">// 如果失败就用缓存结果兜底</span></span><br><span class="line">    <span class="keyword">if</span> (cached != <span class="keyword">null</span>) <span class="keyword">return</span> UserEntity.fromJson(cached);</span><br><span class="line">    <span class="keyword">rethrow</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="7-4-数据层的演进方向"><a href="#7-4-数据层的演进方向" class="headerlink" title="7.4 数据层的演进方向"></a>7.4 数据层的演进方向</h3><p>随着业务复杂化，数据层常进一步引入：</p>
+<ul>
+<li><strong>统一错误模型</strong>（如 Failure 类层次结构）；</li>
+<li><strong>响应式流数据</strong>（用 Stream 或 RxDart 实现实时更新）；</li>
+<li><strong>全局缓存策略中心</strong>（集中管理本地存储与刷新规则）。</li>
+</ul>
+<p>这让数据层不仅仅是“拉数据”，而是成为应用<strong>稳定与恢复能力的中枢</strong>。</p>
+<pre class="mermaid">graph TD
+    A[UseCase / Service 层<br>业务逻辑入口] --> B[Repository 层<br>统一数据访问接口]
+    B --> C[Remote Data Source<br>API 网络请求]
+    B --> D[Local Data Source<br>本地缓存 / 数据库]
+
+    C --> E[(REST API / GraphQL / SDK)]
+    D --> F[(SharedPreferences / SQLite / Hive)]
+
+    style A fill:#f9f9f9,stroke:#333,stroke-width:1px
+    style B fill:#e8f5e9,stroke:#2e7d32,stroke-width:1px
+    style C fill:#e3f2fd,stroke:#1565c0,stroke-width:1px
+    style D fill:#fff8e1,stroke:#f9a825,stroke-width:1px
+    style E fill:#bbdefb,stroke:#1565c0,stroke-width:0.5px
+    style F fill:#fff59d,stroke:#f9a825,stroke-width:0.5px</pre>
+<h2 id="8-团队协作与工程效率"><a href="#8-团队协作与工程效率" class="headerlink" title="8. 团队协作与工程效率"></a>8. 团队协作与工程效率</h2><p>现代 Flutter 工程不仅仅是代码堆叠，更是<strong>协作与效率系统的建设</strong>。尤其是当项目成员超过 3 人、模块超过 5 个时，代码一致性、工作流顺畅度、构建效率都会直接影响项目质量。<br>下面三个关键词展开：<strong>代码质量、工程效率、团队分工</strong>。</p>
+<h3 id="8-1-代码质量：从风格到体系"><a href="#8-1-代码质量：从风格到体系" class="headerlink" title="8.1 代码质量：从风格到体系"></a>8.1 代码质量：从风格到体系</h3><h4 id="8-1-1-统一与共享组件库"><a href="#8-1-1-统一与共享组件库" class="headerlink" title="8.1.1 统一与共享组件库"></a>8.1.1 统一与共享组件库</h4><p>在中大型项目中，最先失控的往往是 UI —— 每个页面的按钮都“差不多但不一样”。解决方式是建立 <strong>Design System</strong>或共享 <strong>UI Kit</strong>，将视觉规范和交互逻辑固化为组件库。</p>
+<p><strong>示例：共享 Button 组件</strong></p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AppButton</span> <span class="keyword">extends</span> <span class="title">StatelessWidget</span> </span>&#123;</span><br><span class="line">  <span class="keyword">final</span> <span class="built_in">String</span> label;</span><br><span class="line">  <span class="keyword">final</span> VoidCallback onPressed;</span><br><span class="line">  <span class="keyword">final</span> <span class="built_in">bool</span> primary;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> AppButton(&#123;</span><br><span class="line">    <span class="keyword">required</span> <span class="keyword">this</span>.label,</span><br><span class="line">    <span class="keyword">required</span> <span class="keyword">this</span>.onPressed,</span><br><span class="line">    <span class="keyword">this</span>.primary = <span class="keyword">true</span>,</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  Widget build(BuildContext context) &#123;</span><br><span class="line">    <span class="keyword">return</span> ElevatedButton(</span><br><span class="line">      style: ElevatedButton.styleFrom(</span><br><span class="line">        backgroundColor: primary ? Colors.blue : Colors.grey[<span class="number">200</span>],</span><br><span class="line">        foregroundColor: primary ? Colors.white : Colors.black87,</span><br><span class="line">        padding: <span class="keyword">const</span> EdgeInsets.symmetric(horizontal: <span class="number">16</span>, vertical: <span class="number">12</span>),</span><br><span class="line">        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(<span class="number">8</span>)),</span><br><span class="line">      ),</span><br><span class="line">      onPressed: onPressed,</span><br><span class="line">      child: Text(label),</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>可以将这些基础组件集中放在 packages&#x2F;ui_kit 或 common&#x2F;widgets 下，并配合设计稿同步版本（Figma Token &#x2F; Style Dictionary）。</p>
+</blockquote>
+<h4 id="8-1-2-Lint-与格式化：统一代码规范"><a href="#8-1-2-Lint-与格式化：统一代码规范" class="headerlink" title="8.1.2 Lint 与格式化：统一代码规范"></a>8.1.2 Lint 与格式化：统一代码规范</h4><p>为了避免团队在命名、缩进、import 顺序上反复争论，推荐引入 <strong>Lint + 格式化工具链</strong>。</p>
+<p>在 Flutter 工程根目录创建 analysis_options.yaml：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">include:</span> <span class="string">package:flutter_lints/flutter.yaml</span></span><br><span class="line"></span><br><span class="line"><span class="attr">linter:</span></span><br><span class="line">  <span class="attr">rules:</span></span><br><span class="line">    <span class="attr">avoid_print:</span> <span class="literal">true</span></span><br><span class="line">    <span class="attr">prefer_const_constructors:</span> <span class="literal">true</span></span><br><span class="line">    <span class="attr">always_specify_types:</span> <span class="literal">false</span></span><br><span class="line">    <span class="attr">public_member_api_docs:</span> <span class="literal">false</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>配合 flutter format . 与 CI 自动检测，可避免风格分歧、节省 code review 成本。</p>
+</blockquote>
+<h4 id="8-1-3-Review-与-Commit-规范"><a href="#8-1-3-Review-与-Commit-规范" class="headerlink" title="8.1.3 Review 与 Commit 规范"></a>8.1.3 Review 与 Commit 规范</h4><p>团队开发中，“写完代码 → 提 PR → 自动检测 → 人工 review” 是高质量输出的关键链路。<br>推荐结合 <strong>Git 提交规范</strong>，保证历史记录可追踪：</p>
+<table>
+<thead>
+<tr>
+<th><strong>类型</strong></th>
+<th><strong>含义</strong></th>
+<th><strong>示例</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>feat:</td>
+<td>新功能</td>
+<td>feat(auth): add OAuth2 login</td>
+</tr>
+<tr>
+<td>fix:</td>
+<td>修复 Bug</td>
+<td>fix(cart): wrong item count display</td>
+</tr>
+<tr>
+<td>chore:</td>
+<td>工程事务</td>
+<td>chore(ci): update build script</td>
+</tr>
+<tr>
+<td>refactor:</td>
+<td>重构代码</td>
+<td>refactor(ui): simplify button style</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>可在 CI 中用 commit lint 或 lefthook 校验提交信息格式。</p>
+</blockquote>
+<h3 id="8-2-工程效率：让开发节奏更顺畅"><a href="#8-2-工程效率：让开发节奏更顺畅" class="headerlink" title="8.2 工程效率：让开发节奏更顺畅"></a>8.2 工程效率：让开发节奏更顺畅</h3><h4 id="8-2-1-本地-Mock-Stub-数据源"><a href="#8-2-1-本地-Mock-Stub-数据源" class="headerlink" title="8.2.1 本地 Mock &#x2F; Stub 数据源"></a>8.2.1 本地 Mock &#x2F; Stub 数据源</h4><p>开发初期或后端未联调时，可使用 <strong>本地 mock 数据层</strong>：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MockUserRepository</span> <span class="keyword">implements</span> <span class="title">UserRepository</span> </span>&#123;</span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  Future&lt;User&gt; fetchProfile() <span class="keyword">async</span> &#123;</span><br><span class="line">    <span class="keyword">await</span> Future.delayed(<span class="built_in">Duration</span>(milliseconds: <span class="number">400</span>));</span><br><span class="line">    <span class="keyword">return</span> User(id: <span class="string">&#x27;001&#x27;</span>, name: <span class="string">&#x27;Mock User&#x27;</span>, email: <span class="string">&#x27;mock@demo.com&#x27;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>可通过依赖注入（DI）或配置文件在 mock &#x2F; prod 间快速切换，不影响业务逻辑与接口层。</p>
+</blockquote>
+<h4 id="8-2-2-热重载-模块化工作流"><a href="#8-2-2-热重载-模块化工作流" class="headerlink" title="8.2.2 热重载 + 模块化工作流"></a>8.2.2 热重载 + 模块化工作流</h4><p>Flutter 的 <strong>Hot Reload</strong> 是快速迭代的利器，但在大型工程中模块依赖多时，重编译成本会上升。</p>
+<p>优化方法：</p>
+<ul>
+<li>将每个业务拆成 <strong>独立 package</strong>，可单独运行；</li>
+<li>在根项目中通过 dependency_overrides 指定本地路径；</li>
+<li>只 reload 当前模块，缩短启动时间。</li>
+</ul>
+<p>示例结构：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">packages/</span><br><span class="line">├── auth/</span><br><span class="line">├── catalog/</span><br><span class="line">├── cart/</span><br><span class="line">├── checkout/</span><br><span class="line">app/</span><br></pre></td></tr></table></figure>
+<h4 id="8-2-3-CI-CD-自动化：测试-→-构建-→-发布"><a href="#8-2-3-CI-CD-自动化：测试-→-构建-→-发布" class="headerlink" title="8.2.3 CI&#x2F;CD 自动化：测试 → 构建 → 发布"></a>8.2.3 CI&#x2F;CD 自动化：测试 → 构建 → 发布</h4><p>在多人协作中，自动化管线（Pipeline）能显著减少“人工出错率”。</p>
+<p><strong>GitHub Actions 示例：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">name: Flutter CI</span><br><span class="line"></span><br><span class="line">on:</span><br><span class="line">  push:</span><br><span class="line">    branches: [ main ]</span><br><span class="line">  pull_request:</span><br><span class="line"></span><br><span class="line">jobs:</span><br><span class="line">  build:</span><br><span class="line">    runs-on: ubuntu-latest</span><br><span class="line">    steps:</span><br><span class="line">      - uses: actions/checkout@v4</span><br><span class="line">      - uses: subosito/flutter-action@v2</span><br><span class="line">      - run: flutter pub get</span><br><span class="line">      - run: flutter analyze</span><br><span class="line">      - run: flutter test</span><br><span class="line">      - run: flutter build apk --release</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>每次提交自动执行静态检查、单元测试与打包，确保主分支永远可用。</p>
+</blockquote>
+<h3 id="8-3-团队分工与协作模式"><a href="#8-3-团队分工与协作模式" class="headerlink" title="8.3 团队分工与协作模式"></a>8.3 团队分工与协作模式</h3><h4 id="8-3-1-模块负责人制"><a href="#8-3-1-模块负责人制" class="headerlink" title="8.3.1 模块负责人制"></a>8.3.1 模块负责人制</h4><p>每个模块（如 auth、cart、catalog）指定一名负责人，负责模块内部结构设计和公共接口定义，并且Review 该模块的所有改动。<br>这种方式能保证模块边界清晰、代码风格统一。</p>
+<h4 id="8-3-2-接口契约与联调机制"><a href="#8-3-2-接口契约与联调机制" class="headerlink" title="8.3.2 接口契约与联调机制"></a>8.3.2 接口契约与联调机制</h4><p>Flutter 前端与后端的协作重点在于<strong>接口契约（API Contract）</strong>。<br>建议团队使用以下机制：</p>
+<ul>
+<li>OpenAPI &#x2F; Swagger 自动生成接口文档；</li>
+<li>定义固定的 Response 模板；</li>
+<li>前后端通过 Mock Server（如 Swagger Mock &#x2F; Postman）提前联调。</li>
+</ul>
+<h2 id="9-总结"><a href="#9-总结" class="headerlink" title="9. 总结"></a>9. 总结</h2><p>我们从一个简单的 Flutter 应用出发，逐步走过了整个工程化路径：</p>
+<ul>
+<li>从 <strong>状态管理</strong> 的规范化，到 <strong>依赖注入（DI）</strong> 的引入；</li>
+<li>从 <strong>路由体系</strong> 的演进，到 <strong>模块化与包管理</strong> 的落地；</li>
+<li>再到 <strong>数据层设计、错误处理</strong> 与 <strong>团队协作工具链</strong> 的建设。</li>
+</ul>
+<p>这些内容串联起来，构成了一个 Flutter 工程的“生命循环”—— 不仅仅是能跑起来的应用，而是一套 <strong>可协作、可扩展、可演进的系统</strong>。</p>
+<p>在实际项目中，其实我们不需要一开始就做到全面工程化。更现实的做法是 <strong>渐进式演化</strong>：</p>
+<ul>
+<li>当页面增多时，引入全局路由表；</li>
+<li>当逻辑复杂时，引入 DI 与模块拆分；</li>
+<li>当团队扩张时，补齐 CI&#x2F;CD、Lint 与 Review 规范。</li>
+</ul>
+<p>就像盖房子一样—— 小项目像帐篷，随便搭都能住；大项目像大楼，必须有蓝图、分工和质量监理。<br>当工程的地基（架构）、管道（依赖关系）、电路（数据流）都铺设完善，<br>就会发现：无论团队怎么扩张、需求如何变化，这个系统都能稳稳运行。</p>
+<p>Flutter 工程化的终点，不是追求复杂，而是让每一行代码都有序、可靠、可持续。</p>
+<h2 id="10-备注"><a href="#10-备注" class="headerlink" title="10. 备注"></a>10. 备注</h2><p>环境：</p>
+<ul>
+<li>mac: 15.2</li>
+<li>fluttter: 3.35.4</li>
+</ul>
+<p>参考：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://docs.flutter.dev/">https://docs.flutter.dev/</a></li>
+</ul>
+<script type="module"> import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';	mermaid.initialize({startOnLoad: true, flowchart: {curve: 'linear'}}); </script>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://keychankc.github.io/2025/10/07/032-flutter-state-management-project-architecture/" title="状态管理与项目架构：模块化、依赖注入与可维护性实践">https://keychankc.github.io/2025/10/07/032-flutter-state-management-project-architecture/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/Flutter/" rel="tag"># Flutter</a>
+              <a href="/tags/%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86/" rel="tag"># 状态管理</a>
+              <a href="/tags/%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5/" rel="tag"># 依赖注入</a>
+              <a href="/tags/%E8%B7%AF%E7%94%B1/" rel="tag"># 路由</a>
+              <a href="/tags/%E6%A8%A1%E5%9D%97%E5%8C%96/" rel="tag"># 模块化</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/09/29/031-flutter-practical-constraints-and-layout/" rel="prev" title="约束与布局：深入理解 RenderObject、CustomPaint 与 Sliver 协议">
+                  <i class="fa fa-angle-left"></i> 约束与布局：深入理解 RenderObject、CustomPaint 与 Sliver 协议
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">198k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.min.js","integrity":"sha256-G8ouPAnw4zzMbnAenHnVz6h9XpKbNdOkrqTh7AadyHs="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.mengyajia.com","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2025/10/07/032-flutter-state-management-project-architecture/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>

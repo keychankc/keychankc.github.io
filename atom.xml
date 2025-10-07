@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-09-30T01:56:23.307Z</updated>
+  <updated>2025-10-07T08:38:22.045Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -15,6 +15,33 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>状态管理与项目架构：模块化、依赖注入与可维护性实践</title>
+    <link href="https://keychankc.github.io/2025/10/07/032-flutter-state-management-project-architecture/"/>
+    <id>https://keychankc.github.io/2025/10/07/032-flutter-state-management-project-architecture/</id>
+    <published>2025-10-07T07:40:12.000Z</published>
+    <updated>2025-10-07T08:38:22.045Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-引言：从“能跑”到“可扩展、可维护”&quot;&gt;&lt;a href=&quot;#1-引言：从“能跑”到“可扩展、可维护”&quot; class=&quot;headerlink&quot; title=&quot;1. 引言：从“能跑”到“可扩展、可维护”&quot;&gt;&lt;/a&gt;1. 引言：从“能跑”到“可扩展、可维护”&lt;/h2&gt;&lt;p&gt;平时开发中，很多开发者虽然能把视图（Widgets）按页面或组件拆成不同的文件，但业务逻辑和状态处理往往直接写在 Widget 内部，依赖 setState 或零散的单例&amp;#x2F;全局变量来管理。这种“分文件但逻辑内聚”的灵活方式虽然能在小项目里能快速迭代、方便验证想法，但不讲究长期维护，就像临时搭建的一间小屋。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="跨平台框架" scheme="https://keychankc.github.io/categories/%E8%B7%A8%E5%B9%B3%E5%8F%B0%E6%A1%86%E6%9E%B6/"/>
+    
+    
+    <category term="Flutter" scheme="https://keychankc.github.io/tags/Flutter/"/>
+    
+    <category term="状态管理" scheme="https://keychankc.github.io/tags/%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86/"/>
+    
+    <category term="依赖注入" scheme="https://keychankc.github.io/tags/%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5/"/>
+    
+    <category term="路由" scheme="https://keychankc.github.io/tags/%E8%B7%AF%E7%94%B1/"/>
+    
+    <category term="模块化" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9D%97%E5%8C%96/"/>
+    
+  </entry>
   
   <entry>
     <title>约束与布局：深入理解 RenderObject、CustomPaint 与 Sliver 协议</title>
@@ -496,39 +523,6 @@
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;/ol&gt;</summary>
-    
-    
-    
-    <category term="深度学习" scheme="https://keychankc.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
-    
-    
-    <category term="计算机视觉" scheme="https://keychankc.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
-    
-    <category term="目标检测" scheme="https://keychankc.github.io/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
-    
-    <category term="YOLO" scheme="https://keychankc.github.io/tags/YOLO/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>[YOLO系列③] YOLOv3和YOLOv4优化策略</title>
-    <link href="https://keychankc.github.io/2025/04/29/013-yolo-yolov3-yolov4/"/>
-    <id>https://keychankc.github.io/2025/04/29/013-yolo-yolov3-yolov4/</id>
-    <published>2025-04-28T23:50:12.000Z</published>
-    <updated>2025-09-21T12:04:48.538Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-YOLO-V3&quot;&gt;&lt;a href=&quot;#1-YOLO-V3&quot; class=&quot;headerlink&quot; title=&quot;1.YOLO-V3&quot;&gt;&lt;/a&gt;1.YOLO-V3&lt;/h2&gt;&lt;h3 id=&quot;1-网络架构改进&quot;&gt;&lt;a href=&quot;#1-网络架构改进&quot; class=&quot;headerlink&quot; title=&quot;1.网络架构改进&quot;&gt;&lt;/a&gt;1.网络架构改进&lt;/h3&gt;&lt;p&gt;提升特征提取能力和训练稳定性​​&lt;/p&gt;
-&lt;h4 id=&quot;1-残差连接（Residual-Connections）​&quot;&gt;&lt;a href=&quot;#1-残差连接（Residual-Connections）​&quot; class=&quot;headerlink&quot; title=&quot;1.残差连接（Residual Connections）​&quot;&gt;&lt;/a&gt;1.残差连接（Residual Connections）​&lt;/h4&gt;&lt;p&gt;&lt;strong&gt;残差连接&lt;/strong&gt; 是指在神经网络中将&lt;strong&gt;输入 x 直接跳跃连接（shortcut）加到输出 F(x) 上&lt;/strong&gt;的那一条路径。数学形式如下：&lt;br&gt;$$&lt;br&gt;y &amp;#x3D; F(x) + x&lt;br&gt;$$&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;其中：&lt;ul&gt;
-&lt;li&gt;x：输入&lt;/li&gt;
-&lt;li&gt;F(x)：一系列卷积层后的输出（即“主干路径”）&lt;/li&gt;
-&lt;li&gt;x 是“旁路路径”或称“跳跃连接”&lt;/li&gt;
-&lt;li&gt;两者相加形成最终输出 y&lt;br&gt;这条连接就是 “残差连接”，它是 &lt;strong&gt;结构中的一条数据路径&lt;/strong&gt;。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;</summary>
     
     
     
