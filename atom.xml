@@ -6,7 +6,7 @@
   <link href="https://keychankc.github.io/atom.xml" rel="self"/>
   
   <link href="https://keychankc.github.io/"/>
-  <updated>2025-10-07T08:38:22.045Z</updated>
+  <updated>2025-10-07T10:07:05.179Z</updated>
   <id>https://keychankc.github.io/</id>
   
   <author>
@@ -21,10 +21,10 @@
     <link href="https://keychankc.github.io/2025/10/07/032-flutter-state-management-project-architecture/"/>
     <id>https://keychankc.github.io/2025/10/07/032-flutter-state-management-project-architecture/</id>
     <published>2025-10-07T07:40:12.000Z</published>
-    <updated>2025-10-07T08:38:22.045Z</updated>
+    <updated>2025-10-07T10:07:05.179Z</updated>
     
     
-    <summary type="html">&lt;h2 id=&quot;1-引言：从“能跑”到“可扩展、可维护”&quot;&gt;&lt;a href=&quot;#1-引言：从“能跑”到“可扩展、可维护”&quot; class=&quot;headerlink&quot; title=&quot;1. 引言：从“能跑”到“可扩展、可维护”&quot;&gt;&lt;/a&gt;1. 引言：从“能跑”到“可扩展、可维护”&lt;/h2&gt;&lt;p&gt;平时开发中，很多开发者虽然能把视图（Widgets）按页面或组件拆成不同的文件，但业务逻辑和状态处理往往直接写在 Widget 内部，依赖 setState 或零散的单例&amp;#x2F;全局变量来管理。这种“分文件但逻辑内聚”的灵活方式虽然能在小项目里能快速迭代、方便验证想法，但不讲究长期维护，就像临时搭建的一间小屋。&lt;/p&gt;</summary>
+    <summary type="html">&lt;h2 id=&quot;1-从“能跑”到“可扩展、可维护”&quot;&gt;&lt;a href=&quot;#1-从“能跑”到“可扩展、可维护”&quot; class=&quot;headerlink&quot; title=&quot;1. 从“能跑”到“可扩展、可维护”&quot;&gt;&lt;/a&gt;1. 从“能跑”到“可扩展、可维护”&lt;/h2&gt;&lt;p&gt;平时开发中，很多开发者虽然能把视图（Widgets）按页面或组件拆成不同的文件，但业务逻辑和状态处理往往直接写在 Widget 内部，依赖 setState 或零散的单例&amp;#x2F;全局变量来管理。这种“分文件但逻辑内聚”的灵活方式虽然能在小项目里能快速迭代、方便验证想法，但不讲究长期维护，就像临时搭建的一间小屋。&lt;/p&gt;</summary>
     
     
     
