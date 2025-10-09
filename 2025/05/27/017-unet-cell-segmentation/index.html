@@ -19,12 +19,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"keychankc.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.keychan.xyz","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="下面我们以一个医学图像实例分割任务为例，来介绍在 PyTorch 框架下如何使用 U-Net++ 网络。U-Net++ 是在经典 U-Net 基础上进行改进的语义分割网络，它通过引入密集跳跃连接和深层监督机制，增强了特征融合能力与梯度传播效果，特别适用于医学图像中边界模糊、结构复杂的分割任务。 1.数据预处理1.数据集介绍这个数据集是一些细胞图像，我们的目标是做前景背景分离，对每一个细胞做实例分割">
 <meta property="og:type" content="article">
 <meta property="og:title" content="基于U-Net++的细胞分割代码实现">
-<meta property="og:url" content="https://keychankc.github.io/2025/05/27/017-unet-cell-segmentation/index.html">
+<meta property="og:url" content="https://www.keychan.xyz/2025/05/27/017-unet-cell-segmentation/index.html">
 <meta property="og:site_name" content="KeyChan&#39;s blog">
 <meta property="og:description" content="下面我们以一个医学图像实例分割任务为例，来介绍在 PyTorch 框架下如何使用 U-Net++ 网络。U-Net++ 是在经典 U-Net 基础上进行改进的语义分割网络，它通过引入密集跳跃连接和深层监督机制，增强了特征融合能力与梯度传播效果，特别适用于医学图像中边界模糊、结构复杂的分割任务。 1.数据预处理1.数据集介绍这个数据集是一些细胞图像，我们的目标是做前景背景分离，对每一个细胞做实例分割">
 <meta property="og:locale" content="zh_CN">
@@ -44,10 +44,10 @@
 <meta name="twitter:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250526173505.png">
 
 
-<link rel="canonical" href="https://keychankc.github.io/2025/05/27/017-unet-cell-segmentation/">
+<link rel="canonical" href="https://www.keychan.xyz/2025/05/27/017-unet-cell-segmentation/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/2025/05/27/017-unet-cell-segmentation/","path":"2025/05/27/017-unet-cell-segmentation/","title":"基于U-Net++的细胞分割代码实现"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.keychan.xyz/2025/05/27/017-unet-cell-segmentation/","path":"2025/05/27/017-unet-cell-segmentation/","title":"基于U-Net++的细胞分割代码实现"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title>基于U-Net++的细胞分割代码实现 | KeyChan's blog</title>
@@ -217,7 +217,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://keychankc.github.io/2025/05/27/017-unet-cell-segmentation/">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2025/05/27/017-unet-cell-segmentation/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/key_avatar.png">
@@ -494,7 +494,7 @@
   </li>
   <li class="post-copyright-link">
       <strong>本文链接：</strong>
-      <a href="https://keychankc.github.io/2025/05/27/017-unet-cell-segmentation/" title="基于U-Net++的细胞分割代码实现">https://keychankc.github.io/2025/05/27/017-unet-cell-segmentation/</a>
+      <a href="https://www.keychan.xyz/2025/05/27/017-unet-cell-segmentation/" title="基于U-Net++的细胞分割代码实现">https://www.keychan.xyz/2025/05/27/017-unet-cell-segmentation/</a>
   </li>
   <li class="post-copyright-license">
       <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！

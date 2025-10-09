@@ -19,12 +19,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"keychankc.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.keychan.xyz","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="1.迁移学习做图像识别是不是每次都意味着要自定义模型，确定好 卷积层、池化层 和 全连接层，然后从0开始训练？不同类型的图像数据集会不会有通用的特征？如果训练样本比较少怎么办？是不是可以把已经训练好的模型，拿过来稍微改改就可以使用的？ 迁移学习（Transfer Learning） 就是这种可以将已有模型的知识迁移到新任务的学习方法，具有以下特点：  适合数据量比较少的任务，但是有预训练知识，无需">
 <meta property="og:type" content="article">
 <meta property="og:title" content="基于迁移学习(ResNet-18)的花卉识别">
-<meta property="og:url" content="https://keychankc.github.io/2025/03/07/004-cnn-identify-flowers/index.html">
+<meta property="og:url" content="https://www.keychan.xyz/2025/03/07/004-cnn-identify-flowers/index.html">
 <meta property="og:site_name" content="KeyChan&#39;s blog">
 <meta property="og:description" content="1.迁移学习做图像识别是不是每次都意味着要自定义模型，确定好 卷积层、池化层 和 全连接层，然后从0开始训练？不同类型的图像数据集会不会有通用的特征？如果训练样本比较少怎么办？是不是可以把已经训练好的模型，拿过来稍微改改就可以使用的？ 迁移学习（Transfer Learning） 就是这种可以将已有模型的知识迁移到新任务的学习方法，具有以下特点：  适合数据量比较少的任务，但是有预训练知识，无需">
 <meta property="og:locale" content="zh_CN">
@@ -44,10 +44,10 @@
 <meta name="twitter:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250306163312.png">
 
 
-<link rel="canonical" href="https://keychankc.github.io/2025/03/07/004-cnn-identify-flowers/">
+<link rel="canonical" href="https://www.keychan.xyz/2025/03/07/004-cnn-identify-flowers/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/2025/03/07/004-cnn-identify-flowers/","path":"2025/03/07/004-cnn-identify-flowers/","title":"基于迁移学习(ResNet-18)的花卉识别"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.keychan.xyz/2025/03/07/004-cnn-identify-flowers/","path":"2025/03/07/004-cnn-identify-flowers/","title":"基于迁移学习(ResNet-18)的花卉识别"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title>基于迁移学习(ResNet-18)的花卉识别 | KeyChan's blog</title>
@@ -217,7 +217,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://keychankc.github.io/2025/03/07/004-cnn-identify-flowers/">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2025/03/07/004-cnn-identify-flowers/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/key_avatar.png">
@@ -451,7 +451,7 @@
   </li>
   <li class="post-copyright-link">
       <strong>本文链接：</strong>
-      <a href="https://keychankc.github.io/2025/03/07/004-cnn-identify-flowers/" title="基于迁移学习(ResNet-18)的花卉识别">https://keychankc.github.io/2025/03/07/004-cnn-identify-flowers/</a>
+      <a href="https://www.keychan.xyz/2025/03/07/004-cnn-identify-flowers/" title="基于迁移学习(ResNet-18)的花卉识别">https://www.keychan.xyz/2025/03/07/004-cnn-identify-flowers/</a>
   </li>
   <li class="post-copyright-license">
       <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！

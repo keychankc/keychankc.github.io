@@ -19,12 +19,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"keychankc.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.keychan.xyz","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="前文 利用神经网络实现手写字体识别 中构建的模型只单单使用了全连接层， 其中每一层的神经元都会与前一层的所有神经元相连接，这种结构其实更适合于结构化数据或一维数据。而像手写字体识别之类的图像结构数据，使用卷积神经网络其实会更合适一点，一方面通过卷积层可以提取局部特征，另一方面经过池化层还能减少参数量，提高处理效率。 1.卷积神经网络卷积神经网络（Convolutional Neural Netwo">
 <meta property="og:type" content="article">
 <meta property="og:title" content="利用卷积神经网络实现手写字体识别">
-<meta property="og:url" content="https://keychankc.github.io/2025/03/02/003-cnn-digital-recognition/index.html">
+<meta property="og:url" content="https://www.keychan.xyz/2025/03/02/003-cnn-digital-recognition/index.html">
 <meta property="og:site_name" content="KeyChan&#39;s blog">
 <meta property="og:description" content="前文 利用神经网络实现手写字体识别 中构建的模型只单单使用了全连接层， 其中每一层的神经元都会与前一层的所有神经元相连接，这种结构其实更适合于结构化数据或一维数据。而像手写字体识别之类的图像结构数据，使用卷积神经网络其实会更合适一点，一方面通过卷积层可以提取局部特征，另一方面经过池化层还能减少参数量，提高处理效率。 1.卷积神经网络卷积神经网络（Convolutional Neural Netwo">
 <meta property="og:locale" content="zh_CN">
@@ -39,10 +39,10 @@
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="https://keychankc.github.io/2025/03/02/003-cnn-digital-recognition/">
+<link rel="canonical" href="https://www.keychan.xyz/2025/03/02/003-cnn-digital-recognition/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/2025/03/02/003-cnn-digital-recognition/","path":"2025/03/02/003-cnn-digital-recognition/","title":"利用卷积神经网络实现手写字体识别"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.keychan.xyz/2025/03/02/003-cnn-digital-recognition/","path":"2025/03/02/003-cnn-digital-recognition/","title":"利用卷积神经网络实现手写字体识别"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title>利用卷积神经网络实现手写字体识别 | KeyChan's blog</title>
@@ -212,7 +212,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://keychankc.github.io/2025/03/02/003-cnn-digital-recognition/">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2025/03/02/003-cnn-digital-recognition/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/key_avatar.png">
@@ -298,7 +298,7 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><p>前文 <a href="https://keychankc.github.io/2025/02/26/nn-digital-recognition/"><strong>利用神经网络实现手写字体识别</strong></a> 中构建的模型只单单使用了全连接层， 其中每一层的神经元都会与前一层的所有神经元相连接，这种结构其实更适合于结构化数据或一维数据。而像手写字体识别之类的图像结构数据，使用卷积神经网络其实会更合适一点，一方面通过卷积层可以提取局部特征，另一方面经过池化层还能减少参数量，提高处理效率。</p>
+    <div class="post-body" itemprop="articleBody"><p>前文 <a target="_blank" rel="noopener" href="https://keychankc.github.io/2025/02/26/nn-digital-recognition/"><strong>利用神经网络实现手写字体识别</strong></a> 中构建的模型只单单使用了全连接层， 其中每一层的神经元都会与前一层的所有神经元相连接，这种结构其实更适合于结构化数据或一维数据。而像手写字体识别之类的图像结构数据，使用卷积神经网络其实会更合适一点，一方面通过卷积层可以提取局部特征，另一方面经过池化层还能减少参数量，提高处理效率。</p>
 <h2 id="1-卷积神经网络"><a href="#1-卷积神经网络" class="headerlink" title="1.卷积神经网络"></a>1.卷积神经网络</h2><p>卷积神经网络（Convolutional Neural Network，简称CNN）是一种特别适合处理图像、视频、语音、文本等数据的神经网络结构，它通过模仿生物视觉系统的工作原理，利用 <strong>卷积层</strong>、<strong>池化层</strong> 和 <strong>全连接层</strong> 来提取数据中的空间特征，并通过训练来优化参数，这在计算机视觉任务中有着广泛应用。</p>
 <h3 id="1-基本原理"><a href="#1-基本原理" class="headerlink" title="1.基本原理"></a>1.基本原理</h3><p>CNN的核心思想是“卷积”操作。简单来说，卷积是用一个小的矩阵（称为<strong>卷积核</strong>）在输入图像上滑动，通过和图像的局部区域进行逐点相乘并求和，提取出图像的局部特征。卷积操作通常会在多个卷积层次上进行，从而能够识别图像中的简单特征（如边缘、纹理）和复杂特征（如物体、面部等）。</p>
 <span id="more"></span>
@@ -419,7 +419,7 @@
   </li>
   <li class="post-copyright-link">
       <strong>本文链接：</strong>
-      <a href="https://keychankc.github.io/2025/03/02/003-cnn-digital-recognition/" title="利用卷积神经网络实现手写字体识别">https://keychankc.github.io/2025/03/02/003-cnn-digital-recognition/</a>
+      <a href="https://www.keychan.xyz/2025/03/02/003-cnn-digital-recognition/" title="利用卷积神经网络实现手写字体识别">https://www.keychan.xyz/2025/03/02/003-cnn-digital-recognition/</a>
   </li>
   <li class="post-copyright-license">
       <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！

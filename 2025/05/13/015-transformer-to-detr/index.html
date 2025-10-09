@@ -19,12 +19,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"keychankc.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.keychan.xyz","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="1. Transformer我们可以尝试用一个例子来理解 Transformer 的各个概念。学生在课堂上进行小组讨论写作文：一个班级里有一群学生，每个学生负责贡献一句话来完成一篇作文。他们必须交流彼此的观点（信息），形成一篇通顺的文章。这就像 Transformer 处理一个序列（比如一句话）时的过程。 1. 输入嵌入（Input Embedding）将原始的输入（如词、图像特征等）映射到一个高">
 <meta property="og:type" content="article">
 <meta property="og:title" content="基于Transformer的detr目标检测算法思路分析">
-<meta property="og:url" content="https://keychankc.github.io/2025/05/13/015-transformer-to-detr/index.html">
+<meta property="og:url" content="https://www.keychan.xyz/2025/05/13/015-transformer-to-detr/index.html">
 <meta property="og:site_name" content="KeyChan&#39;s blog">
 <meta property="og:description" content="1. Transformer我们可以尝试用一个例子来理解 Transformer 的各个概念。学生在课堂上进行小组讨论写作文：一个班级里有一群学生，每个学生负责贡献一句话来完成一篇作文。他们必须交流彼此的观点（信息），形成一篇通顺的文章。这就像 Transformer 处理一个序列（比如一句话）时的过程。 1. 输入嵌入（Input Embedding）将原始的输入（如词、图像特征等）映射到一个高">
 <meta property="og:locale" content="zh_CN">
@@ -41,10 +41,10 @@
 <meta name="twitter:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250512154553.png">
 
 
-<link rel="canonical" href="https://keychankc.github.io/2025/05/13/015-transformer-to-detr/">
+<link rel="canonical" href="https://www.keychan.xyz/2025/05/13/015-transformer-to-detr/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/2025/05/13/015-transformer-to-detr/","path":"2025/05/13/015-transformer-to-detr/","title":"基于Transformer的detr目标检测算法思路分析"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.keychan.xyz/2025/05/13/015-transformer-to-detr/","path":"2025/05/13/015-transformer-to-detr/","title":"基于Transformer的detr目标检测算法思路分析"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title>基于Transformer的detr目标检测算法思路分析 | KeyChan's blog</title>
@@ -214,7 +214,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://keychankc.github.io/2025/05/13/015-transformer-to-detr/">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2025/05/13/015-transformer-to-detr/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/key_avatar.png">
@@ -544,7 +544,7 @@
   </li>
   <li class="post-copyright-link">
       <strong>本文链接：</strong>
-      <a href="https://keychankc.github.io/2025/05/13/015-transformer-to-detr/" title="基于Transformer的detr目标检测算法思路分析">https://keychankc.github.io/2025/05/13/015-transformer-to-detr/</a>
+      <a href="https://www.keychan.xyz/2025/05/13/015-transformer-to-detr/" title="基于Transformer的detr目标检测算法思路分析">https://www.keychan.xyz/2025/05/13/015-transformer-to-detr/</a>
   </li>
   <li class="post-copyright-license">
       <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！

@@ -19,12 +19,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"keychankc.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.keychan.xyz","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="1. 项目背景与目标1.1 为什么选择 A3C 来玩超级马里奥？超级马里奥是一个经典的横版过关游戏，玩法是简单，但是环境比较复杂：玩家要面对敌人、陷阱、跳跃平台，还要在有限时间内快速决策。所以在强化学习中，它被认为是一个很好的 实验case：  状态空间是高维的（游戏画面本身就是像素矩阵） 行动结果对未来奖励有长远影响（跳跃错过管道可能直接失败） 游戏场景变化多端，能充分考察智能体的泛化能力">
 <meta property="og:type" content="article">
 <meta property="og:title" content="A3C 算法原理与超级马里奥实践（下）">
-<meta property="og:url" content="https://keychankc.github.io/2025/08/29/029-rl-ac-a3c-mario-case-2/index.html">
+<meta property="og:url" content="https://www.keychan.xyz/2025/08/29/029-rl-ac-a3c-mario-case-2/index.html">
 <meta property="og:site_name" content="KeyChan&#39;s blog">
 <meta property="og:description" content="1. 项目背景与目标1.1 为什么选择 A3C 来玩超级马里奥？超级马里奥是一个经典的横版过关游戏，玩法是简单，但是环境比较复杂：玩家要面对敌人、陷阱、跳跃平台，还要在有限时间内快速决策。所以在强化学习中，它被认为是一个很好的 实验case：  状态空间是高维的（游戏画面本身就是像素矩阵） 行动结果对未来奖励有长远影响（跳跃错过管道可能直接失败） 游戏场景变化多端，能充分考察智能体的泛化能力">
 <meta property="og:locale" content="zh_CN">
@@ -39,10 +39,10 @@
 <meta name="twitter:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/super_mario_frame_0.jpg">
 
 
-<link rel="canonical" href="https://keychankc.github.io/2025/08/29/029-rl-ac-a3c-mario-case-2/">
+<link rel="canonical" href="https://www.keychan.xyz/2025/08/29/029-rl-ac-a3c-mario-case-2/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/2025/08/29/029-rl-ac-a3c-mario-case-2/","path":"2025/08/29/029-rl-ac-a3c-mario-case-2/","title":"A3C 算法原理与超级马里奥实践（下）"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.keychan.xyz/2025/08/29/029-rl-ac-a3c-mario-case-2/","path":"2025/08/29/029-rl-ac-a3c-mario-case-2/","title":"A3C 算法原理与超级马里奥实践（下）"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title>A3C 算法原理与超级马里奥实践（下） | KeyChan's blog</title>
@@ -212,7 +212,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://keychankc.github.io/2025/08/29/029-rl-ac-a3c-mario-case-2/">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2025/08/29/029-rl-ac-a3c-mario-case-2/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/key_avatar.png">
@@ -309,7 +309,7 @@
 <li>游戏场景变化多端，能充分考察智能体的泛化能力</li>
 </ul>
 <span id="more"></span>
-<p>因此，我们打算用 <strong>A3C（Asynchronous Advantage Actor-Critic）</strong> 来实现，A3C 是一种经典的深度强化学习算法，能够通过 <strong>多线程并行采样</strong> 加速训练，并且结合 <strong>Actor-Critic 框架</strong> 来提升策略收敛的稳定性，具体可参考<a href="https://keychankc.github.io/2025/08/22/028-rl-ac-a3c-mario-case-1/">上篇</a>。用它来解决马里奥问题，顺便还可以实践强化学习的 <strong>理论价值</strong> 和 <strong>工程落地能力</strong>。</p>
+<p>因此，我们打算用 <strong>A3C（Asynchronous Advantage Actor-Critic）</strong> 来实现，A3C 是一种经典的深度强化学习算法，能够通过 <strong>多线程并行采样</strong> 加速训练，并且结合 <strong>Actor-Critic 框架</strong> 来提升策略收敛的稳定性，具体可参考<a target="_blank" rel="noopener" href="https://keychankc.github.io/2025/08/22/028-rl-ac-a3c-mario-case-1/">上篇</a>。用它来解决马里奥问题，顺便还可以实践强化学习的 <strong>理论价值</strong> 和 <strong>工程落地能力</strong>。</p>
 <h3 id="1-2-马里奥环境中的难点"><a href="#1-2-马里奥环境中的难点" class="headerlink" title="1.2 马里奥环境中的难点"></a>1.2 马里奥环境中的难点</h3><p>在实现过程中，我们需要解决几个关键问题：</p>
 <ol>
 <li><strong>高维状态空间</strong>：输入是 240×256 的彩色像素画面，直接学习难度极高，必须通过卷积网络提取特征，并通过灰度化、缩放、帧堆叠等方式进行状态压缩</li>
@@ -554,7 +554,7 @@
   </li>
   <li class="post-copyright-link">
       <strong>本文链接：</strong>
-      <a href="https://keychankc.github.io/2025/08/29/029-rl-ac-a3c-mario-case-2/" title="A3C 算法原理与超级马里奥实践（下）">https://keychankc.github.io/2025/08/29/029-rl-ac-a3c-mario-case-2/</a>
+      <a href="https://www.keychan.xyz/2025/08/29/029-rl-ac-a3c-mario-case-2/" title="A3C 算法原理与超级马里奥实践（下）">https://www.keychan.xyz/2025/08/29/029-rl-ac-a3c-mario-case-2/</a>
   </li>
   <li class="post-copyright-license">
       <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！

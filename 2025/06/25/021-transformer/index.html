@@ -19,12 +19,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"keychankc.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.keychan.xyz","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="1.循环神经网络前文有实现过一个基于循环神经网络的文本分类实践任务，循环神经网络（Recurrent Neural Network, RNN）也叫递归神经网络，是专门处理序列数据的神经网络架构，其核心思想是通过循环连接使网络具备“记忆”能力，从而构建序列中时序之间的依赖关系。而处理具有时序或顺序关系的数据（如语言、语音、基因序列等）的核心挑战是理解序列中的上下文依赖关系，这就涉及到序列建模问题。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Transformer:多头注意力驱动的编码器-解码器架构">
-<meta property="og:url" content="https://keychankc.github.io/2025/06/25/021-transformer/index.html">
+<meta property="og:url" content="https://www.keychan.xyz/2025/06/25/021-transformer/index.html">
 <meta property="og:site_name" content="KeyChan&#39;s blog">
 <meta property="og:description" content="1.循环神经网络前文有实现过一个基于循环神经网络的文本分类实践任务，循环神经网络（Recurrent Neural Network, RNN）也叫递归神经网络，是专门处理序列数据的神经网络架构，其核心思想是通过循环连接使网络具备“记忆”能力，从而构建序列中时序之间的依赖关系。而处理具有时序或顺序关系的数据（如语言、语音、基因序列等）的核心挑战是理解序列中的上下文依赖关系，这就涉及到序列建模问题。">
 <meta property="og:locale" content="zh_CN">
@@ -39,10 +39,10 @@
 <meta name="twitter:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250624114203.png">
 
 
-<link rel="canonical" href="https://keychankc.github.io/2025/06/25/021-transformer/">
+<link rel="canonical" href="https://www.keychan.xyz/2025/06/25/021-transformer/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/2025/06/25/021-transformer/","path":"2025/06/25/021-transformer/","title":"Transformer:多头注意力驱动的编码器-解码器架构"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.keychan.xyz/2025/06/25/021-transformer/","path":"2025/06/25/021-transformer/","title":"Transformer:多头注意力驱动的编码器-解码器架构"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title>Transformer:多头注意力驱动的编码器-解码器架构 | KeyChan's blog</title>
@@ -212,7 +212,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://keychankc.github.io/2025/06/25/021-transformer/">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2025/06/25/021-transformer/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/key_avatar.png">
@@ -298,7 +298,7 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><h2 id="1-循环神经网络"><a href="#1-循环神经网络" class="headerlink" title="1.循环神经网络"></a>1.循环神经网络</h2><p>前文有实现过一个<a href="https://keychankc.github.io/2025/03/14/005-rnn-classification-text/">基于循环神经网络的文本分类实践</a>任务，循环神经网络（<strong>Recurrent Neural Network, RNN</strong>）也叫递归神经网络，是专门处理<strong>序列数据</strong>的神经网络架构，其核心思想是通过<strong>循环连接</strong>使网络具备“记忆”能力，从而构建序列中时序之间的依赖关系。而处理具有<strong>时序或顺序关系</strong>的数据（如语言、语音、基因序列等）的核心挑战是<strong>理解序列中的上下文依赖关系</strong>，这就涉及到序列建模问题。</p>
+    <div class="post-body" itemprop="articleBody"><h2 id="1-循环神经网络"><a href="#1-循环神经网络" class="headerlink" title="1.循环神经网络"></a>1.循环神经网络</h2><p>前文有实现过一个<a target="_blank" rel="noopener" href="https://keychankc.github.io/2025/03/14/005-rnn-classification-text/">基于循环神经网络的文本分类实践</a>任务，循环神经网络（<strong>Recurrent Neural Network, RNN</strong>）也叫递归神经网络，是专门处理<strong>序列数据</strong>的神经网络架构，其核心思想是通过<strong>循环连接</strong>使网络具备“记忆”能力，从而构建序列中时序之间的依赖关系。而处理具有<strong>时序或顺序关系</strong>的数据（如语言、语音、基因序列等）的核心挑战是<strong>理解序列中的上下文依赖关系</strong>，这就涉及到序列建模问题。</p>
 <span id="more"></span>
 <h3 id="1-序列建模问题"><a href="#1-序列建模问题" class="headerlink" title="1.序列建模问题"></a>1.序列建模问题</h3><p>与图像处理不同，序列建模关注的是<strong>输入数据的时序特性</strong>。例如：</p>
 <ul>
@@ -692,7 +692,7 @@
   </li>
   <li class="post-copyright-link">
       <strong>本文链接：</strong>
-      <a href="https://keychankc.github.io/2025/06/25/021-transformer/" title="Transformer:多头注意力驱动的编码器-解码器架构">https://keychankc.github.io/2025/06/25/021-transformer/</a>
+      <a href="https://www.keychan.xyz/2025/06/25/021-transformer/" title="Transformer:多头注意力驱动的编码器-解码器架构">https://www.keychan.xyz/2025/06/25/021-transformer/</a>
   </li>
   <li class="post-copyright-license">
       <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！

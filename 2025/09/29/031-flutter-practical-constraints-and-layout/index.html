@@ -19,12 +19,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"keychankc.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.keychan.xyz","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="1. 为什么要自定义 RenderObject在 Flutter 中，我们平时开发中最常打交道的是 Widget。它们像是 UI 的“配置表”，描述界面要长什么样。但 Widget 并不真正负责绘制，它只是告诉框架“我要一个红色的方块”或者“我要一个可滚动的列表”。真正负责把这些需求落到屏幕上的，是底层的 RenderObject。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="约束与布局：深入理解 RenderObject、CustomPaint 与 Sliver 协议">
-<meta property="og:url" content="https://keychankc.github.io/2025/09/29/031-flutter-practical-constraints-and-layout/index.html">
+<meta property="og:url" content="https://www.keychan.xyz/2025/09/29/031-flutter-practical-constraints-and-layout/index.html">
 <meta property="og:site_name" content="KeyChan&#39;s blog">
 <meta property="og:description" content="1. 为什么要自定义 RenderObject在 Flutter 中，我们平时开发中最常打交道的是 Widget。它们像是 UI 的“配置表”，描述界面要长什么样。但 Widget 并不真正负责绘制，它只是告诉框架“我要一个红色的方块”或者“我要一个可滚动的列表”。真正负责把这些需求落到屏幕上的，是底层的 RenderObject。">
 <meta property="og:locale" content="zh_CN">
@@ -42,10 +42,10 @@
 <meta name="twitter:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250928161914.png">
 
 
-<link rel="canonical" href="https://keychankc.github.io/2025/09/29/031-flutter-practical-constraints-and-layout/">
+<link rel="canonical" href="https://www.keychan.xyz/2025/09/29/031-flutter-practical-constraints-and-layout/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://keychankc.github.io/2025/09/29/031-flutter-practical-constraints-and-layout/","path":"2025/09/29/031-flutter-practical-constraints-and-layout/","title":"约束与布局：深入理解 RenderObject、CustomPaint 与 Sliver 协议"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.keychan.xyz/2025/09/29/031-flutter-practical-constraints-and-layout/","path":"2025/09/29/031-flutter-practical-constraints-and-layout/","title":"约束与布局：深入理解 RenderObject、CustomPaint 与 Sliver 协议"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title>约束与布局：深入理解 RenderObject、CustomPaint 与 Sliver 协议 | KeyChan's blog</title>
@@ -215,7 +215,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://keychankc.github.io/2025/09/29/031-flutter-practical-constraints-and-layout/">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2025/09/29/031-flutter-practical-constraints-and-layout/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/key_avatar.png">
@@ -617,7 +617,7 @@
   </li>
   <li class="post-copyright-link">
       <strong>本文链接：</strong>
-      <a href="https://keychankc.github.io/2025/09/29/031-flutter-practical-constraints-and-layout/" title="约束与布局：深入理解 RenderObject、CustomPaint 与 Sliver 协议">https://keychankc.github.io/2025/09/29/031-flutter-practical-constraints-and-layout/</a>
+      <a href="https://www.keychan.xyz/2025/09/29/031-flutter-practical-constraints-and-layout/" title="约束与布局：深入理解 RenderObject、CustomPaint 与 Sliver 协议">https://www.keychan.xyz/2025/09/29/031-flutter-practical-constraints-and-layout/</a>
   </li>
   <li class="post-copyright-license">
       <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
