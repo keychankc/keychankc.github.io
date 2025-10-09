@@ -60,11 +60,11 @@
     
     <category term="状态管理" scheme="https://keychankc.github.io/tags/%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86/"/>
     
+    <category term="依赖注入" scheme="https://keychankc.github.io/tags/%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5/"/>
+    
     <category term="路由" scheme="https://keychankc.github.io/tags/%E8%B7%AF%E7%94%B1/"/>
     
     <category term="模块化" scheme="https://keychankc.github.io/tags/%E6%A8%A1%E5%9D%97%E5%8C%96/"/>
-    
-    <category term="依赖注入" scheme="https://keychankc.github.io/tags/%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5/"/>
     
   </entry>
   
@@ -85,9 +85,9 @@
     
     <category term="Flutter" scheme="https://keychankc.github.io/tags/Flutter/"/>
     
-    <category term="底层原理" scheme="https://keychankc.github.io/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
-    
     <category term="布局" scheme="https://keychankc.github.io/tags/%E5%B8%83%E5%B1%80/"/>
+    
+    <category term="底层原理" scheme="https://keychankc.github.io/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
     
   </entry>
   
@@ -108,13 +108,13 @@
     
     <category term="Flutter" scheme="https://keychankc.github.io/tags/Flutter/"/>
     
+    <category term="底层原理" scheme="https://keychankc.github.io/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
+    
     <category term="GPU渲染" scheme="https://keychankc.github.io/tags/GPU%E6%B8%B2%E6%9F%93/"/>
     
     <category term="Skia" scheme="https://keychankc.github.io/tags/Skia/"/>
     
     <category term="Impeller" scheme="https://keychankc.github.io/tags/Impeller/"/>
-    
-    <category term="底层原理" scheme="https://keychankc.github.io/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
     
   </entry>
   
