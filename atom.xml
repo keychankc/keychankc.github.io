@@ -6,7 +6,7 @@
   <link href="https://www.keychan.xyz/atom.xml" rel="self"/>
   
   <link href="https://www.keychan.xyz/"/>
-  <updated>2025-10-09T08:54:39.821Z</updated>
+  <updated>2025-10-11T03:38:58.866Z</updated>
   <id>https://www.keychan.xyz/</id>
   
   <author>
@@ -15,6 +15,29 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Flutter性能剖析：帧、内存、启动与并发优化</title>
+    <link href="https://www.keychan.xyz/2025/10/11/034-flutter-performance-analysis/"/>
+    <id>https://www.keychan.xyz/2025/10/11/034-flutter-performance-analysis/</id>
+    <published>2025-10-11T03:20:12.000Z</published>
+    <updated>2025-10-11T03:38:58.866Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-从感知到数据驱动&quot;&gt;&lt;a href=&quot;#1-从感知到数据驱动&quot; class=&quot;headerlink&quot; title=&quot;1. 从感知到数据驱动&quot;&gt;&lt;/a&gt;1. 从感知到数据驱动&lt;/h2&gt;&lt;p&gt;性能问题，往往是从“感觉”开始的。比如——滑动列表时明显掉帧、点击按钮后界面迟迟不响应、应用启动时间漫长、或突然出现 OOM（内存溢出）从而导致崩溃。这些“感知问题”是用户最先接触到的体验信号，也是性能优化的出发点。&lt;br&gt;但“感觉”并不等于“原因”。一个卡顿，可能是因为主线程被阻塞，也可能是图片解码过慢，甚至只是动画过渡时 CPU 和 GPU 同时被抢占。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="跨平台框架" scheme="https://www.keychan.xyz/categories/%E8%B7%A8%E5%B9%B3%E5%8F%B0%E6%A1%86%E6%9E%B6/"/>
+    
+    
+    <category term="Flutter" scheme="https://www.keychan.xyz/tags/Flutter/"/>
+    
+    <category term="性能优化" scheme="https://www.keychan.xyz/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/"/>
+    
+    <category term="内存管理" scheme="https://www.keychan.xyz/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/"/>
+    
+  </entry>
   
   <entry>
     <title>Flutter路由、导航与多端协同：嵌套路由与多端差异处理</title>
@@ -60,11 +83,11 @@
     
     <category term="状态管理" scheme="https://www.keychan.xyz/tags/%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86/"/>
     
+    <category term="依赖注入" scheme="https://www.keychan.xyz/tags/%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5/"/>
+    
     <category term="路由" scheme="https://www.keychan.xyz/tags/%E8%B7%AF%E7%94%B1/"/>
     
     <category term="模块化" scheme="https://www.keychan.xyz/tags/%E6%A8%A1%E5%9D%97%E5%8C%96/"/>
-    
-    <category term="依赖注入" scheme="https://www.keychan.xyz/tags/%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5/"/>
     
   </entry>
   
@@ -85,9 +108,9 @@
     
     <category term="Flutter" scheme="https://www.keychan.xyz/tags/Flutter/"/>
     
-    <category term="底层原理" scheme="https://www.keychan.xyz/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
-    
     <category term="布局" scheme="https://www.keychan.xyz/tags/%E5%B8%83%E5%B1%80/"/>
+    
+    <category term="底层原理" scheme="https://www.keychan.xyz/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
     
   </entry>
   
@@ -108,13 +131,13 @@
     
     <category term="Flutter" scheme="https://www.keychan.xyz/tags/Flutter/"/>
     
+    <category term="底层原理" scheme="https://www.keychan.xyz/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
+    
     <category term="GPU渲染" scheme="https://www.keychan.xyz/tags/GPU%E6%B8%B2%E6%9F%93/"/>
     
     <category term="Skia" scheme="https://www.keychan.xyz/tags/Skia/"/>
     
     <category term="Impeller" scheme="https://www.keychan.xyz/tags/Impeller/"/>
-    
-    <category term="底层原理" scheme="https://www.keychan.xyz/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
     
   </entry>
   
@@ -439,11 +462,11 @@
     
     <category term="计算机视觉" scheme="https://www.keychan.xyz/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
     
-    <category term="目标分割" scheme="https://www.keychan.xyz/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/"/>
-    
     <category term="U2Net" scheme="https://www.keychan.xyz/tags/U2Net/"/>
     
     <category term="显著性检测" scheme="https://www.keychan.xyz/tags/%E6%98%BE%E8%91%97%E6%80%A7%E6%A3%80%E6%B5%8B/"/>
+    
+    <category term="目标分割" scheme="https://www.keychan.xyz/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/"/>
     
   </entry>
   
@@ -499,31 +522,6 @@
     <category term="目标分割" scheme="https://www.keychan.xyz/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/"/>
     
     <category term="U-Net" scheme="https://www.keychan.xyz/tags/U-Net/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>基于Transformer的detr目标检测算法思路分析</title>
-    <link href="https://www.keychan.xyz/2025/05/13/015-transformer-to-detr/"/>
-    <id>https://www.keychan.xyz/2025/05/13/015-transformer-to-detr/</id>
-    <published>2025-05-13T07:50:12.000Z</published>
-    <updated>2025-09-21T12:04:48.539Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-Transformer&quot;&gt;&lt;a href=&quot;#1-Transformer&quot; class=&quot;headerlink&quot; title=&quot;1. Transformer&quot;&gt;&lt;/a&gt;1. Transformer&lt;/h2&gt;&lt;p&gt;我们可以尝试用一个例子来理解 Transformer 的各个概念。学生在课堂上进行小组讨论写作文：一个班级里有一群学生，每个学生负责贡献一句话来完成一篇作文。他们必须交流彼此的观点（信息），形成一篇通顺的文章。这就像 Transformer 处理一个序列（比如一句话）时的过程。&lt;/p&gt;
-&lt;h3 id=&quot;1-输入嵌入（Input-Embedding）&quot;&gt;&lt;a href=&quot;#1-输入嵌入（Input-Embedding）&quot; class=&quot;headerlink&quot; title=&quot;1. 输入嵌入（Input Embedding）&quot;&gt;&lt;/a&gt;1. 输入嵌入（Input Embedding）&lt;/h3&gt;&lt;p&gt;将原始的输入（如词、图像特征等）映射到一个高维向量空间中，便于 Transformer 网络进行后续处理。&lt;/p&gt;
-&lt;p&gt;就像每个学生都先写好一句话的草稿，用于后续讨论。每句话被转成一个有意义的表达——每个词转成向量。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
-    
-    
-    <category term="计算机视觉" scheme="https://www.keychan.xyz/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
-    
-    <category term="目标检测" scheme="https://www.keychan.xyz/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
-    
-    <category term="detr" scheme="https://www.keychan.xyz/tags/detr/"/>
     
   </entry>
   
