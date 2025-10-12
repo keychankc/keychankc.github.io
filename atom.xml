@@ -6,7 +6,7 @@
   <link href="https://www.keychan.xyz/atom.xml" rel="self"/>
   
   <link href="https://www.keychan.xyz/"/>
-  <updated>2025-10-11T05:15:03.950Z</updated>
+  <updated>2025-10-12T15:18:43.077Z</updated>
   <id>https://www.keychan.xyz/</id>
   
   <author>
@@ -18,10 +18,10 @@
   
   <entry>
     <title>Flutter性能剖析：帧、内存、启动与并发优化</title>
-    <link href="https://www.keychan.xyz/2025/10/11/034-flutter-performance-analysis/"/>
-    <id>https://www.keychan.xyz/2025/10/11/034-flutter-performance-analysis/</id>
-    <published>2025-10-11T03:20:12.000Z</published>
-    <updated>2025-10-11T05:15:03.950Z</updated>
+    <link href="https://www.keychan.xyz/2025/10/12/034-flutter-performance-analysis/"/>
+    <id>https://www.keychan.xyz/2025/10/12/034-flutter-performance-analysis/</id>
+    <published>2025-10-12T03:20:12.000Z</published>
+    <updated>2025-10-12T15:18:43.077Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-从感知到数据驱动&quot;&gt;&lt;a href=&quot;#1-从感知到数据驱动&quot; class=&quot;headerlink&quot; title=&quot;1. 从感知到数据驱动&quot;&gt;&lt;/a&gt;1. 从感知到数据驱动&lt;/h2&gt;&lt;p&gt;性能问题，往往是从“感觉”开始的。比如——滑动列表时明显掉帧、点击按钮后界面迟迟不响应、应用启动时间漫长、或突然出现 OOM（内存溢出）从而导致崩溃。这些“感知问题”是用户最先接触到的体验信号，也是性能优化的出发点。&lt;br&gt;但“感觉”并不等于“原因”。一个卡顿，可能是因为主线程被阻塞，也可能是图片解码过慢，甚至只是动画过渡时 CPU 和 GPU 同时被抢占。&lt;/p&gt;</summary>
@@ -66,10 +66,10 @@
   
   <entry>
     <title>Flutter状态管理与项目架构：模块化、DI与可维护性实践</title>
-    <link href="https://www.keychan.xyz/2025/10/07/032-flutter-state-management-project-architecture/"/>
-    <id>https://www.keychan.xyz/2025/10/07/032-flutter-state-management-project-architecture/</id>
-    <published>2025-10-07T07:40:12.000Z</published>
-    <updated>2025-10-09T08:53:28.635Z</updated>
+    <link href="https://www.keychan.xyz/2025/10/04/032-flutter-state-management-project-architecture/"/>
+    <id>https://www.keychan.xyz/2025/10/04/032-flutter-state-management-project-architecture/</id>
+    <published>2025-10-04T07:40:12.000Z</published>
+    <updated>2025-10-12T15:18:28.419Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-从“能跑”到“可扩展、可维护”&quot;&gt;&lt;a href=&quot;#1-从“能跑”到“可扩展、可维护”&quot; class=&quot;headerlink&quot; title=&quot;1. 从“能跑”到“可扩展、可维护”&quot;&gt;&lt;/a&gt;1. 从“能跑”到“可扩展、可维护”&lt;/h2&gt;&lt;p&gt;平时开发中，很多开发者虽然能把视图（Widgets）按页面或组件拆成不同的文件，但业务逻辑和状态处理往往直接写在 Widget 内部，依赖 setState 或零散的单例&amp;#x2F;全局变量来管理。这种“分文件但逻辑内聚”的灵活方式虽然能在小项目里能快速迭代、方便验证想法，但不讲究长期维护，就像临时搭建的一间小屋。&lt;/p&gt;</summary>
