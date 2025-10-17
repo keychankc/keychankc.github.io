@@ -320,9 +320,9 @@
     <category term="强化学习" scheme="https://www.keychan.xyz/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/"/>
     
     
-    <category term="策略梯度" scheme="https://www.keychan.xyz/tags/%E7%AD%96%E7%95%A5%E6%A2%AF%E5%BA%A6/"/>
-    
     <category term="非马尔可夫环境" scheme="https://www.keychan.xyz/tags/%E9%9D%9E%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E7%8E%AF%E5%A2%83/"/>
+    
+    <category term="策略梯度" scheme="https://www.keychan.xyz/tags/%E7%AD%96%E7%95%A5%E6%A2%AF%E5%BA%A6/"/>
     
   </entry>
   
