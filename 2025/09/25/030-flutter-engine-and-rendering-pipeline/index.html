@@ -34,7 +34,7 @@
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250924145520.png">
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250924172335.png">
 <meta property="article:published_time" content="2025-09-25T09:40:12.000Z">
-<meta property="article:modified_time" content="2025-10-15T01:49:35.025Z">
+<meta property="article:modified_time" content="2025-10-17T02:27:24.479Z">
 <meta property="article:author" content="KeyChan">
 <meta property="article:tag" content="Flutter">
 <meta property="article:tag" content="GPU渲染">
@@ -254,7 +254,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-10-15 09:49:35" itemprop="dateModified" datetime="2025-10-15T09:49:35+08:00">2025-10-15</time>
+      <time title="修改时间：2025-10-17 10:27:24" itemprop="dateModified" datetime="2025-10-17T10:27:24+08:00">2025-10-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -886,7 +886,8 @@
 </tr>
 </tbody></table>
 <p>对开发者来说，<strong>Flutter 的绘制 API 不变</strong>。依旧是 CustomPainter，但引擎底层从 Skia 换成 Impeller 后，Shader 编译、内存占用和动画流畅度会直接改善。</p>
-<p>Skia 是一个成熟的跨平台 2D 引擎，但运行时 Shader 编译成为性能瓶颈；Impeller 则通过 <strong>预编译 Shader</strong> + <strong>Tile-based 渲染优化</strong>，带来了更稳定、更流畅的体验。未来随着 Impeller 在 Android 全面启用，Flutter 的渲染性能将进一步接近原生体验。</p>
+<p>Skia 是一个成熟的跨平台 2D 引擎，但运行时 Shader 编译会成为性能瓶颈；Impeller 则通过 <strong>预编译 Shader</strong> + <strong>Tile-based 渲染优化</strong>，带来了更稳定、更流畅的体验。自 Flutter 3.16 起，​<strong>所有新的 iOS 项目已默认启用 Impeller</strong>，这标志着其生产就绪。更重要的是，Impeller 的定位是 Flutter 的下一代统一渲染引擎，而非仅限 iOS 平台。目前它在 ​<strong>macOS 上同样稳定</strong>，并正在积极向其他平台铺开：在 ​<strong>Android 上已提供预览支持</strong>，对 Windows 和 Linux 的支持也在快速发展中。其最终目标正是<strong>全面取代 Skia，成为所有 Flutter 平台的渲染基础</strong>。</p>
+<p>可以预见，随着 Impeller 在 Android 等平台的全面落地，Flutter 应用的渲染性能与一致性将大幅提升，无限接近原生体验。</p>
 <h2 id="8-平台差异与未来展望"><a href="#8-平台差异与未来展望" class="headerlink" title="8. 平台差异与未来展望"></a>8. 平台差异与未来展望</h2><p>Flutter 的一个最大优势，是「一次编写，跨平台运行」。但由于底层操作系统和渲染机制的差异，不同平台上的渲染表现并不完全一致。理解这些差异，能帮助开发者更好地调优应用体验。</p>
 <h3 id="8-1-iOS-vs-Android-渲染差异"><a href="#8-1-iOS-vs-Android-渲染差异" class="headerlink" title="8.1 iOS vs Android 渲染差异"></a>8.1 iOS vs Android 渲染差异</h3><ul>
 <li><strong>字体渲染</strong>：<br>  iOS 使用 CoreText 和系统字形渲染，字重、字距更贴近 Apple 生态习惯。<br>  Android 则依赖 Skia 字体栈，显示效果与原生 TextView 略有差别。</li>

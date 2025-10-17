@@ -146,7 +146,7 @@
     <link href="https://www.keychan.xyz/2025/09/25/030-flutter-engine-and-rendering-pipeline/"/>
     <id>https://www.keychan.xyz/2025/09/25/030-flutter-engine-and-rendering-pipeline/</id>
     <published>2025-09-25T09:40:12.000Z</published>
-    <updated>2025-10-15T01:49:35.025Z</updated>
+    <updated>2025-10-17T02:27:24.479Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-概述&quot;&gt;&lt;a href=&quot;#1-概述&quot; class=&quot;headerlink&quot; title=&quot;1. 概述&quot;&gt;&lt;/a&gt;1. 概述&lt;/h2&gt;&lt;h3 id=&quot;1-1-为什么要理解-Flutter-渲染原理&quot;&gt;&lt;a href=&quot;#1-1-为什么要理解-Flutter-渲染原理&quot; class=&quot;headerlink&quot; title=&quot;1.1 为什么要理解 Flutter 渲染原理&quot;&gt;&lt;/a&gt;1.1 为什么要理解 Flutter 渲染原理&lt;/h3&gt;&lt;p&gt;可能很多人刚接触 Flutter 时，往往只关心“怎么写 Widget”。但是当项目复杂度增加，就会遇到各种疑惑：为什么页面会掉帧？为什么某个布局报错“RenderBox was not laid out”？为什么同样的动画，有的流畅，有的卡顿？这些问题的根源，几乎都藏在 Flutter 的渲染机制里。&lt;/p&gt;</summary>
@@ -320,9 +320,9 @@
     <category term="强化学习" scheme="https://www.keychan.xyz/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/"/>
     
     
-    <category term="非马尔可夫环境" scheme="https://www.keychan.xyz/tags/%E9%9D%9E%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E7%8E%AF%E5%A2%83/"/>
-    
     <category term="策略梯度" scheme="https://www.keychan.xyz/tags/%E7%AD%96%E7%95%A5%E6%A2%AF%E5%BA%A6/"/>
+    
+    <category term="非马尔可夫环境" scheme="https://www.keychan.xyz/tags/%E9%9D%9E%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E7%8E%AF%E5%A2%83/"/>
     
   </entry>
   
