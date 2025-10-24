@@ -6,7 +6,7 @@
   <link href="https://www.keychan.xyz/atom.xml" rel="self"/>
   
   <link href="https://www.keychan.xyz/"/>
-  <updated>2025-10-21T09:02:56.428Z</updated>
+  <updated>2025-10-24T02:57:05.767Z</updated>
   <id>https://www.keychan.xyz/</id>
   
   <author>
@@ -17,11 +17,38 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>智能体的十年：遗忘，是智慧的特性</title>
+    <link href="https://www.keychan.xyz/2025/10/24/037-forgetting-characteristic-of-intelligence/"/>
+    <id>https://www.keychan.xyz/2025/10/24/037-forgetting-characteristic-of-intelligence/</id>
+    <published>2025-10-24T02:50:12.000Z</published>
+    <updated>2025-10-24T02:57:05.767Z</updated>
+    
+    
+    <summary type="html">Karpathy 的最终洞见极具哲学意味：也许 AGI 的关键，不在于让机器记住更多，而在于让它学会智能地遗忘。”记忆不是智能的核心，抽象与反思才是。人类的遗忘能力，正是我们能够理解、概括、创造的基础。未来的 AI 发展方向，也许不是更大的模型，而是更像人脑的模型—— 能遗忘、能重组、能在噪声中找到秩序。</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    <category term="趋势与洞察" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/%E8%B6%8B%E5%8A%BF%E4%B8%8E%E6%B4%9E%E5%AF%9F/"/>
+    
+    
+    <category term="智能体" scheme="https://www.keychan.xyz/tags/%E6%99%BA%E8%83%BD%E4%BD%93/"/>
+    
+    <category term="强化学习" scheme="https://www.keychan.xyz/tags/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/"/>
+    
+    <category term="认知科学" scheme="https://www.keychan.xyz/tags/%E8%AE%A4%E7%9F%A5%E7%A7%91%E5%AD%A6/"/>
+    
+    <category term="人工智能哲学" scheme="https://www.keychan.xyz/tags/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%93%B2%E5%AD%A6/"/>
+    
+  </entry>
+  
+  <entry>
     <title>「无人机系列①」从玩具到系统工程：无人机的全景</title>
     <link href="https://www.keychan.xyz/2025/10/21/036-the-full-view-of-the-drone/"/>
     <id>https://www.keychan.xyz/2025/10/21/036-the-full-view-of-the-drone/</id>
     <published>2025-10-21T09:02:12.000Z</published>
-    <updated>2025-10-21T09:02:56.428Z</updated>
+    <updated>2025-10-24T02:56:25.922Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-无人机是什么：从航模到系统&quot;&gt;&lt;a href=&quot;#1-无人机是什么：从航模到系统&quot; class=&quot;headerlink&quot; title=&quot;1. 无人机是什么：从航模到系统&quot;&gt;&lt;/a&gt;1. 无人机是什么：从航模到系统&lt;/h2&gt;&lt;p&gt;在多数人的印象里，无人机似乎就是一架“能飞起来的玩具”。但当我们深入一点去看就会发现，真正意义上的“无人机”，并不仅仅指一台可以在空中保持平衡的飞行器，而是一套复杂的&lt;strong&gt;无人系统（Unmanned System）&lt;/strong&gt;。它既包含飞行平台，也包含控制、通信、感知、能源等完整子系统。换句话说——无人机不仅仅是能飞，而是一个&lt;strong&gt;能自主感知、判断与执行的系统工程&lt;/strong&gt;。&lt;/p&gt;</summary>
@@ -160,9 +187,9 @@
     
     <category term="Flutter" scheme="https://www.keychan.xyz/tags/Flutter/"/>
     
-    <category term="底层原理" scheme="https://www.keychan.xyz/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
-    
     <category term="布局" scheme="https://www.keychan.xyz/tags/%E5%B8%83%E5%B1%80/"/>
+    
+    <category term="底层原理" scheme="https://www.keychan.xyz/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
     
   </entry>
   
@@ -183,13 +210,13 @@
     
     <category term="Flutter" scheme="https://www.keychan.xyz/tags/Flutter/"/>
     
+    <category term="底层原理" scheme="https://www.keychan.xyz/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
+    
     <category term="GPU渲染" scheme="https://www.keychan.xyz/tags/GPU%E6%B8%B2%E6%9F%93/"/>
     
     <category term="Skia" scheme="https://www.keychan.xyz/tags/Skia/"/>
     
     <category term="Impeller" scheme="https://www.keychan.xyz/tags/Impeller/"/>
-    
-    <category term="底层原理" scheme="https://www.keychan.xyz/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
     
   </entry>
   
@@ -267,9 +294,9 @@
     <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
-    <category term="神经网络" scheme="https://www.keychan.xyz/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
-    
     <category term="PyTorch" scheme="https://www.keychan.xyz/tags/PyTorch/"/>
+    
+    <category term="神经网络" scheme="https://www.keychan.xyz/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
     
     <category term="目标网络" scheme="https://www.keychan.xyz/tags/%E7%9B%AE%E6%A0%87%E7%BD%91%E7%BB%9C/"/>
     
@@ -489,36 +516,6 @@
     
     
     <category term="概念" scheme="https://www.keychan.xyz/tags/%E6%A6%82%E5%BF%B5/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>U²-Net显著性目标检测</title>
-    <link href="https://www.keychan.xyz/2025/06/04/018-u2net-saliency-detection/"/>
-    <id>https://www.keychan.xyz/2025/06/04/018-u2net-saliency-detection/</id>
-    <published>2025-06-04T09:01:12.000Z</published>
-    <updated>2025-09-21T12:04:48.539Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-U²-Net介绍与应用&quot;&gt;&lt;a href=&quot;#1-U²-Net介绍与应用&quot; class=&quot;headerlink&quot; title=&quot;1.U²-Net介绍与应用&quot;&gt;&lt;/a&gt;1.U²-Net介绍与应用&lt;/h2&gt;&lt;p&gt;在 &lt;a href=&quot;https://keychankc.github.io/2025/05/19/016-image-segmentation-u-net/&quot;&gt;图像分割与U-Net系列模型解析&lt;/a&gt; 和 &lt;a href=&quot;https://keychankc.github.io/2025/05/27/017-unet-cell-segmentation/&quot;&gt;基于U-Net++的细胞分割代码实现&lt;/a&gt; 中提到了U-Net系列网络模型，而 &lt;a href=&quot;https://github.com/xuebinqin/U-2-Net&quot;&gt;U²-Net&lt;/a&gt; 虽然是一个U-Net的变体版本，原本用于显著性检测任务，但由于其优异的前景提取能力，逐渐被广泛用于抠图、图像编辑、人像分割等任务中。&lt;/p&gt;
-&lt;h3 id=&quot;1-U²-Net-概述&quot;&gt;&lt;a href=&quot;#1-U²-Net-概述&quot; class=&quot;headerlink&quot; title=&quot;1.U²-Net 概述&quot;&gt;&lt;/a&gt;1.U²-Net 概述&lt;/h3&gt;&lt;p&gt;U²-Net 属于“显著性检测”任务中的网络结构，其核心目标是从图像中识别出前景区域，即显著目标（Salient Object Detection, SOD）。从任务定义来看，它本质上和语义分割非常接近，将图像划分为前景和背景，只是语义标签通常只有两类。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
-    
-    
-    <category term="Python" scheme="https://www.keychan.xyz/tags/Python/"/>
-    
-    <category term="PyTorch" scheme="https://www.keychan.xyz/tags/PyTorch/"/>
-    
-    <category term="计算机视觉" scheme="https://www.keychan.xyz/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
-    
-    <category term="目标分割" scheme="https://www.keychan.xyz/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/"/>
-    
-    <category term="U2Net" scheme="https://www.keychan.xyz/tags/U2Net/"/>
-    
-    <category term="显著性检测" scheme="https://www.keychan.xyz/tags/%E6%98%BE%E8%91%97%E6%80%A7%E6%A3%80%E6%B5%8B/"/>
     
   </entry>
   

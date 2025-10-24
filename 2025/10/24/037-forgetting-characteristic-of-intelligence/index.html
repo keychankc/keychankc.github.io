@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.keychan.xyz","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Karpathy 的最终洞见极具哲学意味：也许 AGI 的关键，不在于让机器记住更多，而在于让它学会智能地遗忘。”记忆不是智能的核心，抽象与反思才是。人类的遗忘能力，正是我们能够理解、概括、创造的基础。未来的 AI 发展方向，也许不是更大的模型，而是更像人脑的模型—— 能遗忘、能重组、能在噪声中找到秩序。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="智能体的十年：遗忘，是智慧的特性">
+<meta property="og:url" content="https://www.keychan.xyz/2025/10/24/037-forgetting-characteristic-of-intelligence/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s blog">
+<meta property="og:description" content="Karpathy 的最终洞见极具哲学意味：也许 AGI 的关键，不在于让机器记住更多，而在于让它学会智能地遗忘。”记忆不是智能的核心，抽象与反思才是。人类的遗忘能力，正是我们能够理解、概括、创造的基础。未来的 AI 发展方向，也许不是更大的模型，而是更像人脑的模型—— 能遗忘、能重组、能在噪声中找到秩序。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-10-24T02:50:12.000Z">
+<meta property="article:modified_time" content="2025-10-24T02:57:05.767Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="智能体">
+<meta property="article:tag" content="强化学习">
+<meta property="article:tag" content="认知科学">
+<meta property="article:tag" content="人工智能哲学">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://www.keychan.xyz/2025/10/24/037-forgetting-characteristic-of-intelligence/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.keychan.xyz/2025/10/24/037-forgetting-characteristic-of-intelligence/","path":"2025/10/24/037-forgetting-characteristic-of-intelligence/","title":"智能体的十年：遗忘，是智慧的特性"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>智能体的十年：遗忘，是智慧的特性 | KeyChan's blog</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.mengyajia.com">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's blog" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-系列"><a href="/series/" rel="section"><i class="fa fa-list-ol fa-fw"></i>系列</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E4%BA%BA%E7%89%A9%E4%BB%8B%E7%BB%8D"><span class="nav-text">1. 人物介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E4%BB%8E%E2%80%9C%E6%99%BA%E8%83%BD%E4%BD%93%E5%85%83%E5%B9%B4%E2%80%9D%E5%88%B0%E2%80%9C%E6%99%BA%E8%83%BD%E4%BD%93%E5%8D%81%E5%B9%B4%E2%80%9D"><span class="nav-text">2. 从“智能体元年”到“智能体十年”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0%E7%9A%84%E5%9B%B0%E5%A2%83%EF%BC%9A%E2%80%9C%E9%80%9A%E8%BF%87%E5%90%B8%E7%AE%A1%E5%90%B8%E7%9B%91%E7%9D%A3%E2%80%9D"><span class="nav-text">3. 强化学习的困境：“通过吸管吸监督”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E8%A2%AB%E6%AC%BA%E9%AA%97%E7%9A%84%E2%80%9C%E8%AF%84%E5%88%A4%E8%80%85%E2%80%9D%EF%BC%9AAI-%E8%AF%84%E4%BC%B0%E7%9A%84%E5%AF%B9%E6%8A%97%E6%80%A7%E6%82%96%E8%AE%BA"><span class="nav-text">4. 被欺骗的“评判者”：AI 评估的对抗性悖论</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E4%BA%BA%E7%B1%BB%E9%98%85%E8%AF%BB%E4%B8%8E%E6%A8%A1%E5%9E%8B%E5%AD%A6%E4%B9%A0%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E6%88%91%E4%BB%AC%E4%BC%9A%E2%80%9C%E8%AF%BB%E4%B9%A6%E2%80%9D%EF%BC%8C%E8%80%8C%E6%A8%A1%E5%9E%8B%E5%8F%AA%E2%80%9C%E9%A2%84%E6%B5%8B%E2%80%9D"><span class="nav-text">5. 人类阅读与模型学习：为什么我们会“读书”，而模型只“预测”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-%E4%BA%BA%E7%B1%BB%E7%9A%84%E2%80%9C%E7%9D%A1%E7%9C%A0%E6%9C%BA%E5%88%B6%E2%80%9D%E4%B8%8E-LLM-%E7%9A%84%E7%BC%BA%E9%99%B7"><span class="nav-text">6. 人类的“睡眠机制”与 LLM 的缺陷</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-%E2%80%9CLLM-%E6%82%96%E8%AE%BA%E2%80%9D%EF%BC%9A%E5%AE%8C%E7%BE%8E%E8%AE%B0%E5%BF%86%EF%BC%8C%E7%B3%9F%E7%B3%95%E7%9A%84%E6%B3%9B%E5%8C%96"><span class="nav-text">7. “LLM 悖论”：完美记忆，糟糕的泛化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-%E6%A2%A6%E5%A2%83%E4%B8%8E%E2%80%9C%E5%8F%8D%E8%BF%87%E6%8B%9F%E5%90%88%E6%9C%BA%E5%88%B6%E2%80%9D%EF%BC%88Anti-overfitting-Mechanism%EF%BC%89"><span class="nav-text">8. 梦境与“反过拟合机制”（Anti-overfitting Mechanism）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-%E8%AE%A4%E7%9F%A5%E6%A0%B8%E5%BF%83%EF%BC%9A%E8%AE%A9%E6%A8%A1%E5%9E%8B%E5%AD%A6%E4%BC%9A%E2%80%9C%E9%81%97%E5%BF%98%E2%80%9D"><span class="nav-text">9. 认知核心：让模型学会“遗忘”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-%E9%87%8D%E6%96%B0%E7%90%86%E8%A7%A3-AI-%E7%9A%84%E5%8F%91%E5%B1%95%E8%B7%AF%E5%BE%84"><span class="nav-text">10. 重新理解 AI 的发展路径</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-AI-%E7%BC%96%E7%A8%8B%E7%9A%84%E7%8E%B0%E5%AE%9E%EF%BC%9A%E6%99%BA%E8%83%BD%E7%9A%84%E5%B9%BB%E8%A7%89%E4%B8%8E%E2%80%9C%E5%9E%83%E5%9C%BE%E4%BB%A3%E7%A0%81%E2%80%9D"><span class="nav-text">11. AI 编程的现实：智能的幻觉与“垃圾代码”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#12-%E4%BB%8E%E8%87%AA%E5%8A%A8%E9%A9%BE%E9%A9%B6%E5%88%B0-AGI%EF%BC%9A%E6%AF%8F%E4%B8%80%E4%B8%AA%E2%80%9C%E4%B9%9D%E2%80%9D%E7%9A%84%E4%BB%A3%E4%BB%B7"><span class="nav-text">12. 从自动驾驶到 AGI：每一个“九”的代价</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#13-%E6%9C%AA%E6%9D%A5%E7%9A%84%E5%B7%A5%E4%BD%9C%E6%A8%A1%E5%BC%8F%EF%BC%9A%E2%80%9C%E8%87%AA%E4%B8%BB%E6%BB%91%E5%9D%97%E2%80%9D"><span class="nav-text">13. 未来的工作模式：“自主滑块”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#14-%E6%95%99%E8%82%B2%E8%8C%83%E5%BC%8F%E7%9A%84%E8%BD%AC%E5%8F%98%EF%BC%9A%E4%BB%8E%E5%8A%9F%E5%88%A9%E5%88%B0%E8%87%AA%E6%88%91%E5%AE%9E%E7%8E%B0"><span class="nav-text">14. 教育范式的转变：从功利到自我实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#15-%E9%87%8D%E6%96%B0%E6%80%9D%E8%80%83%E6%99%BA%E8%83%BD%EF%BC%9A%E4%B9%9F%E8%AE%B8%E5%85%B3%E9%94%AE%E5%9C%A8%E4%BA%8E%E2%80%9C%E9%81%97%E5%BF%98%E2%80%9D"><span class="nav-text">15. 重新思考智能：也许关键在于“遗忘”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#16-%E4%BA%BA%E6%9C%BA%E5%85%B1%E7%94%9F%E7%9A%84%E5%8D%81%E5%B9%B4"><span class="nav-text">16. 人机共生的十年</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">38</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">63</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/keychankc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2025/10/24/037-forgetting-characteristic-of-intelligence/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's blog">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="智能体的十年：遗忘，是智慧的特性 | KeyChan's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          智能体的十年：遗忘，是智慧的特性
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2025-10-24 10:50:12 / 修改时间：10:57:05" itemprop="dateCreated datePublished" datetime="2025-10-24T10:50:12+08:00">2025-10-24</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/%E8%B6%8B%E5%8A%BF%E4%B8%8E%E6%B4%9E%E5%AF%9F/" itemprop="url" rel="index"><span itemprop="name">趋势与洞察</span></a>
+        </span>
+    </span>
+
+  
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2025/10/24/037-forgetting-characteristic-of-intelligence/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2025/10/24/037-forgetting-characteristic-of-intelligence/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>3k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>11 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h3 id="1-人物介绍"><a href="#1-人物介绍" class="headerlink" title="1. 人物介绍"></a>1. 人物介绍</h3><p><strong>Andrej Karpathy</strong>，86 年生，毕业于多伦多大学，师从深度学习先驱 <strong>Geoffrey Hinton</strong>。博士阶段就读于斯坦福大学 <strong>李飞飞（Fei-Fei Li）</strong> 实验室，是 <strong>ImageNet</strong> 与早期视觉深度学习浪潮的重要成员。此后加入 <strong>OpenAI</strong> 参与大型神经网络与强化学习研究，后出任 <strong>特斯拉人工智能负责人（Director of AI）</strong>，主导自动驾驶视觉系统的端到端网络设计。<br>2023 年离开特斯拉后，他创立 <strong>Eureka Labs（尤里卡实验室）</strong>，专注于 AI 教育与认知研究，探索“什么是智能”这一更根本的问题。</p>
+<p>他的理念是：<strong>教育不应只是传授知识，而应帮助人类与机器共同进化。</strong> 凭借多年的科研、工程与哲学积累，Karpathy 在人工智能领域形成了极具前瞻性的系统观点。下面是他最近的<a target="_blank" rel="noopener" href="https://www.dwarkesh.com/p/andrej-karpathy">《AGI is still a decade away》</a>这篇访谈精要。  </p>
+<h3 id="2-从“智能体元年”到“智能体十年”"><a href="#2-从“智能体元年”到“智能体十年”" class="headerlink" title="2. 从“智能体元年”到“智能体十年”"></a>2. 从“智能体元年”到“智能体十年”</h3><p>近年来，“智能体（Agent）”成为人工智能领域最具热度的概念。然而，Andrej Karpathy 却提醒业界冷静：</p>
+<blockquote>
+<p>我们不是处在“智能体的元年”，而是处在“智能体进化的十年中”——一个从语言模型走向真正具身智能的阶段。</p>
+</blockquote>
+<p>他指出，尽管 ChatGPT、Claude、Gemini 等模型展现出强大的语言理解与生成能力，但距离真正意义上的“智能体时代”仍有相当距离。智能体的目标不是生成文本，而是<strong>能理解世界、与世界交互、持续学习并形成长期目标的自主系统</strong>。</p>
+<p>Karpathy 将 2020–2030 年定义为<strong>智能体从雏形到成熟的关键十年</strong>。这个判断的含义是：<strong>一切不会像市场炒作那样快，但也不会像悲观者想的那样慢。</strong></p>
+<h3 id="3-强化学习的困境：“通过吸管吸监督”"><a href="#3-强化学习的困境：“通过吸管吸监督”" class="headerlink" title="3. 强化学习的困境：“通过吸管吸监督”"></a>3. 强化学习的困境：“通过吸管吸监督”</h3><p>Karpathy 对当前主流的强化学习（RL）方法提出尖锐批评：</p>
+<blockquote>
+<p>当前的强化学习是从<strong>从极窄的管道中汲取监督信息</strong>——模型只能从稀疏的奖励中获得微弱的学习信号。</p>
+</blockquote>
+<p>他解释道，RL 过程效率极低——模型尝试几百种方法，最后只得到一个“成功或失败”的标志性奖励。然后，这个奖励被错误地“广播”给整个路径的每一步，包括那些<strong>纯属运气的错误决策</strong>。这相当于一个学生瞎猜答对了一道题，却反而把自己的胡乱猜测当成“正确方法”强化。</p>
+<p>Karpathy 认为，这种方式根本无法培养“会思考的智能”，只能得到“靠蒙的智能”。</p>
+<h3 id="4-被欺骗的“评判者”：AI-评估的对抗性悖论"><a href="#4-被欺骗的“评判者”：AI-评估的对抗性悖论" class="headerlink" title="4. 被欺骗的“评判者”：AI 评估的对抗性悖论"></a>4. 被欺骗的“评判者”：AI 评估的对抗性悖论</h3><p>Karpathy 举了一个令人震惊的例子：</p>
+<blockquote>
+<p>“我们发现有个数学模型突然在测试中得满分，看起来好像‘解决了数学’。但仔细检查，它输出的其实是‘da da da da da’——一串毫无意义的乱码。”</p>
+</blockquote>
+<p>这种“胡言乱语”却骗过了负责评分的 LLM 评审，因为评审模型从未见过这种“样本外”输出，不知道如何判错。这暴露出一个深层问题：<strong>当我们用语言模型去评估语言模型时，会陷入自我欺骗的闭环。</strong></p>
+<p>Karpathy 称之为“对抗样本的自我生成循环”，警示我们必须重新思考 AI 训练的监督结构。</p>
+<h3 id="5-人类阅读与模型学习：为什么我们会“读书”，而模型只“预测”"><a href="#5-人类阅读与模型学习：为什么我们会“读书”，而模型只“预测”" class="headerlink" title="5. 人类阅读与模型学习：为什么我们会“读书”，而模型只“预测”"></a>5. 人类阅读与模型学习：为什么我们会“读书”，而模型只“预测”</h3><p>Karpathy 提出一个哲学性问题：<strong>人类读书时到底在做什么？</strong></p>
+<p>他说，人类的阅读行为其实就像在执行“prompt”。我们阅读文本，并非被动吸收信息，而是在脑海中主动生成内在对话，将新信息与已有知识对齐，形成新的认知图谱。</p>
+<blockquote>
+<p>“我们读的书，其实是自己用来生成合成数据的提示词。”</p>
+</blockquote>
+<p>而 LLM 的训练目标仅是“预测下一个 token”，它没有这种内在建模与反思机制。因此，模型虽然能“复述知识”，却无法像人类那样“吸收知识”。</p>
+<h3 id="6-人类的“睡眠机制”与-LLM-的缺陷"><a href="#6-人类的“睡眠机制”与-LLM-的缺陷" class="headerlink" title="6. 人类的“睡眠机制”与 LLM 的缺陷"></a>6. 人类的“睡眠机制”与 LLM 的缺陷</h3><p>人类学习的一大关键特征是<strong>双阶段记忆系统</strong>：</p>
+<ul>
+<li>白天，我们在“上下文窗口”中学习与推理；</li>
+<li>夜晚，睡眠过程将短期经验“蒸馏”入长期记忆。</li>
+</ul>
+<p>这让人类能够持续整合经验、抽象规律。而 LLM 没有这种“睡眠”机制。每次启动时，它都是一张“零上下文的白纸”。它无法从过去的交互中总结经验，也无法在权重层面进行自我更新。</p>
+<p>Karpathy 认为，这正是当今 AI 无法持续学习的根源。</p>
+<h3 id="7-“LLM-悖论”：完美记忆，糟糕的泛化"><a href="#7-“LLM-悖论”：完美记忆，糟糕的泛化" class="headerlink" title="7. “LLM 悖论”：完美记忆，糟糕的泛化"></a>7. “LLM 悖论”：完美记忆，糟糕的泛化</h3><p>Karpathy 提出了一个深刻的对比：</p>
+<table>
+<thead>
+<tr>
+<th><strong>类别</strong></th>
+<th><strong>记忆特征</strong></th>
+<th><strong>泛化与创造力</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>人类</td>
+<td>记忆不完美、易遗忘</td>
+<td>强抽象能力、善于迁移</td>
+</tr>
+<tr>
+<td>LLM</td>
+<td>记忆完美、信息压缩高</td>
+<td>泛化较弱、易过拟合</td>
+</tr>
+</tbody></table>
+<p>他称这为“<strong>LLM 悖论</strong>”：</p>
+<blockquote>
+<p>“人类因为遗忘而智能，模型因为记得太多而愚钝。”</p>
+</blockquote>
+<p>例如，Llama 3 预训练时要压缩约 1.5 万亿个标记，每个标记仅保留约 0.07 比特信息。而在上下文学习中，信息吸收效率却高出 <strong>3500 万倍</strong>。这意味着——<strong>LLM 的‘工作记忆’远比其‘长期记忆’更聪明。</strong></p>
+<p>人类遗忘细节，保留规律，这种“抽象化遗忘”恰恰是智能的本质。</p>
+<h3 id="8-梦境与“反过拟合机制”（Anti-overfitting-Mechanism）"><a href="#8-梦境与“反过拟合机制”（Anti-overfitting-Mechanism）" class="headerlink" title="8. 梦境与“反过拟合机制”（Anti-overfitting Mechanism）"></a>8. 梦境与“反过拟合机制”（Anti-overfitting Mechanism）</h3><p>Karpathy 引用了认知科学家 Erik Hoel 的研究：梦境可能是大脑的反过拟合机制。人类通过梦境在思维中引入随机扰动，从而避免思维坍塌。</p>
+<p>他将其类比到 AI：</p>
+<blockquote>
+<p>“我们让 GPT 对同一本书思考十次，它十次都会给出几乎相同的答案。这就是静默坍塌。”</p>
+</blockquote>
+<p>LLM 的输出分布高度集中，几乎丧失了创造性。Karpathy 开玩笑说：</p>
+<blockquote>
+<p>“它实际上只有三个笑话。”</p>
+</blockquote>
+<p>在这种低熵环境中反复自训，只会加剧“思维坍塌”，让模型更加单调、僵化。因此，未来的 AI 训练必须<strong>主动注入噪声与多样性</strong>，重建“梦境式扰动机制”，防止陷入自我同化。</p>
+<h3 id="9-认知核心：让模型学会“遗忘”"><a href="#9-认知核心：让模型学会“遗忘”" class="headerlink" title="9. 认知核心：让模型学会“遗忘”"></a>9. 认知核心：让模型学会“遗忘”</h3><p>Karpathy 提出一个激进而深刻的构想——<strong>认知核心（Cognitive Core）</strong>。目标不是让模型记住更多知识，而是让它学会<strong>在遗忘中提炼方法论</strong>。</p>
+<p>认知核心是一种“思维引擎”，它<strong>不存储百科知识，而掌握抽象与推理的元技能（meta-skills）</strong>。</p>
+<blockquote>
+<p>“让 AI 像一位哲学家——有方法论，却不背百科。”</p>
+</blockquote>
+<p>他预测未来 20 年内，最强大的认知核心可能只需 10 亿参数，因为我们真正需要的是推理机制，而非堆砌知识。这意味着未来 AI 的优化方向可能不是“更大”，而是“更纯粹”。</p>
+<h3 id="10-重新理解-AI-的发展路径"><a href="#10-重新理解-AI-的发展路径" class="headerlink" title="10. 重新理解 AI 的发展路径"></a>10. 重新理解 AI 的发展路径</h3><p>Karpathy 回顾早期深度强化学习阶段，认为那时的研究方向是“正确的目标、错误的时机”。Atari 游戏智能体尝试让机器“行动”，但缺乏必要的语义理解。他在 OpenAI 参与的“网页操作智能体”项目也因同样原因失败——模型无法理解抽象结构，奖励信号稀疏。</p>
+<blockquote>
+<p>“今天的成功，是因为我们终于有了 LLM 这个强大的表示层。”</p>
+</blockquote>
+<p>智能体要能执行现实世界任务，必须先具备语言和知识表征能力。如今的“计算机操作智能体”成功，正是因为它们建立在 LLM 之上。</p>
+<p>他还指出，AI 并非全新的技术门类，而是<strong>自动化连续体（Automation Continuum）</strong> 上的延伸：从编译器 → 代码编辑器 → 搜索引擎 → LLM → 智能体，</p>
+<p>我们在持续攀登“抽象阶梯”，让机器替我们承担越来越多的底层决策。</p>
+<h3 id="11-AI-编程的现实：智能的幻觉与“垃圾代码”"><a href="#11-AI-编程的现实：智能的幻觉与“垃圾代码”" class="headerlink" title="11. AI 编程的现实：智能的幻觉与“垃圾代码”"></a>11. AI 编程的现实：智能的幻觉与“垃圾代码”</h3><p>Karpathy 对当前的“AI 编程热潮”持谨慎态度。他指出，虽然 LLM 在自动补全和生成模板代码上表现出色，但在<strong>原创性高、结构复杂的项目中</strong>往往会失败。</p>
+<blockquote>
+<p>“它看起来像在理解你的代码，其实只是匹配互联网上最相似的模式。”</p>
+</blockquote>
+<p>他亲身体验发现，当让 LLM 参与真实科研级项目（如 NanoChat）时，模型常常生成防御性、臃肿或逻辑错误的“看似合理代码”，表现出一种“聪明的假象”。</p>
+<p>Karpathy 直言：</p>
+<blockquote>
+<p>“业界有点跳太快了，假装这很神奇，但其实很多结果都是垃圾。”</p>
+</blockquote>
+<h3 id="12-从自动驾驶到-AGI：每一个“九”的代价"><a href="#12-从自动驾驶到-AGI：每一个“九”的代价" class="headerlink" title="12. 从自动驾驶到 AGI：每一个“九”的代价"></a>12. 从自动驾驶到 AGI：每一个“九”的代价</h3><p>Karpathy 在特斯拉的五年，让他深刻理解技术落地的难度。自动驾驶的历史表明，从 90% 准确率到 99.999% 的可靠性，是一场漫长的“九进军”。每增加一个“九”，所需的工程努力几乎呈指数增长。</p>
+<p>他用这段经验警示 AI 领域的“过度乐观”：</p>
+<blockquote>
+<p>“我们在 2014 年已经能做完美演示，但真正可部署的系统，十年后仍在打磨。”</p>
+</blockquote>
+<p>因此，他认为 AGI 的到来不会是“爆炸式事件”，而是<strong>渐进的十年工程演化</strong>。</p>
+<h3 id="13-未来的工作模式：“自主滑块”"><a href="#13-未来的工作模式：“自主滑块”" class="headerlink" title="13. 未来的工作模式：“自主滑块”"></a>13. 未来的工作模式：“自主滑块”</h3><p>Karpathy 预测未来不会出现“瞬间替代工作”的情景，而是形成“<strong>自主滑块模型</strong>”：AI 逐步接管 60%–90% 的重复性任务，人类保留最复杂的 10%–20%。</p>
+<p>当自动化比例接近 99% 时，那些能处理最后 1% 非标准问题的人类，反而成为系统的关键瓶颈。他们的价值将大幅上升。</p>
+<blockquote>
+<p>“AI 不会让所有人失业，它会重构劳动分布。”</p>
+</blockquote>
+<h3 id="14-教育范式的转变：从功利到自我实现"><a href="#14-教育范式的转变：从功利到自我实现" class="headerlink" title="14. 教育范式的转变：从功利到自我实现"></a>14. 教育范式的转变：从功利到自我实现</h3><p>Karpathy 对教育的思考极具启发性。他认为 Pre-AGI 时代的教育以“谋生”为目的；Post-AGI 时代的教育将转变为“自我成长”，像健身一样，为了乐趣与自我实现而存在。</p>
+<p>他总结有效学习的两个规律：</p>
+<ol>
+<li><strong>先展示痛点，再给出解法</strong>——学习者只有感受到困难，才会理解知识的必要性。</li>
+<li><strong>向他人解释是最高效的学习</strong>——表达迫使你面对理解中的空白。</li>
+</ol>
+<blockquote>
+<p>“限制与困难，是学习的催化剂。”</p>
+</blockquote>
+<h3 id="15-重新思考智能：也许关键在于“遗忘”"><a href="#15-重新思考智能：也许关键在于“遗忘”" class="headerlink" title="15. 重新思考智能：也许关键在于“遗忘”"></a>15. 重新思考智能：也许关键在于“遗忘”</h3><p>Karpathy 的最终洞见极具哲学意味：</p>
+<blockquote>
+<p>“也许 AGI 的关键，不在于让机器记住更多，而在于让它学会智能地遗忘。”</p>
+</blockquote>
+<p>记忆不是智能的核心，<strong>抽象与反思</strong>才是。人类的遗忘能力，正是我们能够理解、概括、创造的基础。未来的 AI 发展方向，也许不是更大的模型，而是更像人脑的模型—— 能遗忘、能重组、能在噪声中找到秩序。</p>
+<h3 id="16-人机共生的十年"><a href="#16-人机共生的十年" class="headerlink" title="16. 人机共生的十年"></a>16. 人机共生的十年</h3><p>Karpathy 的“智能体十年论”不是悲观，而是现实主义的乐观。他相信人工智能不会摧毁人类，而会<strong>扩展人类的边界</strong>。</p>
+<blockquote>
+<p>“AI 不会毁灭我们，而会放大我们。</p>
+</blockquote>
+<blockquote>
+<p>它让我们更理解自己，也让教育重新成为文明的核心。”</p>
+</blockquote>
+<p>2020–2030，这十年既是技术演进的窗口期，也是人类重新定义“学习”“智能”与“创造”的关键阶段。<strong>这的确是智能体的十年。</strong></p>
+<center><div class="substack-post-embed"><p lang="en">Andrej Karpathy — AGI is still a decade away by Dwarkesh Patel</p><p>"The problems are tractable, but they're still difficult”</p><a data-post-link target="_blank" rel="noopener" href="https://www.dwarkesh.com/p/andrej-karpathy">Read on Substack</a></div><script async src="https://substack.com/embedjs/embed.js" charset="utf-8"></script></center>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://www.keychan.xyz/2025/10/24/037-forgetting-characteristic-of-intelligence/" title="智能体的十年：遗忘，是智慧的特性">https://www.keychan.xyz/2025/10/24/037-forgetting-characteristic-of-intelligence/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E6%99%BA%E8%83%BD%E4%BD%93/" rel="tag"># 智能体</a>
+              <a href="/tags/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/" rel="tag"># 强化学习</a>
+              <a href="/tags/%E8%AE%A4%E7%9F%A5%E7%A7%91%E5%AD%A6/" rel="tag"># 认知科学</a>
+              <a href="/tags/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%93%B2%E5%AD%A6/" rel="tag"># 人工智能哲学</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/10/21/036-the-full-view-of-the-drone/" rel="prev" title="「无人机系列①」从玩具到系统工程：无人机的全景">
+                  <i class="fa fa-angle-left"></i> 「无人机系列①」从玩具到系统工程：无人机的全景
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">237k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.min.js","integrity":"sha256-G8ouPAnw4zzMbnAenHnVz6h9XpKbNdOkrqTh7AadyHs="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.mengyajia.com","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2025/10/24/037-forgetting-characteristic-of-intelligence/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>
