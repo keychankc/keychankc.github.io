@@ -6,7 +6,7 @@
   <link href="https://www.keychan.xyz/atom.xml" rel="self"/>
   
   <link href="https://www.keychan.xyz/"/>
-  <updated>2025-10-28T13:16:58.026Z</updated>
+  <updated>2025-11-01T12:13:28.067Z</updated>
   <id>https://www.keychan.xyz/</id>
   
   <author>
@@ -15,6 +15,31 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>深度学习的底层逻辑：从函数逼近到智能涌现</title>
+    <link href="https://www.keychan.xyz/2025/11/01/039-underlying-logic-of-deep-learning/"/>
+    <id>https://www.keychan.xyz/2025/11/01/039-underlying-logic-of-deep-learning/</id>
+    <published>2025-11-01T09:50:12.000Z</published>
+    <updated>2025-11-01T12:13:28.067Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-什么是深度学习？——从函数到映射的思想&quot;&gt;&lt;a href=&quot;#1-什么是深度学习？——从函数到映射的思想&quot; class=&quot;headerlink&quot; title=&quot;1. 什么是深度学习？——从函数到映射的思想&quot;&gt;&lt;/a&gt;1. 什么是深度学习？——从函数到映射的思想&lt;/h2&gt;&lt;p&gt;在讨论深度学习的“智能”之前，我们必须回答一个更基础的问题——&lt;strong&gt;深度学习到底在学什么？&lt;/strong&gt; 它究竟是神经元的堆叠，还是某种数据结构？为什么看似简单的线性代数运算，能孕育出近似人类思维的能力？&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="梯度下降" scheme="https://www.keychan.xyz/tags/%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D/"/>
+    
+    <category term="函数逼近" scheme="https://www.keychan.xyz/tags/%E5%87%BD%E6%95%B0%E9%80%BC%E8%BF%91/"/>
+    
+    <category term="泛化能力" scheme="https://www.keychan.xyz/tags/%E6%B3%9B%E5%8C%96%E8%83%BD%E5%8A%9B/"/>
+    
+    <category term="智能涌现" scheme="https://www.keychan.xyz/tags/%E6%99%BA%E8%83%BD%E6%B6%8C%E7%8E%B0/"/>
+    
+  </entry>
   
   <entry>
     <title>「无人机系列②」天上飞的力学：空气动力与结构设计</title>
@@ -187,11 +212,11 @@
     
     <category term="状态管理" scheme="https://www.keychan.xyz/tags/%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86/"/>
     
-    <category term="依赖注入" scheme="https://www.keychan.xyz/tags/%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5/"/>
-    
     <category term="路由" scheme="https://www.keychan.xyz/tags/%E8%B7%AF%E7%94%B1/"/>
     
     <category term="模块化" scheme="https://www.keychan.xyz/tags/%E6%A8%A1%E5%9D%97%E5%8C%96/"/>
+    
+    <category term="依赖注入" scheme="https://www.keychan.xyz/tags/%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5/"/>
     
   </entry>
   
@@ -479,34 +504,6 @@
     
     <summary type="html">&lt;h2 id=&quot;1-Pascal-VOC-2012&quot;&gt;&lt;a href=&quot;#1-Pascal-VOC-2012&quot; class=&quot;headerlink&quot; title=&quot;1.Pascal VOC 2012&quot;&gt;&lt;/a&gt;1.Pascal VOC 2012&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;http://host.robots.ox.ac.uk/pascal/VOC/voc2012/&quot;&gt;Pascal VOC (Visual Object Classes) 2012&lt;/a&gt; 数据集是计算机视觉领域具有里程碑意义的公开基准数据集，以其全面性、高质量标注和在众多任务上的广泛应用而著称，被广泛用于模型训练、评估与比较研究，尤其作为图像分类、目标检测和语义分割等核心任务的经典基准。&lt;/p&gt;
 &lt;h3 id=&quot;1-核心特性：多任务基准&quot;&gt;&lt;a href=&quot;#1-核心特性：多任务基准&quot; class=&quot;headerlink&quot; title=&quot;1. 核心特性：多任务基准&quot;&gt;&lt;/a&gt;1. 核心特性：多任务基准&lt;/h3&gt;&lt;p&gt;Pascal VOC 2012 的核心价值在于其&lt;strong&gt;多任务性&lt;/strong&gt;。它并非针对单一任务设计，而是为多种计算机视觉任务提供了丰富且一致的标注：&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
-    
-    
-    <category term="Python" scheme="https://www.keychan.xyz/tags/Python/"/>
-    
-    <category term="PyTorch" scheme="https://www.keychan.xyz/tags/PyTorch/"/>
-    
-    <category term="计算机视觉" scheme="https://www.keychan.xyz/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
-    
-    <category term="目标分割" scheme="https://www.keychan.xyz/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/"/>
-    
-    <category term="DeepLab" scheme="https://www.keychan.xyz/tags/DeepLab/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>图像分割DeepLab系列算法思路分析</title>
-    <link href="https://www.keychan.xyz/2025/06/10/019-deeplab-series/"/>
-    <id>https://www.keychan.xyz/2025/06/10/019-deeplab-series/</id>
-    <published>2025-06-10T08:01:12.000Z</published>
-    <updated>2025-09-21T12:04:48.539Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-DeepLab概述&quot;&gt;&lt;a href=&quot;#1-DeepLab概述&quot; class=&quot;headerlink&quot; title=&quot;1.DeepLab概述&quot;&gt;&lt;/a&gt;1.DeepLab概述&lt;/h2&gt;&lt;p&gt;DeepLab是由谷歌提出的专用于&lt;strong&gt;语义分割&lt;/strong&gt;任务的系列模型，核心目标是为图像中的&lt;strong&gt;每个像素分配一个语义类别标签&lt;/strong&gt;​。它在图像分割领域有很不错效果，曾在PASCAL VOC-2012数据集上达到当时最高水平（mIOU 79.7%） ，并在Cityscapes、PASCAL-Context等数据集上广泛使用。DeepLab的优势在于能够在保持高精度的同时还能结合上下文信息，对物体边界进行精确定位。&lt;/p&gt;
-&lt;h3 id=&quot;1-U-Net-与-DeepLab&quot;&gt;&lt;a href=&quot;#1-U-Net-与-DeepLab&quot; class=&quot;headerlink&quot; title=&quot;1.U-Net 与 DeepLab&quot;&gt;&lt;/a&gt;1.U-Net 与 DeepLab&lt;/h3&gt;&lt;p&gt;同样是做分割任务&lt;strong&gt;U-Net&lt;/strong&gt;和&lt;strong&gt;DeepLab&lt;/strong&gt;有啥区别呢？&lt;br&gt;&lt;strong&gt;U-Net&lt;/strong&gt;更适合在生物医学图像分割（细胞、器官、病变区域等）、小目标分割、需要精确边界轮廓的应用，其优势边界分割极其精细、在&lt;strong&gt;小样本数据集&lt;/strong&gt;​（尤其是医学影像）上表现卓越、架构相对也简单清晰、易于实现和改进。&lt;/p&gt;</summary>
     
     
     
