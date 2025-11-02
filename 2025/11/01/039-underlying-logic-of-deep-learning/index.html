@@ -44,7 +44,7 @@
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/d4aDIh.png">
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/1LimVr.png">
 <meta property="article:published_time" content="2025-11-01T09:50:12.000Z">
-<meta property="article:modified_time" content="2025-11-01T12:13:28.067Z">
+<meta property="article:modified_time" content="2025-11-02T02:24:25.962Z">
 <meta property="article:author" content="KeyChan">
 <meta property="article:tag" content="梯度下降">
 <meta property="article:tag" content="函数逼近">
@@ -255,9 +255,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2025-11-01 17:50:12 / 修改时间：20:13:28" itemprop="dateCreated datePublished" datetime="2025-11-01T17:50:12+08:00">2025-11-01</time>
+      <time title="创建时间：2025-11-01 17:50:12" itemprop="dateCreated datePublished" datetime="2025-11-01T17:50:12+08:00">2025-11-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-11-02 10:24:25" itemprop="dateModified" datetime="2025-11-02T10:24:25+08:00">2025-11-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -290,14 +296,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>14k</span>
+      <span>15k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>52 分钟</span>
+      <span>53 分钟</span>
     </span>
 </div>
 
@@ -326,7 +332,10 @@
 <p>只要激活函数是非线性的（如 Sigmoid、ReLU），并且具有一个隐藏层的前馈神经网络，就能以任意精度逼近任意连续函数。</p>
 </blockquote>
 <p>这一结果在理论上奠定了深度学习的基础：神经网络不是“特殊的分类器”，而是一个<strong>通用的函数逼近机器</strong>。它不局限于特定任务，而可以通过调整参数去拟合任何数据分布。我们可以通过一个简单的例子来直观感受这一点。假设我们希望模型学习函数 $y &#x3D; \sin(x)$。线性模型（如线性回归）在这里无能为力，因为它只能表达一条直线；而一个包含非线性激活的两层神经网络，通过迭代优化权重，就能逐步逼近整个正弦波。</p>
-<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/otZuE2.png" alt="otZuE2"><br>如上图所示，线性模型的预测曲线只能沿某个方向上升或下降，而神经网络的拟合曲线则能在训练过程中不断弯曲、调整，最终与真实的 $\sin(x)$ 几乎重合——这正是“函数逼近”能力的体现。</p>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/otZuE2.png" alt="otZuE2"></p>
+<center>图1.1 线性 vs 非线性：对 sin(x) 的拟合对比</center>
+
+<p>线性模型的预测曲线只能沿某个方向上升或下降，而神经网络的拟合曲线则能在训练过程中不断弯曲、调整，最终与真实的 $\sin(x)$ 几乎重合——这正是“函数逼近”能力的体现。</p>
 <h3 id="1-4-从线性到非线性：深度学习的跃迁"><a href="#1-4-从线性到非线性：深度学习的跃迁" class="headerlink" title="1.4 从线性到非线性：深度学习的跃迁"></a>1.4 从线性到非线性：深度学习的跃迁</h3><p>理解“通用逼近”后，我们自然会问：如果浅层网络已经能逼近任意函数，为什么还要“深度”？</p>
 <p>原因在于——<strong>深度结构带来了表征的分层与复用</strong>。浅层网络虽然理论上可以逼近任意函数，但需要的神经元数量可能是指数级的。而多层网络通过分层组合，可以在相同的参数规模下更高效地表达复杂模式。</p>
 <p>这就像用乐高积木搭建筑：浅层网络相当于每次都要用单个积木拼出复杂形状；而深层网络能复用“模块”——可以先构建门窗、屋顶，再组合成完整房屋。这种分层的函数复合结构，正是“深度学习”区别于一般机器学习方法的关键所在。</p>
@@ -377,7 +386,10 @@
 </tr>
 </tbody></table>
 <p>在二维平面上绘制这四个点后，我们会发现：无法用一条直线同时将输出为 1 的样本（1在对角线上）与输出为 0 的样本（0也在另一对角线上）分开。换句话说——<strong>XOR 是线性不可分的。</strong> 这意味着，任何纯线性模型（无论训练多久）都无法正确学习这一简单逻辑。而加入非线性变换的两层神经网络，仅需几个参数，就能轻松实现完美分类。这正是非线性的力量：<strong>通过空间变换，使不可分问题变得可分。</strong></p>
-<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/PStBd4.png" alt="PStBd4"><br>如上图是 XOR 问题中线性模型与两层神经网络的决策边界对比图，左：线性逻辑回归无法正确划分类别，表现为线性不可分；右：两层 MLP 通过非线性变换实现高维映射，成功分离样本。</p>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/PStBd4.png" alt="PStBd4"></p>
+<center>图2.1 XOR：线性不可分 vs 非线性两层网络</center>
+
+<p>XOR 问题中线性模型与两层神经网络的决策边界对比图，左：线性逻辑回归无法正确划分类别，表现为线性不可分；右：两层 MLP 通过非线性变换实现高维映射，成功分离样本。</p>
 <h3 id="2-3-激活函数：非线性的“魔法开关”"><a href="#2-3-激活函数：非线性的“魔法开关”" class="headerlink" title="2.3 激活函数：非线性的“魔法开关”"></a>2.3 激活函数：非线性的“魔法开关”</h3><p>神经网络之所以能够表达复杂的非线性关系，关键在于<strong>激活函数（Activation Function）</strong>。它的作用，就像在每个神经元后面加上一个“非线性开关”：让网络不再只是线性变换的堆叠，而能成为一个<strong>可塑的非线性函数族</strong>。</p>
 <p><strong>常见激活函数</strong></p>
 <ul>
@@ -387,6 +399,8 @@
 </ul>
 <p>从几何角度看，激活函数的引入让网络在每层都对输入空间进行一次“非线性扭曲”，通过局部线性、全局非线性的方式，使模型能在高维空间中实现灵活的可分性。</p>
 <h3 id="2-4-激活函数的可视化与梯度特性"><a href="#2-4-激活函数的可视化与梯度特性" class="headerlink" title="2.4 激活函数的可视化与梯度特性"></a>2.4 激活函数的可视化与梯度特性</h3><p>下图展示了三种典型激活函数及其梯度曲线，可以直观地比较它们的动态范围与梯度分布：<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/A5oEPh.png" alt="A5oEPh"></p>
+<center>图2.2 常见激活函数曲线 VS 梯度曲线</center>
+
 <h4 id="2-4-1-Sigmoid"><a href="#2-4-1-Sigmoid" class="headerlink" title="2.4.1 Sigmoid"></a>2.4.1 Sigmoid</h4><ul>
 <li><strong>输出特性：</strong> 映射到 $(0,1)$，输出始终为正，导致层间信号分布偏向正区间，出现<strong>非零均值问题</strong>，使权重更新方向不平衡。</li>
 <li><strong>梯度特性：</strong> 最大梯度仅 0.25（在 $x&#x3D;0$ 附近），两端迅速趋于 0，易出现<strong>梯度消失</strong>。</li>
@@ -459,7 +473,10 @@
 </tbody></table>
 <h3 id="2-6-高维嵌入：非线性让复杂问题可分"><a href="#2-6-高维嵌入：非线性让复杂问题可分" class="headerlink" title="2.6 高维嵌入：非线性让复杂问题可分"></a>2.6 高维嵌入：非线性让复杂问题可分</h3><p>非线性函数的深层作用在于：<strong>它能够在高维空间中重新表达数据的结构。</strong> 当原始数据在低维空间（例如二维平面）中无法线性分割时，非线性层可以将其<strong>映射（embedding）</strong> 到更高维的特征空间，使得数据在新空间中变得线性可分。</p>
 <p>这一思想与支持向量机（SVM）中的<strong>核方法（Kernel Methods）</strong> 密切相关。核方法通过一个隐式映射 $\phi(x)$，将输入从原始空间投射到高维特征空间，从而将复杂的非线性决策边界转化为高维空间中的线性超平面。</p>
-<p>然而，深度学习与传统核方法的本质区别在于：深度神经网络中的非线性映射是<strong>可学习的、数据驱动的</strong>。网络能够根据任务目标自动调整每层的非线性函数，逐步构建出适合当前问题的高维表示。这正是“表征学习（Representation Learning）”的核心：非线性不仅让模型具备记忆能力，更赋予它<strong>重组数据几何结构的能力</strong>。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/13L8MF.png" alt="13L8MF"><br>上图展示了非线性映射如何在特征空间中实现线性可分。在左侧的二维输入空间中，蓝色与红色两类样本分别分布在圆形区域的内部与外部，<strong>显然无法用一条直线完成分割。</strong> 若对输入施加非线性变换，例如引入新特征$\phi(x) &#x3D; x_1^2 + x_2^2$，每个样本点便被映射到三维空间的“碗状”曲面上（中图）。此时，原本重叠的两类样本在竖直方向被“拉开”，从而可以通过一个简单的<strong>线性平面</strong>（如 z&#x3D;1 ）实现完美区分（右图）。</p>
+<p>然而，深度学习与传统核方法的本质区别在于：深度神经网络中的非线性映射是<strong>可学习的、数据驱动的</strong>。网络能够根据任务目标自动调整每层的非线性函数，逐步构建出适合当前问题的高维表示。这正是“表征学习（Representation Learning）”的核心：非线性不仅让模型具备记忆能力，更赋予它<strong>重组数据几何结构的能力</strong>。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/13L8MF.png" alt="13L8MF"></p>
+<center>图2.3 线性不可分 → 非线性映射 → 线性可分</center>
+
+<p>上图展示了非线性映射如何在特征空间中实现线性可分。在左侧的二维输入空间中，蓝色与红色两类样本分别分布在圆形区域的内部与外部，<strong>显然无法用一条直线完成分割。</strong> 若对输入施加非线性变换，例如引入新特征$\phi(x) &#x3D; x_1^2 + x_2^2$，每个样本点便被映射到三维空间的“碗状”曲面上（中图）。此时，原本重叠的两类样本在竖直方向被“拉开”，从而可以通过一个简单的<strong>线性平面</strong>（如 z&#x3D;1 ）实现完美区分（右图）。</p>
 <p>这说明：<strong>非线性映射能够在高维空间中，将原本线性不可分的样本转化为线性可分的形式。</strong> 这一原理不仅是 SVM 中“核技巧（Kernel Trick）”的核心思想，也是深度神经网络通过层叠非线性结构实现强大表示能力的理论基础。</p>
 <p><strong>小结：非线性是智能的第一步</strong><br>如果说线性模型描绘的是一个“平面的世界”，那么非线性则让神经网络看见了“多维度世界”。它赋予模型理解复杂关系的能力，使其能够在高维数据结构中捕捉潜藏的规律。</p>
 <p>借助激活函数，网络拥有了<strong>可塑的表达空间</strong>——可以在不同区域学习不同的映射方式，从而在更高维的特征空间中，将原本混杂的样本自然地区分开。这也是深度学习的灵魂所在，正是这一层层非线性的嵌入，让神经网络从单纯的“函数拟合器”，成长为能够<strong>主动发现结构与模式的智能系统</strong>。</p>
@@ -483,7 +500,10 @@
 <li><strong>高层</strong> 则逐步抽象为语义概念，例如“人脸”“猫耳”或“车轮”。</li>
 </ul>
 <p>这种“<strong>从感知到概念</strong>”的层级演化，说明神经网络并非在记忆像素或特征点，而是在自动学习数据的生成规律。每一层的输出不仅是前一层的函数，更是对输入世界的一种<strong>结构化重表达</strong>。 </p>
-<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/epUhYs.png" alt="epUhYs"><br>本图展示了 VGG16 网络第一层卷积的结构与响应特征。</p>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/epUhYs.png" alt="epUhYs"></p>
+<center>图3.1 VGG16 第一层卷积可视化</center>
+
+<p>本图展示了 VGG16 网络第一层卷积的结构与响应特征。</p>
 <ul>
 <li><strong>a图</strong>为输入图像，为合成图，用以激发多样边缘与纹理特征；</li>
 <li><strong>b图</strong>展示了第一层卷积核（前 36 个，预训练权重），可见不同卷积核呈现出方向性、色彩或局部纹理偏好；</li>
@@ -496,7 +516,10 @@
 <blockquote>
 <p>在信息瓶颈的意义上，学习表征的过程本质上就是在信息空间中寻找最优压缩。</p>
 </blockquote>
-<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/0JDhmr.png" alt="0JDhmr"><br>上图展示了“<strong>信息瓶颈（Information Bottleneck）原理</strong>”的示意图，反映了深度神经网络在学习过程中，如何在“压缩输入信息”与“保留任务相关性”之间取得平衡。</p>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/0JDhmr.png" alt="0JDhmr"></p>
+<center>图3.2 信息瓶颈示意图：压缩与拟合的权衡</center>
+
+<p>上图展示了“<strong>信息瓶颈（Information Bottleneck）原理</strong>”的示意图，反映了深度神经网络在学习过程中，如何在“压缩输入信息”与“保留任务相关性”之间取得平衡。</p>
 <p>横轴 $I(X;Z)$ 表示中间表征 Z 中所保留的<strong>输入信息量</strong>，纵轴 $I(Z;Y)$ 则表示 Z 对输出目标 Y 的<strong>任务相关性</strong>。每个点可看作网络在不同训练阶段的状态：</p>
 <ul>
 <li><strong>初始化阶段（右下）</strong>：网络刚开始训练，表征几乎保留了输入的全部细节（压缩程度低），但尚未提炼出对任务有用的信息，因而任务相关性 $I(Z;Y)$ 较低。</li>
@@ -511,7 +534,10 @@
 <p>从 SIFT 到 CNN，从特征工程到表征学习，机器学习的发展史正是在不断减少人为先验、增加模型自适应性的过程。深度学习的核心价值，正是让机器能够<strong>自主构建对世界的表征</strong>——这是迈向真正智能的关键一步。</p>
 <h2 id="4-学习的机制——从梯度下降到BP"><a href="#4-学习的机制——从梯度下降到BP" class="headerlink" title="4. 学习的机制——从梯度下降到BP"></a>4. 学习的机制——从梯度下降到BP</h2><p>深度学习之所以能够“自动学习”，其核心在于一个看似简单却极具威力的思想：<strong>通过梯度下降不断调整参数，使模型输出逼近目标。</strong> 反向传播（Backpropagation, 后续简称 BP）正是实现这一思想的高效算法。它让神经网络能够在成千上万的参数空间中，沿着“最陡下降方向”自动找到最优点。</p>
 <h3 id="4-1-从目标到损失：学习的出发点"><a href="#4-1-从目标到损失：学习的出发点" class="headerlink" title="4.1 从目标到损失：学习的出发点"></a>4.1 从目标到损失：学习的出发点</h3><p>对于一个监督学习问题，我们希望模型 $f_\theta(x)$ 能够准确预测目标 $y$。模型参数 $\theta$ 的好坏，可以通过<strong>损失函数（Loss Function）</strong> 来衡量，例如常见的均方误差（MSE）或交叉熵（Cross Entropy）：<br>$$L(y, f_\theta(x)) &#x3D; \frac{1}{N}\sum_{i&#x3D;1}^{N} \ell(y_i, f_\theta(x_i))$$<br>其中 $\ell(\cdot)$ 衡量单个样本的预测误差。学习的目标，就是最小化整个训练集上的平均损失: $\min_{\theta} L(\theta)$<br>这一定义看似简单，却是整个深度学习优化机制的核心出发点。</p>
-<h3 id="4-2-梯度下降：沿着最快速下降的方向前进"><a href="#4-2-梯度下降：沿着最快速下降的方向前进" class="headerlink" title="4.2 梯度下降：沿着最快速下降的方向前进"></a>4.2 梯度下降：沿着最快速下降的方向前进</h3><p>在高维参数空间中，损失函数 $L(\theta)$ 会形成一座复杂的“能量地形（Loss Surface）”。梯度下降（Gradient Descent）的基本思想，就是在每一步沿着梯度的反方向更新参数——因为梯度正是函数上升最快的方向，因此负梯度就是下降最快的方向。更新规则为：<br>$$\theta_{t+1} &#x3D; \theta_t - \eta \nabla_\theta L(\theta_t)$$<br>其中 $\eta$ 是学习率（Learning Rate），控制每次更新的步长。如果步长太小，收敛缓慢；步长太大，可能越过最低点甚至发散。从几何上看，这个过程就像一个小球在崎岖的能量地形上滚动，每一次更新都让它沿着坡度最低的方向向谷底滑动。通过不断迭代，模型逐步逼近最优解。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/LlQRvv.png" alt="LlQRvv"><br>上图以一元线性回归 $y &#x3D; a x + b$ 的均方误差（MSE）为例，展示了<strong>损失函数的几何形态与梯度下降的搜索路径</strong>。横轴与纵轴分别表示模型参数 $a$（斜率）与 $b$（截距），曲面高度 $L(a,b)$ 表示当前参数下的平均误差。</p>
+<h3 id="4-2-梯度下降：沿着最快速下降的方向前进"><a href="#4-2-梯度下降：沿着最快速下降的方向前进" class="headerlink" title="4.2 梯度下降：沿着最快速下降的方向前进"></a>4.2 梯度下降：沿着最快速下降的方向前进</h3><p>在高维参数空间中，损失函数 $L(\theta)$ 会形成一座复杂的“能量地形（Loss Surface）”。梯度下降（Gradient Descent）的基本思想，就是在每一步沿着梯度的反方向更新参数——因为梯度正是函数上升最快的方向，因此负梯度就是下降最快的方向。更新规则为：<br>$$\theta_{t+1} &#x3D; \theta_t - \eta \nabla_\theta L(\theta_t)$$<br>其中 $\eta$ 是学习率（Learning Rate），控制每次更新的步长。如果步长太小，收敛缓慢；步长太大，可能越过最低点甚至发散。从几何上看，这个过程就像一个小球在崎岖的能量地形上滚动，每一次更新都让它沿着坡度最低的方向向谷底滑动。通过不断迭代，模型逐步逼近最优解。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/LlQRvv.png" alt="LlQRvv"></p>
+<center>图4.1 Loss Surface 可视化：从能量地形到最速下降</center>
+
+<p>上图以一元线性回归 $y &#x3D; a x + b$ 的均方误差（MSE）为例，展示了<strong>损失函数的几何形态与梯度下降的搜索路径</strong>。横轴与纵轴分别表示模型参数 $a$（斜率）与 $b$（截距），曲面高度 $L(a,b)$ 表示当前参数下的平均误差。</p>
 <p>左侧三维曲面呈现典型的“碗状能量地形”：最优解位于谷底（黄色点），代表模型预测与真实数据最接近的位置。红色曲线为梯度下降的迭代轨迹，每次更新都沿着负梯度方向前进，即“最速下降路径”，最终收敛至最优点。<br>右侧的等高线图从俯视角度展示了相同过程。等高线对应不同的损失水平，类似地形图的海拔线。红色轨迹显示了参数在优化过程中的运动：起初在远离最优解的区域，步长较大、下降迅速；随着接近谷底，梯度逐渐减小，更新幅度也随之减缓，最终稳定收敛。</p>
 <p>从更宏观的角度看，<strong>梯度下降并不是盲目的数值搜索，而是一种带有方向感的最优路径规划</strong>。在深度学习中，梯度为模型提供了“如何调整”的信号，而学习过程本质上就是在复杂的能量地形中，通过计算误差的梯度，让模型在高维参数空间中不断逼近最能解释数据的那一点。</p>
 <h3 id="4-3-链式法则与反向传播：高效的梯度计算"><a href="#4-3-链式法则与反向传播：高效的梯度计算" class="headerlink" title="4.3 链式法则与反向传播：高效的梯度计算"></a>4.3 链式法则与反向传播：高效的梯度计算</h3><p>在简单线性模型中，梯度可以直接求得；但在深度神经网络中，模型 $f_\theta(x)$ 由多层复合函数构成：<br>$$f_\theta(x) &#x3D; f^{(L)}(f^{(L-1)}(\dots f^{(1)}(x)\dots))$$<br>要计算整体损失 $L(y, f_\theta(x))$ 对各层参数的偏导，就必须应用<strong>链式法则（Chain Rule）</strong>：<br>$$\frac{\partial L}{\partial \theta^{(l)}} &#x3D; \frac{\partial L}{\partial h^{(L)}} \frac{\partial h^{(L)}}{\partial h^{(L-1)}} \dots \frac{\partial h^{(l+1)}}{\partial h^{(l)}} \frac{\partial h^{(l)}}{\partial \theta^{(l)}}$$<br>其中 $h^{(l)}$ 表示第 $l$ 层的输出。直接计算会非常繁琐，而反向传播算法的核心贡献在于：<strong>从输出层反向逐层传播梯度，复用中间计算结果，大幅减少计算量。</strong></p>
@@ -546,7 +572,10 @@
 <li><strong>方差（Variance）</strong>：模型对训练样本噪声的敏感程度，代表过拟合；</li>
 <li><strong>噪声（Noise）</strong>：数据中无法学习的随机误差。</li>
 </ul>
-<p>随着模型容量（参数量、深度、非线性度）增加，偏差逐渐降低（模型更灵活，能更好地拟合训练数据）；方差逐渐上升（对噪声更敏感，泛化能力下降）。于是形成了经典的 <strong>U 形曲线</strong>：模型太小 → 欠拟合；模型太大 → 过拟合；中间存在一个最佳点，使训练误差与测试误差最平衡。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/lVqVmo.png" alt="lVqVmo"><br>如图为偏差-方差权衡曲线，蓝线（训练误差）持续下降；红线（测试误差）先降后升，形成典型 <strong>U 形结构</strong>。虚线与绿色点标记出“最佳泛化点”。左侧标注“欠拟合区（偏差大）”，右侧标注“过拟合区（方差大）”。这张图能直观说明 <strong>偏差-方差权衡</strong> 的核心思想：<strong>模型越复杂，拟合训练集更好，但可能失去泛化能力</strong>。</p>
+<p>随着模型容量（参数量、深度、非线性度）增加，偏差逐渐降低（模型更灵活，能更好地拟合训练数据）；方差逐渐上升（对噪声更敏感，泛化能力下降）。于是形成了经典的 <strong>U 形曲线</strong>：模型太小 → 欠拟合；模型太大 → 过拟合；中间存在一个最佳点，使训练误差与测试误差最平衡。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/lVqVmo.png" alt="lVqVmo"></p>
+<center>图5.1 偏差-方差权衡曲线</center>
+
+<p>如图为偏差-方差权衡曲线，蓝线（训练误差）持续下降；红线（测试误差）先降后升，形成典型 <strong>U 形结构</strong>。虚线与绿色点标记出“最佳泛化点”。左侧标注“欠拟合区（偏差大）”，右侧标注“过拟合区（方差大）”。这张图能直观说明 <strong>偏差-方差权衡</strong> 的核心思想：<strong>模型越复杂，拟合训练集更好，但可能失去泛化能力</strong>。</p>
 <blockquote>
 <p>思考：为何最佳泛化点不在测试误差最低点处？</p>
 </blockquote>
@@ -556,7 +585,10 @@
 <li>在固定数据量下，增大模型复杂度会放大过拟合风险；</li>
 <li>但当数据量同步增加时，大模型的泛化性也能恢复。</li>
 </ul>
-<p>这正是现代深度学习成功的秘诀：<strong>大模型 + 海量数据</strong>。在这种“容量与数据匹配”的 regime 下，模型的高维表示空间反而成为更强的结构先验。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/3o1IWT.png" alt="3o1IWT"><br>如上图中可以直观看到：</p>
+<p>这正是现代深度学习成功的秘诀：<strong>大模型 + 海量数据</strong>。在这种“容量与数据匹配”的 regime 下，模型的高维表示空间反而成为更强的结构先验。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/3o1IWT.png" alt="3o1IWT"></p>
+<center>图5.2 模型参数量 vs 准确率（训练/测试对比，右端平滑收敛）</center>
+
+<p>如上图中可以直观看到：</p>
 <ul>
 <li><strong>左侧（欠参数区）</strong>：模型太小，训练与测试准确率都低；</li>
 <li><strong>中间（过拟合区）</strong>：训练准确率很高，而测试准确率下降，两者之间出现<strong>泛化差距</strong>；</li>
@@ -571,7 +603,10 @@
 </ul>
 <p>这些方法的共同思想是：不是让模型“学少一点”，而是让模型<strong>学得更稳、更通用</strong>。</p>
 <h3 id="5-5-Double-Descent：打破“U-形定律”"><a href="#5-5-Double-Descent：打破“U-形定律”" class="headerlink" title="5.5 Double Descent：打破“U 形定律”"></a>5.5 Double Descent：打破“U 形定律”</h3><p>近年来，深度学习的经验结果揭示出一个新的规律——<strong>双降现象（Double Descent）</strong>。当模型容量持续扩大到<strong>能完全拟合训练数据</strong>（插值点）之后，测试误差并不会无限增大，反而会在规模更大时再次下降，形成“双降曲线”。$\text{Test Error} \downarrow \uparrow \downarrow$</p>
-<p>这种现象表明，在传统小模型区间，经典偏差-方差权衡依然成立；在过参数化（Over-parameterized）区间，大模型通过梯度下降找到一种“平滑最小值”，从而提升泛化性能。这说明深度神经网络的泛化机制已经超越了传统统计假设，进入了“过参数化仍可泛化”的新范式。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/Qxsvc3.png" alt="Qxsvc3"><br>这张图展示了<strong>深度学习中的“双降现象（Double Descent）”</strong>——即模型容量（复杂度）与测试误差之间的非单调关系。从图中可以看到：</p>
+<p>这种现象表明，在传统小模型区间，经典偏差-方差权衡依然成立；在过参数化（Over-parameterized）区间，大模型通过梯度下降找到一种“平滑最小值”，从而提升泛化性能。这说明深度神经网络的泛化机制已经超越了传统统计假设，进入了“过参数化仍可泛化”的新范式。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/Qxsvc3.png" alt="Qxsvc3"></p>
+<center>图5.3 Double Descent（双降现象）曲线</center>
+
+<p>这张图展示了<strong>深度学习中的“双降现象（Double Descent）”</strong>——即模型容量（复杂度）与测试误差之间的非单调关系。从图中可以看到：</p>
 <ul>
 <li>横轴是 <strong>模型容量</strong>（或参数规模），纵轴是 <strong>测试误差</strong>；</li>
 <li>曲线最初随模型变大而下降（模型更能拟合数据，误差减小）；</li>
@@ -586,13 +621,22 @@
 <p>深度学习的成功并非逃离了泛化理论，而是—— <strong>在更高维、更复杂的空间中重新定义了“泛化”的边界。</strong></p>
 <h2 id="6-涌现与规模法则——当复杂性带来智能"><a href="#6-涌现与规模法则——当复杂性带来智能" class="headerlink" title="6. 涌现与规模法则——当复杂性带来智能"></a>6. 涌现与规模法则——当复杂性带来智能</h2><p>深度学习的发展历程表明：<strong>当模型规模足够大时，性能的提升并非线性递增，而是呈现出某种突变式跃迁。</strong> 这种现象被称为 <strong>“涌现（Emergence）”</strong> ——即复杂系统在达到一定临界点后，出现了在小规模下无法观测的新能力。</p>
 <p>而支配这种跃迁规律的数学框架，便是近几年研究中被系统揭示的 <strong>“规模法则（Scaling Laws）”</strong>。</p>
-<h3 id="6-1-规模法则（Scaling-Laws）"><a href="#6-1-规模法则（Scaling-Laws）" class="headerlink" title="6.1 规模法则（Scaling Laws）"></a>6.1 规模法则（Scaling Laws）</h3><p>早在 2020 年，OpenAI 的 Kaplan 等人提出了著名的 <strong>Scaling Law for Neural Language Models</strong>，指出模型的训练损失 $L$ 与模型参数量 $N$、数据量 $D$、计算量 $C$ 之间存在近似幂律关系：<br>$$L(N, D, C) \approx A N^{-\alpha_N} + B D^{-\alpha_D} + C^{-\alpha_C}$$<br>其中 $\alpha_N, \alpha_D, \alpha_C$ 为经验拟合的指数常数。这意味着：在一定范围内，<strong>只要以幂律速率同时扩展模型规模与训练数据，模型性能就会稳定提升</strong>。换言之，深度模型并非“越大越好”，而是在 <strong>数据、参数、算力三者之间存在最佳平衡曲线</strong>。当资源分配不均（如模型过大但数据不足）时，性能将无法继续遵循幂律改善，就会出现“饱和”或“过拟合”现象。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/pAcaus.png" alt="pAcaus"><br>这张图展示了<strong>深度学习中的“规模法则（Scaling Law）”</strong>——模型性能如何随参数量与数据量共同扩展而系统性改善。</p>
+<h3 id="6-1-规模法则（Scaling-Laws）"><a href="#6-1-规模法则（Scaling-Laws）" class="headerlink" title="6.1 规模法则（Scaling Laws）"></a>6.1 规模法则（Scaling Laws）</h3><p>早在 2020 年，OpenAI 的 Kaplan 等人提出了著名的 <strong>Scaling Law for Neural Language Models</strong>，指出模型的训练损失 $L$ 与模型参数量 $N$、数据量 $D$、计算量 $C$ 之间存在近似幂律关系：<br>$$L(N, D, C) \approx A N^{-\alpha_N} + B D^{-\alpha_D} + C^{-\alpha_C}$$<br>其中 $\alpha_N, \alpha_D, \alpha_C$ 为经验拟合的指数常数。这意味着：在一定范围内，<strong>只要以幂律速率同时扩展模型规模与训练数据，模型性能就会稳定提升</strong>。换言之，深度模型并非“越大越好”，而是在 <strong>数据、参数、算力三者之间存在最佳平衡曲线</strong>。当资源分配不均（如模型过大但数据不足）时，性能将无法继续遵循幂律改善，就会出现“饱和”或“过拟合”现象。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/pAcaus.png" alt="pAcaus"></p>
+<center>图6.1 Scaling Law 三维幂律关系图：规模↑ → 损失按幂律下降（收益递减）</center>
+
+<p>这张图展示了<strong>深度学习中的“规模法则（Scaling Law）”</strong>——模型性能如何随参数量与数据量共同扩展而系统性改善。</p>
 <p>从图中可以看到横轴为 <strong>模型参数规模（log N）</strong>，纵轴为 <strong>数据规模（log D）</strong>，而垂直方向（高度）表示 <strong>训练损失（log L）</strong>。整个曲面呈现出一个<strong>平滑下凹的幂律趋势面</strong>：随着模型和数据规模同时增大，损失持续降低，但下降速度逐渐变缓。这种“持续改进但收益递减”的趋势揭示了一个核心事实：深度模型的性能提升遵循幂律规律（power law），即性能提升率与规模扩张成非线性关系。</p>
 <p>因此，这张图直观地说明了：在大规模训练中，性能增长并非偶然，而是一种<strong>可预测的统计规律</strong>；而如何在模型规模、数据量和算力之间找到<strong>最优配比</strong>，正是现代大模型研究的关键科学问题。</p>
 <h3 id="6-2-涌现能力（Emergent-Abilities）"><a href="#6-2-涌现能力（Emergent-Abilities）" class="headerlink" title="6.2 涌现能力（Emergent Abilities）"></a>6.2 涌现能力（Emergent Abilities）</h3><p>然而，更令人震撼的发现是：在模型规模扩展的过程中，性能曲线并非始终平滑连续，而是在某些临界点上<strong>突然出现新能力</strong>——这就是所谓的 <strong>“能力涌现（Emergent Abilities）”</strong>。</p>
-<p>Wei 等人（2022）通过系统实验发现，诸如算术推理、上下文学习（in-context learning）、语义组合等能力，在小模型上完全不存在或接近随机，但当模型规模超过某一阈值时，<strong>准确率突然大幅跃升</strong>。这种跃迁并不是训练技巧或架构改进的结果，而是<strong>复杂系统自发涌现出的“临界智能”现象</strong>。<br>$$\text{Ability} \sim \begin{cases} 0, &amp; N &lt; N_c \ f(N), &amp; N \ge N_c \end{cases}$$<br>其中 $N_c$ 为能力出现的临界规模。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/Oh2Kgx.png" alt="Oh2Kgx"><br>上图为Emergent Ability 曲线，横轴为模型规模（log N），纵轴为任务性能。曲线在某一阈值前近乎为零，在临界点 $N_c$ 附近出现陡然跃升，形似“相变曲线”。</p>
+<p>Wei 等人（2022）通过系统实验发现，诸如算术推理、上下文学习（in-context learning）、语义组合等能力，在小模型上完全不存在或接近随机，但当模型规模超过某一阈值时，<strong>准确率突然大幅跃升</strong>。这种跃迁并不是训练技巧或架构改进的结果，而是<strong>复杂系统自发涌现出的“临界智能”现象</strong>。<br>$$\text{Ability} \sim \begin{cases} 0, &amp; N &lt; N_c \ f(N), &amp; N \ge N_c \end{cases}$$<br>其中 $N_c$ 为能力出现的临界规模。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/Oh2Kgx.png" alt="Oh2Kgx"></p>
+<center>图6.2 Emergent Ability：在临界规模附近出现能力跃升</center>
+
+<p>上图为Emergent Ability 曲线，横轴为模型规模（log N），纵轴为任务性能。曲线在某一阈值前近乎为零，在临界点 $N_c$ 附近出现陡然跃升，形似“相变曲线”。</p>
 <h3 id="6-3-从复杂系统到智能相变"><a href="#6-3-从复杂系统到智能相变" class="headerlink" title="6.3 从复杂系统到智能相变"></a>6.3 从复杂系统到智能相变</h3><p>从更宏观的角度看，<strong>大模型的“能力突变”与物理学中的“相变”高度相似</strong>。当温度或能量达到某一临界点，水会从液态跃迁为气态；当模型复杂度达到某一阈值，系统则从“统计学习”跃迁为“语义理解”。在统计物理学中，这类现象被称为“<strong>临界行为（Critical Phenomena）</strong>”：在临界点附近，微观扰动会放大为宏观结构变化。同理，在神经网络中，当参数量、连接性与信息通道复杂度足够大时，网络内部的表征开始具备自组织能力，从而实现新的认知结构。</p>
-<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/v3kxc2.png" alt="v3kxc2"><br>上图为相变类比示意图，以“液体→气体”相变为类比：温度（模型规模）上升至临界点，体系内部自由度急剧增加，微观扰动放大为宏观模式，系统涌现出全新的性质（如智能行为）。</p>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/v3kxc2.png" alt="v3kxc2"></p>
+<center>图6.3 相变类比示意：复杂性跨越临界点 → 体系性质突变（涌现智能）</center>
+
+<p>上图为相变类比示意图，以“液体→气体”相变为类比：温度（模型规模）上升至临界点，体系内部自由度急剧增加，微观扰动放大为宏观模式，系统涌现出全新的性质（如智能行为）。</p>
 <h3 id="6-4-案例：GPT-与-CLIP-的能力跃迁"><a href="#6-4-案例：GPT-与-CLIP-的能力跃迁" class="headerlink" title="6.4 案例：GPT 与 CLIP 的能力跃迁"></a>6.4 案例：GPT 与 CLIP 的能力跃迁</h3><p>在自然语言处理与多模态学习中，大规模模型的涌现现象尤为明显。</p>
 <ul>
 <li><strong>GPT 系列</strong>（OpenAI）从 GPT-2 到 GPT-4，随着参数规模从亿级到千亿级，模型不再仅仅生成流畅文本，而是展现出<strong>上下文推理、指令理解、跨领域泛化</strong>等能力。这些能力在小模型中完全不存在，而非通过显式训练得到。</li>
@@ -617,9 +661,13 @@
 <li>Transformer 则进一步压缩了语言的语义图谱。</li>
 </ul>
 <p>每一次压缩，都是一次“理解”的形成。当模型能从数据中提炼出低维结构，它便不再是拟合器，而是一个<strong>模式发现者</strong>。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/d4aDIh.png" alt="d4aDIh"></p>
+<center>图7.1 拟合 vs 预测 对比流程图</center>
+
 <h3 id="7-2-从压缩到预测：智能的物理定义"><a href="#7-2-从压缩到预测：智能的物理定义" class="headerlink" title="7.2 从压缩到预测：智能的物理定义"></a>7.2 从压缩到预测：智能的物理定义</h3><p>香农（Shannon）的信息论告诉我们：一个系统若能压缩信息，就说明它<strong>捕捉到了规律</strong>。而能根据这些规律预测未来——这正是智能的本质。</p>
 <p>LeCun 曾说：“智能就是预测未来。”从这个角度看，智能不再是某种神秘能力，而是<strong>信息压缩与预测能力的统一体</strong>：<br>$$\text{Intelligence} &#x3D; \text{Compression} + \text{Prediction}$$<br>深度学习模型正是这样运作的：它通过优化损失函数最小化重构误差（压缩），并通过最大化条件概率 $p(y|x)$ 来预测下一个状态（预测）。</p>
 <p>语言模型是最典型的例子：它从“统计共现”出发，却在无监督训练中学会了语法、语义乃至逻辑结构。当模型能够生成合理的句子时，它其实已经内化了语言背后的概率结构——也就是人类世界的一种“符号规律”。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/1LimVr.png" alt="1LimVr"></p>
+<center>图7.2 信息论视角：Intelligence = Compression + Prediction</center>
+
 <h3 id="7-3-从预测到建模：世界的内在模拟器"><a href="#7-3-从预测到建模：世界的内在模拟器" class="headerlink" title="7.3 从预测到建模：世界的内在模拟器"></a>7.3 从预测到建模：世界的内在模拟器</h3><p>在大型模型（如 GPT、DeepSeek、Gemini、Qwen）中，我们看到了一种新的智能范式：<strong>内在建模（Internal Modeling）</strong>。模型并不是逐字预测，而是在高维向量空间中构建一个“世界的低维投影”——一种<strong>生成性的世界模型（Generative World Model）</strong>。</p>
 <ul>
 <li>它能在语义层面上模拟事件的逻辑；</li>
@@ -788,7 +836,7 @@
       <i class="fa fa-chart-line"></i>
     </span>
       <span>站点总字数：</span>
-    <span title="站点总字数">260k</span>
+    <span title="站点总字数">261k</span>
   </span>
 </div>
 <div class="busuanzi-count">

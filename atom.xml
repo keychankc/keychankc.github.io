@@ -6,7 +6,7 @@
   <link href="https://www.keychan.xyz/atom.xml" rel="self"/>
   
   <link href="https://www.keychan.xyz/"/>
-  <updated>2025-11-01T12:13:28.067Z</updated>
+  <updated>2025-11-02T02:24:25.962Z</updated>
   <id>https://www.keychan.xyz/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="https://www.keychan.xyz/2025/11/01/039-underlying-logic-of-deep-learning/"/>
     <id>https://www.keychan.xyz/2025/11/01/039-underlying-logic-of-deep-learning/</id>
     <published>2025-11-01T09:50:12.000Z</published>
-    <updated>2025-11-01T12:13:28.067Z</updated>
+    <updated>2025-11-02T02:24:25.962Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-什么是深度学习？——从函数到映射的思想&quot;&gt;&lt;a href=&quot;#1-什么是深度学习？——从函数到映射的思想&quot; class=&quot;headerlink&quot; title=&quot;1. 什么是深度学习？——从函数到映射的思想&quot;&gt;&lt;/a&gt;1. 什么是深度学习？——从函数到映射的思想&lt;/h2&gt;&lt;p&gt;在讨论深度学习的“智能”之前，我们必须回答一个更基础的问题——&lt;strong&gt;深度学习到底在学什么？&lt;/strong&gt; 它究竟是神经元的堆叠，还是某种数据结构？为什么看似简单的线性代数运算，能孕育出近似人类思维的能力？&lt;/p&gt;</summary>
@@ -212,11 +212,11 @@
     
     <category term="状态管理" scheme="https://www.keychan.xyz/tags/%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86/"/>
     
+    <category term="依赖注入" scheme="https://www.keychan.xyz/tags/%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5/"/>
+    
     <category term="路由" scheme="https://www.keychan.xyz/tags/%E8%B7%AF%E7%94%B1/"/>
     
     <category term="模块化" scheme="https://www.keychan.xyz/tags/%E6%A8%A1%E5%9D%97%E5%8C%96/"/>
-    
-    <category term="依赖注入" scheme="https://www.keychan.xyz/tags/%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5/"/>
     
   </entry>
   
@@ -422,9 +422,9 @@
     <category term="强化学习" scheme="https://www.keychan.xyz/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/"/>
     
     
-    <category term="非马尔可夫环境" scheme="https://www.keychan.xyz/tags/%E9%9D%9E%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E7%8E%AF%E5%A2%83/"/>
-    
     <category term="策略梯度" scheme="https://www.keychan.xyz/tags/%E7%AD%96%E7%95%A5%E6%A2%AF%E5%BA%A6/"/>
+    
+    <category term="非马尔可夫环境" scheme="https://www.keychan.xyz/tags/%E9%9D%9E%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E7%8E%AF%E5%A2%83/"/>
     
   </entry>
   
