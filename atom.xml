@@ -6,7 +6,7 @@
   <link href="https://www.keychan.xyz/atom.xml" rel="self"/>
   
   <link href="https://www.keychan.xyz/"/>
-  <updated>2025-11-02T02:24:25.962Z</updated>
+  <updated>2025-11-06T09:30:45.667Z</updated>
   <id>https://www.keychan.xyz/</id>
   
   <author>
@@ -17,14 +17,44 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>为什么卷积神经网络能看懂世界？——CNN 的思维方式</title>
+    <link href="https://www.keychan.xyz/2025/11/06/040-cnn-way-of-thinking/"/>
+    <id>https://www.keychan.xyz/2025/11/06/040-cnn-way-of-thinking/</id>
+    <published>2025-11-06T09:20:12.000Z</published>
+    <updated>2025-11-06T09:30:45.667Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-从滤波到认知：卷积的结构假设&quot;&gt;&lt;a href=&quot;#1-从滤波到认知：卷积的结构假设&quot; class=&quot;headerlink&quot; title=&quot;1. 从滤波到认知：卷积的结构假设&quot;&gt;&lt;/a&gt;1. 从滤波到认知：卷积的结构假设&lt;/h2&gt;&lt;p&gt;在计算机视觉领域，卷积（Convolution）不仅是一种数学运算，更是一种&lt;strong&gt;关于世界结构的假设&lt;/strong&gt;。这一假设的核心思想在于：&lt;strong&gt;图像的语义信息是局部相关的&lt;/strong&gt;。换言之，空间上相邻的像素往往属于同一个物体或纹理区域，它们的统计特征并非独立存在，而是具有强烈的局部依赖性。卷积神经网络（Convolutional Neural Network, CNN）正是基于这一假设构建的。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="PyTorch" scheme="https://www.keychan.xyz/tags/PyTorch/"/>
+    
+    <category term="卷积神经网络" scheme="https://www.keychan.xyz/tags/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
+    
+    <category term="特征提取" scheme="https://www.keychan.xyz/tags/%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96/"/>
+    
+    <category term="残差连接" scheme="https://www.keychan.xyz/tags/%E6%AE%8B%E5%B7%AE%E8%BF%9E%E6%8E%A5/"/>
+    
+    <category term="数据增强" scheme="https://www.keychan.xyz/tags/%E6%95%B0%E6%8D%AE%E5%A2%9E%E5%BC%BA/"/>
+    
+    <category term="归纳偏置" scheme="https://www.keychan.xyz/tags/%E5%BD%92%E7%BA%B3%E5%81%8F%E7%BD%AE/"/>
+    
+  </entry>
+  
+  <entry>
     <title>深度学习的底层逻辑：从函数逼近到智能涌现</title>
     <link href="https://www.keychan.xyz/2025/11/01/039-underlying-logic-of-deep-learning/"/>
     <id>https://www.keychan.xyz/2025/11/01/039-underlying-logic-of-deep-learning/</id>
     <published>2025-11-01T09:50:12.000Z</published>
-    <updated>2025-11-02T02:24:25.962Z</updated>
+    <updated>2025-11-06T09:30:41.262Z</updated>
     
     
-    <summary type="html">&lt;h2 id=&quot;1-什么是深度学习？——从函数到映射的思想&quot;&gt;&lt;a href=&quot;#1-什么是深度学习？——从函数到映射的思想&quot; class=&quot;headerlink&quot; title=&quot;1. 什么是深度学习？——从函数到映射的思想&quot;&gt;&lt;/a&gt;1. 什么是深度学习？——从函数到映射的思想&lt;/h2&gt;&lt;p&gt;在讨论深度学习的“智能”之前，我们必须回答一个更基础的问题——&lt;strong&gt;深度学习到底在学什么？&lt;/strong&gt; 它究竟是神经元的堆叠，还是某种数据结构？为什么看似简单的线性代数运算，能孕育出近似人类思维的能力？&lt;/p&gt;</summary>
+    <summary type="html">&lt;h2 id=&quot;1-什么是深度学习？——从函数到映射的思想&quot;&gt;&lt;a href=&quot;#1-什么是深度学习？——从函数到映射的思想&quot; class=&quot;headerlink&quot; title=&quot;1. 什么是深度学习？——从函数到映射的思想&quot;&gt;&lt;/a&gt;1. 什么是深度学习？——从函数到映射的思想&lt;/h2&gt;&lt;p&gt;在讨论深度学习的“智能”之前，我们必须回答一个更基础的问题——&lt;strong&gt;深度学习到底在学什么？&lt;/strong&gt; 它究竟是神经元的堆叠，还是某种数据结构？为什么看似简单的线性代数运算，能孕育出近似人类思维的能力？&lt;/p&gt;
+&lt;p&gt;从本质上讲，深度学习不是魔法，而是一种&lt;strong&gt;函数逼近的科学&lt;/strong&gt;。所有的神经网络，无论是用于图像识别、语言理解还是游戏博弈，其根本目标都是——&lt;strong&gt;寻找一个能够将输入&lt;/strong&gt; $x$ &lt;strong&gt;映射到输出&lt;/strong&gt; $y$ &lt;strong&gt;的函数&lt;/strong&gt; $f_&#92;theta(x)$。这里的 $&#92;theta$ 表示函数中的可学习参数，也就是神经网络中的权重与偏置。 &lt;/p&gt;</summary>
     
     
     
@@ -46,10 +76,11 @@
     <link href="https://www.keychan.xyz/2025/10/28/038-drone-aerodynamic-structural-design/"/>
     <id>https://www.keychan.xyz/2025/10/28/038-drone-aerodynamic-structural-design/</id>
     <published>2025-10-28T08:20:12.000Z</published>
-    <updated>2025-10-28T13:16:58.026Z</updated>
+    <updated>2025-11-06T09:31:00.480Z</updated>
     
     
-    <summary type="html">&lt;h2 id=&quot;1-为什么无人机能飞？——从推力说起&quot;&gt;&lt;a href=&quot;#1-为什么无人机能飞？——从推力说起&quot; class=&quot;headerlink&quot; title=&quot;1. 为什么无人机能飞？——从推力说起&quot;&gt;&lt;/a&gt;1. 为什么无人机能飞？——从推力说起&lt;/h2&gt;&lt;p&gt;想象一下，当你打开一台电风扇时，风扇叶片旋转，会将空气往前“推”，而你能感受到一股反方向的力。这股力其实就是空气反作用在风扇上的&lt;strong&gt;推力&lt;/strong&gt;。无人机的螺旋桨与此类似，只不过它不是把空气往前吹，而是&lt;strong&gt;把空气往下推&lt;/strong&gt;，于是空气反过来向上“托起”整台无人机。&lt;/p&gt;</summary>
+    <summary type="html">&lt;h2 id=&quot;1-为什么无人机能飞？——从推力说起&quot;&gt;&lt;a href=&quot;#1-为什么无人机能飞？——从推力说起&quot; class=&quot;headerlink&quot; title=&quot;1. 为什么无人机能飞？——从推力说起&quot;&gt;&lt;/a&gt;1. 为什么无人机能飞？——从推力说起&lt;/h2&gt;&lt;p&gt;想象一下，当你打开一台电风扇时，风扇叶片旋转，会将空气往前“推”，而你能感受到一股反方向的力。这股力其实就是空气反作用在风扇上的&lt;strong&gt;推力&lt;/strong&gt;。无人机的螺旋桨与此类似，只不过它不是把空气往前吹，而是&lt;strong&gt;把空气往下推&lt;/strong&gt;，于是空气反过来向上“托起”整台无人机。&lt;/p&gt;
+&lt;p&gt;这就是无人机能悬停在空中的根本原因：它依靠桨叶高速旋转，使气流形成“下洗”（Downwash），从而获得一个向上的&lt;strong&gt;空气动力&lt;/strong&gt;。&lt;/p&gt;</summary>
     
     
     
@@ -237,9 +268,9 @@
     
     <category term="Flutter" scheme="https://www.keychan.xyz/tags/Flutter/"/>
     
-    <category term="底层原理" scheme="https://www.keychan.xyz/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
-    
     <category term="布局" scheme="https://www.keychan.xyz/tags/%E5%B8%83%E5%B1%80/"/>
+    
+    <category term="底层原理" scheme="https://www.keychan.xyz/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
     
   </entry>
   
@@ -260,13 +291,13 @@
     
     <category term="Flutter" scheme="https://www.keychan.xyz/tags/Flutter/"/>
     
+    <category term="底层原理" scheme="https://www.keychan.xyz/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
+    
     <category term="GPU渲染" scheme="https://www.keychan.xyz/tags/GPU%E6%B8%B2%E6%9F%93/"/>
     
     <category term="Skia" scheme="https://www.keychan.xyz/tags/Skia/"/>
     
     <category term="Impeller" scheme="https://www.keychan.xyz/tags/Impeller/"/>
-    
-    <category term="底层原理" scheme="https://www.keychan.xyz/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
     
   </entry>
   
@@ -422,9 +453,9 @@
     <category term="强化学习" scheme="https://www.keychan.xyz/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/"/>
     
     
-    <category term="策略梯度" scheme="https://www.keychan.xyz/tags/%E7%AD%96%E7%95%A5%E6%A2%AF%E5%BA%A6/"/>
-    
     <category term="非马尔可夫环境" scheme="https://www.keychan.xyz/tags/%E9%9D%9E%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E7%8E%AF%E5%A2%83/"/>
+    
+    <category term="策略梯度" scheme="https://www.keychan.xyz/tags/%E7%AD%96%E7%95%A5%E6%A2%AF%E5%BA%A6/"/>
     
   </entry>
   
@@ -491,34 +522,6 @@
     
     
     <category term="Transformer" scheme="https://www.keychan.xyz/tags/Transformer/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>​DeepLabv3+语义分割代码解析</title>
-    <link href="https://www.keychan.xyz/2025/06/18/020-deepdab3-with-pascal-voc2012/"/>
-    <id>https://www.keychan.xyz/2025/06/18/020-deepdab3-with-pascal-voc2012/</id>
-    <published>2025-06-18T06:01:12.000Z</published>
-    <updated>2025-09-21T12:04:48.540Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-Pascal-VOC-2012&quot;&gt;&lt;a href=&quot;#1-Pascal-VOC-2012&quot; class=&quot;headerlink&quot; title=&quot;1.Pascal VOC 2012&quot;&gt;&lt;/a&gt;1.Pascal VOC 2012&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;http://host.robots.ox.ac.uk/pascal/VOC/voc2012/&quot;&gt;Pascal VOC (Visual Object Classes) 2012&lt;/a&gt; 数据集是计算机视觉领域具有里程碑意义的公开基准数据集，以其全面性、高质量标注和在众多任务上的广泛应用而著称，被广泛用于模型训练、评估与比较研究，尤其作为图像分类、目标检测和语义分割等核心任务的经典基准。&lt;/p&gt;
-&lt;h3 id=&quot;1-核心特性：多任务基准&quot;&gt;&lt;a href=&quot;#1-核心特性：多任务基准&quot; class=&quot;headerlink&quot; title=&quot;1. 核心特性：多任务基准&quot;&gt;&lt;/a&gt;1. 核心特性：多任务基准&lt;/h3&gt;&lt;p&gt;Pascal VOC 2012 的核心价值在于其&lt;strong&gt;多任务性&lt;/strong&gt;。它并非针对单一任务设计，而是为多种计算机视觉任务提供了丰富且一致的标注：&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
-    
-    
-    <category term="Python" scheme="https://www.keychan.xyz/tags/Python/"/>
-    
-    <category term="PyTorch" scheme="https://www.keychan.xyz/tags/PyTorch/"/>
-    
-    <category term="计算机视觉" scheme="https://www.keychan.xyz/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
-    
-    <category term="目标分割" scheme="https://www.keychan.xyz/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/"/>
-    
-    <category term="DeepLab" scheme="https://www.keychan.xyz/tags/DeepLab/"/>
     
   </entry>
   

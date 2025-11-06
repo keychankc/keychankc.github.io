@@ -21,12 +21,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"www.keychan.xyz","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="1. 什么是深度学习？——从函数到映射的思想在讨论深度学习的“智能”之前，我们必须回答一个更基础的问题——深度学习到底在学什么？ 它究竟是神经元的堆叠，还是某种数据结构？为什么看似简单的线性代数运算，能孕育出近似人类思维的能力？">
+    <meta name="description" content="1. 什么是深度学习？——从函数到映射的思想在讨论深度学习的“智能”之前，我们必须回答一个更基础的问题——深度学习到底在学什么？ 它究竟是神经元的堆叠，还是某种数据结构？为什么看似简单的线性代数运算，能孕育出近似人类思维的能力？ 从本质上讲，深度学习不是魔法，而是一种函数逼近的科学。所有的神经网络，无论是用于图像识别、语言理解还是游戏博弈，其根本目标都是——寻找一个能够将输入 $x$ 映射到输出">
 <meta property="og:type" content="article">
 <meta property="og:title" content="深度学习的底层逻辑：从函数逼近到智能涌现">
 <meta property="og:url" content="https://www.keychan.xyz/2025/11/01/039-underlying-logic-of-deep-learning/index.html">
 <meta property="og:site_name" content="KeyChan&#39;s blog">
-<meta property="og:description" content="1. 什么是深度学习？——从函数到映射的思想在讨论深度学习的“智能”之前，我们必须回答一个更基础的问题——深度学习到底在学什么？ 它究竟是神经元的堆叠，还是某种数据结构？为什么看似简单的线性代数运算，能孕育出近似人类思维的能力？">
+<meta property="og:description" content="1. 什么是深度学习？——从函数到映射的思想在讨论深度学习的“智能”之前，我们必须回答一个更基础的问题——深度学习到底在学什么？ 它究竟是神经元的堆叠，还是某种数据结构？为什么看似简单的线性代数运算，能孕育出近似人类思维的能力？ 从本质上讲，深度学习不是魔法，而是一种函数逼近的科学。所有的神经网络，无论是用于图像识别、语言理解还是游戏博弈，其根本目标都是——寻找一个能够将输入 $x$ 映射到输出">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/otZuE2.png">
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/PStBd4.png">
@@ -44,7 +44,7 @@
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/d4aDIh.png">
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/1LimVr.png">
 <meta property="article:published_time" content="2025-11-01T09:50:12.000Z">
-<meta property="article:modified_time" content="2025-11-02T02:24:25.962Z">
+<meta property="article:modified_time" content="2025-11-06T09:30:41.262Z">
 <meta property="article:author" content="KeyChan">
 <meta property="article:tag" content="梯度下降">
 <meta property="article:tag" content="函数逼近">
@@ -175,7 +175,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">40</span>
+          <span class="site-state-item-count">41</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -186,7 +186,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">71</span>
+        <span class="site-state-item-count">75</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -263,7 +263,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-11-02 10:24:25" itemprop="dateModified" datetime="2025-11-02T10:24:25+08:00">2025-11-02</time>
+      <time title="修改时间：2025-11-06 17:30:41" itemprop="dateModified" datetime="2025-11-06T17:30:41+08:00">2025-11-06</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -314,8 +314,8 @@
     
     
     <div class="post-body" itemprop="articleBody"><h2 id="1-什么是深度学习？——从函数到映射的思想"><a href="#1-什么是深度学习？——从函数到映射的思想" class="headerlink" title="1. 什么是深度学习？——从函数到映射的思想"></a>1. 什么是深度学习？——从函数到映射的思想</h2><p>在讨论深度学习的“智能”之前，我们必须回答一个更基础的问题——<strong>深度学习到底在学什么？</strong> 它究竟是神经元的堆叠，还是某种数据结构？为什么看似简单的线性代数运算，能孕育出近似人类思维的能力？</p>
+<p>从本质上讲，深度学习不是魔法，而是一种<strong>函数逼近的科学</strong>。所有的神经网络，无论是用于图像识别、语言理解还是游戏博弈，其根本目标都是——<strong>寻找一个能够将输入</strong> $x$ <strong>映射到输出</strong> $y$ <strong>的函数</strong> $f_\theta(x)$。这里的 $\theta$ 表示函数中的可学习参数，也就是神经网络中的权重与偏置。 </p>
 <span id="more"></span>
-<p>从本质上讲，深度学习不是魔法，而是一种<strong>函数逼近的科学</strong>。所有的神经网络，无论是用于图像识别、语言理解还是游戏博弈，其根本目标都是——<strong>寻找一个能够将输入</strong> $x$ <strong>映射到输出</strong> $y$ <strong>的函数</strong> $f_\theta(x)$。这里的 $\theta$ 表示函数中的可学习参数，也就是神经网络中的权重与偏置。</p>
 <h3 id="1-1-从数据到函数：机器学习的核心任务"><a href="#1-1-从数据到函数：机器学习的核心任务" class="headerlink" title="1.1 从数据到函数：机器学习的核心任务"></a>1.1 从数据到函数：机器学习的核心任务</h3><p>在机器学习中，我们的目标通常不是去编写规则，而是<strong>让模型自己去发现规律</strong>。传统编程是显式地告诉计算机“如果……就……”，而机器学习的目标是：</p>
 <blockquote>
 <p>给定数据对 $(x, y)$，自动学习一个函数 $f_\theta$，使得当输入新的 $x’$ 时，输出 $f_\theta(x’)$ 尽可能接近真实标签 $y’$。</p>
@@ -804,6 +804,9 @@
                 </a>
             </div>
             <div class="post-nav-item">
+                <a href="/2025/11/06/040-cnn-way-of-thinking/" rel="next" title="为什么卷积神经网络能看懂世界？——CNN 的思维方式">
+                  为什么卷积神经网络能看懂世界？——CNN 的思维方式 <i class="fa fa-angle-right"></i>
+                </a>
             </div>
           </div>
     </footer>
@@ -836,7 +839,7 @@
       <i class="fa fa-chart-line"></i>
     </span>
       <span>站点总字数：</span>
-    <span title="站点总字数">261k</span>
+    <span title="站点总字数">276k</span>
   </span>
 </div>
 <div class="busuanzi-count">

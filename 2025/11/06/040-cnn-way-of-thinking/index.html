@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.keychan.xyz","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="1. 从滤波到认知：卷积的结构假设在计算机视觉领域，卷积（Convolution）不仅是一种数学运算，更是一种关于世界结构的假设。这一假设的核心思想在于：图像的语义信息是局部相关的。换言之，空间上相邻的像素往往属于同一个物体或纹理区域，它们的统计特征并非独立存在，而是具有强烈的局部依赖性。卷积神经网络（Convolutional Neural Network, CNN）正是基于这一假设构建的。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="为什么卷积神经网络能看懂世界？——CNN 的思维方式">
+<meta property="og:url" content="https://www.keychan.xyz/2025/11/06/040-cnn-way-of-thinking/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s blog">
+<meta property="og:description" content="1. 从滤波到认知：卷积的结构假设在计算机视觉领域，卷积（Convolution）不仅是一种数学运算，更是一种关于世界结构的假设。这一假设的核心思想在于：图像的语义信息是局部相关的。换言之，空间上相邻的像素往往属于同一个物体或纹理区域，它们的统计特征并非独立存在，而是具有强烈的局部依赖性。卷积神经网络（Convolutional Neural Network, CNN）正是基于这一假设构建的。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/mnist_conv_sliding.gif">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/DvV0gm.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/4ADN8a.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/I2kZqd.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/hyUydA.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/DCE6MY.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/zqyfHV.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/rtumnO.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/axuj2Y.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/wu7Qwy.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/ROrNFk.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/rf_mnist.gif">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/WgfTwW.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/6JZ2EQ.png">
+<meta property="article:published_time" content="2025-11-06T09:20:12.000Z">
+<meta property="article:modified_time" content="2025-11-06T09:30:45.667Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="PyTorch">
+<meta property="article:tag" content="卷积神经网络">
+<meta property="article:tag" content="特征提取">
+<meta property="article:tag" content="残差连接">
+<meta property="article:tag" content="数据增强">
+<meta property="article:tag" content="归纳偏置">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/mnist_conv_sliding.gif">
+
+
+<link rel="canonical" href="https://www.keychan.xyz/2025/11/06/040-cnn-way-of-thinking/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.keychan.xyz/2025/11/06/040-cnn-way-of-thinking/","path":"2025/11/06/040-cnn-way-of-thinking/","title":"为什么卷积神经网络能看懂世界？——CNN 的思维方式"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>为什么卷积神经网络能看懂世界？——CNN 的思维方式 | KeyChan's blog</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.mengyajia.com">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's blog" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-系列"><a href="/series/" rel="section"><i class="fa fa-list-ol fa-fw"></i>系列</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E4%BB%8E%E6%BB%A4%E6%B3%A2%E5%88%B0%E8%AE%A4%E7%9F%A5%EF%BC%9A%E5%8D%B7%E7%A7%AF%E7%9A%84%E7%BB%93%E6%9E%84%E5%81%87%E8%AE%BE"><span class="nav-text">1. 从滤波到认知：卷积的结构假设</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E5%B1%80%E9%83%A8%E6%80%A7%EF%BC%9A%E4%B8%96%E7%95%8C%E5%B9%B6%E9%9D%9E%E5%85%A8%E8%BF%9E%E6%8E%A5"><span class="nav-text">1.1 局部性：世界并非全连接</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-%E6%9D%83%E5%80%BC%E5%85%B1%E4%BA%AB%EF%BC%9A%E7%94%A8%E5%90%8C%E4%B8%80%E7%BB%84%E2%80%9C%E6%BB%A4%E9%95%9C%E2%80%9D%E8%A7%82%E5%AF%9F%E4%B8%96%E7%95%8C"><span class="nav-text">1.2 权值共享：用同一组“滤镜”观察世界</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-%E5%8D%B7%E7%A7%AF%E4%B8%8D%E6%98%AF%E6%93%8D%E4%BD%9C%EF%BC%8C%E8%80%8C%E6%98%AF%E7%BB%93%E6%9E%84%E5%81%87%E8%AE%BE"><span class="nav-text">1.3 卷积不是操作，而是结构假设</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-%E4%B8%8E%E5%85%A8%E8%BF%9E%E6%8E%A5%E5%B1%82%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="nav-text">1.4 与全连接层的对比</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-5-%E6%95%B0%E5%AD%A6%E8%A7%86%E8%A7%92%EF%BC%9A%E5%8D%B7%E7%A7%AF%E7%9A%84%E7%9F%A9%E9%98%B5%E5%8C%96%E8%A1%A8%E7%A4%BA"><span class="nav-text">1.5 数学视角：卷积的矩阵化表示</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E4%BB%8E%E5%B1%80%E9%83%A8%E6%84%9F%E7%9F%A5%E5%88%B0%E5%85%A8%E5%B1%80%E7%90%86%E8%A7%A3%EF%BC%9A%E6%84%9F%E5%8F%97%E9%87%8E%E4%B8%8E%E5%B1%82%E6%AC%A1%E8%A1%A8%E5%BE%81"><span class="nav-text">2. 从局部感知到全局理解：感受野与层次表征</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E6%84%9F%E5%8F%97%E9%87%8E%E7%9A%84%E6%A6%82%E5%BF%B5%EF%BC%9A%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E7%9A%84%E2%80%9C%E8%A7%86%E9%87%8E%E2%80%9D"><span class="nav-text">2.1 感受野的概念：神经网络的“视野”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-%E4%BB%8E%E8%BE%B9%E7%BC%98%E5%88%B0%E8%AF%AD%E4%B9%89%EF%BC%9A%E5%B1%82%E6%AC%A1%E8%A1%A8%E5%BE%81%E7%9A%84%E5%BD%A2%E6%88%90"><span class="nav-text">2.2 从边缘到语义：层次表征的形成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-%E6%84%9F%E5%8F%97%E9%87%8E%E6%89%A9%E5%BC%A0%E7%9A%84%E7%9B%B4%E8%A7%82%E5%9B%BE%E6%99%AF"><span class="nav-text">2.3 感受野扩张的直观图景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-%E5%8F%AF%E8%A7%86%E5%8C%96-CNN-%E7%9A%84%E2%80%9C%E8%A7%86%E8%A7%89%E4%B8%96%E7%95%8C%E2%80%9D"><span class="nav-text">2.4 可视化 CNN 的“视觉世界”</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-4-1-Feature-Map-%E5%8F%AF%E8%A7%86%E5%8C%96"><span class="nav-text">2.4.1 Feature Map 可视化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-4-2-Activation-Maximization%EF%BC%88%E6%BF%80%E6%B4%BB%E6%9C%80%E5%A4%A7%E5%8C%96%EF%BC%89"><span class="nav-text">2.4.2 Activation Maximization（激活最大化）</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-%E6%84%9F%E5%8F%97%E9%87%8E%E4%B8%8E%E8%AF%AD%E4%B9%89%E7%90%86%E8%A7%A3%E7%9A%84%E6%A1%A5%E6%A2%81"><span class="nav-text">2.5 感受野与语义理解的桥梁</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E4%BB%8E%E5%A0%86%E5%8F%A0%E5%88%B0%E5%88%9B%E6%96%B0%EF%BC%9A%E5%8D%B7%E7%A7%AF%E7%BD%91%E7%BB%9C%E7%9A%84%E8%BF%9B%E5%8C%96%E9%80%BB%E8%BE%91"><span class="nav-text">3. 从堆叠到创新：卷积网络的进化逻辑</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-LeNet%EF%BC%9A%E5%8D%B7%E7%A7%AF%E6%80%9D%E6%83%B3%E7%9A%84%E5%8E%9F%E7%82%B9"><span class="nav-text">3.1 LeNet：卷积思想的原点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-AlexNet%EF%BC%9A%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%9A%84%E8%A7%89%E9%86%92"><span class="nav-text">3.2 AlexNet：深度学习的觉醒</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-VGG%EF%BC%9A%E6%B7%B1%E5%BA%A6%E5%A0%86%E5%8F%A0%E7%9A%84%E8%8C%83%E5%BC%8F"><span class="nav-text">3.3 VGG：深度堆叠的范式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-ResNet%EF%BC%9A%E8%A7%A3%E5%86%B3%E9%80%80%E5%8C%96%E7%9A%84%E6%B7%B1%E5%BA%A6%E9%9D%A9%E5%91%BD"><span class="nav-text">3.4 ResNet：解决退化的深度革命</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-5-EfficientNet%EF%BC%9A%E4%BB%8E%E7%BB%8F%E9%AA%8C%E5%88%B0%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96"><span class="nav-text">3.5 EfficientNet：从经验到系统优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-6-%E6%A8%A1%E5%9E%8B%E6%BC%94%E5%8C%96%E7%9A%84%E8%AE%A4%E7%9F%A5%E8%A7%86%E8%A7%92"><span class="nav-text">3.6 模型演化的认知视角</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E4%BB%8E%E5%BD%92%E7%BA%B3%E5%88%B0%E8%BE%B9%E7%95%8C%EF%BC%9A%E5%8D%B7%E7%A7%AF%E7%9A%84%E5%81%87%E8%AE%BE%E4%B8%8E%E5%B1%80%E9%99%90"><span class="nav-text">4. 从归纳到边界：卷积的假设与局限</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E5%B9%B3%E7%A7%BB%E7%AD%89%E5%8F%98%E6%80%A7%EF%BC%9ACNN-%E7%9A%84%E5%A4%A9%E7%84%B6%E7%89%B9%E5%BE%81"><span class="nav-text">4.1 平移等变性：CNN 的天然特征</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E5%AF%B9%E6%97%8B%E8%BD%AC%E4%B8%8E%E5%B0%BA%E5%BA%A6%E7%9A%84%E4%B8%8D%E5%8F%98%E6%80%A7%E7%BC%BA%E9%99%B7"><span class="nav-text">4.2 对旋转与尺度的不变性缺陷</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-%E6%95%B0%E6%8D%AE%E5%A2%9E%E5%BC%BA%EF%BC%9A%E7%BB%8F%E9%AA%8C%E5%B1%82%E9%9D%A2%E7%9A%84%E8%A1%A5%E6%95%91"><span class="nav-text">4.3 数据增强：经验层面的补救</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-%E7%BE%A4%E7%AD%89%E5%8F%98%E5%8D%B7%E7%A7%AF%EF%BC%88G-CNN%EF%BC%89%EF%BC%9A%E7%BB%93%E6%9E%84%E4%B8%8A%E7%9A%84%E7%AA%81%E7%A0%B4%E5%B0%9D%E8%AF%95"><span class="nav-text">4.4 群等变卷积（G-CNN）：结构上的突破尝试</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-5-Spatial-Transformer%EF%BC%9A%E8%AE%A9%E7%BD%91%E7%BB%9C%E5%AD%A6%E4%BC%9A%E2%80%9C%E7%9C%8B%E9%BD%90%E2%80%9D"><span class="nav-text">4.5 Spatial Transformer：让网络学会“看齐”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-6-%E5%BD%92%E7%BA%B3%E5%81%8F%E7%BD%AE%E7%9A%84%E5%93%B2%E5%AD%A6%E5%8F%8D%E6%80%9D"><span class="nav-text">4.6 归纳偏置的哲学反思</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E4%BB%8E%E5%8D%B7%E7%A7%AF%E5%88%B0%E6%B3%A8%E6%84%8F%E5%8A%9B%EF%BC%9AViT-%E7%9A%84%E6%80%9D%E7%BB%B4%E8%BD%AC%E5%90%91"><span class="nav-text">5. 从卷积到注意力：ViT 的思维转向</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-%E5%9B%BE%E5%83%8F%E5%88%87%E7%89%87%EF%BC%9A%E4%BB%8E%E5%83%8F%E7%B4%A0%E7%BD%91%E6%A0%BC%E5%88%B0-Token-%E5%BA%8F%E5%88%97"><span class="nav-text">5.1 图像切片：从像素网格到 Token 序列</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-%E8%87%AA%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6%EF%BC%9A%E7%94%A8%E5%85%B3%E7%B3%BB%E5%8F%96%E4%BB%A3%E5%8D%B7%E7%A7%AF"><span class="nav-text">5.2 自注意力机制：用关系取代卷积</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#5-2-1-%E8%AE%A1%E7%AE%97%E5%85%AC%E5%BC%8F"><span class="nav-text">5.2.1 计算公式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-2-2-%E4%B8%8E%E5%8D%B7%E7%A7%AF%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="nav-text">5.2.2 与卷积的对比</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-%E4%BB%8E%E5%BD%92%E7%BA%B3%E5%81%8F%E7%BD%AE%E5%88%B0%E8%87%AA%E7%BB%84%E7%BB%87%E7%BB%93%E6%9E%84"><span class="nav-text">5.3 从归纳偏置到自组织结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-%E4%BB%A3%E4%BB%B7%E4%B8%8E%E6%94%B9%E8%BF%9B%EF%BC%9A%E4%BB%8E-ViT-%E5%88%B0-Swin-Transformer-%E4%B8%8E-ConvNeXt"><span class="nav-text">5.4 代价与改进：从 ViT 到 Swin Transformer 与 ConvNeXt</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#5-4-1-%E5%B1%82%E6%AC%A1%E5%8C%96%E7%9A%84%E8%A7%86%E8%A7%89-Transformer-%E2%80%94%E2%80%94-Swin-Transformer"><span class="nav-text">5.4.1 层次化的视觉 Transformer —— Swin Transformer</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-4-2-%E8%9E%8D%E5%90%88%E6%80%9D%E8%B7%AF%E7%9A%84-CNN-%E5%A4%8D%E5%85%B4-%E2%80%94%E2%80%94-ConvNeXt"><span class="nav-text">5.4.2 融合思路的 CNN 复兴 —— ConvNeXt</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-5-%E6%80%9D%E7%BB%B4%E7%9A%84%E8%BD%AC%E5%90%91%EF%BC%9A%E4%BB%8E%E5%B1%80%E9%83%A8%E6%84%9F%E7%9F%A5%E5%88%B0%E5%85%A8%E5%B1%80%E6%8E%A8%E7%90%86"><span class="nav-text">5.5 思维的转向：从局部感知到全局推理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E4%BB%8E%E7%90%86%E8%AE%BA%E5%88%B0%E7%9B%B4%E8%A7%89%EF%BC%9A%E5%8D%B7%E7%A7%AF%E4%B8%96%E7%95%8C%E7%9A%84%E5%AE%9E%E9%AA%8C%E6%8E%A2%E7%B4%A2"><span class="nav-text">6. 从理论到直觉：卷积世界的实验探索</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-%E6%A6%82%E5%BF%B5%E5%AE%9E%E9%AA%8C%EF%BC%9A%E6%84%9F%E5%8F%97%E9%87%8E%E7%9A%84%E5%8F%AF%E8%A7%86%E5%8C%96"><span class="nav-text">6.1 概念实验：感受野的可视化</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#6-1-1-%E5%AE%9E%E9%AA%8C%E5%8A%A8%E6%9C%BA"><span class="nav-text">6.1.1 实验动机</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-1-2-%E5%AE%9E%E9%AA%8C%E5%86%85%E5%AE%B9"><span class="nav-text">6.1.2 实验内容</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-1-3-%E9%A2%84%E6%9C%9F%E7%8E%B0%E8%B1%A1"><span class="nav-text">6.1.3 预期现象</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-%E8%AE%AD%E7%BB%83%E5%AE%9E%E9%AA%8C%EF%BC%9AVGG-vs-ResNet-%E7%9A%84%E6%94%B6%E6%95%9B%E5%AF%B9%E6%AF%94"><span class="nav-text">6.2 训练实验：VGG vs ResNet 的收敛对比</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#6-2-1-%E5%AE%9E%E9%AA%8C%E5%8A%A8%E6%9C%BA"><span class="nav-text">6.2.1 实验动机</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-2-2-%E5%AE%9E%E9%AA%8C%E8%AE%BE%E7%BD%AE"><span class="nav-text">6.2.2 实验设置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-2-3-%E8%A7%82%E5%AF%9F%E6%8C%87%E6%A0%87"><span class="nav-text">6.2.3 观察指标</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-2-4-%E9%A2%84%E6%9C%9F%E7%8E%B0%E8%B1%A1"><span class="nav-text">6.2.4 预期现象</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-%E6%80%9D%E7%BB%B4%E5%AE%9E%E9%AA%8C%EF%BC%9A%E6%89%B0%E5%8A%A8%E4%B8%8B%E7%9A%84%E6%A8%A1%E5%9E%8B%E9%B2%81%E6%A3%92%E6%80%A7"><span class="nav-text">6.3 思维实验：扰动下的模型鲁棒性</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#6-3-1-%E5%AE%9E%E9%AA%8C%E5%8A%A8%E6%9C%BA"><span class="nav-text">6.3.1 实验动机</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-3-2-%E5%AE%9E%E9%AA%8C%E8%AE%BE%E7%BD%AE"><span class="nav-text">6.3.2 实验设置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-3-3-%E6%89%A9%E5%B1%95%E5%AE%9E%E9%AA%8C"><span class="nav-text">6.3.3 扩展实验</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-3-4-%E9%A2%84%E6%9C%9F%E7%8E%B0%E8%B1%A1"><span class="nav-text">6.3.4 预期现象</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-4-%E7%BB%BC%E5%90%88%E8%A7%82%E5%AF%9F%EF%BC%9A%E4%BB%8E%E5%AE%9E%E9%AA%8C%E5%88%B0%E7%90%86%E8%A7%A3"><span class="nav-text">6.4 综合观察：从实验到理解</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E4%BB%8E%E7%BB%93%E6%9E%84%E5%BD%92%E7%BA%B3%E5%88%B0%E8%A1%A8%E5%BE%81%E5%AD%A6%E4%B9%A0"><span class="nav-text">7. 从结构归纳到表征学习</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#7-1-%E7%BB%93%E6%9E%84%E5%BD%92%E7%BA%B3%E7%9A%84%E6%80%9D%E7%BB%B4%EF%BC%9ACNN-%E7%9A%84%E8%AE%BE%E8%AE%A1%E6%80%9D%E6%83%B3"><span class="nav-text">7.1 结构归纳的思维：CNN 的设计思想</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-2-%E6%95%B0%E6%8D%AE%E9%A9%B1%E5%8A%A8%E7%9A%84%E6%80%9D%E7%BB%B4%EF%BC%9AViT-%E7%9A%84%E8%8C%83%E5%BC%8F"><span class="nav-text">7.2 数据驱动的思维：ViT 的范式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-3-%E4%BA%8C%E8%80%85%E7%9A%84%E5%85%B3%E7%B3%BB%EF%BC%9A%E5%AF%B9%E7%AB%8B%E8%BF%98%E6%98%AF%E4%BA%92%E8%A1%A5%EF%BC%9F"><span class="nav-text">7.3 二者的关系：对立还是互补？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-4-%E5%BD%92%E7%BA%B3%E4%B8%8E%E8%A1%A8%E5%BE%81%EF%BC%9A%E4%BB%8E%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1%E5%88%B0%E7%9F%A5%E8%AF%86%E6%8A%BD%E8%B1%A1"><span class="nav-text">7.4 归纳与表征：从结构设计到知识抽象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-5-%E6%9C%AA%E6%9D%A5%E8%B6%8B%E5%8A%BF%EF%BC%9A%E5%BD%92%E7%BA%B3%E5%81%8F%E7%BD%AE-%C3%97-%E5%A4%A7%E6%95%B0%E6%8D%AE-%C3%97-%E8%AE%A1%E7%AE%97%E8%9E%8D%E5%90%88"><span class="nav-text">7.5 未来趋势：归纳偏置 × 大数据 × 计算融合</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E6%80%BB%E7%BB%93%EF%BC%9A%E4%BB%8E%E2%80%9C%E7%9C%8B%E8%A7%81%E2%80%9D%E5%88%B0%E2%80%9C%E7%90%86%E8%A7%A3%E2%80%9D"><span class="nav-text">8. 总结：从“看见”到“理解”</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">41</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">75</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/keychankc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2025/11/06/040-cnn-way-of-thinking/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's blog">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="为什么卷积神经网络能看懂世界？——CNN 的思维方式 | KeyChan's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          为什么卷积神经网络能看懂世界？——CNN 的思维方式
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2025-11-06 17:20:12 / 修改时间：17:30:45" itemprop="dateCreated datePublished" datetime="2025-11-06T17:20:12+08:00">2025-11-06</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a>
+        </span>
+    </span>
+
+  
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2025/11/06/040-cnn-way-of-thinking/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2025/11/06/040-cnn-way-of-thinking/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>15k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>55 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="1-从滤波到认知：卷积的结构假设"><a href="#1-从滤波到认知：卷积的结构假设" class="headerlink" title="1. 从滤波到认知：卷积的结构假设"></a>1. 从滤波到认知：卷积的结构假设</h2><p>在计算机视觉领域，卷积（Convolution）不仅是一种数学运算，更是一种<strong>关于世界结构的假设</strong>。这一假设的核心思想在于：<strong>图像的语义信息是局部相关的</strong>。换言之，空间上相邻的像素往往属于同一个物体或纹理区域，它们的统计特征并非独立存在，而是具有强烈的局部依赖性。卷积神经网络（Convolutional Neural Network, CNN）正是基于这一假设构建的。</p>
+<span id="more"></span>
+<h3 id="1-1-局部性：世界并非全连接"><a href="#1-1-局部性：世界并非全连接" class="headerlink" title="1.1 局部性：世界并非全连接"></a>1.1 局部性：世界并非全连接</h3><p>在传统的全连接神经网络（Fully Connected Network, FCN）中，每一个输入神经元都会与输出层的每一个节点相连。假设输入尺寸为 $224 \times 224 \times 3$ 的图像，即使第一层全连接层只有几百个神经元，参数量也会轻松达到数千万级别。这种连接方式不仅计算量巨大，更违背了自然图像的统计规律。</p>
+<p>图像世界并不是全局耦合的。我们在识别一只猫时，并不会一次性处理整张图片的所有像素，而是先关注局部特征——比如耳朵的形状、眼睛的轮廓、毛发的纹理——再逐步整合成整体概念。<strong>局部性假设（locality assumption）</strong> 正是将这种人类视觉的分层感知引入了神经网络结构之中：模型不再关注所有像素之间的全局关系，而是只在局部区域内提取特征。</p>
+<p>在数学上，这一思想和<strong>卷积核（kernel）</strong> 在输入特征图上滑动的过程相对应。每次计算仅覆盖一个小窗口（如 $3 \times 3$ 或 $5 \times 5$），从而捕获局部邻域的信息。这种方式使模型的计算复杂度从全局 $O(N^2)$ 降至局部 $O(k^2)$，极大提高了效率与可扩展性。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/mnist_conv_sliding.gif" alt="mnist_conv_sliding"></p>
+<center>图1.1 二维卷积过程可视化</center>
+
+<p>如上<strong>左侧（输入图像）</strong> 是来自 <strong>MNIST 数据集</strong> 的一张手写数字（默认是数字 “5”）。在这张灰度图上，有一个 <strong>3×3 的滑动窗口（矩形框）</strong>，从左上角开始，一格一格地向右、向下扫描整张图片。每次移动，矩形框覆盖的区域表示当前卷积核在计算的“局部感受野”。<strong>右侧（输出特征图）</strong>：是卷积运算得到的输出图像（<strong>valid 卷积</strong>，不填充边界）。随着左侧窗口的滑动，右侧对应位置的像素点逐渐被填充上卷积结果，整个输出图从全黑逐步“显影”，最后形成一个模糊、略小的数字 “5” 形状。</p>
+<h3 id="1-2-权值共享：用同一组“滤镜”观察世界"><a href="#1-2-权值共享：用同一组“滤镜”观察世界" class="headerlink" title="1.2 权值共享：用同一组“滤镜”观察世界"></a>1.2 权值共享：用同一组“滤镜”观察世界</h3><p>局部性解决了计算冗余的问题，但如果每个局部区域都学习一套独立参数，模型仍然会极其庞大。为此，卷积引入了第二个核心思想——<strong>权值共享（weight sharing）</strong>。</p>
+<p>在卷积操作中，同一个卷积核在整张图像上重复使用，即它在每个位置都执行相同的加权求和操作。直观上，这相当于用同一组“滤镜”去扫描整张图像——如果某种边缘特征在图像任意区域出现，这个滤镜都能产生类似的响应。</p>
+<p>这种共享机制带来两个重要的结果：</p>
+<ol>
+<li><strong>参数大幅减少</strong>： 在全连接层中，每个输入像素都会与输出神经元建立独立的连接，也就是说需要为每个像素单独学习一个权重。而在卷积层中，一个 $3\times3$ 的卷积核只需学习 9 个权重（再加一个偏置），并可以在整张图像上共享这组参数。这种参数共享机制大幅减少了模型参数量，同时能有效提取局部空间特征。</li>
+<li><strong>平移等变性（translation equivariance）</strong>： 当输入图像发生平移时，输出特征也会相应平移，但不会改变响应强度。也就是说，模型识别到的“猫耳朵”无论出现在图像左上角还是右下角，都会被同样的滤波器捕获。</li>
+</ol>
+<p>这就是 CNN 的核心优势：在不丢失特征一致性的前提下，用极少的参数捕捉到图像的空间结构。</p>
+<h3 id="1-3-卷积不是操作，而是结构假设"><a href="#1-3-卷积不是操作，而是结构假设" class="headerlink" title="1.3 卷积不是操作，而是结构假设"></a>1.3 卷积不是操作，而是结构假设</h3><p>很多初学者将卷积视为一种特殊的数学运算，但更准确地说，卷积是一种<strong>结构约束（structural constraint）</strong>。它并非规定模型“如何计算”，而是在暗示模型“应该如何理解世界”。这一结构假设可以概括为：</p>
+<blockquote>
+<p>“世界在局部是平滑的，相邻区域往往呈现相似的模式，平移不会改变语义。”</p>
+</blockquote>
+<p>这使卷积成为一种带有明确先验的结构化设计，而非单纯的数值操作。这种约束正是机器学习中的<strong>归纳偏置（inductive bias）</strong>——即在有限样本下，模型必须引入某种先验假设，才能具备泛化能力。CNN 之所以在视觉任务中表现优异，正是因为它对“空间局部性”这一自然规律作了正确的假设。</p>
+<p>反过来看，若我们使用全连接结构来处理图像，就等于假设像素之间完全独立，这在现实世界中显然是不成立的。因此，卷积的成功不仅是工程上的优化，更是对世界局部连续性这一事实的合理建模。</p>
+<h3 id="1-4-与全连接层的对比"><a href="#1-4-与全连接层的对比" class="headerlink" title="1.4 与全连接层的对比"></a>1.4 与全连接层的对比</h3><table>
+<thead>
+<tr>
+<th><strong>对比维度</strong></th>
+<th><strong>全连接层 (FC)</strong></th>
+<th><strong>卷积层 (Conv)</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>连接方式</td>
+<td>全局连接，每个输入对应每个输出</td>
+<td>局部连接，仅连接相邻区域</td>
+</tr>
+<tr>
+<td>参数规模</td>
+<td>与输入维度线性增长</td>
+<td>与卷积核大小有关，独立于输入尺寸</td>
+</tr>
+<tr>
+<td>空间结构利用</td>
+<td>无（忽略像素位置关系）</td>
+<td>强（利用空间局部性）</td>
+</tr>
+<tr>
+<td>平移等变性</td>
+<td>无</td>
+<td>有（天然保持特征位置一致性）</td>
+</tr>
+<tr>
+<td>泛化能力</td>
+<td>弱，需大量数据支持</td>
+<td>强，依赖局部共享假设</td>
+</tr>
+</tbody></table>
+<p>通过这一对比可以看出，卷积层不仅是工程上的改进，更是对输入数据结构的再定义。它在参数效率、结构先验与泛化能力之间取得了极佳的平衡。</p>
+<h3 id="1-5-数学视角：卷积的矩阵化表示"><a href="#1-5-数学视角：卷积的矩阵化表示" class="headerlink" title="1.5 数学视角：卷积的矩阵化表示"></a>1.5 数学视角：卷积的矩阵化表示</h3><p>在数学上，卷积运算可以等价地表示为一种<strong>稀疏矩阵乘法</strong>。当我们将卷积展开成矩阵形式时，权重矩阵呈现出一种特殊的<strong>Toeplitz 结构</strong>，即每一行都是前一行的平移。这种形式清晰地体现了“权值共享”与“平移等变”的本质。</p>
+<p>举个简单例子，假设输入是一维信号 $x &#x3D; [x_1, x_2, x_3, x_4]$，卷积核是 $w &#x3D; [w_1, w_2]$，那么标准的一维卷积（步长&#x3D;1，无填充）输出是：$y_1 &#x3D; w_1x_1 + w_2x_2$ ， $y_2 &#x3D; w_1x_2 + w_2x_3$， $y_3 &#x3D; w_1x_3 + w_2x_4$，我们可以把它写成矩阵乘法的形式：<br>$$\begin{bmatrix} y_1\ y_2\ y_3 \end{bmatrix} \begin{bmatrix} w_1 &amp; w_2 &amp; 0 &amp; 0 \ 0 &amp; w_1 &amp; w_2 &amp; 0 \ 0 &amp; 0 &amp; w_1 &amp; w_2 \end{bmatrix} \begin{bmatrix} x_1\ x_2\ x_3\ x_4 \end{bmatrix}$$看看上面的权重矩阵：$\begin{bmatrix} w_1 &amp; w_2 &amp; 0 &amp; 0 \ 0 &amp; w_1 &amp; w_2 &amp; 0 \ 0 &amp; 0 &amp; w_1 &amp; w_2 \end{bmatrix}$，有没有发现每一行都是上一行往<strong>右平移一格</strong>？同一个权重 $w_1$, $w_2$ 被重复使用？这就是所谓的 <strong>Toeplitz 矩阵结构</strong>。它的特点是：每条对角线上的元素都相同。在二维卷积中，这个矩阵会变成一种更大的 <strong>Block-Toeplitz 矩阵</strong>，每个块又是一个 Toeplitz 小矩阵。<br>为什么叫“稀疏矩阵乘法”，因为这个矩阵里有很多 <strong>0</strong>（没有连接的地方）。相比全连接层的密集矩阵：$y &#x3D; W x$，其中 $W$ 是一个“每个输入都连向每个输出”的满矩阵；卷积层的矩阵只连接“局部邻域”的像素，远处的都设为 0。这就是 <strong>局部连接（local connectivity）</strong> 的体现。</p>
+<p>换句话说，卷积的本质并非新运算，而是在矩阵乘法的框架下，加入了特定的结构约束——这种约束恰好契合了自然图像的生成规律。</p>
+<p><strong>小结</strong><br>卷积层的设计源自两个深刻的洞见：</p>
+<ol>
+<li><strong>局部性假设</strong>：相邻像素的统计依赖构成了图像的基本模式；</li>
+<li><strong>权值共享假设</strong>：相同的模式可以出现在图像的任意位置。</li>
+</ol>
+<p>这两个假设共同构成了 CNN 的“世界观”——机器通过局部滤波器扫描世界，用重复的观察方式捕捉不同位置的结构规律。卷积由此成为连接“信号处理”与“认知理解”的桥梁：从简单的边缘检测出发，最终构建起理解视觉世界的基础。</p>
+<h2 id="2-从局部感知到全局理解：感受野与层次表征"><a href="#2-从局部感知到全局理解：感受野与层次表征" class="headerlink" title="2. 从局部感知到全局理解：感受野与层次表征"></a>2. 从局部感知到全局理解：感受野与层次表征</h2><h3 id="2-1-感受野的概念：神经网络的“视野”"><a href="#2-1-感受野的概念：神经网络的“视野”" class="headerlink" title="2.1 感受野的概念：神经网络的“视野”"></a>2.1 感受野的概念：神经网络的“视野”</h3><p>在卷积神经网络（CNN）中，每一个神经元都不是“看见”整张图像，而只对输入中的一个局部区域敏感，这个区域被称为它的<strong>感受野（Receptive Field）</strong>。</p>
+<p>直观地说，感受野定义了网络在某一层神经元能够“看到”原始图像的范围。若第一层卷积核的感受野仅覆盖 3×3 个像素，那么第二层卷积神经元的感受野就会由多次卷积叠加而变得更大，能够“看见”更广的区域。随着层数加深，网络的感受野逐步扩张，从最初的局部边缘、纹理，扩展到完整的形状、结构，最终能够形成对全局语义的理解。</p>
+<p>数学上，对于一个包含步幅 $s$、卷积核大小 $k$ 的卷积层，其感受野大小 $R_l$ 可以递归计算为：<br>$$R_l &#x3D; R_{l-1} + (k_l - 1) \times \prod_{i&#x3D;1}^{l-1} s_i$$<br>其中 $R_0$ 通常为 1，表示输入像素本身。该公式揭示了一个重要现象：<strong>深层网络的感受野呈指数式增长</strong>。哪怕每一层卷积核都很小（如 3×3），层数叠加后，整体感受野也能覆盖整个输入图像。</p>
+<h3 id="2-2-从边缘到语义：层次表征的形成"><a href="#2-2-从边缘到语义：层次表征的形成" class="headerlink" title="2.2 从边缘到语义：层次表征的形成"></a>2.2 从边缘到语义：层次表征的形成</h3><p>卷积神经网络的强大之处，不仅在于它的层数，更在于<strong>层与层之间的抽象能力递进</strong>。不同层的卷积核“关注”的内容并不相同：</p>
+<table>
+<thead>
+<tr>
+<th><strong>层级</strong></th>
+<th><strong>典型特征</strong></th>
+<th><strong>语义层次</strong></th>
+<th><strong>视觉直觉</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>低层（1–3 层）</strong></td>
+<td>边缘、角点、简单纹理</td>
+<td>物理属性</td>
+<td>模仿早期视觉皮层（V1 区）</td>
+</tr>
+<tr>
+<td><strong>中层（4–7 层）</strong></td>
+<td>局部形状、纹理组合</td>
+<td>结构模式</td>
+<td>轮廓、部件等中级概念</td>
+</tr>
+<tr>
+<td><strong>高层（8 层及以上）</strong></td>
+<td>语义性特征</td>
+<td>抽象概念</td>
+<td>面部、物体、语义区域等</td>
+</tr>
+</tbody></table>
+<p>这种从<strong>低层物理特征 → 中层结构特征 → 高层语义特征</strong>的演化，正是 CNN 模型能够实现视觉理解的关键。例如，在一个识别“猫”的网络中，前几层可能检测到边缘和毛发纹理，中层识别耳朵或眼睛的局部形状，而高层神经元则对“猫脸”或“动物轮廓”有强烈响应。</p>
+<p>这种层次化的表征方式，使得深度网络不仅“看到了像素”，更“理解了图像”。</p>
+<h3 id="2-3-感受野扩张的直观图景"><a href="#2-3-感受野扩张的直观图景" class="headerlink" title="2.3 感受野扩张的直观图景"></a>2.3 感受野扩张的直观图景</h3><p>为了更直观地理解感受野的增长，可以想象这样一个场景：</p>
+<ul>
+<li><strong>第一层卷积</strong>：每个神经元仅观察 3×3 的局部区域；</li>
+<li><strong>第二层卷积</strong>：它所连接的输入神经元各自又有 3×3 的感受野，于是它的有效视野扩大为 5×5；</li>
+<li><strong>第三层卷积</strong>：感受野进一步扩展到 7×7；</li>
+</ul>
+<p>如此递进，经过十几层后，即使每层卷积核都很小，整体感受野也能覆盖整张 224×224 的输入图像。这正解释了一个常被忽视的事实：<strong>小卷积核 + 深层堆叠</strong> 可以有效替代“看得远”的大卷积核。</p>
+<p>例如，在 VGG 网络中，通过连续的 3×3 卷积层堆叠，感受野的增长足以覆盖整幅图像，同时大大减少了参数数量。</p>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/DvV0gm.png" alt="DvV0gm"></p>
+<center>图 2-1 感受野增长示意图（3×3 卷积，stride=1）</center>
+
+<p>图中展示了从第 0 层（输入像素）到第 5 层的感受野变化过程。每经过一层 $3\times3$ 卷积，感受野的边长都会增加 2 个像素（即向外扩展 1 个像素）。在第 0 层时，神经元仅感知自身像素；到第 1 层时，它可感知周围 $3\times3$ 区域；继续叠加到第 5 层时，其感受野已扩张至 $11\times11$。这一过程揭示了卷积网络的关键特性：<strong>层次加深 → 感受野扩大 → 表征更全局</strong>。</p>
+<h3 id="2-4-可视化-CNN-的“视觉世界”"><a href="#2-4-可视化-CNN-的“视觉世界”" class="headerlink" title="2.4 可视化 CNN 的“视觉世界”"></a>2.4 可视化 CNN 的“视觉世界”</h3><p>卷积网络内部虽然包含上百万个参数，但通过可视化方法，我们可以“窥见”它在不同层所关注的世界。</p>
+<h4 id="2-4-1-Feature-Map-可视化"><a href="#2-4-1-Feature-Map-可视化" class="headerlink" title="2.4.1 Feature Map 可视化"></a>2.4.1 Feature Map 可视化</h4><p>Feature Map 是卷积层输出的激活图，它表示输入图像在该卷积层的响应强度。通过绘制特征图，我们可以观察模型在不同位置检测到哪些模式。例如：</p>
+<ul>
+<li>第一层的 Feature Map 可能亮起边缘；</li>
+<li>中层亮起纹理或重复结构；</li>
+<li>高层则聚焦于语义性区域（如脸部、眼睛等）。</li>
+</ul>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/4ADN8a.png" alt="4ADN8a"></p>
+<center>图 2-2 不同层特征图可视化示例（VGG16）</center>
+
+<p>上展示了卷积神经网络在不同层级对输入图像的表征方式。左侧为输入图像；中间展示了低层与中层的卷积特征：低层（conv1_2）主要响应图像的局部边缘与简单纹理；中层（conv3_3）开始提取更复杂的纹理与局部形状模式；右侧为基于 Grad-CAM 计算的高层语义热力图（conv4_3），高亮区域表示网络在识别目标时关注的主要部位（如猫的头部与身体）。</p>
+<h4 id="2-4-2-Activation-Maximization（激活最大化）"><a href="#2-4-2-Activation-Maximization（激活最大化）" class="headerlink" title="2.4.2 Activation Maximization（激活最大化）"></a>2.4.2 Activation Maximization（激活最大化）</h4><p>另一种更具洞察力的方式是<strong>反向可视化（Activation Maximization）</strong>。它不是观察网络对输入的反应，而是“让网络告诉我们它最喜欢什么”。具体做法是：固定网络参数，从随机噪声出发，通过梯度上升优化输入，使得某个神经元的激活值最大化。生成的图像展示了该神经元“理想的输入模式”——低层神经元通常偏好线条或色块，而高层神经元则生成可辨识的物体结构。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/I2kZqd.png" alt="I2kZqd"></p>
+<center>图2-3 不同卷积层的激活最大化生成图像（VGG16）</center>
+
+<p>如上图通过对不同卷积层神经元进行激活最大化优化，可观察到特征层次的演化：低层关注边缘和亮度变化，中层形成规则纹理，高层生成具有语义结构的抽象图案。</p>
+<h3 id="2-5-感受野与语义理解的桥梁"><a href="#2-5-感受野与语义理解的桥梁" class="headerlink" title="2.5 感受野与语义理解的桥梁"></a>2.5 感受野与语义理解的桥梁</h3><p>感受野不仅是几何概念，更是<strong>视觉层次理解的桥梁</strong>。它连接了“局部计算”与“全局认知”之间的鸿沟：</p>
+<ul>
+<li><strong>卷积核的局部性</strong> → 保证网络学习细节；</li>
+<li><strong>感受野的层层扩张</strong> → 让模型逐步整合全局信息；</li>
+<li><strong>层次表征的形成</strong> → 实现从像素到概念的过渡。</li>
+</ul>
+<p>因此，一个成功的卷积神经网络并不是简单地“叠加层数”，而是巧妙地设计<strong>感受野的增长路径</strong>。这也是为什么像 ResNet、EfficientNet 等模型会在卷积堆叠、步幅与池化之间反复权衡：它们本质上都是在<strong>平衡“看到更多”与“看得更细”之间的取舍</strong>。</p>
+<p><strong>小结</strong><br>本章从“感受野”出发，揭示了卷积网络如何实现<strong>从局部感知到全局理解</strong>的跃迁。通过逐层卷积的感受野扩张，CNN 不再是像素级的计算器，而成为一种能在不同层次上抽象视觉语义的结构化系统。理解感受野的动态增长与层次表征的形成机制，是通往更高层深度学习研究（如 ViT、CNN-Transformer 混合架构）不可或缺的基石。</p>
+<h2 id="3-从堆叠到创新：卷积网络的进化逻辑"><a href="#3-从堆叠到创新：卷积网络的进化逻辑" class="headerlink" title="3. 从堆叠到创新：卷积网络的进化逻辑"></a>3. 从堆叠到创新：卷积网络的进化逻辑</h2><p>卷积神经网络（CNN）的发展史，不仅是一段技术革新的历程，更是一段关于<strong>机器如何逐步获得视觉理解能力</strong>的故事。早期的网络关注“能否识别”，后期的网络开始思考“如何高效、如何稳定、如何泛化”。每一次架构的演进，都对应着研究者对“感知”与“认知”的更深刻理解。</p>
+<p>如果说 LeNet 奠定了卷积计算的基本框架，那么 AlexNet 让深度学习真正“看见”了世界；VGG 证明了深度堆叠的可行性；ResNet 则打破了梯度消失的极限；而 EfficientNet 则把结构设计推向了系统化与高效化的时代。</p>
+<p>下面本章将沿着这一脉络<strong>LeNet → AlexNet → VGG → ResNet → EfficientNet</strong>，梳理 CNN 的<strong>演化链条与核心创新逻辑</strong>。</p>
+<h3 id="3-1-LeNet：卷积思想的原点"><a href="#3-1-LeNet：卷积思想的原点" class="headerlink" title="3.1 LeNet：卷积思想的原点"></a>3.1 LeNet：卷积思想的原点</h3><p><strong>时间背景：</strong> 1990 年代初期（LeCun 等人）<br><strong>代表作：</strong> <em>LeNet-5 (1998)</em><br>LeNet 是第一个完整体现卷积思想的神经网络架构。它主要用于手写数字识别（MNIST），结构包含卷积层 + 池化层交替堆叠，以及使用全连接层进行分类。</p>
+<p>LeNet 的创新在于，它首次提出：</p>
+<ol>
+<li><strong>局部感知（local connectivity）</strong>：神经元只连接输入的一小块区域；</li>
+<li><strong>权值共享（weight sharing）</strong>：相同的卷积核在整张图像滑动；</li>
+<li><strong>空间下采样（pooling）</strong>：降低特征尺寸、保留关键信息。</li>
+</ol>
+<p>这些思想构成了现代 CNN 的雏形，使得模型具备“从局部到整体”的感知能力。虽然 LeNet 规模较小（几十万参数），但它为后续所有卷积架构奠定了基础。</p>
+<h3 id="3-2-AlexNet：深度学习的觉醒"><a href="#3-2-AlexNet：深度学习的觉醒" class="headerlink" title="3.2 AlexNet：深度学习的觉醒"></a>3.2 AlexNet：深度学习的觉醒</h3><p><strong>时间背景：</strong> 2012 年<br><strong>代表作：</strong> <em>AlexNet (Krizhevsky et al., 2012)</em><br>AlexNet 标志着深度学习在计算机视觉领域的真正爆发。在 ImageNet 大规模图像分类任务中，它以 <strong>Top-5 准确率 84.6%</strong> 的成绩远超当时的传统方法，从而掀起了一场深度学习的浪潮。</p>
+<p>AlexNet 解决了两个关键瓶颈：</p>
+<ol>
+<li><strong>计算瓶颈：GPU 并行训练</strong><br> 将网络分布到双 GPU 上训练，使 6000 万参数的模型在可接受时间内收敛；</li>
+<li><strong>优化瓶颈：非线性与正则化</strong><ul>
+<li>引入 <strong>ReLU（Rectified Linear Unit）</strong> 激活函数，显著缓解梯度消失；</li>
+<li>使用 <strong>Dropout</strong> 抑制过拟合；</li>
+<li>采用数据增强（随机裁剪、翻转）提升泛化性能。</li>
+</ul>
+</li>
+</ol>
+<p>这些策略使深度模型首次在真实大数据场景中落地。AlexNet 不仅是一场性能变革，更是一种思维转变：<strong>深度网络可以“自己学习特征”，无需人工设计滤波器</strong>。正是算力与正则化的结合，使深度网络从理论走向实用。</p>
+<h3 id="3-3-VGG：深度堆叠的范式"><a href="#3-3-VGG：深度堆叠的范式" class="headerlink" title="3.3 VGG：深度堆叠的范式"></a>3.3 VGG：深度堆叠的范式</h3><p><strong>时间背景：</strong> 2014 年<br><strong>代表作：</strong> <em>VGG-16 &#x2F; VGG-19 (Simonyan &amp; Zisserman, 2014)</em><br>VGG 的提出，是 CNN 结构化设计的一个里程碑。研究者发现，卷积层堆叠本身可以形成一种<strong>层次抽象结构</strong>。VGG 系列通过反复堆叠简单的 <strong>3×3 卷积核 + 2×2 池化</strong> 模块，构建出统一而深度的网络体系。</p>
+<p>其核心思想是：</p>
+<ol>
+<li><strong>小卷积核，多层堆叠</strong><br> 三个 3×3 卷积的感受野 ≈ 一个 7×7 卷积，但参数更少、非线性更强；</li>
+<li><strong>模块化结构设计</strong><br> 每个 block 的配置固定，便于迁移和扩展；</li>
+<li><strong>深度可控</strong><br> 由 11 层（VGG-11）到 19 层（VGG-19）按需扩展，探索深度与性能的平衡。</li>
+</ol>
+<p>VGG 的优雅结构让后续架构（如 ResNet、UNet）都以其为模板。虽然参数量大、计算开销高，但它首次展示了“深度堆叠”的可行性。揭示了网络深度本身是一种学习能力的放大器。</p>
+<h3 id="3-4-ResNet：解决退化的深度革命"><a href="#3-4-ResNet：解决退化的深度革命" class="headerlink" title="3.4 ResNet：解决退化的深度革命"></a>3.4 ResNet：解决退化的深度革命</h3><p><strong>时间背景：</strong> 2015 年<br><strong>代表作：</strong> <em>ResNet (He et al., 2015)</em><br>当网络继续加深时，研究者发现一个反直觉的现象：更深的网络不一定更好，甚至可能更差。这并非过拟合，而是 <strong>梯度退化（degradation）</strong>——在反向传播过程中，信息无法有效传递到浅层。</p>
+<p>ResNet 的突破在于提出了<strong>残差连接（Residual Connection）</strong>：$y &#x3D; F(x) + x$，其中 $F(x)$ 是卷积层学习的残差映射，$x$ 是原始输入。这种结构允许信息通过“捷径（shortcut）”直接传递，极大缓解了梯度消失问题，使网络可以轻松扩展到 <strong>100 层甚至 1000 层</strong>。</p>
+<p>残差思想不仅稳定了训练，也带来了新的认知：<strong>网络的学习不再是“从零开始”，而是可以“在已有认知上进行修正”</strong>。信息的跨层流动是深度网络可训练的关键。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/hyUydA.png" alt="hyUydA"></p>
+<center>图 3-1 残差块结构示意说明</center>
+
+<p>如图所示，ResNet 的核心思想是通过<strong>残差连接（Residual Connection）在网络中引入跨层信息通道。左图为恒等映射（Identity Shortcut）的形式，输入 $x$ 直接与残差分支输出 $F(x)$ 相加，得到 $H(x)&#x3D;F(x)+x$。这种结构允许信息在前后层之间无阻碍地流动，使得梯度能够直接传播到浅层，从而有效缓解深层网络中的梯度消失与性能退化问题</strong>。<br>右图展示了当输入与输出的维度不匹配时采用的<strong>投影映射（Projection Shortcut）</strong>。此时，输入 $x$ 需先经过一个 $1\times1$ 卷积（可带步幅或通道数调整）以匹配 $F(x)$ 的形状，然后再与残差结果相加。这种设计保证了残差连接在任意层维度变化下都能顺利进行。<br>残差结构的关键在于——网络不再从零学习完整映射，而是<strong>学习“相对于输入的变化量”</strong>。这种设计使模型更容易收敛，也使得深度网络能够扩展至数百甚至上千层而仍保持良好的可训练性。</p>
+<h3 id="3-5-EfficientNet：从经验到系统优化"><a href="#3-5-EfficientNet：从经验到系统优化" class="headerlink" title="3.5 EfficientNet：从经验到系统优化"></a>3.5 EfficientNet：从经验到系统优化</h3><p><strong>时间背景：</strong> 2019 年<br><strong>代表作：</strong> <em>EfficientNet (Tan &amp; Le, 2019)</em><br>在 ResNet、DenseNet 等架构相继突破后，研究者发现一个新的矛盾：模型越深、越宽、输入分辨率越高，性能确实提升，但计算成本呈指数增长。</p>
+<p>然而，这三者（深度、宽度、分辨率）之间并非可以随意放大。过去的经验式扩展往往只调整一个维度（例如加深网络或放大输入图片），导致资源浪费或训练不稳定。EfficientNet 的核心突破在于提出了<strong>复合缩放（Compound Scaling）策略</strong>——通过一个统一的比例系数 $\phi$ 同时控制网络的三个关键维度：<br>$$\text{depth:width:resolution} &#x3D; \alpha : \beta : \gamma$$<br>在总计算量（FLOPs）受限的情况下，通过网格搜索确定 $(\alpha, \beta, \gamma)$ 的最优比例，使模型能在<strong>性能与效率之间取得系统最优平衡</strong>。这种思路让模型扩展不再依赖“经验猜测”，而是具备数学化的伸缩规律：EfficientNet-B0 是基准模型，通过复合缩放即可系统生成 B1～B7 系列，模型大小与精度平滑提升。</p>
+<p><strong>关键设计创新</strong></p>
+<ol>
+<li><strong>MBConv（Mobile Inverted Bottleneck）结构</strong><br> 源于 MobileNetV2 的倒置残差模块，以<strong>深度可分离卷积</strong>降低计算量，同时在通道扩展阶段保留更多特征信息，使得模型在轻量化条件下依旧具备强大表达能力。</li>
+<li><strong>Swish 激活函数</strong><br> 取代 ReLU，形式为$f(x) &#x3D; x \cdot \sigma(x)$，它在 $x &lt; 0$ 区域保留微弱梯度，使训练更加平滑，有助于深层网络的收敛。</li>
+<li><strong>AutoML 结构搜索（NAS）</strong><br> EfficientNet 的基准架构（B0）并非人工设计，而是通过 Google AutoML 平台搜索得到的最佳配置。随后，通过复合缩放规则扩展出全系列结构，实现了<strong>自动化 + 理论化 + 高效化</strong>的深度网络设计范式。<br>EfficientNet 标志着卷积网络从“经验堆叠时代”迈入“系统优化时代”：它不再仅靠增加层数来获得性能提升，而是通过科学的缩放规律与自动化搜索，实现<strong>计算效率与准确率的共同最优</strong>。这种思想影响深远——后续的 ConvNeXt、Vision Transformer 等模型，也延续了“<strong>规模一致性（scaling consistency）</strong>”和“<strong>架构自动化（AutoML &#x2F; NAS）</strong>”的设计哲学。</li>
+</ol>
+<h3 id="3-6-模型演化的认知视角"><a href="#3-6-模型演化的认知视角" class="headerlink" title="3.6 模型演化的认知视角"></a>3.6 模型演化的认知视角</h3><p>如果从“<strong>认知能力的演化</strong>”角度来看 CNN 的发展，它不只是网络结构的堆叠，而是一次 <strong>机器视觉思维方式的进化</strong>。每一代网络的诞生，都像是机器在获得一种新的“感知或思维能力”——从能看清局部，到能理解全局，从简单感知到高效推理。</p>
+<p><strong>（1）从感知到理解的五个阶段</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>阶段</strong></th>
+<th><strong>代表模型</strong></th>
+<th><strong>机器“认知能力”</strong></th>
+<th><strong>关键突破</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>感知启蒙</strong></td>
+<td><strong>LeNet (1998)</strong></td>
+<td>看到局部模式</td>
+<td>局部感受野与权值共享——让机器首次具备“视觉感知”能力</td>
+</tr>
+<tr>
+<td><strong>感知增强</strong></td>
+<td><strong>AlexNet (2012)</strong></td>
+<td>感知复杂模式</td>
+<td>更深层次的卷积结构 + ReLU + GPU 训练，使网络真正“看清世界”</td>
+</tr>
+<tr>
+<td><strong>结构化思维</strong></td>
+<td><strong>VGG (2014)</strong></td>
+<td>分层抽象</td>
+<td>小卷积核的模块化堆叠，形成有序层级结构——机器开始“理解模式的层次关系”</td>
+</tr>
+<tr>
+<td><strong>记忆形成</strong></td>
+<td><strong>ResNet (2015)</strong></td>
+<td>信息整合与修正</td>
+<td>残差连接让网络具备“自我记忆”机制，学会在已有认知上进行修正</td>
+</tr>
+<tr>
+<td><strong>高效思维</strong></td>
+<td><strong>EfficientNet (2019)</strong></td>
+<td>资源最优分配</td>
+<td>复合缩放与自动化搜索，使网络能以“系统化方式”平衡性能与效率</td>
+</tr>
+</tbody></table>
+<p><strong>（2）演化的本质：从堆叠复杂到优化认知</strong><br>纵观 CNN 的发展脉络，我们会发现一个深层规律：每一次架构创新，真正提升的不是“网络深度”，而是“信息处理的效率与认知层次”。</p>
+<ul>
+<li><strong>LeNet → AlexNet</strong>：从能“看”到能“识别”；</li>
+<li><strong>VGG → ResNet</strong>：从能“分层抽象”到能“信息整合”；</li>
+<li><strong>EfficientNet</strong>：从能“学习”到能“系统规划资源”。</li>
+</ul>
+<p>这种演化，正如人类大脑从<strong>感知皮层</strong>到<strong>前额叶</strong>的分化过程：低层负责局部感受，高层负责全局整合与策略优化。CNN 的进化本质上，是机器在模拟认知体系——<strong>从低级感知（Perception）走向抽象理解（Understanding）。</strong></p>
+<p>结构复杂化并不必然带来智能提升，关键是能否让信息流动更高效。网络的每次突破，本质上都在逼近“人类视觉的认知机制”——感知、记忆、抽象与推理。当 CNN 完成了感知层的演化，下一步的挑战将是：如何让模型具备“因果理解”与“主动推理”的能力，真正实现视觉认知的闭环。</p>
+<p><strong>小结</strong><br>卷积神经网络的演化不是随机的，而是一条沿着“性能瓶颈—结构创新—认知提升”不断螺旋上升的路径。LeNet 让机器第一次“看见”，AlexNet 让它“看得更深”，VGG 让深度变得有序，ResNet 让学习变得稳定，而 EfficientNet 则让这一切更加高效。</p>
+<p>CNN 的演化逻辑，是从“如何学习”到“如何学习得更好”的递进。未来的网络架构，将不再以“更深”或“更宽”为目标，而是追求<strong>更智慧的结构设计</strong>。</p>
+<h2 id="4-从归纳到边界：卷积的假设与局限"><a href="#4-从归纳到边界：卷积的假设与局限" class="headerlink" title="4. 从归纳到边界：卷积的假设与局限"></a>4. 从归纳到边界：卷积的假设与局限</h2><p>卷积神经网络（CNN）之所以能在视觉任务中取得成功，根本原因在于它的<strong>归纳偏置（Inductive Bias）</strong>——即网络结构中隐含的先验假设：“世界是局部平滑的，邻近像素的模式相关”。</p>
+<p>这种假设让模型在数据有限时仍能有效学习，是深度学习迈出“认知第一步”的关键。然而，每一个假设都像一把双刃剑：它<strong>帮助模型聚焦于有用的规律</strong>，同时也<strong>限制了模型能发现的可能性</strong>。</p>
+<p>CNN 的结构偏置为其带来了三大特征：</p>
+<ol>
+<li><strong>局部性（Locality）</strong> —— 只观察邻域区域；</li>
+<li><strong>权值共享（Weight Sharing）</strong> —— 相同卷积核应用于整个输入；</li>
+<li><strong>平移等变性（Translation Equivariance）</strong> —— 当输入平移时，特征响应同步平移。</li>
+</ol>
+<p>但这种偏置并非完美，它让 CNN 对平移表现良好，却在<strong>旋转、缩放与形变</strong>面前表现脆弱——即 CNN 仅能“看懂位置变化”，却不自然地“理解形状变化”。<br>下面将围绕这一矛盾展开：<strong>假设如何帮助我们学习，又如何成为认知的边界。</strong></p>
+<h3 id="4-1-平移等变性：CNN-的天然特征"><a href="#4-1-平移等变性：CNN-的天然特征" class="headerlink" title="4.1 平移等变性：CNN 的天然特征"></a>4.1 平移等变性：CNN 的天然特征</h3><p>我们先从 CNN 的成功之处说起。卷积的核心机制——<strong>滑动卷积核 + 权值共享</strong>，使得网络在不同位置检测相同模式，从而实现<strong>平移等变性（Translation Equivariance）</strong>：<br>$$f(T_\Delta x) &#x3D; T_\Delta f(x)$$<br>这里 $T_\Delta$ 表示平移操作，$f(\cdot)$ 表示卷积。这意味着：如果输入图像平移，特征图也会以相同方式平移，而不改变数值模式。因此，无论目标在左上角还是右下角，CNN 都能用同一卷积核检测到相同的特征。</p>
+<img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/DCE6MY.png" width="70%" />
+<center>图 4-1 平移等变性示意图</center>
+
+<p>左：输入图像中的物体平移位置。右：卷积特征图响应也平移，但保持相同模式。CNN 能自然捕捉这种空间一致性，这是它相对于全连接网络的最大优势。</p>
+<p>卷积结构相对于全连接网络（FCN）的最大优势之一<strong>位置平移不会改变模式识别结果，网络学习到的是“是什么”，而不是“在哪里”。</strong> 然而，这种“等变性”是一种<strong>硬编码（hard-coded）</strong> 结构假设—— 它告诉模型“位置变化不影响特征”，但并未告诉它“旋转或缩放也无关紧要”。</p>
+<h3 id="4-2-对旋转与尺度的不变性缺陷"><a href="#4-2-对旋转与尺度的不变性缺陷" class="headerlink" title="4.2 对旋转与尺度的不变性缺陷"></a>4.2 对旋转与尺度的不变性缺陷</h3><p>当输入图像中的物体旋转 30°、60° 或缩放一倍时，同一个卷积核将产生完全不同的激活响应。<br>换句话说，CNN 无法自动实现<strong>旋转不变性（Rotation Invariance）与尺度不变性（Scale Invariance）</strong>。</p>
+<p>这背后的根源在于：卷积核在空间上是“固定方向、固定尺寸”的模板——它们被设计为检测某种局部模式（如水平边缘、竖直线条），但不会随输入形变而变化。因此：</p>
+<ul>
+<li>如果猫脸旋转了，原本用于检测“眼睛水平线”的卷积核将无法激活；</li>
+<li>如果物体缩小或放大，卷积核的固定尺寸无法精确匹配新的比例。</li>
+</ul>
+<p>这就是 CNN 的“归纳边界”：<strong>它能学会局部模式，却难以跨越几何变化的范畴</strong>。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/zqyfHV.png" alt="zqyfHV"></p>
+<center>图 4-2 同一物体旋转下的特征响应变化</center>
+
+<p>不同旋转角度下，CNN 的特征图响应显著不同。说明网络内部并没有学习到“旋转等价”的结构关系，而是对方向变化敏感。</p>
+<h3 id="4-3-数据增强：经验层面的补救"><a href="#4-3-数据增强：经验层面的补救" class="headerlink" title="4.3 数据增强：经验层面的补救"></a>4.3 数据增强：经验层面的补救</h3><p>在工程实践中，我们常通过<strong>数据增强（Data Augmentation）</strong> 来缓解这一问题。<br>例如在训练图像分类模型时：</p>
+<ul>
+<li>对输入图像进行旋转、平移、缩放、翻转；</li>
+<li>让模型在各种形态下都见过同一类别；</li>
+<li>迫使网络学习到一种“近似不变性”。</li>
+</ul>
+<p>这种方法确实有效——它利用“样本多样性”逼近结构不变性。但这只是经验层面的补救，而非结构层面的解决。CNN 依然不知道“旋转的猫脸”与“正向猫脸”本质相同，它只是“记住了更多例子”。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/rtumnO.png" width="90%" /></p>
+<center>图 4-3 数据增强在不变性学习中的作用（MNIST 数字“6”）</center>
+
+<p>上排表示通过旋转生成增强样本。中排表示同一方向卷积核（θ&#x3D;0°）的响应在不同角度差异明显，说明对旋转敏感。下排表示使用多方向卷积核集成（max pooling）后，特征在旋转间更一致，模拟了<strong>数据增强带来的经验性不变性</strong>。<br>然而，这种一致性依赖于覆盖到的变换范围，对<strong>未见变换</strong>仍缺乏鲁棒性。</p>
+<h3 id="4-4-群等变卷积（G-CNN）：结构上的突破尝试"><a href="#4-4-群等变卷积（G-CNN）：结构上的突破尝试" class="headerlink" title="4.4 群等变卷积（G-CNN）：结构上的突破尝试"></a>4.4 群等变卷积（G-CNN）：结构上的突破尝试</h3><p>为突破 CNN 的旋转局限，Cohen &amp; Welling (2016) 提出了 <strong>Group Equivariant CNN (G-CNN)</strong>。它将卷积运算从平移群（translation group）推广到更一般的群结构，如旋转群 SO(2) 或离散旋转群 $C_4$。</p>
+<p>直观地说，G-CNN 不仅在平移上滑动卷积核，还在“旋转维度”上共享权重：<br>$$[f * \psi](x, r) &#x3D; \sum_{y} f(y) \psi(r^{-1}(x-y))$$<br>其中 $r$ 表示旋转操作。通过这种设计，模型能在旋转后保持一致的响应模式，即实现<strong>旋转等变性（Rotation Equivariance）</strong>。尽管 G-CNN 提供了理论上的优雅方案，但实现复杂、计算开销大，难以推广到任意形变。</p>
+<h3 id="4-5-Spatial-Transformer：让网络学会“看齐”"><a href="#4-5-Spatial-Transformer：让网络学会“看齐”" class="headerlink" title="4.5 Spatial Transformer：让网络学会“看齐”"></a>4.5 Spatial Transformer：让网络学会“看齐”</h3><p>另一种更灵活的思想来自 Jaderberg 等人（2015）的 <strong>Spatial Transformer Networks (STN)</strong>。它不再人为定义等变性结构，而是<strong>让网络自己学会对齐</strong>。</p>
+<p>STN 模块通过三个步骤实现几何自适应：</p>
+<ol>
+<li><strong>定位网络（Localization Net）</strong> 学习变换参数（旋转、缩放、平移）；</li>
+<li><strong>网格生成（Grid Generator）</strong> 构建变换后的采样坐标；</li>
+<li><strong>采样器（Sampler）</strong> 根据新坐标重采样输入特征图。</li>
+</ol>
+<p>最终，CNN 不再被动接受形变，而是主动调整视角，将输入“变换回标准位置”，再进行识别。这种方法在手写字符识别、交通标志识别等任务中表现显著提升。</p>
+<img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/axuj2Y.png" width="90%" />
+<center>图 4-4 Spatial Transformer 工作原理图</center>
+
+<p>上排为不同畸变的输入（旋转、缩放、剪切和平移）。下排为 STN 模块校正后的输出。网络通过学习仿射参数 θ，实现输入的几何对齐。输出相似说明 STN 成功“拉正”不同形态的数字——不再被动依赖数据增强，而是主动学习视角校正。</p>
+<h3 id="4-6-归纳偏置的哲学反思"><a href="#4-6-归纳偏置的哲学反思" class="headerlink" title="4.6 归纳偏置的哲学反思"></a>4.6 归纳偏置的哲学反思</h3><p>回望 CNN 的设计哲学，它的成功源自“强归纳假设”：局部性、平移等变、层次结构……这些先验让模型训练稳定、数据需求少、泛化性强。然而，正如人类的先入之见，它也可能<strong>限制了新的发现</strong>。</p>
+<ul>
+<li>局部性让模型忽视远距离依赖；</li>
+<li>权值共享使其难以处理形变；</li>
+<li>固定感受野阻碍了全局关系建模。</li>
+</ul>
+<p>这些限制，最终引出了后续的架构革命——<strong>Vision Transformer (ViT)</strong>。ViT 抛弃了卷积的局部假设，转而使用全局注意力（Self-Attention），让模型在整个图像范围内捕捉依赖关系。它代表了从“结构归纳”走向“数据驱动表征”的一次范式转移。</p>
+<p><strong>小结</strong><br>卷积网络的成功离不开它的结构归纳偏置：它相信世界的局部平滑性和平移等价性；它用参数共享和卷积核滑动，将复杂的视觉世界简化为可计算的模式。<br>但这种“假设的力量”同时也是“假设的束缚”。CNN 的局限恰恰揭示了深度学习发展的方向：未来的模型需要在归纳假设与表达自由之间取得新的平衡——既保留结构上的高效性，又赋予模型自主建构空间关系的能力。</p>
+<h2 id="5-从卷积到注意力：ViT-的思维转向"><a href="#5-从卷积到注意力：ViT-的思维转向" class="headerlink" title="5. 从卷积到注意力：ViT 的思维转向"></a>5. 从卷积到注意力：ViT 的思维转向</h2><p>如果说卷积神经网络（CNN）教会了机器“如何观察”，那么 Vision Transformer（ViT）则教会了机器“如何思考”。<br>CNN 依赖局部性与权值共享的归纳假设，它假定世界由局部模式组成，并通过感受野层层扩张实现全局理解。然而，这种结构化假设也限制了模型的表达自由：卷积核只能固定地“看局部”，而不能主动“看全局”。</p>
+<p>ViT 的出现，标志着视觉建模范式的一次根本转向——它<strong>不再依赖预设的局部归纳结构</strong>，而是让模型通过<strong>注意力机制（Attention）</strong> 从数据中自组织地学习全局关系。这种思想延续了自然语言处理领域 Transformer 的成功，也使得计算机视觉进入了一个全新的时代。</p>
+<h3 id="5-1-图像切片：从像素网格到-Token-序列"><a href="#5-1-图像切片：从像素网格到-Token-序列" class="headerlink" title="5.1 图像切片：从像素网格到 Token 序列"></a>5.1 图像切片：从像素网格到 Token 序列</h3><p>在传统的 CNN 中，输入图像被看作二维网格结构，卷积核在其中滑动计算局部相关性。而在 ViT 中，图像被“打散”为一系列固定大小的<strong>图像块（patch）</strong>，每个 patch 被视作一个独立的<strong>视觉 Token</strong>，类似于文本中的单词。</p>
+<p>具体过程如下：</p>
+<ol>
+<li><strong>切片（Patchify）</strong>：将输入图像 $x \in \mathbb{R}^{H \times W \times C}$ 划分为不重叠的 $N &#x3D; (H \times W) &#x2F; P^2 个 patch$，每个 patch 大小为 $P \times P$</li>
+<li><strong>线性投影（Linear Projection）</strong>：将每个 patch 展平为一维向量，并通过一个可学习矩阵 E 投影到固定维度 D，$z_0 &#x3D; [x_1E; x_2E; \ldots; x_NE]$</li>
+<li><strong>位置编码（Positional Embedding）</strong>：由于 Transformer 不具备位置感知能力，需为每个 patch 添加位置编码 $E_{pos}$，以保留图像的空间信息。</li>
+</ol>
+<p>最终，整个图像被转化为一串 Token 序列：$z_0 &#x3D; [x_1E + E_{pos,1}, , x_2E + E_{pos,2}, , \ldots, , x_NE + E_{pos,N}]$，这一步的思想非常关键——它打破了图像“必须是二维网格”的假设，让视觉任务能够直接在序列建模框架下统一处理。</p>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/wu7Qwy.png" alt="wu7Qwy"></p>
+<center>图 5-1 ViT 的 Patch Embedding 结构图</center>
+
+<p>左侧的输入图像首先被划分为固定大小的 <strong>Patch 块</strong>（例如 $16\times16$），每个 Patch 经线性层映射为固定维度的 <strong>Token 向量</strong>，并加入 <strong>位置编码（$E_{pos}$）</strong> 以保留空间顺序。同时，在序列最前加入一个特殊的 <strong>[CLS] Token</strong>，用于后续的全局分类。所有 Token 组成序列输入 Transformer 编码器，经多层自注意力机制建模全局依赖，最终由 <strong>分类头（Classification Head）</strong> 读取 [CLS] 的输出向量完成图像识别。</p>
+<h3 id="5-2-自注意力机制：用关系取代卷积"><a href="#5-2-自注意力机制：用关系取代卷积" class="headerlink" title="5.2 自注意力机制：用关系取代卷积"></a>5.2 自注意力机制：用关系取代卷积</h3><p>ViT 的核心在于 <strong>自注意力机制（Self-Attention）</strong>。它不再通过卷积核在空间上局部滑动，而是直接计算任意两个 Token 之间的相似度，从而实现<strong>全局依赖建模</strong>。</p>
+<h4 id="5-2-1-计算公式"><a href="#5-2-1-计算公式" class="headerlink" title="5.2.1 计算公式"></a>5.2.1 计算公式</h4><p>对于输入序列 $z &#x3D; [z_1, z_2, …, z_N]$，自注意力通过三个线性映射得到查询（Query）、键（Key）、值（Value），向量：$Q &#x3D; zW_Q, \quad K &#x3D; zW_K, \quad V &#x3D; zW_V$，注意力权重矩阵定义为：</p>
+<p>$$A &#x3D; \text{Softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)$$<br>输出则为：$\text{Attention}(Q,K,V) &#x3D; A V$<br>这一机制允许每个 Token 与其他所有 Token 建立联系，模型不再受限于固定感受野，而能在一次计算中“看到整张图像”。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/ROrNFk.png" alt="ROrNFk"></p>
+<center>图 5-2 自注意力权重热力图示意（ViT 视角，单头）</center>
+
+<p>本图展示了 Vision Transformer (ViT) 中自注意力机制的可视化效果。左图为输入图像（MNIST 数字 “6”）及其被划分的 Patch 网格；中图表示当选定第 5 个 Patch 作为查询（Query）时，该位置在图像空间中的注意力分布。可以看到，模型会自发地将“注意力”集中到与该笔画语义关联的区域，而非仅局限于其物理邻域。右图展示完整的注意力矩阵，每一行代表一个 Query 对所有 Token 的关注强度。青色横线标出了当前 Query 所对应的行。这一可视化说明了自注意力的核心特性：<strong>通过全局关联建模，Transformer 能在一次计算中捕捉任意位置之间的依赖关系，从而突破卷积的局部感受野限制</strong>。</p>
+<h4 id="5-2-2-与卷积的对比"><a href="#5-2-2-与卷积的对比" class="headerlink" title="5.2.2 与卷积的对比"></a>5.2.2 与卷积的对比</h4><p>CNN 依赖结构先验；ViT 放弃假设，由数据驱动生成空间关系。这种从“硬编码”到“自组织”的转变，是深度视觉的思想转折点。</p>
+<table>
+<thead>
+<tr>
+<th><strong>特性维度</strong></th>
+<th><strong>卷积神经网络（CNN）</strong></th>
+<th><strong>视觉Transformer（ViT）</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>感受野（Receptive Field）</strong></td>
+<td>局部固定，依层级逐步扩大</td>
+<td>天然全局，可直接建模任意两点关系</td>
+</tr>
+<tr>
+<td><strong>权值共享（Weight Sharing）</strong></td>
+<td>卷积核参数固定，对所有位置相同</td>
+<td>权重动态变化，取决于输入内容（自适应注意）</td>
+</tr>
+<tr>
+<td><strong>空间关系建模（Spatial Relation）</strong></td>
+<td>通过邻域卷积隐式编码</td>
+<td>显式学习所有 Token 之间的依赖</td>
+</tr>
+<tr>
+<td><strong>归纳偏置（Inductive Bias）</strong></td>
+<td>强：局部性、平移等变性、结构约束明显</td>
+<td>弱：依赖数据学习空间结构，自由度更高</td>
+</tr>
+<tr>
+<td><strong>计算复杂度（Computation）</strong></td>
+<td>与图像大小线性相关</td>
+<td>与 Token 数平方相关（$O(N^2)$）</td>
+</tr>
+<tr>
+<td><strong>数据需求（Data Requirement）</strong></td>
+<td>中等，少量数据即可训练良好</td>
+<td>极大，需大规模预训练支撑泛化</td>
+</tr>
+<tr>
+<td><strong>泛化方式（Generalization）</strong></td>
+<td>依赖先验归纳偏置</td>
+<td>依赖自注意力捕捉语义关联</td>
+</tr>
+<tr>
+<td><strong>典型特征</strong></td>
+<td>局部卷积、池化、特征金字塔</td>
+<td>全局注意力、Token 化、位置编码</td>
+</tr>
+</tbody></table>
+<h3 id="5-3-从归纳偏置到自组织结构"><a href="#5-3-从归纳偏置到自组织结构" class="headerlink" title="5.3 从归纳偏置到自组织结构"></a>5.3 从归纳偏置到自组织结构</h3><p>卷积通过结构设计引入归纳偏置，Transformer 则通过数据学习自组织。二者的区别，不仅是“运算方式”的不同，更是“思维方式”的转变：</p>
+<table>
+<thead>
+<tr>
+<th><strong>维度</strong></th>
+<th><strong>CNN 思想</strong></th>
+<th><strong>ViT 思想</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>结构设计</td>
+<td>归纳式（人类先验）</td>
+<td>数据驱动（自组织）</td>
+</tr>
+<tr>
+<td>学习目标</td>
+<td>捕捉局部模式</td>
+<td>建立全局依赖</td>
+</tr>
+<tr>
+<td>表征形成</td>
+<td>层级感受野扩张</td>
+<td>注意力全局聚合</td>
+</tr>
+<tr>
+<td>泛化来源</td>
+<td>结构归纳</td>
+<td>大规模数据统计</td>
+</tr>
+<tr>
+<td>视觉理解</td>
+<td>从局部组合出整体</td>
+<td>从整体推断出局部</td>
+</tr>
+</tbody></table>
+<p>这种思维的转向，本质上是<strong>从人类设计的感知结构 → 模型自学的认知结构</strong>。ViT 不再被卷积核的几何形式所束缚，而是让网络自己决定“哪里值得看”，这使得模型在语义层面具备更高的灵活性和表达能力。</p>
+<h3 id="5-4-代价与改进：从-ViT-到-Swin-Transformer-与-ConvNeXt"><a href="#5-4-代价与改进：从-ViT-到-Swin-Transformer-与-ConvNeXt" class="headerlink" title="5.4 代价与改进：从 ViT 到 Swin Transformer 与 ConvNeXt"></a>5.4 代价与改进：从 ViT 到 Swin Transformer 与 ConvNeXt</h3><p>尽管 ViT 带来了结构上的自由，但也引入了两个新的挑战：</p>
+<ol>
+<li><strong>计算复杂度高</strong>：自注意力的复杂度为 $O(N^2)$，当输入分辨率较大时（如 224×224 图像对应 196 个 patch），计算和显存开销急剧增加；</li>
+<li><strong>数据依赖强</strong>：ViT 缺乏 CNN 的局部先验，需要大量数据预训练才能收敛。</li>
+</ol>
+<p>为此，研究者提出了两类改进方向：</p>
+<h4 id="5-4-1-层次化的视觉-Transformer-——-Swin-Transformer"><a href="#5-4-1-层次化的视觉-Transformer-——-Swin-Transformer" class="headerlink" title="5.4.1 层次化的视觉 Transformer —— Swin Transformer"></a>5.4.1 层次化的视觉 Transformer —— Swin Transformer</h4><p>Swin Transformer（Liu et al., 2021）在 ViT 基础上引入了<strong>局部窗口注意力（Windowed Attention）与层次结构（Hierarchical Feature Maps）</strong>，实现了：</p>
+<ul>
+<li>局部自注意力降低计算量；</li>
+<li>窗口间移位机制（Shifted Window）保证全局交互；</li>
+<li>类似 CNN 的多尺度特征表达。</li>
+</ul>
+<p>这样就可以通过结构约束重新引入“有效归纳”，实现计算与建模的平衡。</p>
+<h4 id="5-4-2-融合思路的-CNN-复兴-——-ConvNeXt"><a href="#5-4-2-融合思路的-CNN-复兴-——-ConvNeXt" class="headerlink" title="5.4.2 融合思路的 CNN 复兴 —— ConvNeXt"></a>5.4.2 融合思路的 CNN 复兴 —— ConvNeXt</h4><p>ConvNeXt（Liu et al., 2022）回归卷积框架，但吸收了 Transformer 的设计理念：</p>
+<ul>
+<li>大卷积核（7×7）以扩大感受野；</li>
+<li>LayerNorm 替代 BatchNorm；</li>
+<li>GELU 激活与残差布局对齐 Transformer 风格；</li>
+<li>简化结构、优化训练策略。</li>
+</ul>
+<p>ConvNeXt 展示了一个趋势：卷积与注意力正在趋同，二者的边界逐渐模糊。深度学习模型正走向一种融合范式——<strong>“具备归纳的全局网络”</strong>。</p>
+<h3 id="5-5-思维的转向：从局部感知到全局推理"><a href="#5-5-思维的转向：从局部感知到全局推理" class="headerlink" title="5.5 思维的转向：从局部感知到全局推理"></a>5.5 思维的转向：从局部感知到全局推理</h3><p>ViT 的出现，不仅是架构上的创新，更是思维方式的转折。CNN 的世界是“局部构建的”：由小块组合成整体；ViT 的世界是“全局推导的”：从整体关系理解局部。这种转向对应着从“结构归纳”到“数据归纳”的认知迁移：</p>
+<ul>
+<li>CNN：结构先验指导学习；</li>
+<li>ViT：统计规律驱动表征。</li>
+</ul>
+<p>从更高层次看，ViT 的成功体现了一个深刻理念：当数据足够多、模型足够大时，先验不再是必需品，模型可以通过学习，自己发现视觉世界的结构。</p>
+<p><strong>小结</strong><br>卷积网络的设计让机器具备了“感知世界”的能力，而 Vision Transformer 的出现，让机器开始“理解世界”。二者之间的差异，不在于操作，而在于：CNN 是对视觉结构的<strong>人为归纳</strong>；ViT 是对视觉关系的<strong>数据归纳</strong>。从 LeNet 的局部滤波，到 ViT 的全局注意力，深度学习的视觉建模正在经历一次从“局部感知”到“全局认知”的思维演化。</p>
+<p>ViT 不仅打破了卷积的结构假设，更重构了深度学习的认知逻辑——从“人告诉模型世界是什么样”到“模型自己学会世界是什么样”。</p>
+<h2 id="6-从理论到直觉：卷积世界的实验探索"><a href="#6-从理论到直觉：卷积世界的实验探索" class="headerlink" title="6. 从理论到直觉：卷积世界的实验探索"></a>6. 从理论到直觉：卷积世界的实验探索</h2><p>前几章我们从结构与原理出发，理解了卷积神经网络（CNN）如何通过<strong>局部感知、层次表征</strong>逐步“看懂”世界。然而，对深度学习而言，仅理解公式是不够的——真正的直觉来自<strong>实践</strong>：观察模型如何训练、如何提取特征、如何对扰动作出反应。</p>
+<p>本章将通过一系列层次化的实验，在实践中体会 CNN 的视觉世界。我们不再把模型看作“黑箱”，而是用实验去揭示它的“思维轨迹”。</p>
+<p><strong>实验目标：</strong></p>
+<ol>
+<li>理解感受野如何随层数扩张；</li>
+<li>比较不同架构（VGG vs ResNet）的收敛与泛化差异；</li>
+<li>探索 CNN 面对旋转或裁剪扰动时的稳定性。</li>
+</ol>
+<h3 id="6-1-概念实验：感受野的可视化"><a href="#6-1-概念实验：感受野的可视化" class="headerlink" title="6.1 概念实验：感受野的可视化"></a>6.1 概念实验：感受野的可视化</h3><h4 id="6-1-1-实验动机"><a href="#6-1-1-实验动机" class="headerlink" title="6.1.1 实验动机"></a>6.1.1 实验动机</h4><p>在第 2 章中我们介绍了感受野的定义：每一层神经元的激活区域，决定了它能“看到”输入图像的哪一部分。本实验通过计算与可视化，来帮助<strong>量化感受野的增长过程</strong>。</p>
+<h4 id="6-1-2-实验内容"><a href="#6-1-2-实验内容" class="headerlink" title="6.1.2 实验内容"></a>6.1.2 实验内容</h4><ul>
+<li>构建一个简化的卷积网络（如：Conv3x3 → Conv3x3 → Pool2x2 → Conv3x3）；</li>
+<li>对每一层计算理论感受野：$R_l &#x3D; R_{l-1} + (k_l - 1) \times \prod_{i&#x3D;1}^{l-1}s_i$</li>
+<li>使用随机输入，通过反向梯度或显式标注可视化每层特征图对原始输入的“关注区域”。</li>
+</ul>
+<h4 id="6-1-3-预期现象"><a href="#6-1-3-预期现象" class="headerlink" title="6.1.3 预期现象"></a>6.1.3 预期现象</h4><ul>
+<li>随着层数加深，感受野面积呈指数式增长；</li>
+<li>高层神经元对图像的响应范围更大，但空间分辨率降低；</li>
+<li>直观体现出：<strong>低层关注细节，高层关注语义。</strong></li>
+</ul>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/rf_mnist.gif" alt="rf_mnist"></p>
+<center>图 6-1 感受野可视化示意图</center>
+如上图在同一张 MNIST 手写数字上，依次选取指定层（Conv3×3 → Conv3×3 → MaxPool2×2 → Conv3×3）中激活最强的神经元，并把该神经元在输入空间的**理论感受野**用正方形边框叠加到原图。随着层级加深，感受野按理论计算从 **3 → 5 → 6 → 10**（像素）逐步扩大，且在池化后**有效步长**变为 2 像素，导致边框中心在输入上以更大的步幅移动。边框位置由$\text{center} = \text{start}\ell + (h,w)\cdot \text{jump}\ell,\quad \text{size} = \text{RF}_\ell$确定，直观展示了“更高层→更大范围、更稀疏取样”的空间感受机制。
+
+<blockquote>
+<p><strong>思考：</strong> 受野的扩大是否意味着模型的“理解力”增强？为什么同样大小的感受野，在不同结构中表现不同？</p>
+</blockquote>
+<h3 id="6-2-训练实验：VGG-vs-ResNet-的收敛对比"><a href="#6-2-训练实验：VGG-vs-ResNet-的收敛对比" class="headerlink" title="6.2 训练实验：VGG vs ResNet 的收敛对比"></a>6.2 训练实验：VGG vs ResNet 的收敛对比</h3><h4 id="6-2-1-实验动机"><a href="#6-2-1-实验动机" class="headerlink" title="6.2.1 实验动机"></a>6.2.1 实验动机</h4><p>VGG 与 ResNet 是卷积网络发展中的两个关键里程碑。二者的主要区别在于：</p>
+<ul>
+<li><strong>VGG</strong> 采用纯堆叠结构（Sequential Stacking）；</li>
+<li><strong>ResNet</strong> 引入残差连接（Residual Shortcut），显著改善深层训练稳定性。</li>
+</ul>
+<p>本实验旨在用同一数据集验证：<strong>结构设计如何影响收敛速度与最终性能。</strong></p>
+<h4 id="6-2-2-实验设置"><a href="#6-2-2-实验设置" class="headerlink" title="6.2.2 实验设置"></a>6.2.2 实验设置</h4><ul>
+<li><strong>数据集：</strong> <a target="_blank" rel="noopener" href="https://www.cs.toronto.edu/~kriz/cifar.html">CIFAR-10（10 类彩色小图）</a></li>
+<li><strong>模型：</strong> VGG-16（经典卷积堆叠）：ResNet-18（含残差连接）</li>
+<li><strong>优化器：</strong> SGD + Momentum</li>
+<li><strong>超参数：</strong> 学习率 0.01，批量 128，训练 50 epoch。</li>
+</ul>
+<h4 id="6-2-3-观察指标"><a href="#6-2-3-观察指标" class="headerlink" title="6.2.3 观察指标"></a>6.2.3 观察指标</h4><ul>
+<li>训练与验证 <strong>Loss 曲线</strong>；</li>
+<li><strong>Top-1 Accuracy</strong>；</li>
+<li><strong>收敛速度（epoch 数）</strong>；</li>
+<li><strong>梯度范数变化</strong>。</li>
+</ul>
+<h4 id="6-2-4-预期现象"><a href="#6-2-4-预期现象" class="headerlink" title="6.2.4 预期现象"></a>6.2.4 预期现象</h4><ul>
+<li>VGG 的训练误差下降较慢，深层梯度衰减明显；</li>
+<li>ResNet 训练更稳定，早期收敛更快；</li>
+<li>最终准确率差距约 3–5%，但训练效率差距更显著；</li>
+<li>残差连接使网络“更容易学习到有用的修正”，而非从零拟合映射。</li>
+</ul>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/WgfTwW.png" alt="WgfTwW"></p>
+<center>图 6-2 VGG 与 ResNet 在 CIFAR-10 上的 Loss/Accuracy 对比曲线</center>
+
+<p>可见 ResNet 在早期收敛更快、验证集准确率更高。这印证了“Identity Mapping 能改善信息流动”的理论结论。</p>
+<blockquote>
+<p><strong>思考：</strong><br>为什么深层网络反而更难训练？残差连接是否改变了网络的表达能力，还是仅改变了优化过程？</p>
+</blockquote>
+<h3 id="6-3-思维实验：扰动下的模型鲁棒性"><a href="#6-3-思维实验：扰动下的模型鲁棒性" class="headerlink" title="6.3 思维实验：扰动下的模型鲁棒性"></a>6.3 思维实验：扰动下的模型鲁棒性</h3><h4 id="6-3-1-实验动机"><a href="#6-3-1-实验动机" class="headerlink" title="6.3.1 实验动机"></a>6.3.1 实验动机</h4><p>第 4 章提到，CNN 对平移等变，但对旋转、缩放等变换不自然。为了直观展示这一局限，本实验测试模型在图像扰动下的表现。</p>
+<h4 id="6-3-2-实验设置"><a href="#6-3-2-实验设置" class="headerlink" title="6.3.2 实验设置"></a>6.3.2 实验设置</h4><ul>
+<li>使用训练好的 VGG 或 ResNet 模型；</li>
+<li>对测试集图像施加不同角度旋转（0°–60°）；</li>
+<li>统计 Top-1 准确率随旋转角度变化的曲线。</li>
+</ul>
+<h4 id="6-3-3-扩展实验"><a href="#6-3-3-扩展实验" class="headerlink" title="6.3.3 扩展实验"></a>6.3.3 扩展实验</h4><ul>
+<li>增加随机裁剪、噪声注入等扰动；</li>
+<li>对比“数据增强前后”的鲁棒性变化。</li>
+</ul>
+<h4 id="6-3-4-预期现象"><a href="#6-3-4-预期现象" class="headerlink" title="6.3.4 预期现象"></a>6.3.4 预期现象</h4><ul>
+<li>几乎所有 CNN 模型在旋转角度 &gt;30° 后性能显著下降；</li>
+<li>ResNet 相对更稳健，但仍无法自动学习旋转不变性；</li>
+<li>若引入旋转增强训练集，鲁棒性曲线显著平缓。</li>
+</ul>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/6JZ2EQ.png" alt="6JZ2EQ"></p>
+<center>图 6-3 模型鲁棒性曲线（准确率 vs 旋转角度）</center>
+展示在不同旋转扰动下模型性能的下降趋势。数据增强可有效提升模型在旋转维度的泛化能力。
+
+<blockquote>
+<p><strong>思考：</strong><br>CNN 的不变性缺陷是否可以仅通过“数据”补救？如果结构上引入旋转群卷积（G-CNN），结果会怎样？</p>
+</blockquote>
+<h3 id="6-4-综合观察：从实验到理解"><a href="#6-4-综合观察：从实验到理解" class="headerlink" title="6.4 综合观察：从实验到理解"></a>6.4 综合观察：从实验到理解</h3><p>通过以上三个实验，我们能从不同角度洞察 CNN 的“内在世界”：</p>
+<table>
+<thead>
+<tr>
+<th><strong>实验类型</strong></th>
+<th><strong>观察维度</strong></th>
+<th><strong>启示</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>感受野实验</td>
+<td>空间层次</td>
+<td>局部性与层次抽象的可视化验证</td>
+</tr>
+<tr>
+<td>训练对比</td>
+<td>优化结构</td>
+<td>残差结构改善梯度传播与收敛速度</td>
+</tr>
+<tr>
+<td>扰动实验</td>
+<td>模型鲁棒性</td>
+<td>CNN 对形变的脆弱性与数据依赖</td>
+</tr>
+</tbody></table>
+<p>这些实验共同揭示出一个关键事实：<strong>CNN 的智能来源于结构假设，而它的边界也同样源于结构假设</strong>。理解这些现象的物理与统计根源，能帮助我们更理性地看待卷积模型的能力边界，并为后续探索 Transformer、混合模型（ConvNeXt、Swin 等）打下实验直觉基础。</p>
+<p><strong>小结：让理论“可见”</strong><br>本章通过一系列可复现的实验，让卷积世界从抽象公式变成可感知的现象。这些实验不仅是验证，更是理解——它们让我们看到：</p>
+<ul>
+<li>感受野如何扩张；</li>
+<li>梯度如何流动；</li>
+<li>卷积如何在旋转下失效；</li>
+<li>残差如何让学习变得“更容易”。</li>
+</ul>
+<h2 id="7-从结构归纳到表征学习"><a href="#7-从结构归纳到表征学习" class="headerlink" title="7. 从结构归纳到表征学习"></a>7. 从结构归纳到表征学习</h2><p>卷积神经网络（CNN）让机器学会了“看”——它能从像素中捕捉边缘、形状与语义。Vision Transformer（ViT）让机器开始“想”——它能从整体关系中推断结构、理解上下文。这两种体系，构成了深度学习视觉世界的<strong>两种思维方式</strong>：</p>
+<ul>
+<li><strong>结构归纳式（Inductive Bias-based）</strong>：以人类先验为指导，设计模型结构去约束学习；</li>
+<li><strong>数据驱动式（Data-driven Bias-based）</strong>：以大规模数据为驱动，让模型从经验中自行发现模式。</li>
+</ul>
+<p>从 LeNet 到 ViT，深度学习的演化本质上是 <strong>“认知方式的升维”</strong>：从我们告诉机器“世界是什么样”，到机器自己学会“世界可能是什么样”。</p>
+<h3 id="7-1-结构归纳的思维：CNN-的设计思想"><a href="#7-1-结构归纳的思维：CNN-的设计思想" class="headerlink" title="7.1 结构归纳的思维：CNN 的设计思想"></a>7.1 结构归纳的思维：CNN 的设计思想</h3><p>CNN 的思想根基在于<strong>结构假设</strong>。它假定世界具备以下规律：</p>
+<ol>
+<li><strong>局部性（Locality）</strong>：相邻像素间高度相关；</li>
+<li><strong>平移等变（Translation Equivariance）</strong>：位置变化不改变语义；</li>
+<li><strong>层次结构（Hierarchy）</strong>：复杂模式由简单特征组合而成。</li>
+</ol>
+<p>这些假设通过卷积、权值共享和池化等机制被“硬编码”进网络，使得 CNN 在有限数据上也能高效泛化。在本质上，CNN 是一种<strong>人类主导的智能设计</strong>：我们将“视觉皮层”的结构直觉嵌入到算法中，让机器模仿人类视觉的层级认知。</p>
+<p>这种归纳偏置让 CNN 在数据匮乏的时代依然有效——它通过<strong>先验结构压缩假设空间</strong>，避免了从噪声中“盲目摸索”。但也因此，CNN 的认知边界被其假设所限制：它难以理解旋转、尺度、远程依赖或全局关系。</p>
+<p>CNN 的设计思想可以用一句话概括：“结构先于学习（Structure before Learning）。”</p>
+<h3 id="7-2-数据驱动的思维：ViT-的范式"><a href="#7-2-数据驱动的思维：ViT-的范式" class="headerlink" title="7.2 数据驱动的思维：ViT 的范式"></a>7.2 数据驱动的思维：ViT 的范式</h3><p>ViT 则代表了另一种思维：<strong>让数据取代结构，让模型自己去发现模式。</strong> 在 ViT 的世界里，没有卷积核的局部假设，也没有人工定义的感受野；图像被切割成 patch 组成的序列，模型通过<strong>自注意力机制（Self-Attention）</strong> 直接学习任意区域之间的依赖关系。这种思维的核心特征是：</p>
+<ol>
+<li><strong>弱归纳（Weak Inductive Bias）</strong>：不预设空间结构；</li>
+<li><strong>强学习（Strong Data Dependence）</strong>：通过大规模数据学习关系；</li>
+<li><strong>全局建模（Global Context Modeling）</strong>：每个 patch 可与任意位置交互。</li>
+</ol>
+<p>因此，ViT 的学习过程类似于统计物理中的“自组织系统”：网络结构不再限制它能学什么，而是由数据的分布来塑造它的内部表征。这种思维方式虽然消除了卷积的局部约束，但付出的代价是巨大的数据与计算需求。ViT 的强大在于，它依赖“经验世界的丰富性”来取代“先验世界的假设性”。</p>
+<h3 id="7-3-二者的关系：对立还是互补？"><a href="#7-3-二者的关系：对立还是互补？" class="headerlink" title="7.3 二者的关系：对立还是互补？"></a>7.3 二者的关系：对立还是互补？</h3><p>在学术早期，CNN 与 Transformer 常被视为两条竞争路径：“结构归纳 vs 数据驱动”、“卷积 vs 注意力”。但随着研究深入，我们发现二者<strong>并非对立，而是互补</strong>。</p>
+<table>
+<thead>
+<tr>
+<th><strong>维度</strong></th>
+<th><strong>CNN</strong></th>
+<th><strong>ViT</strong></th>
+<th><strong>互补逻辑</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>学习方式</td>
+<td>基于结构先验</td>
+<td>基于数据统计</td>
+<td>局部规则 vs 全局规律</td>
+</tr>
+<tr>
+<td>感受范围</td>
+<td>局部递进</td>
+<td>全局直接</td>
+<td>多层聚合 vs 全域注意</td>
+</tr>
+<tr>
+<td>数据需求</td>
+<td>少量即可泛化</td>
+<td>依赖大规模数据</td>
+<td>小样本优势 vs 大模型优势</td>
+</tr>
+<tr>
+<td>优势</td>
+<td>稳定、高效、解释性强</td>
+<td>灵活、全局、可扩展性强</td>
+<td>结构约束与表达自由的平衡</td>
+</tr>
+<tr>
+<td>代表模型</td>
+<td>LeNet、VGG、ResNet</td>
+<td>ViT、Swin、MAE</td>
+<td>ConvNeXt、Hybrid Transformer</td>
+</tr>
+</tbody></table>
+<p><strong>ConvNeXt、Swin Transformer</strong> 等新模型正是二者融合的代表：它们在保持 CNN 的归纳优势的同时，引入了注意力的全局表征能力。这标志着深度学习架构正进入“归纳 + 数据”并行优化的新阶段。</p>
+<h3 id="7-4-归纳与表征：从结构设计到知识抽象"><a href="#7-4-归纳与表征：从结构设计到知识抽象" class="headerlink" title="7.4 归纳与表征：从结构设计到知识抽象"></a>7.4 归纳与表征：从结构设计到知识抽象</h3><p>要理解深度学习的下一阶段，我们必须超越“网络结构”的讨论，回到它的本质——<strong>表征学习（Representation Learning）</strong>。表征学习关注的问题是：<strong>“如何让模型自动发现对任务有意义的特征空间？”</strong> Bengio（2013）指出，表征学习的核心目标是<strong>从数据中提炼出高层次的抽象结构</strong>，即让模型通过多层非线性变换，将复杂输入映射到可解释的潜在语义空间。在这一意义上：</p>
+<ul>
+<li><strong>CNN 的卷积特征</strong>是一种<strong>结构驱动的表征</strong>，它通过层次化设计捕捉模式；</li>
+<li><strong>ViT 的注意力表征</strong>是一种<strong>数据驱动的表征</strong>，它通过自组织学习捕捉关系。</li>
+</ul>
+<p>二者的区别，不在于谁更“智能”，而在于表征的来源不同：</p>
+<ul>
+<li>CNN：知识来源于人（设计结构）；</li>
+<li>ViT：知识来源于数据（统计归纳）。</li>
+</ul>
+<h3 id="7-5-未来趋势：归纳偏置-×-大数据-×-计算融合"><a href="#7-5-未来趋势：归纳偏置-×-大数据-×-计算融合" class="headerlink" title="7.5 未来趋势：归纳偏置 × 大数据 × 计算融合"></a>7.5 未来趋势：归纳偏置 × 大数据 × 计算融合</h3><p>深度学习的发展并非单线演化，而是一种“结构与经验”的螺旋上升。未来的视觉模型将呈现以下趋势：</p>
+<ol>
+<li><strong>归纳偏置的回归</strong><br> 完全放弃结构假设的模型虽然灵活，但数据和计算代价高昂。新一代架构（如 ConvNeXt、SwinV2、Hybrid Vision Models）开始重新引入轻量归纳结构，以提升效率与稳健性。</li>
+<li><strong>大规模数据</strong><br> 预训练 + 微调（Pretrain &amp; Fine-tune）成为主流范式。模型的泛化不再仅依赖结构，而更多依赖数据覆盖度与预训练目标。</li>
+<li><strong>计算与架构的融合优化</strong><br> 研究者不再单纯设计网络，而是综合考虑计算复杂度、能耗、部署效率。模型设计正向“系统工程”演化。</li>
+<li><strong>跨模态与统一表征</strong><br> 随着 CLIP、SAM 等模型出现，视觉表征正在与语言、语音、文本融合，形成统一的多模态认知空间。</li>
+</ol>
+<blockquote>
+<p><strong>趋势：</strong> 深度学习的未来，不是“卷积或注意力”，而是“归纳与表征的统一”。</p>
+</blockquote>
+<p><strong>小结：结构之后，思想之上</strong><br>回顾整个卷积体系，我们可以看到深度学习的认知路径：</p>
+<table>
+<thead>
+<tr>
+<th><strong>阶段</strong></th>
+<th><strong>思维方式</strong></th>
+<th><strong>代表模型</strong></th>
+<th><strong>哲学寓意</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>感知阶段</td>
+<td>局部结构归纳</td>
+<td>LeNet、VGG</td>
+<td>机器开始“看见”</td>
+</tr>
+<tr>
+<td>表征阶段</td>
+<td>层次模式抽象</td>
+<td>ResNet、EfficientNet</td>
+<td>机器开始“理解”</td>
+</tr>
+<tr>
+<td>认知阶段</td>
+<td>数据自组织</td>
+<td>ViT、Swin</td>
+<td>机器开始“思考”</td>
+</tr>
+</tbody></table>
+<p>深度学习的核心不是结构本身，而是<strong>表征的演化逻辑</strong>。归纳假设让学习变得可能，表征学习让智能成为现实。未来，当我们谈论“深度模型”的时候，我们不再仅仅指某种架构，而是在谈一种<strong>机器如何认知世界的方式</strong>。</p>
+<h2 id="8-总结：从“看见”到“理解”"><a href="#8-总结：从“看见”到“理解”" class="headerlink" title="8. 总结：从“看见”到“理解”"></a>8. 总结：从“看见”到“理解”</h2><p>卷积神经网络（CNN）让机器第一次学会了“看世界”。它相信图像的结构是局部相关的——邻近像素往往属于同一物体，于是用小小的卷积核去扫描整张图像。这种<strong>局部性与权值共享</strong>的设计，让模型既高效又稳定，是深度学习感知世界的起点。</p>
+<p>但 CNN 也有它的“思维局限”：它能识别位置变化，却不懂旋转和尺度；它能看到细节，却难以一次性理解整体。这时，Vision Transformer（ViT）出现了——它不再依赖固定的卷积结构，而是用<strong>注意力机制</strong>直接建模全局关系，让机器自己决定“该看哪里”。</p>
+<p>从 LeNet 到 ResNet，再到 ViT，这场演化不只是“网络变复杂”，而是机器在学习一种更高层次的思维方式——从局部观察到全局理解，从结构归纳到数据驱动。</p>
+<p>未来的智能模型，不会只属于“卷积”或“注意力”，而是融合两者优点——既有规则的眼睛，也有自由的思考。这就是深度学习从“能看”到“会想”的真正跃迁。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://www.keychan.xyz/2025/11/06/040-cnn-way-of-thinking/" title="为什么卷积神经网络能看懂世界？——CNN 的思维方式">https://www.keychan.xyz/2025/11/06/040-cnn-way-of-thinking/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/PyTorch/" rel="tag"># PyTorch</a>
+              <a href="/tags/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" rel="tag"># 卷积神经网络</a>
+              <a href="/tags/%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96/" rel="tag"># 特征提取</a>
+              <a href="/tags/%E6%AE%8B%E5%B7%AE%E8%BF%9E%E6%8E%A5/" rel="tag"># 残差连接</a>
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E5%A2%9E%E5%BC%BA/" rel="tag"># 数据增强</a>
+              <a href="/tags/%E5%BD%92%E7%BA%B3%E5%81%8F%E7%BD%AE/" rel="tag"># 归纳偏置</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/11/01/039-underlying-logic-of-deep-learning/" rel="prev" title="深度学习的底层逻辑：从函数逼近到智能涌现">
+                  <i class="fa fa-angle-left"></i> 深度学习的底层逻辑：从函数逼近到智能涌现
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">276k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.min.js","integrity":"sha256-G8ouPAnw4zzMbnAenHnVz6h9XpKbNdOkrqTh7AadyHs="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.mengyajia.com","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2025/11/06/040-cnn-way-of-thinking/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>
