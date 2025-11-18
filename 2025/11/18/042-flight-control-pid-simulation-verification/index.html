@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.keychan.xyz","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="1. 控制系统的物理与数学基础在研究飞控算法（Flight Control Algorithm）之前，理解姿态描述方式、闭环反馈思想及采样周期的作用至关重要。本章节主要介绍这些基础概念，为后续的建模与 PID 控制奠定直观认知。 1.1 坐标系与姿态描述无人机的姿态描述通常基于两个参考系：惯性系（Inertial Frame）与机体系（Body Frame）。  惯性系：固定在地面或某个空间参考点">
+<meta property="og:type" content="article">
+<meta property="og:title" content="「无人机系列④」飞行控制算法入门——从PID到仿真验证">
+<meta property="og:url" content="https://www.keychan.xyz/2025/11/18/042-flight-control-pid-simulation-verification/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s blog">
+<meta property="og:description" content="1. 控制系统的物理与数学基础在研究飞控算法（Flight Control Algorithm）之前，理解姿态描述方式、闭环反馈思想及采样周期的作用至关重要。本章节主要介绍这些基础概念，为后续的建模与 PID 控制奠定直观认知。 1.1 坐标系与姿态描述无人机的姿态描述通常基于两个参考系：惯性系（Inertial Frame）与机体系（Body Frame）。  惯性系：固定在地面或某个空间参考点">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/7d078735c5.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/joKUpP.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/bnUu68.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/MIjAmP.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/2K91Le.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/H6n2I8.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/HqxeSB.png">
+<meta property="article:published_time" content="2025-11-18T09:50:12.000Z">
+<meta property="article:modified_time" content="2025-11-18T10:04:48.469Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="飞控系统">
+<meta property="article:tag" content="飞控算法">
+<meta property="article:tag" content="姿态控制">
+<meta property="article:tag" content="动力学建模">
+<meta property="article:tag" content="无人机控制">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/7d078735c5.png">
+
+
+<link rel="canonical" href="https://www.keychan.xyz/2025/11/18/042-flight-control-pid-simulation-verification/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.keychan.xyz/2025/11/18/042-flight-control-pid-simulation-verification/","path":"2025/11/18/042-flight-control-pid-simulation-verification/","title":"「无人机系列④」飞行控制算法入门——从PID到仿真验证"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>「无人机系列④」飞行控制算法入门——从PID到仿真验证 | KeyChan's blog</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.mengyajia.com">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style><link rel="alternate" href="/atom.xml" title="KeyChan's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E6%8E%A7%E5%88%B6%E7%B3%BB%E7%BB%9F%E7%9A%84%E7%89%A9%E7%90%86%E4%B8%8E%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80"><span class="nav-text">1. 控制系统的物理与数学基础</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E5%9D%90%E6%A0%87%E7%B3%BB%E4%B8%8E%E5%A7%BF%E6%80%81%E6%8F%8F%E8%BF%B0"><span class="nav-text">1.1 坐标系与姿态描述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-%E5%BC%80%E7%8E%AF%E4%B8%8E%E9%97%AD%E7%8E%AF%E6%8E%A7%E5%88%B6%E7%B3%BB%E7%BB%9F"><span class="nav-text">1.2 开环与闭环控制系统</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-%E4%B8%80%E9%98%B6%E4%B8%8E%E4%BA%8C%E9%98%B6%E7%B3%BB%E7%BB%9F%E5%93%8D%E5%BA%94%E7%89%B9%E6%80%A7"><span class="nav-text">1.3 一阶与二阶系统响应特性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-%E9%87%87%E6%A0%B7%E5%91%A8%E6%9C%9F%E4%B8%8E%E7%A6%BB%E6%95%A3%E6%8E%A7%E5%88%B6"><span class="nav-text">1.4 采样周期与离散控制</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E5%9B%9B%E6%97%8B%E7%BF%BC%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%BB%BA%E6%A8%A1"><span class="nav-text">2. 四旋翼动力学建模</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E5%8D%95%E7%94%B5%E6%9C%BA%E6%8E%A8%E5%8A%9B%E4%B8%8E%E6%95%B4%E6%9C%BA%E5%8F%97%E5%8A%9B%E5%88%86%E6%9E%90"><span class="nav-text">2.1 单电机推力与整机受力分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-%E7%8A%B6%E6%80%81%E5%8F%98%E9%87%8F%E4%B8%8E%E8%BE%93%E5%85%A5%E5%AE%9A%E4%B9%89"><span class="nav-text">2.2 状态变量与输入定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-%E5%A7%BF%E6%80%81%E5%8A%A8%E5%8A%9B%E5%AD%A6%E6%96%B9%E7%A8%8B%E6%8E%A8%E5%AF%BC"><span class="nav-text">2.3 姿态动力学方程推导</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-%E5%B0%8F%E8%A7%92%E5%BA%A6%E7%BA%BF%E6%80%A7%E5%8C%96%E4%B8%8E-Pitch-%E8%BD%B4%E7%AE%80%E5%8C%96%E6%A8%A1%E5%9E%8B"><span class="nav-text">2.4 小角度线性化与 Pitch 轴简化模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-%E7%BA%BF%E6%80%A7%E5%8C%96%E5%9C%A8%E6%8E%A7%E5%88%B6%E8%AE%BE%E8%AE%A1%E4%B8%AD%E7%9A%84%E6%84%8F%E4%B9%89"><span class="nav-text">2.5 线性化在控制设计中的意义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-6-Pitch-%E8%BD%B4%E7%AE%80%E5%8C%96%E6%A8%A1%E5%9E%8B%E4%BB%BF%E7%9C%9F"><span class="nav-text">2.6 Pitch 轴简化模型仿真</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E6%8E%A7%E5%88%B6%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1%EF%BC%9A%E4%BB%8E%E5%BC%80%E7%8E%AF%E5%88%B0%E4%B8%89%E5%B1%82%E6%8E%A7%E5%88%B6%E7%8E%AF"><span class="nav-text">3. 控制结构设计：从开环到三层控制环</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E4%B8%89%E5%B1%82%E6%8E%A7%E5%88%B6%E7%BB%93%E6%9E%84%E5%8E%9F%E7%90%86"><span class="nav-text">3.1 三层控制结构原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E4%BF%A1%E5%8F%B7%E5%AE%9A%E4%B9%89%E4%B8%8E%E5%B1%82%E9%97%B4%E5%85%B3%E7%B3%BB"><span class="nav-text">3.2 信号定义与层间关系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-%E6%9B%B4%E6%96%B0%E9%A2%91%E7%8E%87%E5%B7%AE%E5%BC%82%E4%B8%8E%E5%88%86%E5%B1%82%E8%AE%BE%E8%AE%A1%E6%80%9D%E6%83%B3"><span class="nav-text">3.3 更新频率差异与分层设计思想</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-%E9%97%AD%E7%8E%AF%E4%BF%A1%E5%8F%B7%E6%B5%81%E7%9A%84%E9%80%BB%E8%BE%91"><span class="nav-text">3.4 闭环信号流的逻辑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-5-%E6%A8%A1%E5%9D%97%E5%8C%96%E8%AE%BE%E8%AE%A1%E4%B8%8E%E8%B0%83%E8%AF%95%E9%A1%BA%E5%BA%8F"><span class="nav-text">3.5 模块化设计与调试顺序</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-PID%E6%8E%A7%E5%88%B6%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E4%B8%8E%E5%8F%82%E6%95%B0%E8%B0%83%E8%AF%95"><span class="nav-text">4. PID控制算法原理与参数调试</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-PID%E6%8E%A7%E5%88%B6%E5%8E%9F%E7%90%86"><span class="nav-text">4.1 PID控制原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E7%A6%BB%E6%95%A3PID%E7%9A%84%E8%AE%A1%E7%AE%97%E5%AE%9E%E7%8E%B0"><span class="nav-text">4.2 离散PID的计算实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-%E6%8E%A7%E5%88%B6%E5%8F%82%E6%95%B0%E5%AF%B9%E7%B3%BB%E7%BB%9F%E5%93%8D%E5%BA%94%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="nav-text">4.3 控制参数对系统响应的影响</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-PID%E8%B0%83%E5%8F%82%E7%BB%8F%E9%AA%8C%E6%B3%95%EF%BC%88Ziegler%E2%80%93Nichols%E6%B3%95%EF%BC%89"><span class="nav-text">4.4 PID调参经验法（Ziegler–Nichols法）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-5-PID%E6%8E%A7%E5%88%B6%E5%93%8D%E5%BA%94%E5%AF%B9%E6%AF%94"><span class="nav-text">4.5 PID控制响应对比</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E7%8E%B0%E4%BB%A3%E6%8E%A7%E5%88%B6%E6%80%9D%E6%83%B3%E5%85%A5%E9%97%A8%EF%BC%88LQR-MPC%EF%BC%89"><span class="nav-text">5. 现代控制思想入门（LQR &#x2F; MPC）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-PID%E6%8E%A7%E5%88%B6%E7%9A%84%E5%B1%80%E9%99%90%E6%80%A7"><span class="nav-text">5.1 PID控制的局限性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-LQR%EF%BC%9A%E6%9C%80%E4%BC%98%E7%8A%B6%E6%80%81%E5%8F%8D%E9%A6%88%E6%8E%A7%E5%88%B6"><span class="nav-text">5.2 LQR：最优状态反馈控制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-Pitch%E8%BD%B4LQR%E6%8E%A7%E5%88%B6%E7%A4%BA%E4%BE%8B"><span class="nav-text">5.3 Pitch轴LQR控制示例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-MPC%EF%BC%9A%E5%9F%BA%E4%BA%8E%E9%A2%84%E6%B5%8B%E7%9A%84%E4%BC%98%E5%8C%96%E6%8E%A7%E5%88%B6"><span class="nav-text">5.4 MPC：基于预测的优化控制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-5-%E4%B8%89%E7%A7%8D%E6%8E%A7%E5%88%B6%E6%96%B9%E6%B3%95%E5%AF%B9%E6%AF%94"><span class="nav-text">5.5 三种控制方法对比</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E4%BB%BF%E7%9C%9F%E9%AA%8C%E8%AF%81%E4%B8%8E%E7%B3%BB%E7%BB%9F%E5%AE%9E%E7%8E%B0"><span class="nav-text">6. 仿真验证与系统实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-%E4%BB%BF%E7%9C%9F%E7%9B%AE%E7%9A%84%E4%B8%8E%E6%84%8F%E4%B9%89"><span class="nav-text">6.1 仿真目的与意义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-Simulink-%E4%BB%BF%E7%9C%9F%E6%A8%A1%E5%9E%8B%E6%9E%84%E5%BB%BA"><span class="nav-text">6.2 Simulink 仿真模型构建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-%E5%AE%9E%E9%AA%8C%E6%AD%A5%E9%AA%A4"><span class="nav-text">6.3 实验步骤</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-4-Python-%E4%BB%BF%E7%9C%9F%E5%AE%9E%E7%8E%B0"><span class="nav-text">6.4 Python 仿真实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-6-%E5%AE%9E%E9%AA%8C%E6%80%BB%E7%BB%93"><span class="nav-text">6.6 实验总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E5%B7%A5%E7%A8%8B%E5%8F%8D%E6%80%9D%E4%B8%8E%E6%8B%93%E5%B1%95%E6%96%B9%E5%90%91"><span class="nav-text">7. 工程反思与拓展方向</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#7-1-%E6%8E%A7%E5%88%B6%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%AE%9E%E6%97%B6%E6%80%A7%E9%97%AE%E9%A2%98"><span class="nav-text">7.1 控制延迟与实时性问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-2-IMU%E5%99%AA%E5%A3%B0%E4%B8%8E%E6%BB%A4%E6%B3%A2%E8%80%A6%E5%90%88"><span class="nav-text">7.2 IMU噪声与滤波耦合</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-3-%E6%89%A7%E8%A1%8C%E5%99%A8%E9%9D%9E%E7%BA%BF%E6%80%A7%E4%B8%8E%E7%BB%93%E6%9E%84%E6%8C%AF%E5%8A%A8"><span class="nav-text">7.3 执行器非线性与结构振动</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-4-%E5%A4%96%E9%83%A8%E6%89%B0%E5%8A%A8%E4%B8%8E%E9%B2%81%E6%A3%92%E6%80%A7%E5%88%86%E6%9E%90"><span class="nav-text">7.4 外部扰动与鲁棒性分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-5-%E5%B8%B8%E8%A7%81%E8%AF%AF%E5%B7%AE%E6%9D%A5%E6%BA%90%E4%B8%8E%E6%94%B9%E8%BF%9B%E7%AD%96%E7%95%A5"><span class="nav-text">7.5 常见误差来源与改进策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-6-%E6%8B%93%E5%B1%95%E4%B8%8E%E6%9C%AA%E6%9D%A5%E6%96%B9%E5%90%91"><span class="nav-text">7.6 拓展与未来方向</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">82</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/keychankc" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2025/11/18/042-flight-control-pid-simulation-verification/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's blog">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="「无人机系列④」飞行控制算法入门——从PID到仿真验证 | KeyChan's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          「无人机系列④」飞行控制算法入门——从PID到仿真验证
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2025-11-18 17:50:12 / 修改时间：18:04:48" itemprop="dateCreated datePublished" datetime="2025-11-18T17:50:12+08:00">2025-11-18</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/" itemprop="url" rel="index"><span itemprop="name">无人机</span></a>
+        </span>
+    </span>
+
+  
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2025/11/18/042-flight-control-pid-simulation-verification/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2025/11/18/042-flight-control-pid-simulation-verification/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>11k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>42 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="1-控制系统的物理与数学基础"><a href="#1-控制系统的物理与数学基础" class="headerlink" title="1. 控制系统的物理与数学基础"></a>1. 控制系统的物理与数学基础</h2><p>在研究飞控算法（Flight Control Algorithm）之前，理解姿态描述方式、闭环反馈思想及采样周期的作用至关重要。本章节主要介绍这些基础概念，为后续的建模与 PID 控制奠定直观认知。</p>
+<h3 id="1-1-坐标系与姿态描述"><a href="#1-1-坐标系与姿态描述" class="headerlink" title="1.1 坐标系与姿态描述"></a>1.1 坐标系与姿态描述</h3><p>无人机的姿态描述通常基于两个参考系：<strong>惯性系</strong>（Inertial Frame）与<strong>机体系</strong>（Body Frame）。</p>
+<ul>
+<li><strong>惯性系</strong>：固定在地面或某个空间参考点上，其坐标轴多采用“东北下（NED）”方式定义，即以北（North）、东(East)、下(Down)三个方向作为基准，用来描述无人机相对于地球的运动状态。</li>
+<li><strong>机体系</strong>：固定在无人机机体上，原点通常位于质心，$x_b$ 轴沿机头方向，$y_b$ 轴指向右翼，$z_b$ 轴指向机体下方。</li>
+</ul>
+<span id="more"></span>
+<img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/7d078735c5.png" alt="四旋翼无人机的受力与力矩分布" width="60%">
+<center>图 1-1 姿态角定义与旋转顺序示意图</center>
+
+<p>本文默认使用 ZYX（yaw–pitch–roll）的欧拉角表示顺序。实际工程中虽然也会使用欧拉角，但由于其在某些姿态下会出现万向锁，并且在数值积分时稳定性较差，因此飞控系统更常采用四元数来表示姿态。可以简单理解为：机体的角速度决定姿态变化的快慢，而欧拉角的旋转顺序会让各轴之间产生耦合，处理起来不如四元数稳定、可靠。</p>
+<h3 id="1-2-开环与闭环控制系统"><a href="#1-2-开环与闭环控制系统" class="headerlink" title="1.2 开环与闭环控制系统"></a>1.2 开环与闭环控制系统</h3><p>飞控的核心是<strong>控制反馈</strong>。系统是否具有反馈，决定了它是开环还是闭环结构。</p>
+<ul>
+<li><strong>开环系统</strong>：控制量仅由输入指令决定，不考虑输出结果。例如，给定电机转速命令而不去监测实际转速。其响应简单但易受扰动。</li>
+<li><strong>闭环系统</strong>：实时测量输出（如姿态角），并与目标值比较，通过反馈误差调整控制量。闭环系统可在外界扰动下保持稳定和精确控制。</li>
+</ul>
+<pre class="mermaid">flowchart LR
+    R[输入 / 指令] --> C[控制器 / 指令发生器]
+    C --> A[执行器]
+    A --> P[被控对象]
+    P --> Y[输出]
+
+    %% 可选：外部扰动
+    D[扰动] -. 作用 .-> P</pre>
+
+<pre class="mermaid">flowchart LR
+    R[参考输入] --> SUM((Σ))
+    Y --> S[传感器 / 测量模块]
+    S -->|反馈| SUM
+    SUM --> E[误差]
+    E --> C[控制器]
+    C --> A[执行器]
+    A --> P[被控对象]
+    P --> Y[输出]
+
+    %% 可选：外部扰动
+    D[扰动] -. 作用 .-> P
+
+    %% 连接方向说明（虚线注释）
+    classDef note fill:#f9f9f9,stroke:#bbb,color:#555,font-size:12px</pre>
+
+<center> 图1-2 开环与闭环系统框图对比</center>
+
+<p>闭环设计的关键在于误差修正。PID 控制器即是一种典型的闭环实现方式，通过比例（P）、积分（I）和微分（D）环节调节响应速度、消除稳态误差、抑制震荡。</p>
+<h3 id="1-3-一阶与二阶系统响应特性"><a href="#1-3-一阶与二阶系统响应特性" class="headerlink" title="1.3 一阶与二阶系统响应特性"></a>1.3 一阶与二阶系统响应特性</h3><p>为了更直观地理解闭环系统的动态特性，我们通常从<strong>低阶线性系统</strong>入手进行分析。它们虽然结构简单，却能揭示控制系统最核心的动态规律。</p>
+<ul>
+<li><strong>一阶系统</strong>：可以理解为“只有惯性、没有弹性”的系统<br>  就像拧开水龙头后水流不会立刻达到目标大小，而是<strong>平滑地逐渐上升</strong>；这类系统的响应曲线呈指数趋近型，没有振荡或过冲。典型实例包括电机转速变化、温度调节等过程。它的主要性能指标是<strong>上升时间</strong>（反应速度）和<strong>稳态误差</strong>（最终能否准确到达目标值）。</li>
+<li><strong>二阶系统</strong>：则相当于“既有惯性又有弹性”的系统<br>  类似汽车的悬挂或无人机的姿态调整，当系统受到扰动时，输出往往会<strong>出现一次或多次振荡</strong>，在超过目标值后再逐渐稳定下来。它能表现出<strong>过冲</strong>与<strong>振荡衰减</strong>等动态行为，是姿态角、机械振动等控制问题的常见模型。其关键性能指标包括<strong>上升时间</strong>、<strong>过冲量</strong>和<strong>稳态误差</strong>，用以评估系统在“反应快”和“过渡稳”之间的平衡。</li>
+</ul>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/joKUpP.png" alt="joKUpP"></p>
+<center>图1-3 一阶和二阶系统阶跃响应</center>
+
+<p>左图为一阶系统响应，右图为二阶系统响应。虚线为连续系统理论曲线，彩色阶梯线为不同采样周期下的离散响应。可以观察到： </p>
+<ol>
+<li>采样周期越短（如 0.02s），离散响应越平滑，几乎贴合连续曲线；  </li>
+<li>采样周期增大时，响应呈阶梯状，上升时间变长，稳态误差增大；  </li>
+<li>对二阶系统而言，采样过慢还会放大振荡甚至导致不稳定。</li>
+</ol>
+<p>从图中可以看出<strong>足够高的采样频率是保证控制实时性和系统稳定性的前提</strong>。同时，从系统动态特性看，<strong>响应速度与过渡平稳性之间存在天然的权衡</strong>——控制器增益过高虽可使响应更快，但容易产生过冲；增益过低则响应迟缓但过程平稳。</p>
+<p>因此，飞控算法的核心目标，就是在“响应快速”和“稳定平顺”之间取得合理的平衡，使无人机既能灵敏执行姿态调整，又保持平稳可控的飞行特性。</p>
+<h3 id="1-4-采样周期与离散控制"><a href="#1-4-采样周期与离散控制" class="headerlink" title="1.4 采样周期与离散控制"></a>1.4 采样周期与离散控制</h3><p>在实际飞控系统中，控制算法运行于<strong>数字处理器</strong>上，无法连续计算，因此需要<strong>离散化</strong>。系统以固定时间间隔采样传感器数据并计算控制量，这个间隔即为<strong>采样周期</strong>（Sampling Period）。</p>
+<ul>
+<li>如果<strong>采样周期太长</strong>，反馈滞后，控制滞慢，系统可能震荡或不稳定。</li>
+<li>如果<strong>采样周期过短</strong>，虽然响应更快，但计算负载增加，容易造成资源浪费。</li>
+</ul>
+<p>控制频率 $f_c &#x3D; 1&#x2F;T_s$（其中 $T_s$ 为采样周期）通常设定在系统动态频率的 <em>5–10</em> 倍以上，以保证信号重建与反馈及时性。例如，姿态控制回路常在 200–500 Hz 范围运行。</p>
+<p><strong>小结</strong><br>本章从姿态描述出发，逐步介绍了反馈控制的基本概念、系统动态特性与离散采样机制。理解这些内容，有助于在后续章节中更好地把握飞控算法的数学建模逻辑与 PID 调节原理。</p>
+<h2 id="2-四旋翼动力学建模"><a href="#2-四旋翼动力学建模" class="headerlink" title="2. 四旋翼动力学建模"></a>2. 四旋翼动力学建模</h2><p>飞控算法的设计必须以明确的<strong>控制对象模型</strong>为基础。模型不仅描述无人机的运动规律，更揭示了输入（电机转速）如何影响姿态与位置，是实现姿态稳定与轨迹跟踪控制的前提。本章从单个电机的推力方程出发，推导四旋翼系统的整体动力学关系，定义状态量与输入量，并说明线性化在控制器设计中的意义。</p>
+<h3 id="2-1-单电机推力与整机受力分析"><a href="#2-1-单电机推力与整机受力分析" class="headerlink" title="2.1 单电机推力与整机受力分析"></a>2.1 单电机推力与整机受力分析</h3><p>四旋翼无人机通过四个电机&#x2F;桨叶产生升力与力矩实现姿态与位置控制。单个电机推力与转速平方近似成正比：$$T_i &#x3D; k_T ,\omega_i^2,\quad i&#x3D;1,2,3,4$$推力方向指向<strong>上方</strong>、沿机体系 <strong>$-z_b$</strong> 方向（NED 约定下 $+z_b$ 向下）。若定义沿 $+z_b$ 的合力为 $F_{z_b}$，则$$F_{z_b} &#x3D; -\sum_{i&#x3D;1}^4 T_i$$约定四旋翼“十字型（X）”布局，自上俯视，电机编号与旋向为：1↻、2↺、3↻、4↺，臂长为 $l$。对应滚转&#x2F;俯仰&#x2F;偏航力矩为：<br>$$\tau_\phi &#x3D; l,(T_2 - T_4),\quad \tau_\theta &#x3D; l,(T_3 - T_1),\quad\tau_\psi &#x3D; k_M,(-T_1+T_2-T_3+T_4)$$<br>其中 $k_M$（亦记作 $k_Q$）为反扭矩系数。</p>
+<h3 id="2-2-状态变量与输入定义"><a href="#2-2-状态变量与输入定义" class="headerlink" title="2.2 状态变量与输入定义"></a>2.2 状态变量与输入定义</h3><p>为了描述系统的动态过程，需要定义合适的状态量与输入量。以六自由度刚体模型为基础，无人机的状态变量可选为：</p>
+<table>
+<thead>
+<tr>
+<th><strong>符号</strong></th>
+<th><strong>物理意义</strong></th>
+<th><strong>单位</strong></th>
+<th><strong>所属类别</strong></th>
+<th><strong>备注</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>$x, y, z$</td>
+<td>无人机在惯性坐标系中的位置</td>
+<td>m</td>
+<td>位姿量（Position）</td>
+<td>描述质心的空间位置</td>
+</tr>
+<tr>
+<td>$\dot{x}, \dot{y}, \dot{z}$</td>
+<td>无人机在惯性系下的线速度</td>
+<td>m&#x2F;s</td>
+<td>速度量（Velocity）</td>
+<td>对应位置的一阶导数</td>
+</tr>
+<tr>
+<td>$\phi$</td>
+<td>滚转角（Roll）</td>
+<td>rad</td>
+<td>姿态角（Attitude）</td>
+<td>绕机体 x 轴的旋转</td>
+</tr>
+<tr>
+<td>$\theta$</td>
+<td>俯仰角（Pitch）</td>
+<td>rad</td>
+<td>姿态角（Attitude）</td>
+<td>绕机体 y 轴的旋转</td>
+</tr>
+<tr>
+<td>$\psi$</td>
+<td>偏航角（Yaw）</td>
+<td>rad</td>
+<td>姿态角（Attitude）</td>
+<td>绕机体 z 轴的旋转</td>
+</tr>
+<tr>
+<td>$p, q, r$</td>
+<td>角速度（分别绕 x、y、z 轴）</td>
+<td>rad&#x2F;s</td>
+<td>角速度（Angular Rate）</td>
+<td>姿态角的一阶导数</td>
+</tr>
+<tr>
+<td>$\mathbf{u} &#x3D; [\omega_1^2, \omega_2^2, \omega_3^2, \omega_4^2]^T$</td>
+<td>电机输入（角速度平方）</td>
+<td>rad²&#x2F;s²</td>
+<td>控制输入（Input）</td>
+<td>对应各电机产生的推力</td>
+</tr>
+<tr>
+<td>$\mathbf{x} &#x3D; [x, y, z, \phi, \theta, \psi, \dot{x}, \dot{y}, \dot{z}, p, q, r]^T$</td>
+<td>状态向量</td>
+<td>—</td>
+<td>系统状态（State）</td>
+<td>综合描述无人机当前运动状态</td>
+</tr>
+<tr>
+<td>$\mathbf{y}$</td>
+<td>输出量（姿态角、位置等）</td>
+<td>—</td>
+<td>输出（Output）</td>
+<td>可测量或控制的系统输出</td>
+</tr>
+</tbody></table>
+<h3 id="2-3-姿态动力学方程推导"><a href="#2-3-姿态动力学方程推导" class="headerlink" title="2.3 姿态动力学方程推导"></a>2.3 姿态动力学方程推导</h3><p>无人机的姿态变化由力矩作用引起。根据刚体旋转动力学方程：<br>$$\mathbf{I} \dot{\boldsymbol{\omega}} &#x3D; \boldsymbol{\tau} - \boldsymbol{\omega} \times (\mathbf{I}\boldsymbol{\omega})$$<br>其中 $\mathbf{I}$ 为转动惯量矩阵，$\boldsymbol{\omega} &#x3D; [p, q, r]^T$ 为角速度向量，$\boldsymbol{\tau} &#x3D; [\tau_\phi, \tau_\theta, \tau_\psi]^T$ 为控制力矩。在姿态角与角速度的耦合关系中，有：</p>
+<img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/bnUu68.png" width="50%" />
+
+<p>该非线性方程揭示了角速度与姿态角变化的映射关系，也是飞控算法姿态解算的核心。</p>
+<h3 id="2-4-小角度线性化与-Pitch-轴简化模型"><a href="#2-4-小角度线性化与-Pitch-轴简化模型" class="headerlink" title="2.4 小角度线性化与 Pitch 轴简化模型"></a>2.4 小角度线性化与 Pitch 轴简化模型</h3><p>小角度近似下（$|\phi|,|\theta|\ll 1$），有 $\sin\theta\approx\theta,\ \cos\theta\approx1,\ \tan\theta\approx\theta$。Pitch 轴动力学关系可简化为：<br>$$\dot\theta &#x3D; q,\qquad \dot q &#x3D; \frac{\tau_\theta}{I_y}\ \Rightarrow\ \ddot\theta&#x3D;\frac{\tau_\theta}{I_y}$$<br>若 $$\tau_\theta &#x3D; l,k_T(\omega_3^2-\omega_1^2)$，则：$\ddot{\theta} &#x3D; \frac{l,k_T}{I_y},(\omega_3^2-\omega_1^2)$$该式揭示了俯仰角加速度与电机推力差的线性关系。该模型揭示了俯仰角加速度与电机推力差的线性关系，是 PID 姿态控制中最常用的简化表达。</p>
+<h3 id="2-5-线性化在控制设计中的意义"><a href="#2-5-线性化在控制设计中的意义" class="headerlink" title="2.5 线性化在控制设计中的意义"></a>2.5 线性化在控制设计中的意义</h3><p>无人机的真实动力学高度非线性、耦合性强。但在姿态控制等局部小范围运动中，<strong>线性化模型</strong>足以反映主要动态特征，这使得控制器设计与分析更加简洁。</p>
+<p>以 <strong>PID 控制</strong> 为例，经过线性化处理后，无人机的姿态通道可以用<strong>一阶或二阶线性系统</strong>来近似描述。这种简化让控制规律更容易分析：系统的一阶或二阶模型能直观反映出 <strong>“调节快一点”会导致什么，“稳一点”又会牺牲什么</strong>——例如，比例增益变大时响应更快，但也更容易出现过冲；积分项能消除稳态误差，但响应会变慢；微分项则有助于抑制振荡。</p>
+<p>有了线性模型后，还可以使用 <strong>根轨迹</strong>、<strong>波特图</strong> 等频域分析方法，观察参数变化对系统稳定性和动态性能的影响，从而有依据地选择 PID 参数。最后，在 <strong>Simulink</strong> 等仿真平台中，可以将模型搭建成模块化结构，通过阶跃响应、扰动测试等方式快速验证控制律效果，实现“设计–验证–调优”的闭环过程。</p>
+<p>因此，线性化不仅是一种数学近似，更是<strong>将复杂飞行器控制问题转化为可实现工程解法的关键步骤</strong>。</p>
+<h3 id="2-6-Pitch-轴简化模型仿真"><a href="#2-6-Pitch-轴简化模型仿真" class="headerlink" title="2.6 Pitch 轴简化模型仿真"></a>2.6 Pitch 轴简化模型仿真</h3><p>为了验证线性化后的俯仰轴模型是否能够反映实际动态特性，我们在 Python 环境中搭建了一个简化仿真系统，对比分析开环与闭环（PD 控制）情况下的响应过程。系统输入为电机推力差 $\Delta \omega^2$，经过力矩、角加速度、角速度等环节逐级积分得到俯仰角输出。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/MIjAmP.png" alt="MIjAmP"><br>  <center>图 2-1 Pitch 轴简化模型的开环与闭环响应对比</center></p>
+<p>图中展示了线性化后的俯仰轴动力学模型在“推力差阶跃输入”下的响应过程。四个子图依次对应信号流向——*力矩 $\tau_\theta$ → 角加速度 $\dot{q}$ → 角速度 $q$ → 角度 $\theta$**。</p>
+<ul>
+<li><strong>开环（实线）</strong>：当电机推力差保持恒定时，系统输出呈抛物线增长，角速度持续积累，无法稳定于目标角度，表现出典型的非稳定特性。</li>
+<li><strong>闭环 PD 控制（虚线）</strong>：引入比例–微分反馈后，系统形成等效二阶环节。响应速度明显提升，能够快速收敛至期望角度，并具有可分析的上升时间、过冲量和稳态误差等指标。</li>
+</ul>
+<p>从曲线可以看出，闭环控制有效抑制了发散趋势，使俯仰角在给定阶跃命令后迅速达到并保持稳定值。这验证了线性化模型对系统动态行为的合理刻画，也为后续基于 PID 的姿态控制参数整定提供了直观依据。</p>
+<p><strong>小结</strong><br>本章从电机推力出发，逐步推导出四旋翼的姿态动力学关系，明确了输入、状态与输出之间的映射。通过小角度线性化，系统被简化为可用于控制器设计的线性模型，尤其在 Pitch 轴方向上，模型清晰揭示了推力差对姿态变化的直接作用。这为后续章节的 PID 参数设计与闭环控制仿真奠定了坚实的数学基础。</p>
+<h2 id="3-控制结构设计：从开环到三层控制环"><a href="#3-控制结构设计：从开环到三层控制环" class="headerlink" title="3. 控制结构设计：从开环到三层控制环"></a>3. 控制结构设计：从开环到三层控制环</h2><p>无人机的姿态稳定与位置控制并非由单一控制器完成，而是通过多层级、递进式的控制架构实现的。为了让读者建立整体飞控系统的层次化思维，下面说说常见的<strong>三环控制结构</strong>——位置环、速度环与姿态环，并分析它们之间的输入输出关系、频率分布与调试顺序。</p>
+<h3 id="3-1-三层控制结构原理"><a href="#3-1-三层控制结构原理" class="headerlink" title="3.1 三层控制结构原理"></a>3.1 三层控制结构原理</h3><p>飞控系统的控制目标从外到内依次为<strong>位置 → 速度 → 姿态</strong>，形成典型的多层级闭环结构。</p>
+<ul>
+<li><strong>外环（位置环）</strong>：根据导航或用户输入的目标位置（或高度），计算期望速度。它反映了无人机的“运动趋势”，属于低频控制环节。</li>
+<li><strong>中环（速度环）</strong>：根据期望速度与实际速度的差值，输出期望姿态角（如俯仰角、滚转角）。它负责将线速度指令转换为角度指令，实现加减速与水平运动控制。</li>
+<li><strong>内环（姿态环）</strong>：以期望姿态角为输入，与传感器测得的姿态反馈比较后产生误差，通过 PID 或其他算法调节电机转速，实现高频、快速的姿态调整。</li>
+</ul>
+<p>三者之间的层次关系可概括为：$\text{位置环输出} \Rightarrow \text{速度参考} \Rightarrow \text{速度环输出} \Rightarrow \text{姿态参考} \Rightarrow \text{姿态环输出} \Rightarrow \text{电机控制量}$</p>
+<h3 id="3-2-信号定义与层间关系"><a href="#3-2-信号定义与层间关系" class="headerlink" title="3.2 信号定义与层间关系"></a>3.2 信号定义与层间关系</h3><p>在多环控制结构中，每一层都作为上一层的执行对象、下一层的控制目标。以下为各层主要输入与输出信号定义：</p>
+<table>
+<thead>
+<tr>
+<th><strong>控制层</strong></th>
+<th><strong>输入信号</strong></th>
+<th><strong>输出信号</strong></th>
+<th><strong>控制对象</strong></th>
+<th><strong>典型控制量</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>位置环</td>
+<td>目标位置（x, y, z）</td>
+<td>期望速度（$vₓ₍ref₎, v_y₍ref₎, v_z₍ref₎$）</td>
+<td>无人机质心位置</td>
+<td>PID &#x2F; 位置控制律</td>
+</tr>
+<tr>
+<td>速度环</td>
+<td>期望速度、实际速度</td>
+<td>期望姿态角（$θ₍ref₎, φ₍ref₎$）</td>
+<td>无人机平移速度</td>
+<td>PID &#x2F; 前馈补偿</td>
+</tr>
+<tr>
+<td>姿态环</td>
+<td>期望姿态角、角速度反馈</td>
+<td>电机推力分配量</td>
+<td>无人机姿态角与角速度</td>
+<td>PID &#x2F; LQR &#x2F; 模型补偿</td>
+</tr>
+</tbody></table>
+<p>可以看出，每层环节的输出信号都为下一级提供参考输入，而最内层的姿态环直接驱动电机 PWM 信号。</p>
+<h3 id="3-3-更新频率差异与分层设计思想"><a href="#3-3-更新频率差异与分层设计思想" class="headerlink" title="3.3 更新频率差异与分层设计思想"></a>3.3 更新频率差异与分层设计思想</h3><p>不同控制层级的更新频率差异显著，反映了控制对象的动态特性差异。</p>
+<ul>
+<li><strong>姿态环</strong>：响应最快，通常运行频率为 <strong>200–500 Hz</strong>，用于实时抑制扰动并稳定飞行姿态；</li>
+<li><strong>速度环</strong>：中等频率，约 <strong>100 Hz 左右</strong>，主要调整加减速及水平运动；</li>
+<li><strong>位置环</strong>：变化最慢，一般 <strong>20–50 Hz</strong> 即可，处理导航、路径规划等任务。</li>
+</ul>
+<p>这种频率分层设计可有效避免计算冗余，同时确保系统稳定性。姿态环在高频下保持快速响应，相当于为外层提供“稳定的执行底座”；外层环节则在低频下平滑规划整体运动。</p>
+<h3 id="3-4-闭环信号流的逻辑"><a href="#3-4-闭环信号流的逻辑" class="headerlink" title="3.4 闭环信号流的逻辑"></a>3.4 闭环信号流的逻辑</h3><p>在整个控制系统中，闭环反馈机制贯穿始终。</p>
+<ul>
+<li>外环根据位置误差输出期望速度，使无人机朝目标方向移动；</li>
+<li>中环根据速度误差产生期望姿态角，以调整机体的倾斜方向和加速度；</li>
+<li>内环根据姿态误差调节电机推力，实现机体姿态变化；</li>
+<li>传感器（IMU、GPS、气压计）将姿态、速度、位置实时反馈至各控制层，形成完整的闭环系统。</li>
+</ul>
+<p>通过这种自内向外、逐级调节的闭环结构，飞控系统能在多时间尺度上同时保持<strong>快速响应</strong>与<strong>平稳控制</strong>。</p>
+<h3 id="3-5-模块化设计与调试顺序"><a href="#3-5-模块化设计与调试顺序" class="headerlink" title="3.5 模块化设计与调试顺序"></a>3.5 模块化设计与调试顺序</h3><p>在工程实践中，三环控制往往采用<strong>模块化架构</strong>设计，便于独立调试与参数整定。一般遵循“由内向外”的调试顺序：</p>
+<ol>
+<li><strong>姿态环调试</strong>：确保机体能快速稳定姿态，抑制振荡；</li>
+<li><strong>速度环调试</strong>：在姿态环稳定的基础上，调整速度控制参数，使飞行加减速平滑；</li>
+<li><strong>位置环调试</strong>：最后调节导航控制，使无人机能精准跟踪目标点或轨迹。</li>
+</ol>
+<p>这种从内到外的分层调试方式，不仅能提高系统鲁棒性，还可在出现异常时快速定位问题所在（例如姿态环未稳会直接导致外环指令失效）。</p>
+<p><strong>小结</strong><br>三环控制结构是现代飞控系统的核心框架，其分层思想体现了“快环稳内态、慢环控全局”的设计原则。通过清晰定义各层输入输出信号并合理分配更新频率，飞控系统不仅能保证姿态稳定，还能实现平滑、精准的轨迹控制。掌握这种控制层级逻辑，是理解后续 PID 参数整定、外环跟踪算法与耦合控制策略的基础。</p>
+<h2 id="4-PID控制算法原理与参数调试"><a href="#4-PID控制算法原理与参数调试" class="headerlink" title="4. PID控制算法原理与参数调试"></a>4. PID控制算法原理与参数调试</h2><p>无人机姿态稳定控制的核心是 <strong>闭环反馈</strong>。在姿态环中，控制器必须持续计算当前姿态与目标姿态之间的误差，并实时调整电机推力，使系统快速响应而不过度振荡。最经典、通用且易于实现的控制器即为 <strong>PID 控制器（Proportional–Integral–Derivative）</strong>。</p>
+<p>下面说说PID算法的作用机理，掌握离散实现方式及调参策略，也为后续的飞行姿态控制提供基础。</p>
+<h3 id="4-1-PID控制原理"><a href="#4-1-PID控制原理" class="headerlink" title="4.1 PID控制原理"></a>4.1 PID控制原理</h3><p>PID控制器通过三种不同的作用方式对误差信号进行综合调节：</p>
+<ol>
+<li><strong>比例项（P）——快速响应</strong><br> 比例项直接按误差大小输出控制量，能加快系统响应速度。比例系数 $K_p$ 越大，系统反应越迅速，但过大容易引起振荡与超调。</li>
+<li><strong>积分项（I）——消除偏差</strong><br> 积分项累积误差随时间的面积，用以消除稳态误差，使系统最终能精确达到目标值。然而积分项过强会造成系统响应迟滞或“积分饱和”，导致过冲。</li>
+<li><strong>微分项（D）——抑制振荡</strong><br> 微分项反映误差变化的趋势，可在误差变化较快时产生提前的“阻尼作用”，有效抑制超调和振荡。若微分系数 $K_d$ 过大，则会放大噪声，造成输出不稳定。</li>
+</ol>
+<pre class="mermaid">flowchart LR
+  %% ====== PID 控制结构框图 ======
+  %% 从左到右布局
+  R["输入信号  rₜ"]
+  S["系统输出  yₜ"]
+  SUM[["Σ 误差计算  eₜ = rₜ − yₜ"]]
+  P["比例项  Kₚ·eₜ"]
+  I["积分项  Kᵢ∫eₜ dt"]
+  D["微分项  Kd·deₜ/dt"]
+  SUM2[["Σ 控制量叠加"]]
+  CTRL_OUT["执行器输出  uₜ"]
+  PLANT["被控对象  姿态 / 电机系统"]
+
+  %% 信号流向
+  R --> SUM
+  S -. 反馈 .-> SUM
+  SUM -->|eₜ| P
+  SUM -->|eₜ| I
+  SUM -->|eₜ| D
+  P --> SUM2
+  I --> SUM2
+  D --> SUM2
+  SUM2 -->|uₜ| CTRL_OUT --> PLANT -->|yₜ| S
+
+  %% 样式
+  classDef node fill:#fff,stroke:#666,stroke-width:1.3px,color:#111,font-size:13px;
+  classDef sum fill:#f5f5f5,stroke:#999,stroke-dasharray:3 3,font-size:12px;
+  class R,S,CTRL_OUT,PLANT node;
+  class SUM,SUM2 sum;</pre>
+<center>图4-1 PID 控制结构框图 </center>
+
+<h3 id="4-2-离散PID的计算实现"><a href="#4-2-离散PID的计算实现" class="headerlink" title="4.2 离散PID的计算实现"></a>4.2 离散PID的计算实现</h3><p>飞控系统在嵌入式处理器中运行，所有控制量均以<strong>采样周期 $T_s$</strong> 为时间步长离散化计算。连续形式的PID控制律为：<br>$$<br>u(t) &#x3D; K_p e(t) + K_i \int e(t)dt + K_d \frac{de(t)}{dt}<br>$$<br>离散化后得到差分方程形式：<br>$$<br>u[k] &#x3D; u[k-1] + K_p(e[k]-e[k-1]) + K_i T_s e[k] + \frac{K_d}{T_s}(e[k]-2e[k-1]+e[k-2])<br>$$<br>其中：</p>
+<ul>
+<li>$e[k]$ 为当前采样误差；</li>
+<li>$T_s$ 为控制周期（即采样时间）；</li>
+<li>$u[k]$ 为控制器输出（对应电机推力或力矩指令）。</li>
+</ul>
+<p>控制周期越短，响应越平滑且系统稳定性越高；周期过长则可能导致采样延迟，使系统振荡甚至失稳。在飞控中，姿态环通常运行于 200–500 Hz，速度环约 100 Hz，位置环 20–50 Hz。</p>
+<h3 id="4-3-控制参数对系统响应的影响"><a href="#4-3-控制参数对系统响应的影响" class="headerlink" title="4.3 控制参数对系统响应的影响"></a>4.3 控制参数对系统响应的影响</h3><p>PID的三个系数直接决定系统的动态特性：</p>
+<ul>
+<li><strong>增大 $K_p$</strong>：上升时间缩短，但可能产生较大过冲；</li>
+<li><strong>增大 $K_i$</strong>：能消除稳态误差，但易导致响应迟缓；</li>
+<li><strong>增大 $K_d$</strong>：可减小振荡、改善稳定性，但噪声敏感性增加。</li>
+</ul>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/2K91Le.png" alt="2K91Le"></p>
+<center>图 4-2 不同参数对响应曲线的影响</center>
+
+<p>图中展示了同一被控对象在不同参数组合下的阶跃响应曲线。蓝线为基准 PID，红线为增大比例增益 $K_p$，绿线为增大积分增益 $K_i$，紫线为增大微分增益 $K_d$。从曲线可观察到：</p>
+<ul>
+<li><strong>提高 $K_p$</strong> 可显著加快上升速度，但同时引入更大的过冲与振荡；</li>
+<li><strong>提高 $K_i$</strong> 能有效消除稳态误差，但系统响应变慢，容易出现超调；</li>
+<li><strong>提高 $K_d$</strong> 则增强阻尼作用，能抑制振荡并改善稳定性，但过大时可能降低响应速度。</li>
+</ul>
+<p>综合来看，PID 各项参数在系统动态性能中起到互补作用，实际调参需在 <strong>响应速度、稳定性与稳态精度</strong> 之间取得合理平衡。</p>
+<p>从物理上看，<strong>比例项控制当前误差、积分项修正历史误差、微分项预测未来趋势</strong>。三者协同作用，使系统既能快速响应，又能稳态准确并抑制振荡。PID参数调整的核心即是：<strong>在响应速度、超调量和稳态误差之间寻找最优折中</strong>。</p>
+<h3 id="4-4-PID调参经验法（Ziegler–Nichols法）"><a href="#4-4-PID调参经验法（Ziegler–Nichols法）" class="headerlink" title="4.4 PID调参经验法（Ziegler–Nichols法）"></a>4.4 PID调参经验法（Ziegler–Nichols法）</h3><p>在理论模型不完备的情况下，可采用 <strong>Ziegler–Nichols 经验法</strong> 进行快速调参：</p>
+<ol>
+<li><strong>关闭I、D项，仅保留P项；</strong><br> 缓慢增大 $K_p$，直至系统输出产生持续振荡，此时记录临界增益 $K_u$ 和振荡周期 $T_u$。</li>
+<li><strong>按经验公式计算初值：</strong></li>
+</ol>
+<table>
+<thead>
+<tr>
+<th><strong>控制类型</strong></th>
+<th>$K_p$</th>
+<th>$K_i$</th>
+<th>$K_d$</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>P</td>
+<td>$0.5,K_u$</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>PI</td>
+<td>$0.45,K_u$</td>
+<td>$1.2,K_p&#x2F;T_u$</td>
+<td>—</td>
+</tr>
+<tr>
+<td>PID</td>
+<td>$0.60,K_u$</td>
+<td>$2,K_p&#x2F;T_u$</td>
+<td>$K_p,T_u&#x2F;8$</td>
+</tr>
+</tbody></table>
+<ol start="3">
+<li><strong>在仿真中微调</strong>：<br> 逐步调整 $K_p, K_i, K_d$ 以减少过冲、改善响应时间或消除稳态偏差。</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th><strong>参数组合</strong></th>
+<th><strong>$K_p$</strong></th>
+<th><strong>$K_i$</strong></th>
+<th><strong>$K_d$</strong></th>
+<th><strong>上升时间 (s)</strong></th>
+<th><strong>超调量 (%)</strong></th>
+<th><strong>稳态误差</strong></th>
+<th><strong>备注</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>基准 PID</td>
+<td>1.2</td>
+<td>0.8</td>
+<td>0.05</td>
+<td>1.10</td>
+<td>8.5</td>
+<td>0.02</td>
+<td>响应平稳，轻微过冲</td>
+</tr>
+<tr>
+<td>仅增大 $K_p$</td>
+<td>2.4</td>
+<td>0.8</td>
+<td>0.05</td>
+<td>0.65</td>
+<td>22.0</td>
+<td>0.01</td>
+<td>上升快但振荡明显</td>
+</tr>
+<tr>
+<td>仅增大 $K_i$</td>
+<td>1.2</td>
+<td>1.6</td>
+<td>0.05</td>
+<td>1.35</td>
+<td>15.5</td>
+<td>0.00</td>
+<td>消除稳态误差但过冲加大</td>
+</tr>
+<tr>
+<td>仅增大 $K_d$</td>
+<td>1.2</td>
+<td>0.8</td>
+<td>0.20</td>
+<td>1.25</td>
+<td>5.0</td>
+<td>0.02</td>
+<td>阻尼增强，响应更平稳</td>
+</tr>
+</tbody></table>
+<h3 id="4-5-PID控制响应对比"><a href="#4-5-PID控制响应对比" class="headerlink" title="4.5 PID控制响应对比"></a>4.5 PID控制响应对比</h3><p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/H6n2I8.png" alt="H6n2I8"></p>
+<center>图4-3 不同 PID 参数下的系统阶跃响应</center>
+
+<p>图中展示了同一被控对象在不同 PID 参数组合下的动态响应过程。蓝线为较低比例增益（$K_p$）时的响应，系统上升较慢但稳定；橙线为较高 $K_p$ 时，响应速度显著提升但出现明显过冲与振荡；绿色曲线在同样的 $K_p$ 下加入微分项（$K_d$），系统阻尼增强，振荡得到抑制，输出更平稳。</p>
+<p>由此可见，$K_p$ 主要影响响应速度与超调程度，而 $K_d$ 在改善系统稳定性、减小振荡方面起关键作用。调节 PID 参数时，需要在<strong>响应速度、过冲量与稳态精度</strong>之间取得平衡，以保证飞行姿态控制既快速又稳定。</p>
+<p><strong>小结</strong><br>PID控制是无人机姿态稳定的基础算法，具有实现简单、物理含义清晰和鲁棒性强等优点。通过理解 P&#x2F;I&#x2F;D 各项的作用机制与采样周期影响，结合 Ziegler–Nichols 等经验调参法，读者可以在仿真或实际飞控系统中独立设计姿态环PID控制器，并根据响应曲线灵活优化控制参数，实现<strong>响应快、过冲小、稳态精度高</strong>的平衡控制效果。</p>
+<h2 id="5-现代控制思想入门（LQR-MPC）"><a href="#5-现代控制思想入门（LQR-MPC）" class="headerlink" title="5. 现代控制思想入门（LQR &#x2F; MPC）"></a>5. 现代控制思想入门（LQR &#x2F; MPC）</h2><p>前面我们详细介绍了PID控制的原理与调参方法。PID控制以其结构简单、实现方便，在无人机姿态与速度控制中占据主导地位。然而，随着系统复杂度的提升（例如多轴耦合、动态约束、外界扰动等），传统PID逐渐显现出局限性。</p>
+<p>为了在更复杂的环境下获得更优控制效果，现代控制理论应运而生。其中，<strong>LQR（线性二次型调节器，Linear Quadratic Regulator）</strong> 和<strong>MPC（模型预测控制，Model Predictive Control）</strong> 是两种最具代表性的方法。它们的共同目标是：在满足动态方程约束的前提下，使系统性能指标最优。</p>
+<p>本章将从PID的局限性出发，理解LQR的最优反馈思想与MPC的预测优化机制，并对比三种控制策略的性能差异。</p>
+<h3 id="5-1-PID控制的局限性"><a href="#5-1-PID控制的局限性" class="headerlink" title="5.1 PID控制的局限性"></a>5.1 PID控制的局限性</h3><p>虽然PID算法适用于大多数线性、单输入单输出（SISO）的系统，但对于无人机这样的多输入多输出（MIMO）系统，其局限性主要体现在以下几个方面：</p>
+<ol>
+<li><strong>多变量耦合问题</strong><br> 四旋翼的Roll、Pitch、Yaw三轴之间存在惯性耦合。当某一轴姿态变化时，会引起其他轴的动态响应。PID通常对每个轴独立设计，难以同时处理轴间耦合效应。</li>
+<li><strong>约束处理能力有限</strong><br> 无人机推力、角速度和姿态角均存在物理限制，而PID无法在计算中直接考虑这些约束。若外部干扰较大或目标变化剧烈，控制输出可能超过可执行范围，导致饱和甚至失稳。</li>
+<li><strong>对时延与模型变化敏感</strong><br> PID依赖于误差的即时变化，在存在信号延迟或系统参数变化时容易出现滞后或振荡。</li>
+</ol>
+<p>这些问题促使我们引入更系统化的控制方法，使控制器在设计阶段就能考虑耦合、约束和性能最优化。</p>
+<h3 id="5-2-LQR：最优状态反馈控制"><a href="#5-2-LQR：最优状态反馈控制" class="headerlink" title="5.2 LQR：最优状态反馈控制"></a>5.2 LQR：最优状态反馈控制</h3><p>LQR（Linear Quadratic Regulator）是一种基于数学优化的线性控制方法。与PID不同，LQR并不单独调节某个误差分量，而是通过<strong>最小化代价函数</strong>的方式，求得系统状态的最优反馈控制律。</p>
+<p>设线性系统模型为：$\dot{\mathbf{x}} &#x3D; A\mathbf{x} + B\mathbf{u}$。其中，$\mathbf{x}$为系统状态向量，$\mathbf{u}$为控制输入。LQR的目标是最小化以下性能指标：$$J &#x3D; \int_0^{\infty} (\mathbf{x}^T Q \mathbf{x} + \mathbf{u}^T R \mathbf{u}),dt$$其中：</p>
+<ul>
+<li>$Q$：权重矩阵，用于惩罚状态误差（越大，系统越稳但响应越慢）；</li>
+<li>$R$：权重矩阵，用于惩罚控制能量（越大，控制动作越保守）。</li>
+</ul>
+<p>求解该优化问题后，可得到最优控制律：$\mathbf{u} &#x3D; -K\mathbf{x}$。其中增益矩阵 $K &#x3D; R^{-1}B^TP$，而 P 来自代数黎卡提方程（ARE）：$A^TP + PA - PBR^{-1}B^TP + Q &#x3D; 0$。通过适当选择 Q 和 R，LQR控制器能够在“稳态精度”和“能量效率”之间取得理想平衡。</p>
+<h3 id="5-3-Pitch轴LQR控制示例"><a href="#5-3-Pitch轴LQR控制示例" class="headerlink" title="5.3 Pitch轴LQR控制示例"></a>5.3 Pitch轴LQR控制示例</h3><p>以第二章线性化的Pitch轴模型为例：$\ddot{\theta} &#x3D; \frac{1}{I_y}U_3$，定义状态变量为：$\mathbf{x} &#x3D; \begin{bmatrix} \theta \ \dot{\theta} \end{bmatrix}, \quad \mathbf{u} &#x3D; U_3$，则系统的状态空间模型可写为：$$\dot{\mathbf{x}} &#x3D; \begin{bmatrix} 0 &amp; 1\ 0 &amp; 0 \end{bmatrix}\mathbf{x} + \begin{bmatrix} 0\ \frac{1}{I_y} \end{bmatrix}\mathbf{u}$$选取权重矩阵：<br>$$Q &#x3D; \begin{bmatrix} 10 &amp; 0\ 0 &amp; 1 \end{bmatrix}, \quad R &#x3D; [1]$$利用Python控制库（python-control）或Matlab的lqr()函数可求得最优增益矩阵：$K &#x3D; [k_1, k_2]$。于是控制律为：$U_3 &#x3D; -k_1\theta - k_2\dot{\theta}$，与PID不同，LQR的两个增益k_1, k_2 是通过数学优化自动确定的，而不是通过经验调参得到。</p>
+<p>仿真结果表明：LQR在响应时间相近的情况下，能显著减少过冲和振荡，并在存在扰动时保持更好的稳定性。</p>
+<h3 id="5-4-MPC：基于预测的优化控制"><a href="#5-4-MPC：基于预测的优化控制" class="headerlink" title="5.4 MPC：基于预测的优化控制"></a>5.4 MPC：基于预测的优化控制</h3><p><strong>模型预测控制（Model Predictive Control, MPC）</strong> 是现代控制中更进一步的思路。与LQR的静态反馈不同，MPC在每个时刻都通过预测未来的系统行为，动态求解一个有限时间的最优控制问题。其核心思想如下：</p>
+<ol>
+<li>在当前时刻，根据模型预测未来 $N_p$ 步的状态变化；</li>
+<li>构建代价函数，考虑状态误差和控制量变化；</li>
+<li>通过优化求解未来控制序列，使代价函数最小；</li>
+<li>仅执行第一个控制动作，下一时刻重复上述过程。</li>
+</ol>
+<p>与LQR相比，MPC有两个显著优势：</p>
+<ul>
+<li><strong>显式约束处理</strong>：可直接在优化中考虑输入和状态限制（例如推力饱和、角度上限）；</li>
+<li><strong>动态可调性</strong>：可根据实时状态重新计算控制量，具备更强的鲁棒性。</li>
+</ul>
+<h3 id="5-5-三种控制方法对比"><a href="#5-5-三种控制方法对比" class="headerlink" title="5.5 三种控制方法对比"></a>5.5 三种控制方法对比</h3><table>
+<thead>
+<tr>
+<th><strong>特性</strong></th>
+<th><strong>PID</strong></th>
+<th><strong>LQR</strong></th>
+<th><strong>MPC</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>理论基础</td>
+<td>经验法则</td>
+<td>线性系统优化</td>
+<td>模型预测优化</td>
+</tr>
+<tr>
+<td>参数来源</td>
+<td>人工调试</td>
+<td>权重矩阵优化</td>
+<td>在线优化求解</td>
+</tr>
+<tr>
+<td>系统类型</td>
+<td>单输入单输出</td>
+<td>多变量线性系统</td>
+<td>多变量非线性系统</td>
+</tr>
+<tr>
+<td>约束处理</td>
+<td>无</td>
+<td>间接考虑</td>
+<td>可直接处理</td>
+</tr>
+<tr>
+<td>实现复杂度</td>
+<td>低</td>
+<td>中</td>
+<td>高</td>
+</tr>
+<tr>
+<td>实时性需求</td>
+<td>低</td>
+<td>中</td>
+<td>高</td>
+</tr>
+<tr>
+<td>典型应用</td>
+<td>姿态环</td>
+<td>姿态与速度控制</td>
+<td>路径跟踪与高动态任务</td>
+</tr>
+</tbody></table>
+<p>如上表所示，PID依然是多数飞控系统的核心算法，但在高性能应用（如编队控制、路径跟踪或自主避障）中，LQR与MPC展现出更高的控制品质。</p>
+<p><strong>小结</strong><br>本章介绍了现代控制理论中两种重要方法——LQR和MPC。LQR通过优化代价函数实现全局最优状态反馈，而MPC则利用模型预测与在线优化实现动态最优控制。<br>相较于PID，这两种方法提供了更系统、更智能的控制框架，尤其在多变量、受约束或高动态任务场景中表现出明显优势。<br>下面我们将以这些模型为基础，在仿真平台中验证不同控制策略在实际无人机系统中的性能表现，为进一步的实机测试打下基础。</p>
+<h2 id="6-仿真验证与系统实现"><a href="#6-仿真验证与系统实现" class="headerlink" title="6. 仿真验证与系统实现"></a>6. 仿真验证与系统实现</h2><p>飞控算法的最终目标，是让控制律不仅在数学模型中成立，更能在真实系统中稳定、准确地运行。因此，在算法设计完成后，需要通过仿真验证系统的动态性能、鲁棒性与实时性。本章将以姿态控制为例，介绍如何在 <strong>Simulink</strong> 与 <strong>Python 控制库</strong> 中进行仿真建模、噪声注入、延迟模拟及参数移植，为实际飞控系统实现提供依据。</p>
+<h3 id="6-1-仿真目的与意义"><a href="#6-1-仿真目的与意义" class="headerlink" title="6.1 仿真目的与意义"></a>6.1 仿真目的与意义</h3><p>控制算法通常先在理论层面进行建模与验证，但真实飞行中，系统不可避免地存在<strong>传感器噪声</strong>、<strong>计算延迟</strong>、<strong>执行器饱和</strong>等非理想因素。仿真验证的目的在于：</p>
+<ol>
+<li>检查控制律在这些非理想条件下是否仍能稳定运行；</li>
+<li>评估控制周期（采样时间）对系统性能的影响；</li>
+<li>为参数从仿真环境到 STM32 等嵌入式平台的移植提供数据参考。</li>
+</ol>
+<p>通过仿真，可在不损坏真实硬件的前提下快速调整参数，使控制器在实机部署前已具备良好的动态特性。</p>
+<h3 id="6-2-Simulink-仿真模型构建"><a href="#6-2-Simulink-仿真模型构建" class="headerlink" title="6.2 Simulink 仿真模型构建"></a>6.2 Simulink 仿真模型构建</h3><p>在 Simulink 环境中，控制系统可用模块化方式表示，如图 所示。</p>
+<pre class="mermaid">flowchart LR
+  classDef blk fill:#ffffff,stroke:#666,stroke-width:1.3px,color:#111,font-size:13px;
+  classDef soft fill:#f7f7f7,stroke:#999,stroke-width:1px,color:#333,font-size:12px;
+  linkStyle default stroke:#444,stroke-width:1.3px;
+
+  R["目标姿态角<br/>θ_ref"]:::blk
+  SUM["SUM<br/>e = θ_ref − θ"]:::soft
+  CTRL["控制器<br/>PID / LQR"]:::blk
+  SAT["执行器限幅<br/>Saturation"]:::soft
+  PLANT["被控对象<br/>Pitch 轴模型"]:::blk
+  SENSOR["传感器反馈<br/>姿态/角速度"]:::blk
+  NOISE["测量噪声<br/>Band-Limited"]:::soft
+  DELAY["系统延迟<br/>Transport Delay"]:::soft
+
+  R --> SUM --> CTRL --> SAT --> PLANT --> SENSOR
+  SENSOR --> NOISE --> DELAY --> SUM</pre>
+<center>图6-1 闭环控制系统结构示意图</center>
+
+<p>图中信号流从目标角度（参考输入）开始，经控制器计算输出控制量，再由执行器模型（含推力限幅）驱动姿态动力学模块。<br>反馈路径由传感器测量信号构成，可在其中插入以下模块以增强仿真真实性：</p>
+<ul>
+<li><strong>Band-Limited White Noise</strong>：模拟 IMU 测量噪声；</li>
+<li><strong>Transport Delay</strong>：模拟 MCU 计算与滤波延迟；</li>
+<li><strong>Saturation</strong>：限制推力输出，避免非物理过驱。</li>
+</ul>
+<p>这种“<strong>信号闭环 + 噪声扰动</strong>”结构，是飞控算法验证中最核心的模型形式。</p>
+<h3 id="6-3-实验步骤"><a href="#6-3-实验步骤" class="headerlink" title="6.3 实验步骤"></a>6.3 实验步骤</h3><p>为验证控制系统的稳定性与实时性，可按以下流程实施实验：</p>
+<ol>
+<li><strong>搭建基础闭环</strong><ul>
+<li>新建 Simulink 模型；</li>
+<li>用 Sum 模块计算误差 $e &#x3D; θ_{ref} - θ$；</li>
+<li>插入 PID Controller 模块或自定义 LQR 控制器；</li>
+<li>通过 Transfer Function 模块实现 Pitch 轴动力学方程；</li>
+<li>构建完整闭环结构。</li>
+</ul>
+</li>
+<li><strong>引入噪声与延迟</strong><ul>
+<li>在反馈路径中加入 Band-Limited White Noise，方差设为 $10^{-3}$～$10^{-4}$；</li>
+<li>使用 Transport Delay 模拟计算与通讯延迟（约 2–5 ms）；</li>
+<li>在控制输出端加入 Saturation 模块，推力限幅 ±1。</li>
+</ul>
+</li>
+<li><strong>运行仿真与观测响应</strong><ul>
+<li>设置仿真步长 $T_s &#x3D; 0.002$ s（500 Hz 控制环）；</li>
+<li>运行 5 s 仿真，记录姿态角响应曲线；</li>
+<li>对比无噪声&#x2F;无延迟与加入扰动条件下的响应差异。</li>
+</ul>
+</li>
+<li><strong>调节参数与稳定性分析</strong><ul>
+<li>调整 $K_p$、$K_i$、$K_d$，观察上升时间、过冲与稳态误差变化；</li>
+<li>增加延迟与噪声强度，评估系统裕量；</li>
+<li>对比 PID 与 LQR 控制性能。</li>
+</ul>
+</li>
+</ol>
+<h3 id="6-4-Python-仿真实现"><a href="#6-4-Python-仿真实现" class="headerlink" title="6.4 Python 仿真实现"></a>6.4 Python 仿真实现</h3><p>在 Python 中同样可基于 control 库进行系统级仿真，以验证控制律在延迟与扰动下的性能表现。以下代码展示了使用 Pitch 轴简化模型进行 PID 与 LQR 的对比实验：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np  </span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt  </span><br><span class="line"><span class="keyword">import</span> control <span class="keyword">as</span> ctrl  </span><br><span class="line"><span class="keyword">from</span> matplotlib <span class="keyword">import</span> font_manager  </span><br><span class="line"></span><br><span class="line"><span class="comment"># 在运行前请先安装依赖：pip install control matplotlib numpy</span></span><br><span class="line"><span class="comment"># 以下代码展示了使用 Pitch 轴简化模型进行 PID 与 LQR 的对比实验：</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ======== 中文字体设置 ========</span></span><br><span class="line">candidate_fonts = [  </span><br><span class="line">    <span class="string">&quot;SimHei&quot;</span>, <span class="string">&quot;Noto Sans CJK SC&quot;</span>, <span class="string">&quot;Microsoft YaHei&quot;</span>,  </span><br><span class="line">    <span class="string">&quot;PingFang SC&quot;</span>, <span class="string">&quot;Hiragino Sans GB&quot;</span>, <span class="string">&quot;Heiti SC&quot;</span>  </span><br><span class="line">]  </span><br><span class="line">plt.rcParams[<span class="string">&#x27;axes.unicode_minus&#x27;</span>] = <span class="literal">False</span>  </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">set_chinese_font</span>():  </span><br><span class="line">    <span class="keyword">for</span> f <span class="keyword">in</span> candidate_fonts:  </span><br><span class="line">        <span class="keyword">try</span>:  </span><br><span class="line">            plt.rcParams[<span class="string">&#x27;font.sans-serif&#x27;</span>] = [f]  </span><br><span class="line">            font_manager.findfont(f, fallback_to_default=<span class="literal">False</span>)  </span><br><span class="line">            <span class="keyword">return</span>  </span><br><span class="line">        <span class="keyword">except</span> Exception:  </span><br><span class="line">            <span class="keyword">pass</span>  </span><br><span class="line">set_chinese_font()  </span><br><span class="line">  </span><br><span class="line"><span class="comment"># ===== Pitch 轴模型 =====</span></span><br><span class="line">plant = ctrl.TransferFunction([<span class="number">1.0</span>], [<span class="number">0.5</span>, <span class="number">0.7</span>, <span class="number">1.0</span>])  </span><br><span class="line">  </span><br><span class="line"><span class="comment"># ===== PID 控制器 =====</span></span><br><span class="line">Kp, Ki, Kd = <span class="number">1.4</span>, <span class="number">0.8</span>, <span class="number">0.08</span>  </span><br><span class="line">PID = ctrl.tf([Kd, Kp, Ki], [<span class="number">1</span>, <span class="number">0</span>])  </span><br><span class="line">T_pid  = ctrl.feedback(PID*plant, <span class="number">1</span>)  </span><br><span class="line">Td_pid = ctrl.feedback(plant, PID)  </span><br><span class="line">  </span><br><span class="line"><span class="comment"># ===== LQR 控制器 =====</span></span><br><span class="line">ss_p = ctrl.tf2ss(plant)  </span><br><span class="line">A, B, C, D = ss_p.A, ss_p.B, ss_p.C, ss_p.D  </span><br><span class="line">Q = np.diag([<span class="number">6.0</span>, <span class="number">1.5</span>]); R = np.array([[<span class="number">0.6</span>]])  </span><br><span class="line">K, _, _ = ctrl.lqr(ctrl.ss(A, B, C, D), Q, R)  </span><br><span class="line">Acl = A - B @ K  </span><br><span class="line">Nr = <span class="number">1.0</span> / (C @ np.linalg.inv(-Acl) @ B).item()  </span><br><span class="line">T_lqr = ctrl.ss(Acl, B*Nr, C, D)  </span><br><span class="line">sys_lqr_dist = ctrl.ss(Acl, B, C, D)  </span><br><span class="line">  </span><br><span class="line"><span class="comment"># ===== 仿真与扰动 =====</span></span><br><span class="line">t = np.linspace(<span class="number">0</span>, <span class="number">8</span>, <span class="number">1600</span>)  </span><br><span class="line">t1, y_pid = ctrl.step_response(T_pid, T=t)  </span><br><span class="line">t2, y_lqr = ctrl.step_response(T_lqr, T=t)  </span><br><span class="line">d = np.zeros_like(t)  </span><br><span class="line">mask = t &gt;= <span class="number">3.0</span>  </span><br><span class="line">d[mask] = <span class="number">0.05</span>*np.sin(<span class="number">2</span>*np.pi*<span class="number">15</span>*(t[mask]-<span class="number">3.0</span>)) + <span class="number">0.01</span>*np.random.randn(mask.<span class="built_in">sum</span>())  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">forced</span>(<span class="params">sys, T, U</span>):  </span><br><span class="line">    out = ctrl.forced_response(sys, T=T, U=U)  </span><br><span class="line">    <span class="keyword">return</span> out[<span class="number">0</span>], out[<span class="number">1</span>]  </span><br><span class="line">  </span><br><span class="line">t_pid_d, y_pid_d = forced(Td_pid, t, d)  </span><br><span class="line">t_lqr_d, y_lqr_d = forced(sys_lqr_dist, t, d)  </span><br><span class="line">  </span><br><span class="line"><span class="comment"># ===== 绘图 =====</span></span><br><span class="line">fig, axs = plt.subplots(<span class="number">2</span>, <span class="number">1</span>, figsize=(<span class="number">9</span>, <span class="number">7</span>), sharex=<span class="literal">True</span>)  </span><br><span class="line">  </span><br><span class="line"><span class="comment"># --- (a) 阶跃响应 ---</span></span><br><span class="line">axs[<span class="number">0</span>].plot(t1, y_pid, label=<span class="string">&quot;PID 控制&quot;</span>, lw=<span class="number">2</span>)  </span><br><span class="line">axs[<span class="number">0</span>].plot(t2, y_lqr, label=<span class="string">&quot;LQR 控制&quot;</span>, lw=<span class="number">2</span>)  </span><br><span class="line">axs[<span class="number">0</span>].hlines(y=<span class="number">1.0</span>, xmin=t[<span class="number">0</span>], xmax=t[-<span class="number">1</span>], colors=<span class="string">&quot;k&quot;</span>, linestyles=<span class="string">&quot;--&quot;</span>, alpha=<span class="number">0.6</span>) </span><br><span class="line">axs[<span class="number">0</span>].set_ylabel(<span class="string">&quot;输出响应&quot;</span>)  </span><br><span class="line">axs[<span class="number">0</span>].set_title(<span class="string">&quot;PID 与 LQR 阶跃响应对比&quot;</span>)  </span><br><span class="line">axs[<span class="number">0</span>].legend(loc=<span class="string">&quot;lower right&quot;</span>)  </span><br><span class="line">axs[<span class="number">0</span>].grid(<span class="literal">True</span>, ls=<span class="string">&quot;--&quot;</span>, alpha=<span class="number">0.4</span>)  </span><br><span class="line">  </span><br><span class="line"><span class="comment"># --- (b) 含扰动响应 ---</span></span><br><span class="line">axs[<span class="number">1</span>].plot(t_pid_d, y_pid_d + <span class="number">1.0</span>, label=<span class="string">&quot;PID（含扰动）&quot;</span>, lw=<span class="number">2</span>)  </span><br><span class="line">axs[<span class="number">1</span>].plot(t_lqr_d, y_lqr_d + <span class="number">1.0</span>, label=<span class="string">&quot;LQR（含扰动）&quot;</span>, lw=<span class="number">2</span>)  </span><br><span class="line">axs[<span class="number">1</span>].axvline(<span class="number">3.0</span>, color=<span class="string">&quot;r&quot;</span>, ls=<span class="string">&quot;--&quot;</span>, alpha=<span class="number">0.8</span>)  </span><br><span class="line">axs[<span class="number">1</span>].text(<span class="number">3.1</span>, <span class="number">1.4</span>, <span class="string">&quot;扰动开始&quot;</span>, color=<span class="string">&quot;r&quot;</span>)  </span><br><span class="line">axs[<span class="number">1</span>].set_xlabel(<span class="string">&quot;时间 (s)&quot;</span>)  </span><br><span class="line">axs[<span class="number">1</span>].set_ylabel(<span class="string">&quot;输出响应（含扰动）&quot;</span>)  </span><br><span class="line">axs[<span class="number">1</span>].legend(loc=<span class="string">&quot;upper left&quot;</span>)  </span><br><span class="line">axs[<span class="number">1</span>].grid(<span class="literal">True</span>, ls=<span class="string">&quot;--&quot;</span>, alpha=<span class="number">0.4</span>)  </span><br><span class="line">  </span><br><span class="line">plt.tight_layout()  </span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/HqxeSB.png" alt="HqxeSB"></p>
+<center>图6-2 PID与LQR阶跃响应对比</center>
+### 6.5 参数映射与实机实现
+在仿真验证稳定后，需将参数映射到实际飞控硬件（如 STM32、Pixhawk）。下面给出了常见仿真参数与实机参数的对应关系。
+
+<table>
+<thead>
+<tr>
+<th><strong>参数类型</strong></th>
+<th><strong>仿真值</strong></th>
+<th><strong>实机对应值</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>控制周期</td>
+<td>0.002 s</td>
+<td>500 Hz 姿态环</td>
+<td>Simulink 步长需与 MCU 控制周期一致</td>
+</tr>
+<tr>
+<td>执行延迟</td>
+<td>3 ms</td>
+<td>运算+通讯延迟</td>
+<td>用 Transport Delay 模拟</td>
+</tr>
+<tr>
+<td>噪声方差</td>
+<td>$10^{-3}$</td>
+<td>IMU 角速度噪声</td>
+<td>通过 Band-Limited Noise 模块注入</td>
+</tr>
+<tr>
+<td>推力限幅</td>
+<td>±1</td>
+<td>电机 PWM 饱和</td>
+<td>对应执行器最大输出</td>
+</tr>
+</tbody></table>
+<p>在移植过程中，可直接使用仿真得到的 PID 参数初值，再通过实机试飞微调。若系统存在明显延迟或噪声，可适当减小 $K_p$、$K_i$，或采用前馈滤波、抗饱和补偿机制。</p>
+<h3 id="6-6-实验总结"><a href="#6-6-实验总结" class="headerlink" title="6.6 实验总结"></a>6.6 实验总结</h3><p>通过上述仿真与实现验证，我们可以得出以下结论：</p>
+<ol>
+<li>仿真平台能有效评估算法在非理想环境下的稳定性；</li>
+<li>控制周期、延迟与噪声是决定控制系统性能的关键因素；</li>
+<li>从仿真到实机的参数映射需考虑实时性与执行精度；</li>
+<li>经验证的仿真模型可直接用于飞控系统代码生成与硬件在环（HIL）测试。</li>
+</ol>
+<h2 id="7-工程反思与拓展方向"><a href="#7-工程反思与拓展方向" class="headerlink" title="7. 工程反思与拓展方向"></a>7. 工程反思与拓展方向</h2><p>经过前几章的学习，我们已经完成了从控制理论、动力学建模、PID与LQR设计，到仿真验证与系统实现的完整流程。然而，在实际无人机飞行中，算法往往并不会如仿真中那样“理想”地运行。真实世界的飞控系统受到多种工程因素的影响——传感器噪声、控制延迟、执行器非线性、结构振动以及环境扰动，这些都可能导致系统性能下降甚至失稳。</p>
+<p>本章从工程角度重新审视控制算法，理解理论模型与实机应用之间的差距，并探讨如何通过滤波、鲁棒与自适应控制等方法提升系统稳定性。这种“从实验到工程”的反思能力，是将控制理论真正落地的关键。</p>
+<h3 id="7-1-控制延迟与实时性问题"><a href="#7-1-控制延迟与实时性问题" class="headerlink" title="7.1 控制延迟与实时性问题"></a>7.1 控制延迟与实时性问题</h3><p>在飞控系统中，所有数据采集与控制输出都存在不可避免的延迟。例如：</p>
+<ul>
+<li>IMU采样存在约 <strong>1–2 ms</strong> 的延迟；</li>
+<li>姿态解算与控制计算约 <strong>0.5–1 ms</strong>；</li>
+<li>电调（ESC）响应信号再需 <strong>0.5–2 ms</strong>。</li>
+</ul>
+<p>这些延迟叠加后，会在控制闭环中产生<strong>相位滞后</strong>，使系统对误差的响应滞后于实际变化，导致振荡或超调。常见应对策略包括：</p>
+<ol>
+<li><strong>提高控制频率</strong>：如姿态环500 Hz以上，以减小相对滞后；</li>
+<li><strong>优化任务调度</strong>：在RTOS中为姿态任务设置最高优先级；</li>
+<li><strong>前馈补偿或预测控制</strong>：在算法中提前补偿已知延迟；</li>
+<li><strong>算法与硬件协同设计</strong>：选用支持浮点运算和高速DMA的MCU。</li>
+</ol>
+<h3 id="7-2-IMU噪声与滤波耦合"><a href="#7-2-IMU噪声与滤波耦合" class="headerlink" title="7.2 IMU噪声与滤波耦合"></a>7.2 IMU噪声与滤波耦合</h3><p>IMU是姿态控制的核心传感器，但它的输出存在随机噪声与零偏漂移。加速度计噪声影响姿态修正的平滑性；陀螺仪漂移会在积分过程中累计误差，导致角度偏移。常用的滤波算法包括：</p>
+<ul>
+<li><strong>互补滤波（Complementary Filter）</strong>：融合陀螺仪与加速度计数据，兼顾短期稳定与长期准确；</li>
+<li><strong>卡尔曼滤波（Kalman Filter）</strong>：通过状态估计与协方差更新实现动态最优融合；</li>
+<li><strong>低通滤波（LPF）</strong>：抑制高频噪声，但若设置过低，会引入信号滞后。</li>
+</ul>
+<p>滤波虽然能提高测量精度，但也会引起<strong>动态延迟</strong>，与控制环路相互耦合。如果滤波器的截止频率过低，控制器获得的姿态信息将滞后，从而影响快速响应。因此，滤波与控制应综合设计，在抗噪声与实时性之间取得平衡。</p>
+<h3 id="7-3-执行器非线性与结构振动"><a href="#7-3-执行器非线性与结构振动" class="headerlink" title="7.3 执行器非线性与结构振动"></a>7.3 执行器非线性与结构振动</h3><p>无人机的执行机构（电机与螺旋桨）并非理想线性器件，电机推力与PWM信号之间的关系往往呈<strong>非线性曲线</strong>，在高转速下，气流干扰会导致推力响应滞后，螺旋桨与机臂振动会在IMU中产生虚假加速度信号。这种“非理想性”会破坏控制器假设的线性模型，造成参数漂移和控制误差。常见改进措施包括：</p>
+<ol>
+<li><strong>推力曲线标定</strong>：通过实验获取PWM–推力曲线，并在控制算法中进行线性化补偿；</li>
+<li><strong>机械减振设计</strong>：在IMU安装座使用硅胶减震结构，降低高频振动传递；</li>
+<li><strong>增加前馈项</strong>：在控制律中引入预测补偿，减轻执行滞后影响。</li>
+</ol>
+<h3 id="7-4-外部扰动与鲁棒性分析"><a href="#7-4-外部扰动与鲁棒性分析" class="headerlink" title="7.4 外部扰动与鲁棒性分析"></a>7.4 外部扰动与鲁棒性分析</h3><p>在户外飞行环境中，风扰动是影响稳定性的主要外部因素。风速变化会导致姿态角度偏移或高度波动，尤其是在悬停状态下更为显著。为了增强系统的抗扰性，可采用以下手段：</p>
+<ul>
+<li><strong>增稳控制（Stabilizing Control）</strong>：提高姿态环增益，提升刚性响应；</li>
+<li><strong>鲁棒控制（Robust Control）</strong>：在设计阶段考虑模型不确定性，使系统对参数变化不敏感；</li>
+<li><strong>自适应控制（Adaptive Control）</strong>：在线估计并更新系统参数，自动适应环境变化；</li>
+<li><strong>扰动观测器（Disturbance Observer, DOB）</strong>：实时估计外部扰动并补偿控制输入。</li>
+</ul>
+<p>这些方法在理论上能显著改善系统性能，但实现复杂度与计算负担较高，需结合硬件算力与应用需求选择性使用。</p>
+<h3 id="7-5-常见误差来源与改进策略"><a href="#7-5-常见误差来源与改进策略" class="headerlink" title="7.5 常见误差来源与改进策略"></a>7.5 常见误差来源与改进策略</h3><p>下表总结了飞控系统中常见的误差来源、对控制性能的影响及对应改进措施。</p>
+<table>
+<thead>
+<tr>
+<th><strong>误差来源</strong></th>
+<th><strong>典型表现</strong></th>
+<th><strong>控制影响</strong></th>
+<th><strong>改进策略</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>控制延迟</td>
+<td>响应滞后、振荡</td>
+<td>相位裕度降低</td>
+<td>提高控制频率，优化任务调度</td>
+</tr>
+<tr>
+<td>IMU噪声</td>
+<td>姿态抖动</td>
+<td>信号不稳定</td>
+<td>使用互补或卡尔曼滤波</td>
+</tr>
+<tr>
+<td>电机非线性</td>
+<td>推力不均、响应慢</td>
+<td>控制量失真</td>
+<td>标定PWM–推力曲线</td>
+</tr>
+<tr>
+<td>振动干扰</td>
+<td>姿态漂移、误触发</td>
+<td>信号失真</td>
+<td>加装减振结构、软件滤波</td>
+</tr>
+<tr>
+<td>风扰动</td>
+<td>悬停不稳</td>
+<td>系统偏离目标</td>
+<td>增稳或自适应控制</td>
+</tr>
+<tr>
+<td>参数漂移</td>
+<td>长期误差积累</td>
+<td>性能退化</td>
+<td>定期重标定，在线自适应调参</td>
+</tr>
+</tbody></table>
+<p>通过系统地分析和优化这些环节，可以显著提升飞控系统在真实环境中的稳定性和可靠性。</p>
+<h3 id="7-6-拓展与未来方向"><a href="#7-6-拓展与未来方向" class="headerlink" title="7.6 拓展与未来方向"></a>7.6 拓展与未来方向</h3><p>随着飞控硬件性能的提升和算法研究的深入，现代无人机控制正逐渐向更智能、更鲁棒的方向发展。主要趋势包括：</p>
+<ul>
+<li><strong>自适应与学习型控制</strong>：通过在线学习与参数估计，实现算法的动态自我优化；</li>
+<li><strong>模型预测控制（MPC）在多机协同中的应用</strong>：实现路径规划与碰撞规避的统一优化；</li>
+<li><strong>融合视觉与惯性导航（VIO）</strong>：结合图像信息提升姿态估计精度；</li>
+<li><strong>嵌入式鲁棒滤波与容错控制</strong>：提升系统在极端条件下的生存能力。</li>
+</ul>
+<p>这些方向体现了飞控技术从“控制系统”向“智能系统”的演进。未来的飞控算法不再仅仅是维持稳定，而是具备自感知、自修正与协同决策的能力。</p>
+<script type="module"> import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';	mermaid.initialize({startOnLoad: true, flowchart: {curve: 'linear'}}); </script>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://www.keychan.xyz/2025/11/18/042-flight-control-pid-simulation-verification/" title="「无人机系列④」飞行控制算法入门——从PID到仿真验证">https://www.keychan.xyz/2025/11/18/042-flight-control-pid-simulation-verification/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E9%A3%9E%E6%8E%A7%E7%B3%BB%E7%BB%9F/" rel="tag"># 飞控系统</a>
+              <a href="/tags/%E9%A3%9E%E6%8E%A7%E7%AE%97%E6%B3%95/" rel="tag"># 飞控算法</a>
+              <a href="/tags/%E5%A7%BF%E6%80%81%E6%8E%A7%E5%88%B6/" rel="tag"># 姿态控制</a>
+              <a href="/tags/%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%BB%BA%E6%A8%A1/" rel="tag"># 动力学建模</a>
+              <a href="/tags/%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%8E%A7%E5%88%B6/" rel="tag"># 无人机控制</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/11/11/041-flight-control-hardware-sensor-system/" rel="prev" title="「无人机系列③」飞控硬件与传感器系统">
+                  <i class="fa fa-angle-left"></i> 「无人机系列③」飞控硬件与传感器系统
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">302k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.min.js","integrity":"sha256-G8ouPAnw4zzMbnAenHnVz6h9XpKbNdOkrqTh7AadyHs="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.mengyajia.com","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2025/11/18/042-flight-control-pid-simulation-verification/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>

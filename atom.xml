@@ -6,7 +6,7 @@
   <link href="https://www.keychan.xyz/atom.xml" rel="self"/>
   
   <link href="https://www.keychan.xyz/"/>
-  <updated>2025-11-11T03:47:35.822Z</updated>
+  <updated>2025-11-18T10:04:48.469Z</updated>
   <id>https://www.keychan.xyz/</id>
   
   <author>
@@ -15,6 +15,38 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>「无人机系列④」飞行控制算法入门——从PID到仿真验证</title>
+    <link href="https://www.keychan.xyz/2025/11/18/042-flight-control-pid-simulation-verification/"/>
+    <id>https://www.keychan.xyz/2025/11/18/042-flight-control-pid-simulation-verification/</id>
+    <published>2025-11-18T09:50:12.000Z</published>
+    <updated>2025-11-18T10:04:48.469Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-控制系统的物理与数学基础&quot;&gt;&lt;a href=&quot;#1-控制系统的物理与数学基础&quot; class=&quot;headerlink&quot; title=&quot;1. 控制系统的物理与数学基础&quot;&gt;&lt;/a&gt;1. 控制系统的物理与数学基础&lt;/h2&gt;&lt;p&gt;在研究飞控算法（Flight Control Algorithm）之前，理解姿态描述方式、闭环反馈思想及采样周期的作用至关重要。本章节主要介绍这些基础概念，为后续的建模与 PID 控制奠定直观认知。&lt;/p&gt;
+&lt;h3 id=&quot;1-1-坐标系与姿态描述&quot;&gt;&lt;a href=&quot;#1-1-坐标系与姿态描述&quot; class=&quot;headerlink&quot; title=&quot;1.1 坐标系与姿态描述&quot;&gt;&lt;/a&gt;1.1 坐标系与姿态描述&lt;/h3&gt;&lt;p&gt;无人机的姿态描述通常基于两个参考系：&lt;strong&gt;惯性系&lt;/strong&gt;（Inertial Frame）与&lt;strong&gt;机体系&lt;/strong&gt;（Body Frame）。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;惯性系&lt;/strong&gt;：固定在地面或某个空间参考点上，其坐标轴多采用“东北下（NED）”方式定义，即以北（North）、东(East)、下(Down)三个方向作为基准，用来描述无人机相对于地球的运动状态。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;机体系&lt;/strong&gt;：固定在无人机机体上，原点通常位于质心，$x_b$ 轴沿机头方向，$y_b$ 轴指向右翼，$z_b$ 轴指向机体下方。&lt;/li&gt;
+&lt;/ul&gt;</summary>
+    
+    
+    
+    <category term="无人机" scheme="https://www.keychan.xyz/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/"/>
+    
+    
+    <category term="飞控系统" scheme="https://www.keychan.xyz/tags/%E9%A3%9E%E6%8E%A7%E7%B3%BB%E7%BB%9F/"/>
+    
+    <category term="飞控算法" scheme="https://www.keychan.xyz/tags/%E9%A3%9E%E6%8E%A7%E7%AE%97%E6%B3%95/"/>
+    
+    <category term="姿态控制" scheme="https://www.keychan.xyz/tags/%E5%A7%BF%E6%80%81%E6%8E%A7%E5%88%B6/"/>
+    
+    <category term="动力学建模" scheme="https://www.keychan.xyz/tags/%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%BB%BA%E6%A8%A1/"/>
+    
+    <category term="无人机控制" scheme="https://www.keychan.xyz/tags/%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%8E%A7%E5%88%B6/"/>
+    
+  </entry>
   
   <entry>
     <title>「无人机系列③」飞控硬件与传感器系统</title>
@@ -269,11 +301,11 @@
     
     <category term="状态管理" scheme="https://www.keychan.xyz/tags/%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86/"/>
     
+    <category term="依赖注入" scheme="https://www.keychan.xyz/tags/%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5/"/>
+    
     <category term="路由" scheme="https://www.keychan.xyz/tags/%E8%B7%AF%E7%94%B1/"/>
     
     <category term="模块化" scheme="https://www.keychan.xyz/tags/%E6%A8%A1%E5%9D%97%E5%8C%96/"/>
-    
-    <category term="依赖注入" scheme="https://www.keychan.xyz/tags/%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5/"/>
     
   </entry>
   
@@ -294,9 +326,9 @@
     
     <category term="Flutter" scheme="https://www.keychan.xyz/tags/Flutter/"/>
     
-    <category term="布局" scheme="https://www.keychan.xyz/tags/%E5%B8%83%E5%B1%80/"/>
-    
     <category term="底层原理" scheme="https://www.keychan.xyz/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
+    
+    <category term="布局" scheme="https://www.keychan.xyz/tags/%E5%B8%83%E5%B1%80/"/>
     
   </entry>
   
@@ -317,13 +349,13 @@
     
     <category term="Flutter" scheme="https://www.keychan.xyz/tags/Flutter/"/>
     
-    <category term="底层原理" scheme="https://www.keychan.xyz/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
-    
     <category term="GPU渲染" scheme="https://www.keychan.xyz/tags/GPU%E6%B8%B2%E6%9F%93/"/>
     
     <category term="Skia" scheme="https://www.keychan.xyz/tags/Skia/"/>
     
     <category term="Impeller" scheme="https://www.keychan.xyz/tags/Impeller/"/>
+    
+    <category term="底层原理" scheme="https://www.keychan.xyz/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
     
   </entry>
   
@@ -507,28 +539,6 @@
     <category term="计算机视觉" scheme="https://www.keychan.xyz/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
     
     <category term="目标分割" scheme="https://www.keychan.xyz/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>ViT — Transformer在视觉领域应用代码解析</title>
-    <link href="https://www.keychan.xyz/2025/07/02/022-vision-transformer/"/>
-    <id>https://www.keychan.xyz/2025/07/02/022-vision-transformer/</id>
-    <published>2025-07-02T06:53:12.000Z</published>
-    <updated>2025-09-21T12:04:48.540Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-ViT概述&quot;&gt;&lt;a href=&quot;#1-ViT概述&quot; class=&quot;headerlink&quot; title=&quot;1.ViT概述&quot;&gt;&lt;/a&gt;1.ViT概述&lt;/h2&gt;&lt;p&gt;在上一篇文章中主要讲了 &lt;a href=&quot;https://keychankc.github.io/2025/06/25/021-transformer/&quot;&gt;Transformer 的基本原理&lt;/a&gt;，尤其是在自然语言处理（NLP）任务中的应用，包括编码器和解码器的主要功能和注意力机制的具体实现。但这些内容大多基于 NLP 领域的示例，本篇我们看看在计算机视觉（CV）领域，Transformer 在图像任务中的使用方式。&lt;/p&gt;
-&lt;h3 id=&quot;1-在视觉领域的发展背景&quot;&gt;&lt;a href=&quot;#1-在视觉领域的发展背景&quot; class=&quot;headerlink&quot; title=&quot;1.在视觉领域的发展背景&quot;&gt;&lt;/a&gt;1.在视觉领域的发展背景&lt;/h3&gt;</summary>
-    
-    
-    
-    <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
-    
-    
-    <category term="计算机视觉" scheme="https://www.keychan.xyz/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
-    
-    <category term="Transformer" scheme="https://www.keychan.xyz/tags/Transformer/"/>
     
   </entry>
   
