@@ -155,7 +155,7 @@
   </url>
   
   <url>
-    <loc>https://www.keychan.xyz/categories/index.html</loc>
+    <loc>https://www.keychan.xyz/about/index.html</loc>
     
     <lastmod>2025-09-21</lastmod>
     
@@ -164,7 +164,7 @@
   </url>
   
   <url>
-    <loc>https://www.keychan.xyz/about/index.html</loc>
+    <loc>https://www.keychan.xyz/categories/index.html</loc>
     
     <lastmod>2025-09-21</lastmod>
     
@@ -209,15 +209,6 @@
   </url>
   
   <url>
-    <loc>https://www.keychan.xyz/2025/08/14/027-rl-dqn-case/</loc>
-    
-    <lastmod>2025-09-21</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
     <loc>https://www.keychan.xyz/2025/07/30/026-rl-ppo-discrete-continuous-case/</loc>
     
     <lastmod>2025-09-21</lastmod>
@@ -227,7 +218,7 @@
   </url>
   
   <url>
-    <loc>https://www.keychan.xyz/2025/07/02/022-vision-transformer/</loc>
+    <loc>https://www.keychan.xyz/2025/08/14/027-rl-dqn-case/</loc>
     
     <lastmod>2025-09-21</lastmod>
     
@@ -246,6 +237,15 @@
   
   <url>
     <loc>https://www.keychan.xyz/2025/06/18/020-deepdab3-with-pascal-voc2012/</loc>
+    
+    <lastmod>2025-09-21</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.keychan.xyz/2025/07/02/022-vision-transformer/</loc>
     
     <lastmod>2025-09-21</lastmod>
     
@@ -281,15 +281,6 @@
   </url>
   
   <url>
-    <loc>https://www.keychan.xyz/2025/05/27/017-unet-cell-segmentation/</loc>
-    
-    <lastmod>2025-09-21</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
     <loc>https://www.keychan.xyz/2025/06/04/018-u2net-saliency-detection/</loc>
     
     <lastmod>2025-09-21</lastmod>
@@ -299,7 +290,25 @@
   </url>
   
   <url>
+    <loc>https://www.keychan.xyz/2025/05/27/017-unet-cell-segmentation/</loc>
+    
+    <lastmod>2025-09-21</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://www.keychan.xyz/2025/04/08/009-opencv-tracking/</loc>
+    
+    <lastmod>2025-09-21</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.keychan.xyz/2025/04/17/011-yolo-eval-metrics-yolov1/</loc>
     
     <lastmod>2025-09-21</lastmod>
     
@@ -326,7 +335,7 @@
   </url>
   
   <url>
-    <loc>https://www.keychan.xyz/2025/04/17/011-yolo-eval-metrics-yolov1/</loc>
+    <loc>https://www.keychan.xyz/2025/04/29/013-yolo-yolov3-yolov4/</loc>
     
     <lastmod>2025-09-21</lastmod>
     
@@ -344,15 +353,6 @@
   </url>
   
   <url>
-    <loc>https://www.keychan.xyz/2025/04/29/013-yolo-yolov3-yolov4/</loc>
-    
-    <lastmod>2025-09-21</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
     <loc>https://www.keychan.xyz/2025/03/18/006-opencv-credit-card-ocr/</loc>
     
     <lastmod>2025-09-21</lastmod>
@@ -362,7 +362,7 @@
   </url>
   
   <url>
-    <loc>https://www.keychan.xyz/2025/03/14/005-rnn-classification-text/</loc>
+    <loc>https://www.keychan.xyz/2025/03/24/007-opencv-image-stitching/</loc>
     
     <lastmod>2025-09-21</lastmod>
     
@@ -371,7 +371,7 @@
   </url>
   
   <url>
-    <loc>https://www.keychan.xyz/2025/03/24/007-opencv-image-stitching/</loc>
+    <loc>https://www.keychan.xyz/2025/03/14/005-rnn-classification-text/</loc>
     
     <lastmod>2025-09-21</lastmod>
     
@@ -407,7 +407,7 @@
   </url>
   
   <url>
-    <loc>https://www.keychan.xyz/2025/03/02/003-cnn-digital-recognition/</loc>
+    <loc>https://www.keychan.xyz/2025/06/05/000-deep-learning-concepts/</loc>
     
     <lastmod>2025-09-21</lastmod>
     
@@ -416,7 +416,7 @@
   </url>
   
   <url>
-    <loc>https://www.keychan.xyz/2025/06/05/000-deep-learning-concepts/</loc>
+    <loc>https://www.keychan.xyz/2025/03/02/003-cnn-digital-recognition/</loc>
     
     <lastmod>2025-09-21</lastmod>
     
@@ -494,6 +494,13 @@
   </url>
   
   <url>
+    <loc>https://www.keychan.xyz/tags/%E6%A6%82%E5%BF%B5/</loc>
+    <lastmod>2025-11-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
     <loc>https://www.keychan.xyz/tags/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/</loc>
     <lastmod>2025-11-23</lastmod>
     <changefreq>weekly</changefreq>
@@ -502,13 +509,6 @@
   
   <url>
     <loc>https://www.keychan.xyz/tags/%E5%8D%B7%E7%A7%AF%E5%B1%82/</loc>
-    <lastmod>2025-11-23</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://www.keychan.xyz/tags/%E6%A6%82%E5%BF%B5/</loc>
     <lastmod>2025-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -606,14 +606,14 @@
   </url>
   
   <url>
-    <loc>https://www.keychan.xyz/tags/%E4%BA%BA%E8%84%B8%E6%A3%80%E6%B5%8B/</loc>
+    <loc>https://www.keychan.xyz/tags/YOLO/</loc>
     <lastmod>2025-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://www.keychan.xyz/tags/YOLO/</loc>
+    <loc>https://www.keychan.xyz/tags/%E4%BA%BA%E8%84%B8%E6%A3%80%E6%B5%8B/</loc>
     <lastmod>2025-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -697,14 +697,14 @@
   </url>
   
   <url>
-    <loc>https://www.keychan.xyz/tags/%E7%9B%AE%E6%A0%87%E7%BD%91%E7%BB%9C/</loc>
+    <loc>https://www.keychan.xyz/tags/%E7%A6%BB%E6%95%A3%E5%8A%A8%E4%BD%9C/</loc>
     <lastmod>2025-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://www.keychan.xyz/tags/%E7%BB%8F%E9%AA%8C%E5%9B%9E%E6%94%BE/</loc>
+    <loc>https://www.keychan.xyz/tags/%E8%BF%9E%E7%BB%AD%E5%8A%A8%E4%BD%9C/</loc>
     <lastmod>2025-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -732,20 +732,6 @@
   </url>
   
   <url>
-    <loc>https://www.keychan.xyz/tags/%E7%A6%BB%E6%95%A3%E5%8A%A8%E4%BD%9C/</loc>
-    <lastmod>2025-11-23</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://www.keychan.xyz/tags/%E8%BF%9E%E7%BB%AD%E5%8A%A8%E4%BD%9C/</loc>
-    <lastmod>2025-11-23</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://www.keychan.xyz/tags/GPU%E6%B8%B2%E6%9F%93/</loc>
     <lastmod>2025-11-23</lastmod>
     <changefreq>weekly</changefreq>
@@ -767,14 +753,21 @@
   </url>
   
   <url>
-    <loc>https://www.keychan.xyz/tags/%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86/</loc>
+    <loc>https://www.keychan.xyz/tags/%E7%9B%AE%E6%A0%87%E7%BD%91%E7%BB%9C/</loc>
     <lastmod>2025-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://www.keychan.xyz/tags/%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5/</loc>
+    <loc>https://www.keychan.xyz/tags/%E7%BB%8F%E9%AA%8C%E5%9B%9E%E6%94%BE/</loc>
+    <lastmod>2025-11-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.keychan.xyz/tags/%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86/</loc>
     <lastmod>2025-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -865,6 +858,13 @@
   </url>
   
   <url>
+    <loc>https://www.keychan.xyz/tags/%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5/</loc>
+    <lastmod>2025-11-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
     <loc>https://www.keychan.xyz/tags/%E6%8E%A7%E5%88%B6%E7%90%86%E8%AE%BA/</loc>
     <lastmod>2025-11-23</lastmod>
     <changefreq>weekly</changefreq>
@@ -887,62 +887,6 @@
   
   <url>
     <loc>https://www.keychan.xyz/tags/%E7%B3%BB%E7%BB%9F%E5%B7%A5%E7%A8%8B/</loc>
-    <lastmod>2025-11-23</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://www.keychan.xyz/tags/%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D/</loc>
-    <lastmod>2025-11-23</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://www.keychan.xyz/tags/%E5%87%BD%E6%95%B0%E9%80%BC%E8%BF%91/</loc>
-    <lastmod>2025-11-23</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://www.keychan.xyz/tags/%E6%B3%9B%E5%8C%96%E8%83%BD%E5%8A%9B/</loc>
-    <lastmod>2025-11-23</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://www.keychan.xyz/tags/%E6%99%BA%E8%83%BD%E6%B6%8C%E7%8E%B0/</loc>
-    <lastmod>2025-11-23</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://www.keychan.xyz/tags/%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96/</loc>
-    <lastmod>2025-11-23</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://www.keychan.xyz/tags/%E6%AE%8B%E5%B7%AE%E8%BF%9E%E6%8E%A5/</loc>
-    <lastmod>2025-11-23</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://www.keychan.xyz/tags/%E6%95%B0%E6%8D%AE%E5%A2%9E%E5%BC%BA/</loc>
-    <lastmod>2025-11-23</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://www.keychan.xyz/tags/%E5%BD%92%E7%BA%B3%E5%81%8F%E7%BD%AE/</loc>
     <lastmod>2025-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -977,6 +921,55 @@
   </url>
   
   <url>
+    <loc>https://www.keychan.xyz/tags/%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D/</loc>
+    <lastmod>2025-11-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.keychan.xyz/tags/%E5%87%BD%E6%95%B0%E9%80%BC%E8%BF%91/</loc>
+    <lastmod>2025-11-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.keychan.xyz/tags/%E6%B3%9B%E5%8C%96%E8%83%BD%E5%8A%9B/</loc>
+    <lastmod>2025-11-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.keychan.xyz/tags/%E6%99%BA%E8%83%BD%E6%B6%8C%E7%8E%B0/</loc>
+    <lastmod>2025-11-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.keychan.xyz/tags/%E4%BC%A0%E6%84%9F%E5%99%A8%E8%9E%8D%E5%90%88/</loc>
+    <lastmod>2025-11-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.keychan.xyz/tags/%E6%83%AF%E6%80%A7%E6%B5%8B%E9%87%8F%E5%8D%95%E5%85%83IMU/</loc>
+    <lastmod>2025-11-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.keychan.xyz/tags/%E5%A7%BF%E6%80%81%E8%A7%A3%E7%AE%97%E7%AE%97%E6%B3%95/</loc>
+    <lastmod>2025-11-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
     <loc>https://www.keychan.xyz/tags/%E9%A3%9E%E6%8E%A7%E7%AE%97%E6%B3%95/</loc>
     <lastmod>2025-11-23</lastmod>
     <changefreq>weekly</changefreq>
@@ -1005,21 +998,28 @@
   </url>
   
   <url>
-    <loc>https://www.keychan.xyz/tags/%E4%BC%A0%E6%84%9F%E5%99%A8%E8%9E%8D%E5%90%88/</loc>
+    <loc>https://www.keychan.xyz/tags/%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96/</loc>
     <lastmod>2025-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://www.keychan.xyz/tags/%E6%83%AF%E6%80%A7%E6%B5%8B%E9%87%8F%E5%8D%95%E5%85%83IMU/</loc>
+    <loc>https://www.keychan.xyz/tags/%E6%AE%8B%E5%B7%AE%E8%BF%9E%E6%8E%A5/</loc>
     <lastmod>2025-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://www.keychan.xyz/tags/%E5%A7%BF%E6%80%81%E8%A7%A3%E7%AE%97%E7%AE%97%E6%B3%95/</loc>
+    <loc>https://www.keychan.xyz/tags/%E6%95%B0%E6%8D%AE%E5%A2%9E%E5%BC%BA/</loc>
+    <lastmod>2025-11-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.keychan.xyz/tags/%E5%BD%92%E7%BA%B3%E5%81%8F%E7%BD%AE/</loc>
     <lastmod>2025-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
