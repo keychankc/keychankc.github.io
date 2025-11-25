@@ -6,7 +6,7 @@
   <link href="https://www.keychan.xyz/atom.xml" rel="self"/>
   
   <link href="https://www.keychan.xyz/"/>
-  <updated>2025-11-18T10:04:48.469Z</updated>
+  <updated>2025-11-25T13:19:30.364Z</updated>
   <id>https://www.keychan.xyz/</id>
   
   <author>
@@ -15,6 +15,40 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>从 RNN 到 Transformer：时间建模的变革</title>
+    <link href="https://www.keychan.xyz/2025/11/25/043-rnn-to-transformer/"/>
+    <id>https://www.keychan.xyz/2025/11/25/043-rnn-to-transformer/</id>
+    <published>2025-11-25T09:50:12.000Z</published>
+    <updated>2025-11-25T13:19:30.364Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-时间依赖与梯度消失：序列建模的困境&quot;&gt;&lt;a href=&quot;#1-时间依赖与梯度消失：序列建模的困境&quot; class=&quot;headerlink&quot; title=&quot;1. 时间依赖与梯度消失：序列建模的困境&quot;&gt;&lt;/a&gt;1. 时间依赖与梯度消失：序列建模的困境&lt;/h2&gt;&lt;p&gt;在很多经典的图像任务中，我们通常假设&lt;strong&gt;不同样本之间是独立同分布的（i.i.d.）&lt;/strong&gt;——也就是说，一张图片与另一张图片在统计上是相互独立的，模型只需要把一张图片看作一个整体输入来处理即可。卷积网络（CNN）则利用图像内部像素之间强烈的局部相关性，通过卷积核在空间上提取局部到全局的层级特征。&lt;/p&gt;
+&lt;p&gt;但在处理&lt;strong&gt;序列任务（sequence modeling）时情况就完全不同了：语言、语音、时间序列信号都具有明显的时间依赖&lt;/strong&gt;，同一个序列内部，不同时间步之间往往高度相关。要正确预测下一个值、下一个词或下一个声音，模型必须&lt;strong&gt;记住同一条序列中之前发生过什么&lt;/strong&gt;。这一点正是循环神经网络（Recurrent Neural Network, RNN）诞生的核心动机。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="Python" scheme="https://www.keychan.xyz/tags/Python/"/>
+    
+    <category term="PyTorch" scheme="https://www.keychan.xyz/tags/PyTorch/"/>
+    
+    <category term="循环神经网络" scheme="https://www.keychan.xyz/tags/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
+    
+    <category term="LSTM" scheme="https://www.keychan.xyz/tags/LSTM/"/>
+    
+    <category term="Transformer" scheme="https://www.keychan.xyz/tags/Transformer/"/>
+    
+    <category term="位置编码" scheme="https://www.keychan.xyz/tags/%E4%BD%8D%E7%BD%AE%E7%BC%96%E7%A0%81/"/>
+    
+    <category term="注意力机制" scheme="https://www.keychan.xyz/tags/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/"/>
+    
+    <category term="序列建模" scheme="https://www.keychan.xyz/tags/%E5%BA%8F%E5%88%97%E5%BB%BA%E6%A8%A1/"/>
+    
+  </entry>
   
   <entry>
     <title>「无人机系列④」飞行控制算法入门——从PID到仿真验证</title>
@@ -301,11 +335,11 @@
     
     <category term="状态管理" scheme="https://www.keychan.xyz/tags/%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86/"/>
     
+    <category term="依赖注入" scheme="https://www.keychan.xyz/tags/%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5/"/>
+    
     <category term="路由" scheme="https://www.keychan.xyz/tags/%E8%B7%AF%E7%94%B1/"/>
     
     <category term="模块化" scheme="https://www.keychan.xyz/tags/%E6%A8%A1%E5%9D%97%E5%8C%96/"/>
-    
-    <category term="依赖注入" scheme="https://www.keychan.xyz/tags/%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5/"/>
     
   </entry>
   
@@ -514,31 +548,6 @@
     <category term="非马尔可夫环境" scheme="https://www.keychan.xyz/tags/%E9%9D%9E%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E7%8E%AF%E5%A2%83/"/>
     
     <category term="策略梯度" scheme="https://www.keychan.xyz/tags/%E7%AD%96%E7%95%A5%E6%A2%AF%E5%BA%A6/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>从像素到区域：MaskFormer 系列详解</title>
-    <link href="https://www.keychan.xyz/2025/07/08/023-segmentation-mask2former/"/>
-    <id>https://www.keychan.xyz/2025/07/08/023-segmentation-mask2former/</id>
-    <published>2025-07-08T05:54:12.000Z</published>
-    <updated>2025-09-21T12:04:48.541Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-MaskFormer概述&quot;&gt;&lt;a href=&quot;#1-MaskFormer概述&quot; class=&quot;headerlink&quot; title=&quot;1.MaskFormer概述&quot;&gt;&lt;/a&gt;1.MaskFormer概述&lt;/h2&gt;&lt;h3 id=&quot;1-背景&quot;&gt;&lt;a href=&quot;#1-背景&quot; class=&quot;headerlink&quot; title=&quot;1.背景&quot;&gt;&lt;/a&gt;1.背景&lt;/h3&gt;&lt;p&gt;在图像分割任务中，传统方法如 U-Net、DeepLab 系列通常采用“逐像素点分类”的策略：模型需要判断图像中每一个像素所属的类别。这种方式在语义分割中表现出色，但在实例分割场景下却存在明显的局限性。例如，同一类别的多个实例往往难以区分，因此仅靠逐像素分类很难准确完成实例级的区域划分。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
-    
-    
-    <category term="Python" scheme="https://www.keychan.xyz/tags/Python/"/>
-    
-    <category term="PyTorch" scheme="https://www.keychan.xyz/tags/PyTorch/"/>
-    
-    <category term="计算机视觉" scheme="https://www.keychan.xyz/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
-    
-    <category term="目标分割" scheme="https://www.keychan.xyz/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/"/>
     
   </entry>
   
