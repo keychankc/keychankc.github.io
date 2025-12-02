@@ -6,7 +6,7 @@
   <link href="https://www.keychan.xyz/atom.xml" rel="self"/>
   
   <link href="https://www.keychan.xyz/"/>
-  <updated>2025-11-25T13:19:30.364Z</updated>
+  <updated>2025-12-02T05:15:44.139Z</updated>
   <id>https://www.keychan.xyz/</id>
   
   <author>
@@ -15,6 +15,42 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>PyTorch：从搭积木到构建系统</title>
+    <link href="https://www.keychan.xyz/2025/12/02/044-pytorch-building-blocks-building-systems/"/>
+    <id>https://www.keychan.xyz/2025/12/02/044-pytorch-building-blocks-building-systems/</id>
+    <published>2025-12-02T05:09:12.000Z</published>
+    <updated>2025-12-02T05:15:44.139Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-从零搭建一个-PyTorch-模型&quot;&gt;&lt;a href=&quot;#1-从零搭建一个-PyTorch-模型&quot; class=&quot;headerlink&quot; title=&quot;1. 从零搭建一个 PyTorch 模型&quot;&gt;&lt;/a&gt;1. 从零搭建一个 PyTorch 模型&lt;/h2&gt;&lt;p&gt;在正式讨论 PyTorch 之前，我们先从一个&lt;strong&gt;最小可用训练流程&lt;/strong&gt;入手：用最少的代码搭建并训练一个小型神经网络。通过这个过程来快速建立对 PyTorch 的整体认知：&lt;strong&gt;数据从哪里来？如何流入模型？损失如何计算？梯度如何反向传播？参数又是如何被更新的？&lt;/strong&gt; 后面章节会对这些环节再做细致拆解，我们先做一个“总览式体验”。&lt;/p&gt;
+&lt;h3 id=&quot;1-1-整体思路：从数据到参数更新&quot;&gt;&lt;a href=&quot;#1-1-整体思路：从数据到参数更新&quot; class=&quot;headerlink&quot; title=&quot;1.1 整体思路：从数据到参数更新&quot;&gt;&lt;/a&gt;1.1 整体思路：从数据到参数更新&lt;/h3&gt;&lt;p&gt;我们开始搭建的最小神经网络包含四个核心阶段：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;数据准备&lt;/strong&gt;：把原始数据转换为张量，并按批次（batch）组织；&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;模型构建&lt;/strong&gt;：用 nn.Module 定义前向计算逻辑；&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;损失与优化器&lt;/strong&gt;：定义“好坏标准”和“如何更新参数”的规则；&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;训练循环&lt;/strong&gt;：反复执行前向、反向和参数更新。&lt;/li&gt;
+&lt;/ol&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="Python" scheme="https://www.keychan.xyz/tags/Python/"/>
+    
+    <category term="PyTorch" scheme="https://www.keychan.xyz/tags/PyTorch/"/>
+    
+    <category term="模块化" scheme="https://www.keychan.xyz/tags/%E6%A8%A1%E5%9D%97%E5%8C%96/"/>
+    
+    <category term="Tensor" scheme="https://www.keychan.xyz/tags/Tensor/"/>
+    
+    <category term="梯度调试" scheme="https://www.keychan.xyz/tags/%E6%A2%AF%E5%BA%A6%E8%B0%83%E8%AF%95/"/>
+    
+    <category term="训练工程化" scheme="https://www.keychan.xyz/tags/%E8%AE%AD%E7%BB%83%E5%B7%A5%E7%A8%8B%E5%8C%96/"/>
+    
+  </entry>
   
   <entry>
     <title>从 RNN 到 Transformer：时间建模的变革</title>
@@ -524,30 +560,6 @@
     <category term="策略优化" scheme="https://www.keychan.xyz/tags/%E7%AD%96%E7%95%A5%E4%BC%98%E5%8C%96/"/>
     
     <category term="PPO" scheme="https://www.keychan.xyz/tags/PPO/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>强化学习 — 试错、策略与长期奖励</title>
-    <link href="https://www.keychan.xyz/2025/07/14/024-reinforcement-learning-start/"/>
-    <id>https://www.keychan.xyz/2025/07/14/024-reinforcement-learning-start/</id>
-    <published>2025-07-14T09:40:12.000Z</published>
-    <updated>2025-09-21T12:04:48.541Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-强化学习：从试错中学习策略&quot;&gt;&lt;a href=&quot;#1-强化学习：从试错中学习策略&quot; class=&quot;headerlink&quot; title=&quot;1.强化学习：从试错中学习策略&quot;&gt;&lt;/a&gt;1.强化学习：从试错中学习策略&lt;/h2&gt;&lt;p&gt;我们先从一个轻松的生活片段切入：某天夜里，小明肚子咕咕叫，他想去找点吃的，但房间漆黑一片，他不敢开灯，只能凭借记忆和感知，一步一步摸索前进，一开始他撞到了桌角，又不小心踩到了猫，猫的尖叫声还吓了他一跳（负反馈），他又调整方向，继续摸索。他记住了这个方向有桌子不能走，那个方向可能有猫，不断的修正自己的路线，最终摸到了冰箱，找到了食物（正反馈）。这就是强化学习（Reinforcement Learning, RL）核心思想的具象呈现：&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;智能体在完全未知的环境中，靠“做出行为 → 接受反馈 → 调整策略”这一闭环，在不断试错中学习完成任务的最佳方式。&lt;/p&gt;
-&lt;/blockquote&gt;</summary>
-    
-    
-    
-    <category term="强化学习" scheme="https://www.keychan.xyz/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/"/>
-    
-    
-    <category term="非马尔可夫环境" scheme="https://www.keychan.xyz/tags/%E9%9D%9E%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E7%8E%AF%E5%A2%83/"/>
-    
-    <category term="策略梯度" scheme="https://www.keychan.xyz/tags/%E7%AD%96%E7%95%A5%E6%A2%AF%E5%BA%A6/"/>
     
   </entry>
   
