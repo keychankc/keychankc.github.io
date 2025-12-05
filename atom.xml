@@ -6,7 +6,7 @@
   <link href="https://www.keychan.xyz/atom.xml" rel="self"/>
   
   <link href="https://www.keychan.xyz/"/>
-  <updated>2025-12-02T05:15:44.139Z</updated>
+  <updated>2025-12-05T05:28:30.429Z</updated>
   <id>https://www.keychan.xyz/</id>
   
   <author>
@@ -15,6 +15,34 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>UIKit 项目异步改造：Combine、async/await、@Published</title>
+    <link href="https://www.keychan.xyz/2025/12/05/045-asynchronous-transformation-of-uikit-project/"/>
+    <id>https://www.keychan.xyz/2025/12/05/045-asynchronous-transformation-of-uikit-project/</id>
+    <published>2025-12-05T05:28:12.000Z</published>
+    <updated>2025-12-05T05:28:30.429Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-为什么-UIKit-项目也需要现代异步能力？&quot;&gt;&lt;a href=&quot;#1-为什么-UIKit-项目也需要现代异步能力？&quot; class=&quot;headerlink&quot; title=&quot;1. 为什么 UIKit 项目也需要现代异步能力？&quot;&gt;&lt;/a&gt;1. 为什么 UIKit 项目也需要现代异步能力？&lt;/h2&gt;&lt;p&gt;现在的应用，无论是前端、Flutter 还是移动端原生，都有一个共同趋势：异步操作越来越多、界面状态变化也越来越频繁。Web 有 async&amp;#x2F;await + Promise 统一异步流程，用事件流和状态管理驱动 UI；Flutter 用 sync&amp;#x2F;await + Future&amp;#x2F;Stream 处理异步，用 BLoC、Provider、Riverpod 聚合状态并更新界面。这些体系之所以能稳定，是因为都遵循了同一种现代异步模型：异步逻辑线性化、事件流可组合、UI 完全由状态驱动。&lt;/p&gt;
+&lt;p&gt;UIKit 项目同样也面临这些问题，随着 Swift Concurrency、Combine 和 @Published 逐渐成熟，UIKit 也具备了和 Web、Flutter 类似的现代异步能力：async&amp;#x2F;await 负责逻辑，Combine 管事件流，状态集中在 ViewModel，由 UI 自动响应变化。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="iOS 开发" scheme="https://www.keychan.xyz/categories/iOS-%E5%BC%80%E5%8F%91/"/>
+    
+    
+    <category term="状态管理" scheme="https://www.keychan.xyz/tags/%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86/"/>
+    
+    <category term="Swift" scheme="https://www.keychan.xyz/tags/Swift/"/>
+    
+    <category term="MVVM" scheme="https://www.keychan.xyz/tags/MVVM/"/>
+    
+    <category term="异步编程" scheme="https://www.keychan.xyz/tags/%E5%BC%82%E6%AD%A5%E7%BC%96%E7%A8%8B/"/>
+    
+    <category term="响应式编程" scheme="https://www.keychan.xyz/tags/%E5%93%8D%E5%BA%94%E5%BC%8F%E7%BC%96%E7%A8%8B/"/>
+    
+  </entry>
   
   <entry>
     <title>PyTorch：从搭积木到构建系统</title>
@@ -396,9 +424,9 @@
     
     <category term="Flutter" scheme="https://www.keychan.xyz/tags/Flutter/"/>
     
-    <category term="布局" scheme="https://www.keychan.xyz/tags/%E5%B8%83%E5%B1%80/"/>
-    
     <category term="底层原理" scheme="https://www.keychan.xyz/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
+    
+    <category term="布局" scheme="https://www.keychan.xyz/tags/%E5%B8%83%E5%B1%80/"/>
     
   </entry>
   
@@ -419,13 +447,13 @@
     
     <category term="Flutter" scheme="https://www.keychan.xyz/tags/Flutter/"/>
     
-    <category term="底层原理" scheme="https://www.keychan.xyz/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
-    
     <category term="GPU渲染" scheme="https://www.keychan.xyz/tags/GPU%E6%B8%B2%E6%9F%93/"/>
     
     <category term="Skia" scheme="https://www.keychan.xyz/tags/Skia/"/>
     
     <category term="Impeller" scheme="https://www.keychan.xyz/tags/Impeller/"/>
+    
+    <category term="底层原理" scheme="https://www.keychan.xyz/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
     
   </entry>
   
@@ -539,27 +567,6 @@
     <category term="离散动作" scheme="https://www.keychan.xyz/tags/%E7%A6%BB%E6%95%A3%E5%8A%A8%E4%BD%9C/"/>
     
     <category term="连续动作" scheme="https://www.keychan.xyz/tags/%E8%BF%9E%E7%BB%AD%E5%8A%A8%E4%BD%9C/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>强化学习 — PPO策略优化算法</title>
-    <link href="https://www.keychan.xyz/2025/07/22/025-reinforcement-learning-ppo/"/>
-    <id>https://www.keychan.xyz/2025/07/22/025-reinforcement-learning-ppo/</id>
-    <published>2025-07-22T03:40:12.000Z</published>
-    <updated>2025-09-21T12:04:48.541Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-PPO-算法概述&quot;&gt;&lt;a href=&quot;#1-PPO-算法概述&quot; class=&quot;headerlink&quot; title=&quot;1.PPO 算法概述&quot;&gt;&lt;/a&gt;1.PPO 算法概述&lt;/h2&gt;&lt;h3 id=&quot;1-PPO-的提出背景&quot;&gt;&lt;a href=&quot;#1-PPO-的提出背景&quot; class=&quot;headerlink&quot; title=&quot;1.PPO 的提出背景&quot;&gt;&lt;/a&gt;1.PPO 的提出背景&lt;/h3&gt;&lt;p&gt;我们还是以智能体如何控制飞船落地的小游戏为例，智能体的目标是通过一系列操作（如向左移动或向右移动）实现平稳着陆。在训练初期，智能体并不知道应该如何操作，它需要通过反复的试探操作，从环境中不断获得反馈并调整策略，最终掌握一套“高奖励”操作方式。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="强化学习" scheme="https://www.keychan.xyz/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/"/>
-    
-    
-    <category term="策略优化" scheme="https://www.keychan.xyz/tags/%E7%AD%96%E7%95%A5%E4%BC%98%E5%8C%96/"/>
-    
-    <category term="PPO" scheme="https://www.keychan.xyz/tags/PPO/"/>
     
   </entry>
   

@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.keychan.xyz","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="1. 为什么 UIKit 项目也需要现代异步能力？现在的应用，无论是前端、Flutter 还是移动端原生，都有一个共同趋势：异步操作越来越多、界面状态变化也越来越频繁。Web 有 async&#x2F;await + Promise 统一异步流程，用事件流和状态管理驱动 UI；Flutter 用 sync&#x2F;await + Future&#x2F;Stream 处理异步，用 BLoC、Pr">
+<meta property="og:type" content="article">
+<meta property="og:title" content="UIKit 项目异步改造：Combine、async&#x2F;await、@Published">
+<meta property="og:url" content="https://www.keychan.xyz/2025/12/05/045-asynchronous-transformation-of-uikit-project/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s blog">
+<meta property="og:description" content="1. 为什么 UIKit 项目也需要现代异步能力？现在的应用，无论是前端、Flutter 还是移动端原生，都有一个共同趋势：异步操作越来越多、界面状态变化也越来越频繁。Web 有 async&#x2F;await + Promise 统一异步流程，用事件流和状态管理驱动 UI；Flutter 用 sync&#x2F;await + Future&#x2F;Stream 处理异步，用 BLoC、Pr">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/202512031411.png">
+<meta property="article:published_time" content="2025-12-05T05:28:12.000Z">
+<meta property="article:modified_time" content="2025-12-05T05:28:30.429Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="状态管理">
+<meta property="article:tag" content="Swift">
+<meta property="article:tag" content="MVVM">
+<meta property="article:tag" content="异步编程">
+<meta property="article:tag" content="响应式编程">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/202512031411.png">
+
+
+<link rel="canonical" href="https://www.keychan.xyz/2025/12/05/045-asynchronous-transformation-of-uikit-project/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.keychan.xyz/2025/12/05/045-asynchronous-transformation-of-uikit-project/","path":"2025/12/05/045-asynchronous-transformation-of-uikit-project/","title":"UIKit 项目异步改造：Combine、async/await、@Published"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>UIKit 项目异步改造：Combine、async/await、@Published | KeyChan's blog</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.mengyajia.com">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's blog" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88-UIKit-%E9%A1%B9%E7%9B%AE%E4%B9%9F%E9%9C%80%E8%A6%81%E7%8E%B0%E4%BB%A3%E5%BC%82%E6%AD%A5%E8%83%BD%E5%8A%9B%EF%BC%9F"><span class="nav-text">1. 为什么 UIKit 项目也需要现代异步能力？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5%EF%BC%9A%E4%BB%8E-UIKit-%E7%9A%84%E8%A7%92%E5%BA%A6%E7%90%86%E8%A7%A3-Combine%E3%80%81async-await-%E4%B8%8E-Published"><span class="nav-text">2.核心概念：从 UIKit 的角度理解 Combine、async&#x2F;await 与 @Published</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-Combine%EF%BC%9A%E7%AE%A1%E7%90%86%E4%BA%8B%E4%BB%B6%E6%B5%81%E7%9A%84%E5%88%A9%E5%99%A8"><span class="nav-text">2.1 Combine：管理事件流的利器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-async-await%EF%BC%9A%E6%9B%B4%E6%98%93%E7%AE%A1%E7%90%86%E7%9A%84%E5%BC%82%E6%AD%A5%E4%B8%9A%E5%8A%A1%E9%80%BB%E8%BE%91"><span class="nav-text">2.2 async&#x2F;await：更易管理的异步业务逻辑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-Published%EF%BC%9AViewModel-%E7%9A%84%E7%8E%B0%E4%BB%A3%E7%8A%B6%E6%80%81%E5%B9%BF%E6%92%AD%E6%96%B9%E5%BC%8F"><span class="nav-text">2.3 @Published：ViewModel 的现代状态广播方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-%E4%B8%89%E8%80%85%E4%B9%8B%E9%97%B4%E7%9A%84%E5%88%86%E5%B7%A5%E5%85%B3%E7%B3%BB"><span class="nav-text">2.4 三者之间的分工关系</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E7%A4%BA%E4%BE%8B%EF%BC%9A%E5%9C%A8-UIKit-%E4%B8%AD%E6%9E%84%E5%BB%BA%E4%B8%80%E4%B8%AA%E5%BC%82%E6%AD%A5%E6%90%9C%E7%B4%A2%E7%95%8C%E9%9D%A2"><span class="nav-text">3. 示例：在 UIKit 中构建一个异步搜索界面</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E7%95%8C%E9%9D%A2%E7%BB%93%E6%9E%84"><span class="nav-text">3.1 界面结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-%E7%A4%BA%E4%BE%8B%E6%A8%A1%E5%9D%97%E5%88%92%E5%88%86"><span class="nav-text">3.3 示例模块划分</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81"><span class="nav-text">3.4 完整代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-5-%E7%A4%BA%E4%BE%8B%E7%9A%84%E7%9B%AE%E7%9A%84"><span class="nav-text">3.5 示例的目的</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E6%9E%B6%E6%9E%84%E4%B8%BB%E4%BD%93%EF%BC%9AUIKit-MVVM-%E4%B8%AD%E4%B8%89%E8%80%85%E7%9A%84%E5%88%86%E5%B7%A5%E4%B8%8E%E5%8D%8F%E4%BD%9C"><span class="nav-text">4. 架构主体：UIKit + MVVM 中三者的分工与协作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-ViewController%EF%BC%9A%E5%8F%AA%E8%B4%9F%E8%B4%A3%E8%BE%93%E5%85%A5%E5%92%8C%E5%B1%95%E7%A4%BA"><span class="nav-text">4.1 ViewController：只负责输入和展示</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-ViewModel%EF%BC%9A%E4%B8%B2%E8%81%94%E8%BE%93%E5%85%A5%E3%80%81%E5%BC%82%E6%AD%A5%E9%80%BB%E8%BE%91%E5%92%8C%E7%8A%B6%E6%80%81%E7%9A%84%E6%A0%B8%E5%BF%83"><span class="nav-text">4.2 ViewModel：串联输入、异步逻辑和状态的核心</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-Repository%EF%BC%9A%E5%8F%AA%E8%B4%9F%E8%B4%A3%E5%BC%82%E6%AD%A5-IO"><span class="nav-text">4.3 Repository：只负责异步 IO</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-%E4%B8%89%E5%B1%82%E5%8D%8F%E4%BD%9C%E5%85%B3%E7%B3%BB%E7%9A%84%E6%95%B4%E4%BD%93%E8%A7%86%E8%A7%92"><span class="nav-text">4.4 三层协作关系的整体视角</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1%E7%AE%A1%E7%90%86%EF%BC%9A%E5%BF%AB%E9%80%9F%E8%BE%93%E5%85%A5%E3%80%81%E5%8F%96%E6%B6%88%E9%80%BB%E8%BE%91%E4%B8%8E%E7%8A%B6%E6%80%81%E4%B8%80%E8%87%B4%E6%80%A7"><span class="nav-text">5. 异步任务管理：快速输入、取消逻辑与状态一致性</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-%E5%BF%AB%E9%80%9F%E8%BE%93%E5%85%A5%E5%AF%BC%E8%87%B4%E7%9A%84%E8%BF%9E%E7%BB%AD%E8%AF%B7%E6%B1%82%E9%A3%8E%E6%9A%B4"><span class="nav-text">5.1 快速输入导致的连续请求风暴</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-%E5%BC%82%E6%AD%A5%E7%BB%93%E6%9E%9C%E4%B9%B1%E5%BA%8F%EF%BC%9A%E5%85%B8%E5%9E%8B%E7%9A%84-Out-of-Order-%E9%97%AE%E9%A2%98"><span class="nav-text">5.2 异步结果乱序：典型的 Out-of-Order 问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-%E4%BB%BB%E5%8A%A1%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E7%AE%A1%E7%90%86"><span class="nav-text">5.3 任务生命周期管理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-approach-%E5%AF%B9%E6%AF%94%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E7%94%A8-OperationQueue-%E6%88%96-GCD%EF%BC%9F"><span class="nav-text">5.4 approach 对比：为什么不用 OperationQueue 或 GCD？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-UI-%E5%BC%82%E6%AD%A5%E4%BC%98%E5%8C%96%EF%BC%9A%E5%88%97%E8%A1%A8%E5%8A%A0%E8%BD%BD%E3%80%81%E6%BB%9A%E5%8A%A8%E8%BF%87%E7%A8%8B%E4%B8%8E%E5%BC%82%E6%AD%A5%E5%9B%BE%E7%89%87%E7%9A%84%E5%A4%84%E7%90%86%E6%96%B9%E5%BC%8F"><span class="nav-text">6. UI 异步优化：列表加载、滚动过程与异步图片的处理方式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-UITableView-%E4%B8%8E%E5%BC%82%E6%AD%A5%E5%8A%A0%E8%BD%BD%E7%9A%84%E5%85%B8%E5%9E%8B%E9%97%AE%E9%A2%98"><span class="nav-text">6.1 UITableView 与异步加载的典型问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-%E4%BD%BF%E7%94%A8-indexPath-%E7%BB%91%E5%AE%9A%E4%BB%BB%E5%8A%A1%E7%9A%84%E6%9C%80%E5%B0%8F%E5%8F%AF%E9%9D%A0%E7%AD%96%E7%95%A5"><span class="nav-text">6.2 使用 indexPath 绑定任务的最小可靠策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-%E6%BB%9A%E5%8A%A8%E8%BF%87%E7%A8%8B%E4%B8%AD%E7%9A%84%E8%8A%82%E6%B5%81"><span class="nav-text">6.3 滚动过程中的节流</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-4-%E5%BC%82%E6%AD%A5%E5%9B%BE%E7%89%87%E5%8A%A0%E8%BD%BD%EF%BC%9A%E6%9B%B4%E9%80%9A%E7%94%A8%E7%9A%84%E7%BB%93%E6%9E%84"><span class="nav-text">6.4 异步图片加载：更通用的结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-5-%E5%88%97%E8%A1%A8%E5%BC%82%E6%AD%A5%E5%8A%A0%E8%BD%BD%E7%9A%84%E6%9C%80%E4%BD%B3%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5"><span class="nav-text">6.5 列表异步加载的最佳工程实践</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-6-UI-%E4%B8%8E%E5%BC%82%E6%AD%A5%E7%BB%93%E5%90%88%E7%9A%84%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3"><span class="nav-text">6.6 UI 与异步结合的核心思想</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86%E4%B8%8E%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86%EF%BC%9A%E6%9E%84%E5%BB%BA%E6%B8%85%E6%99%B0%E3%80%81%E5%8F%AF%E7%BB%B4%E6%8A%A4%E7%9A%84%E7%8A%B6%E6%80%81%E7%B3%BB%E7%BB%9F"><span class="nav-text">7. 错误处理与状态管理：构建清晰、可维护的状态系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#7-1-%E9%94%99%E8%AF%AF%E6%9D%A5%E6%BA%90%E7%9A%84%E5%A4%9A%E6%A0%B7%E6%80%A7%E4%B8%8E%E7%BB%9F%E4%B8%80%E5%85%A5%E5%8F%A3"><span class="nav-text">7.1 错误来源的多样性与统一入口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-2-%E4%BD%BF%E7%94%A8-Published-%E6%9E%84%E5%BB%BA%E6%B8%85%E6%99%B0%E7%8A%B6%E6%80%81%E6%B5%81"><span class="nav-text">7.2 使用 @Published 构建清晰状态流</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-3-%E7%8A%B6%E6%80%81%E6%9B%B4%E6%96%B0%E9%A1%BA%E5%BA%8F%E7%9A%84%E7%A8%B3%E5%AE%9A%E6%80%A7"><span class="nav-text">7.3 状态更新顺序的稳定性</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8E%9F%E5%88%99%E4%B8%80%EF%BC%9A%E5%90%8C%E4%B8%80%E4%BA%8B%E4%BB%B6%E4%BA%A7%E7%94%9F%E7%9A%84%E7%8A%B6%E6%80%81%E6%9B%B4%E6%96%B0%E6%94%BE%E5%9C%A8%E4%B8%80%E8%B5%B7"><span class="nav-text">原则一：同一事件产生的状态更新放在一起</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8E%9F%E5%88%99%E4%BA%8C%EF%BC%9A%E7%8A%B6%E6%80%81%E4%B9%8B%E9%97%B4%E8%A6%81%E6%9C%89%E6%98%8E%E7%A1%AE%E8%81%8C%E8%B4%A3%E5%8C%BA%E5%88%86"><span class="nav-text">原则二：状态之间要有明确职责区分</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-4-%E9%94%99%E8%AF%AF%E7%8A%B6%E6%80%81%E7%9A%84%E5%8F%AF%E6%89%A9%E5%B1%95%E6%80%A7"><span class="nav-text">7.4 错误状态的可扩展性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-5-%E5%A4%84%E7%90%86%E5%8F%96%E6%B6%88%E5%B8%A6%E6%9D%A5%E7%9A%84%E7%8A%B6%E6%80%81%E9%97%AE%E9%A2%98"><span class="nav-text">7.5 处理取消带来的状态问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E6%B5%8B%E8%AF%95%E7%AD%96%E7%95%A5%EF%BC%9A%E5%9C%A8%E5%BC%82%E6%AD%A5%E4%B8%8E%E7%8A%B6%E6%80%81%E9%A9%B1%E5%8A%A8%E6%9E%B6%E6%9E%84%E4%B8%AD%E4%BF%9D%E6%8C%81%E5%8F%AF%E9%AA%8C%E8%AF%81%E6%80%A7"><span class="nav-text">8. 测试策略：在异步与状态驱动架构中保持可验证性</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#8-1-%E6%B5%8B%E8%AF%95-ViewModel%EF%BC%9A%E9%AA%8C%E8%AF%81%E7%8A%B6%E6%80%81%E6%9B%B4%E6%96%B0%E6%98%AF%E5%90%A6%E6%AD%A3%E7%A1%AE"><span class="nav-text">8.1 测试 ViewModel：验证状态更新是否正确</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-2-%E6%B5%8B%E8%AF%95-loading-%E4%B8%8E-error-%E7%8A%B6%E6%80%81"><span class="nav-text">8.2 测试 loading 与 error 状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-3-%E6%B5%8B%E8%AF%95%E5%8F%96%E6%B6%88%E8%A1%8C%E4%B8%BA"><span class="nav-text">8.3 测试取消行为</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-4-%E6%B5%8B%E8%AF%95-async-%E5%87%BD%E6%95%B0%EF%BC%9A%E6%A8%A1%E6%8B%9F%E5%90%84%E7%A7%8D%E5%BC%82%E6%AD%A5%E8%A1%8C%E4%B8%BA"><span class="nav-text">8.4 测试 async 函数：模拟各种异步行为</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-5-%E6%B5%8B%E8%AF%95-Combine-%E8%BE%93%E5%85%A5%EF%BC%9A%E6%A8%A1%E6%8B%9F%E7%94%A8%E6%88%B7%E8%BE%93%E5%85%A5"><span class="nav-text">8.5 测试 Combine 输入：模拟用户输入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-6-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5%EF%BC%9A%E6%B5%8B%E8%AF%95%E4%B8%AD%E8%A6%81%E9%81%BF%E5%85%8D%E7%9A%84%E8%AF%AF%E5%8C%BA"><span class="nav-text">8.6 最佳实践：测试中要避免的误区</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-%E6%B8%90%E8%BF%9B%E5%BC%8F%E8%BF%81%E7%A7%BB%EF%BC%9A%E8%AE%A9%E7%8E%B0%E6%9C%89-UIKit-%E9%A1%B9%E7%9B%AE%E5%B9%B3%E6%BB%91%E8%BF%87%E6%B8%A1%E5%88%B0%E7%8E%B0%E4%BB%A3%E5%BC%82%E6%AD%A5%E6%9E%B6%E6%9E%84"><span class="nav-text">9. 渐进式迁移：让现有 UIKit 项目平滑过渡到现代异步架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#9-1-%E7%AC%AC%E4%B8%80%E9%98%B6%E6%AE%B5%EF%BC%9A%E4%BB%8E%E7%BD%91%E7%BB%9C%E5%B1%82%E5%BC%80%E5%A7%8B%E8%BF%81%E7%A7%BB%E5%88%B0-async-await"><span class="nav-text">9.1 第一阶段：从网络层开始迁移到 async&#x2F;await</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-2-%E7%AC%AC%E4%BA%8C%E9%98%B6%E6%AE%B5%EF%BC%9A%E7%94%A8-Combine-%E7%AE%A1%E6%8E%A7%E8%BE%93%E5%85%A5%E4%BA%8B%E4%BB%B6"><span class="nav-text">9.2 第二阶段：用 Combine 管控输入事件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-3-%E7%AC%AC%E4%B8%89%E9%98%B6%E6%AE%B5%EF%BC%9A%E7%8A%B6%E6%80%81%E7%BB%9F%E4%B8%80%E7%AE%A1%E7%90%86-%E2%80%94%E2%80%94-%E5%BC%95%E5%85%A5-Published-%E7%9A%84%E6%9C%80%E5%85%B3%E9%94%AE%E6%94%B9%E9%80%A0"><span class="nav-text">9.3 第三阶段：状态统一管理 —— 引入 @Published 的最关键改造</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#9-3-1-%E7%AC%AC%E4%B8%80%E5%B1%82%EF%BC%9A%E5%B0%86%E7%BB%93%E6%9E%9C%E6%95%B0%E6%8D%AE%E7%A7%BB%E5%8A%A8%E5%88%B0-Published"><span class="nav-text">9.3.1 第一层：将结果数据移动到 @Published</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#9-3-2-%E7%AC%AC%E4%BA%8C%E5%B1%82%EF%BC%9A%E6%8A%8A-loading-%E7%8A%B6%E6%80%81%E6%90%AC%E8%BF%87%E5%8E%BB"><span class="nav-text">9.3.2 第二层：把 loading 状态搬过去</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#9-3-3-%E7%AC%AC%E4%B8%89%E5%B1%82%EF%BC%9A%E6%8A%8A-error-%E9%80%BB%E8%BE%91%E6%90%AC%E8%BF%87%E5%8E%BB"><span class="nav-text">9.3.3 第三层：把 error 逻辑搬过去</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-4-%E4%B8%8E%E6%97%A7%E4%BB%A3%E7%A0%81%E5%85%B1%E5%AD%98%EF%BC%9A%E4%B8%8D%E9%9C%80%E8%A6%81%E4%B8%80%E6%AC%A1%E6%80%A7%E5%85%A8%E9%9D%A2%E5%88%87%E6%8D%A2"><span class="nav-text">9.4 与旧代码共存：不需要一次性全面切换</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#9-4-1-%E5%9C%BA%E6%99%AF%E4%B8%80%EF%BC%9A%E6%97%A7%E5%9B%9E%E8%B0%83-API-%E4%B8%8D%E5%8A%A8%EF%BC%8C%E4%BD%86%E6%96%B0%E9%80%BB%E8%BE%91%E6%83%B3%E7%94%A8-async"><span class="nav-text">9.4.1 场景一：旧回调 API 不动，但新逻辑想用 async</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#9-4-2-%E5%9C%BA%E6%99%AF%E4%BA%8C%EF%BC%9A%E9%83%A8%E5%88%86%E7%95%8C%E9%9D%A2%E7%94%A8-Combine%EF%BC%8C%E9%83%A8%E5%88%86%E4%B8%8D%E7%94%A8"><span class="nav-text">9.4.2 场景二：部分界面用 Combine，部分不用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#9-4-3-%E5%9C%BA%E6%99%AF%E4%B8%89%EF%BC%9A%E9%83%A8%E5%88%86%E9%A1%B5%E9%9D%A2%E6%9C%89-ViewModel%EF%BC%8C%E9%83%A8%E5%88%86%E4%BB%8D%E5%9C%A8%E6%8E%A7%E5%88%B6%E5%99%A8%E5%86%99%E9%80%BB%E8%BE%91"><span class="nav-text">9.4.3 场景三：部分页面有 ViewModel，部分仍在控制器写逻辑</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-5-%E5%AD%98%E5%9C%A8%E9%A3%8E%E9%99%A9%E7%9A%84%E8%BF%81%E7%A7%BB%E6%96%B9%E5%BC%8F%EF%BC%88%E5%BA%94%E9%81%BF%E5%85%8D%EF%BC%89"><span class="nav-text">9.5 存在风险的迁移方式（应避免）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-6-%E5%9B%A2%E9%98%9F%E5%B1%82%E9%9D%A2%E7%9A%84%E5%8F%AF%E6%89%A7%E8%A1%8C%E8%A7%84%E8%8C%83"><span class="nav-text">9.6 团队层面的可执行规范</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-UIKit-%E6%9C%AA%E6%9D%A5%E8%B6%8B%E5%8A%BF"><span class="nav-text">10. UIKit 未来趋势</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#10-1-Swift-%E5%B9%B6%E5%8F%91%E4%BD%93%E7%B3%BB%E5%B0%86%E5%9C%A8%E6%9C%AA%E6%9D%A5%E6%8C%81%E7%BB%AD%E5%BC%BA%E5%8C%96"><span class="nav-text">10.1 Swift 并发体系将在未来持续强化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-2-Combine-%E7%9A%84%E5%AE%9A%E4%BD%8D%E9%80%90%E6%B8%90%E8%BD%AC%E5%90%91%E2%80%9C%E4%BA%8B%E4%BB%B6%E6%B5%81%E5%B7%A5%E5%85%B7%E2%80%9D"><span class="nav-text">10.2 Combine 的定位逐渐转向“事件流工具”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-3-Published-%E4%BC%9A%E8%BF%9B%E4%B8%80%E6%AD%A5%E5%BC%B1%E5%8C%96-MVC-%E7%9A%84%E7%8A%B6%E6%80%81%E6%95%A3%E8%90%BD%E9%97%AE%E9%A2%98"><span class="nav-text">10.3 @Published 会进一步弱化 MVC 的状态散落问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-4-UIKit-%E9%95%BF%E6%9C%9F%E5%B9%B6%E5%8F%91%E6%9E%B6%E6%9E%84%E7%9A%84%E6%A0%B8%E5%BF%83%E4%BC%9A%E5%90%91%E2%80%9C%E7%8A%B6%E6%80%81%E6%9C%BA-actor%E2%80%9D%E6%BC%94%E8%BF%9B"><span class="nav-text">10.4 UIKit 长期并发架构的核心会向“状态机 + actor”演进</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-5-actor-%E5%B0%86%E6%88%90%E4%B8%BA%E7%AE%A1%E7%90%86%E5%85%B1%E4%BA%AB%E8%B5%84%E6%BA%90%E7%9A%84%E4%B8%BB%E5%8A%9B"><span class="nav-text">10.5 actor 将成为管理共享资源的主力</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-6-UIKit-Swift-Concurrency-%E4%BC%9A%E9%95%BF%E6%9C%9F%E5%85%B1%E5%AD%98"><span class="nav-text">10.6 UIKit + Swift Concurrency 会长期共存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-7-%E4%BB%8E%E5%B7%A5%E7%A8%8B%E8%A7%86%E8%A7%92%E7%9C%8B%EF%BC%8C%E6%B8%90%E8%BF%9B%E5%BC%8F%E6%89%8D%E6%98%AF%E7%9C%9F%E6%AD%A3%E5%8F%AF%E8%A1%8C%E7%9A%84%E8%B7%AF%E7%BA%BF"><span class="nav-text">10.7 从工程视角看，渐进式才是真正可行的路线</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-8-%E5%90%91%E6%9B%B4%E8%BF%9C%E6%9C%AA%E6%9D%A5%E7%9A%84%E5%8F%AF%E8%83%BD%E6%80%A7"><span class="nav-text">10.8 向更远未来的可能性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E6%80%BB%E7%BB%93%EF%BC%9AUIKit-%E7%9A%84%E7%8E%B0%E4%BB%A3%E5%BC%82%E6%AD%A5%E6%9E%B6%E6%9E%84"><span class="nav-text">11. 总结：UIKit 的现代异步架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#11-1-%E6%95%B4%E4%BD%93%E7%BB%93%E6%9E%84%EF%BC%9A%E8%BE%93%E5%85%A5%E3%80%81%E9%80%BB%E8%BE%91%E3%80%81%E7%8A%B6%E6%80%81%E4%B8%89%E5%B1%82%E5%88%86%E5%B7%A5"><span class="nav-text">11.1 整体结构：输入、逻辑、状态三层分工</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-2-Combine-%E7%9A%84%E5%AE%9A%E4%BD%8D%EF%BC%9A%E4%BA%8B%E4%BB%B6%E6%B5%81%E4%B8%8E%E8%8A%82%E5%A5%8F%E5%99%A8"><span class="nav-text">11.2 Combine 的定位：事件流与节奏器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-3-async-await%EF%BC%9A%E4%B8%BB%E5%8A%9B%E5%BC%82%E6%AD%A5%E6%89%A7%E8%A1%8C%E5%BC%95%E6%93%8E"><span class="nav-text">11.3 async&#x2F;await：主力异步执行引擎</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-4-Published%EF%BC%9A%E6%8A%8A%E7%8A%B6%E6%80%81%E4%BB%8E%E6%8E%A7%E5%88%B6%E5%99%A8%E4%B8%AD%E8%A7%A3%E6%94%BE%E5%87%BA%E6%9D%A5"><span class="nav-text">11.4 @Published：把状态从控制器中解放出来</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-5-Task-%E5%8F%96%E6%B6%88%E4%B8%8E-Out-of-Order-%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-text">11.5 Task 取消与 Out-of-Order 的解决方案</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-6-actor%EF%BC%9A%E4%B8%BA%E5%85%B1%E4%BA%AB%E8%B5%84%E6%BA%90%E6%8F%90%E4%BE%9B%E6%9B%B4%E5%AE%89%E5%85%A8%E7%9A%84%E5%B9%B6%E5%8F%91%E6%A8%A1%E5%9E%8B"><span class="nav-text">11.6 actor：为共享资源提供更安全的并发模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-7-%E6%B5%8B%E8%AF%95%E8%83%BD%E5%8A%9B%E6%9B%B4%E5%BC%BA%E3%80%81%E6%9B%B4%E6%B8%85%E6%99%B0"><span class="nav-text">11.7 测试能力更强、更清晰</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-8-%E6%B8%90%E8%BF%9B%E5%BC%8F%E8%BF%81%E7%A7%BB%E8%B7%AF%E5%BE%84%EF%BC%9A%E9%80%82%E5%90%88%E6%89%80%E6%9C%89-UIKit-%E9%A1%B9%E7%9B%AE"><span class="nav-text">11.8 渐进式迁移路径：适合所有 UIKit 项目</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-9-UIKit-%E7%9A%84%E6%9C%AA%E6%9D%A5%EF%BC%9A%E4%B8%8D%E6%98%AF%E8%A2%AB%E6%9B%BF%E4%BB%A3%EF%BC%8C%E8%80%8C%E6%98%AF%E4%B8%8E%E7%8E%B0%E4%BB%A3%E5%B9%B6%E5%8F%91%E5%85%B1%E5%AD%98"><span class="nav-text">11.9 UIKit 的未来：不是被替代，而是与现代并发共存</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%99%84%E5%BD%951%EF%BC%9ARx-%E4%B8%8E-Combine-%E7%9A%84%E4%BD%93%E7%B3%BB%E5%AF%B9%E6%AF%94"><span class="nav-text">附录1：Rx 与 Combine 的体系对比</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%95%B4%E4%BD%93%E5%AE%9A%E4%BD%8D%E4%B8%8A%E7%9A%84%E6%A0%B9%E6%9C%AC%E5%8C%BA%E5%88%AB"><span class="nav-text">1. 整体定位上的根本区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%9F%BA%E7%A1%80%E6%A8%A1%E5%9E%8B%EF%BC%9AObservable-vs-Publisher"><span class="nav-text">2. 基础模型：Observable vs Publisher</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%93%8D%E4%BD%9C%E7%AC%A6%E7%9A%84%E6%95%B0%E9%87%8F%E4%B8%8E%E8%A1%A8%E8%BE%BE%E5%8A%9B"><span class="nav-text">3. 操作符的数量与表达力</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%BC%82%E6%AD%A5%E7%B3%BB%E7%BB%9F%E7%9A%84%E6%95%B4%E5%90%88%E8%83%BD%E5%8A%9B"><span class="nav-text">4. 异步系统的整合能力</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E8%B0%83%E5%BA%A6%E6%A8%A1%E5%9E%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E7%AE%A1%E7%90%86"><span class="nav-text">5. 调度模型与线程管理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-%E7%94%9F%E6%80%81%E5%BA%93%E4%B8%8E%E6%88%90%E7%86%9F%E5%BA%A6"><span class="nav-text">6. 生态库与成熟度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-UIKit-%E6%8E%A7%E4%BB%B6%E6%94%AF%E6%8C%81%E8%83%BD%E5%8A%9B"><span class="nav-text">7. UIKit 控件支持能力</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-%E5%AD%A6%E4%B9%A0%E6%9B%B2%E7%BA%BF%E4%B8%8E%E5%9B%A2%E9%98%9F%E6%88%90%E6%9C%AC"><span class="nav-text">8. 学习曲线与团队成本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-%E6%80%A7%E8%83%BD%E4%B8%8E%E7%B3%BB%E7%BB%9F%E7%BA%A7%E4%BC%98%E5%8C%96"><span class="nav-text">9. 性能与系统级优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-%E7%BB%BC%E5%90%88%E7%BB%93%E8%AE%BA"><span class="nav-text">10. 综合结论</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">46</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">92</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2025/12/05/045-asynchronous-transformation-of-uikit-project/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's blog">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="UIKit 项目异步改造：Combine、async/await、@Published | KeyChan's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          UIKit 项目异步改造：Combine、async/await、@Published
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2025-12-05 13:28:12 / 修改时间：13:28:30" itemprop="dateCreated datePublished" datetime="2025-12-05T13:28:12+08:00">2025-12-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/iOS-%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">iOS 开发</span></a>
+        </span>
+    </span>
+
+  
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2025/12/05/045-asynchronous-transformation-of-uikit-project/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2025/12/05/045-asynchronous-transformation-of-uikit-project/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>16k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>58 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="1-为什么-UIKit-项目也需要现代异步能力？"><a href="#1-为什么-UIKit-项目也需要现代异步能力？" class="headerlink" title="1. 为什么 UIKit 项目也需要现代异步能力？"></a>1. 为什么 UIKit 项目也需要现代异步能力？</h2><p>现在的应用，无论是前端、Flutter 还是移动端原生，都有一个共同趋势：异步操作越来越多、界面状态变化也越来越频繁。Web 有 async&#x2F;await + Promise 统一异步流程，用事件流和状态管理驱动 UI；Flutter 用 sync&#x2F;await + Future&#x2F;Stream 处理异步，用 BLoC、Provider、Riverpod 聚合状态并更新界面。这些体系之所以能稳定，是因为都遵循了同一种现代异步模型：异步逻辑线性化、事件流可组合、UI 完全由状态驱动。</p>
+<p>UIKit 项目同样也面临这些问题，随着 Swift Concurrency、Combine 和 @Published 逐渐成熟，UIKit 也具备了和 Web、Flutter 类似的现代异步能力：async&#x2F;await 负责逻辑，Combine 管事件流，状态集中在 ViewModel，由 UI 自动响应变化。</p>
+<span id="more"></span>
+<p>在典型 UIKit 项目中，常见痛点包括：</p>
+<ul>
+<li><strong>回调链复杂</strong><br>  网络成功回调触发下一步逻辑，错误还需要额外处理，代码层层嵌套，维护成本高。</li>
+<li><strong>状态散落在不同对象中</strong><br>  加载状态、结果状态、错误状态分布在多个回调和对象中，难以追踪来源。</li>
+<li><strong>任务缺乏统一管理</strong><br>  重复请求、快速输入导致多个并发任务互相覆盖，旧任务结果可能反向污染最新 UI 状态。</li>
+<li><strong>UI 控件事件难以组合</strong><br>  多个输入条件并存时，缺少简单方式将输入、节流、防抖、条件组合再串联到网络请求。</li>
+</ul>
+<p>这些问题随着业务迭代，可能还会进一步放大，甚至影响体验与稳定性。而利用 Combine、async&#x2F;await 与 @Published，可以让 UIKit 项目获得一套更加清晰的异步处理方式。它们覆盖了不同的异步需求：</p>
+<ul>
+<li>Combine 更适合事件流，例如文本输入、按钮点击、通知变化。</li>
+<li>async&#x2F;await 更适合业务逻辑，例如网络请求、数据处理、串行任务。</li>
+<li>@Published 更适合状态广播，例如 loading 状态、结果状态或错误信息。</li>
+</ul>
+<p>在一起使用时，可以将输入、逻辑、状态三个部分划分得更清晰，让 ViewController 只负责 UI 展示，让 ViewModel 管理状态，让数据层只处理纯粹的异步 IO。UIKit 项目并不需要大规模重构，也无需迁移到 SwiftUI 就能有并发带来的提升。这种改造可以以一种渐进方式进行，比如从网络请求开始，再到事件输入管理，最后到状态统一管理，使旧项目保持稳定同时获得更高的可维护性与扩展能力。</p>
+<p>接下来说说如何将这三种技术自然结合到 UIKit 的 MVVM 架构中，最终构建一个结构清晰且可扩展的异步系统。</p>
+<h2 id="2-核心概念：从-UIKit-的角度理解-Combine、async-await-与-Published"><a href="#2-核心概念：从-UIKit-的角度理解-Combine、async-await-与-Published" class="headerlink" title="2.核心概念：从 UIKit 的角度理解 Combine、async&#x2F;await 与 @Published"></a>2.核心概念：从 UIKit 的角度理解 Combine、async&#x2F;await 与 @Published</h2><p>在 UIKit 工程中引入现代异步工具时，最重要的不是掌握语法细节，而是弄清这些工具在工程架构中的角色定位。三种技术覆盖的关注点并不相同，它们之间并不存在替代关系，而是各自解决一类异步问题，因此能够自然地协同工作。以下从 UIKit 的实际需求切入，快速理清这三者的关键作用。</p>
+<h3 id="2-1-Combine：管理事件流的利器"><a href="#2-1-Combine：管理事件流的利器" class="headerlink" title="2.1 Combine：管理事件流的利器"></a>2.1 Combine：管理事件流的利器</h3><p>UIKit 的大量行为本质是事件流：文本输入、按钮点击、滑动、应用通知、KVO 变化、定时器触发等都属于这类。一旦事件交织、组合或频繁触发，传统方式就会变得很乱。Combine 在这种场景中具备明显优势，提供了一种可组合、可预测的方式处理连续事件。在 UIKit 里，Combine 有几个非常实用的特性：</p>
+<ul>
+<li>文本输入防抖<br>  搜索框连续输入可能触发大量请求，可以用 Combine 的 debounce 来防抖。</li>
+<li>事件组合<br>  例如滚动事件与网络状态结合，决定是否加载下一页内容。</li>
+<li>对系统通知的优雅封装<br>  NotificationCenter.publisher 提供了一种比 selector 更简洁的处理方式。</li>
+<li>KVO 的替代方案<br>  减少手动观察与移除观察者的操作。</li>
+</ul>
+<p>Combine 让输入控制更加结构化，而不是散落在各处，尤其适合高频 UI 行为。</p>
+<p>不过需要注意一点：<strong>UIKit 并没有为所有控件提供完整的 Combine 支持。</strong> 系统原生只提供：</p>
+<ul>
+<li>UIControl 的事件（如 .touchUpInside &#x2F; .valueChanged）</li>
+<li>KVO 属性</li>
+<li>NotificationCenter 发布端</li>
+</ul>
+<p>对于 UITextView、UIScrollView、UIGestureRecognizer、UIBarButtonItem 等控件，没有现成 Publisher，需要依赖扩展。在实际工程中，更常采用以下三方库扩展 Combine 对 UIKit 的支持：</p>
+<ul>
+<li><strong>CombineCocoa（推荐）</strong><br>  最成熟、最完整的 UIKit Combine 扩展库。<br>  支持：按钮点击、文本输入、文本视图、手势、滚动事件、导航条按钮等。</li>
+<li><strong>CombineExt</strong><br>  不是专门的 UIKit 扩展库，但提供大量常用 Operator，能与 CombineCocoa 搭配使用。</li>
+<li><strong>CombineFeedback &#x2F; ReactiveUIKit（可选）</strong><br>  适用于更复杂的架构需求，偏工程化。</li>
+</ul>
+<p>其中，<strong>CombineCocoa</strong> 几乎是 UIKit + Combine 项目的默认选择：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">button.tapPublisher</span><br><span class="line">    .sink &#123; <span class="operator">...</span> &#125;</span><br><span class="line"></span><br><span class="line">textField.textPublisher</span><br><span class="line">    .sink &#123; <span class="operator">...</span> &#125;</span><br><span class="line"></span><br><span class="line">scrollView.didScrollPublisher</span><br><span class="line">    .sink &#123; <span class="operator">...</span> &#125;</span><br></pre></td></tr></table></figure>
+<p>简洁、直观，非常容易融入现有 UIKit 架构。</p>
+<p>总体而言，Combine 的原生能力足以覆盖系统事件，但在实际工程中往往需要使用扩展库才能做到“覆盖所有 UIKit 控件”。CombineCocoa 目前是最成熟的选择。</p>
+<h3 id="2-2-async-await：更易管理的异步业务逻辑"><a href="#2-2-async-await：更易管理的异步业务逻辑" class="headerlink" title="2.2 async&#x2F;await：更易管理的异步业务逻辑"></a>2.2 async&#x2F;await：更易管理的异步业务逻辑</h3><p>Combine 适合事件，而 async&#x2F;await 更适合业务流程。在网络请求、数据处理、磁盘读取、权限获取、设备查询等操作中，通过 async&#x2F;await 能够以接近同步的方式书写逻辑，避免传统回调方式中常见的深层嵌套或复杂状态机。在 UIKit 业务中，async&#x2F;await 带来的直接收益包括：</p>
+<ul>
+<li><strong>可读性更高</strong><br>  一系列依赖顺序的异步逻辑看上去就像普通流程，维护起来更轻松。</li>
+<li><strong>错误处理更集中</strong><br>  从层层回调变成自然的 throw 异常传播，逻辑更清晰。</li>
+<li><strong>任务生命周期可控</strong><br>  Task 与 TaskGroup 可以与视图模型绑定，解决并发过量和内存泄漏问题。</li>
+<li><strong>更自然的取消逻辑</strong><br>  在快速输入或快速页面切换场景中，取消旧任务变得简单直接。</li>
+</ul>
+<p>在 MVC 或 MVVM 中，async&#x2F;await 理想使用场景是在网络层或业务逻辑层，可作为核心异步执行方案。</p>
+<h3 id="2-3-Published：ViewModel-的现代状态广播方式"><a href="#2-3-Published：ViewModel-的现代状态广播方式" class="headerlink" title="2.3 @Published：ViewModel 的现代状态广播方式"></a>2.3 @Published：ViewModel 的现代状态广播方式</h3><p>@Published 经常与 SwiftUI 一起出现，但它的本质来自 Combine，并不依赖 SwiftUI。在 UIKit 的 MVVM 架构中，@Published 的主要作用是用来广播状态的变化，让外部对状态变更保持透明和自动响应。相比 Notification 或 KVO，@Published 更适合用于构建结构化的状态系统：</p>
+<ul>
+<li><strong>状态集中</strong><br>  ViewModel 负责输出数据、管理错误、加载状态等。</li>
+<li><strong>订阅简单</strong><br>  ViewController 通过 Combine 订阅任意状态，变化时自动刷新 UI。</li>
+<li><strong>意图明确</strong><br>  看到 @Published 就知道这是会对外广播的状态，直观。</li>
+<li><strong>更易测试</strong><br>  状态流可以被订阅与验证，相比回调更易编写单元测试。</li>
+</ul>
+<p>在 UIKit 环境下，@Published 主要用于表示「界面需要响应的状态」，例如搜索结果、状态更新、错误信息等。</p>
+<h3 id="2-4-三者之间的分工关系"><a href="#2-4-三者之间的分工关系" class="headerlink" title="2.4 三者之间的分工关系"></a>2.4 三者之间的分工关系</h3><ul>
+<li>Combine 管理连续事件，包括输入行为和系统事件。</li>
+<li>async&#x2F;await 管理核心异步任务，如网络请求、业务操作。</li>
+<li>@Published 管理状态广播，将逻辑结果传回界面。</li>
+</ul>
+<p>这种分工方式不仅减少耦合，还能自然地形成一种井然有序的异步架构：输入在ViewController，逻辑在ViewModel，结果由状态统一输出，不同模块之间的职责边界更加清晰。</p>
+<p>下一章将从一个完整的示例场景开始，展示三者在 UIKit 项目的实际协同方式。</p>
+<h2 id="3-示例：在-UIKit-中构建一个异步搜索界面"><a href="#3-示例：在-UIKit-中构建一个异步搜索界面" class="headerlink" title="3. 示例：在 UIKit 中构建一个异步搜索界面"></a>3. 示例：在 UIKit 中构建一个异步搜索界面</h2><p>为了展示 Combine、async&#x2F;await 与 @Published 在 UIKit 中的自然协同方式，下面章节将以一个简洁但具代表性的示例作为主线：搜索界面。</p>
+<p>这个场景包含以下几个特征，非常适合作为现代异步改造的范例：</p>
+<ul>
+<li>输入具有实时性，搜索框输入通常是连续的，需要处理快速输入带来的事件风暴</li>
+<li>网络请求需要节流和取消，每次输入都可能触发新的请求，旧任务必须及时取消，防止结果乱序</li>
+<li>状态需要统一管理，包括加载状态、结果数据、错误提示，统一由 ViewModel 输出</li>
+<li>UI 更新保持简单，控制器只做展示层，不承担业务逻辑</li>
+</ul>
+<p>通过这个示例，可以看到现代异步逻辑在 UIKit 中如何通过自然组合形成清晰的结构的。</p>
+<h3 id="3-1-界面结构"><a href="#3-1-界面结构" class="headerlink" title="3.1 界面结构"></a>3.1 界面结构</h3><p>页面由一个搜索输入框和一个列表组成，用于展示搜索结果。布局方式不作赘述，可以使用 Auto Layout、SnapKit 或直接 frame 布局，示例重点在异步行为本身。基本结构如下：</p>
+<ul>
+<li>顶部为文本输入框，输入内容随时变更，触发 Combine 事件流</li>
+<li>列表用于展示搜索结果，由 ViewModel 的 @Published 状态驱动更新</li>
+<li>后台通过 async&#x2F;await 发起搜索请求，并自动取消之前旧任务</li>
+<li>ViewController 对状态进行订阅，实现响应式的 UI 刷新</li>
+</ul>
+<p>简洁的界面背后有多个典型异步任务。<br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/202512031411.png" width="30%" /></p>
+<center>图3-1 搜索界面UI</center>
+### 3.2 流程总览
+整个搜索逻辑可以概括为以下几步，结构清晰且易维护：
+- 文本框内容变化形成事件流（Combine）
+- 防抖处理，避免请求过多
+- 事件流进入 ViewModel
+- 每次输入触发新的搜索任务
+- 网络请求通过 async/await 执行
+- 旧任务自动取消
+- 请求完成后更新 @Published 状态
+- 控制器订阅状态并刷新表格
+- 错误与加载状态同样通过状态流传递
+
+<p>输入、逻辑、状态分别由不同工具负责，各司其职，没有互相干扰，也没有分散在不同对象的回调。</p>
+<h3 id="3-3-示例模块划分"><a href="#3-3-示例模块划分" class="headerlink" title="3.3 示例模块划分"></a>3.3 示例模块划分</h3><p>示例由三个主要部分组成：</p>
+<ul>
+<li>Repository，提供 async 的搜索 API，可以是 URLSession，也可以是本地数据模拟，作用是为 ViewModel 提供异步接口</li>
+<li>ViewModel，负责处理逻辑，接收输入事件，以 async&#x2F;await 执行搜索，通过 @Published 输出结果与状态</li>
+<li>ViewController，负责 UI 展示，从 Combine 输入事件触发搜索，订阅 ViewModel 状态更新 UI</li>
+</ul>
+<p>这样的分工使页面行为和业务逻辑之间结构清晰，扩展或修改时影响范围更小。</p>
+<h3 id="3-4-完整代码"><a href="#3-4-完整代码" class="headerlink" title="3.4 完整代码"></a>3.4 完整代码</h3><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> UIKit</span><br><span class="line"><span class="keyword">import</span> Foundation</span><br><span class="line"><span class="keyword">import</span> Combine</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">SearchRepository</span> &#123;</span><br><span class="line">    <span class="keyword">enum</span> <span class="title class_">SearchError</span>: <span class="title class_ inherited__">Error</span> &#123;</span><br><span class="line">        <span class="keyword">case</span> emptyKeyword</span><br><span class="line">        <span class="keyword">case</span> serverError</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">func</span> <span class="title function_">search</span>(<span class="params">keyword</span>: <span class="type">String</span>) <span class="keyword">async</span> <span class="keyword">throws</span> -&gt; [<span class="type">String</span>] &#123;</span><br><span class="line">        <span class="keyword">let</span> trimmed <span class="operator">=</span> keyword.trimmingCharacters(in: .whitespacesAndNewlines)</span><br><span class="line">        <span class="keyword">if</span> trimmed.isEmpty &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="type">SearchError</span>.emptyKeyword</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 模拟网络延迟</span></span><br><span class="line">        <span class="keyword">try</span> <span class="keyword">await</span> <span class="type">Task</span>.sleep(nanoseconds: <span class="number">500_000_000</span>) <span class="comment">// 0.5 秒</span></span><br><span class="line">        <span class="comment">// 随机模拟一次错误，演示错误处理</span></span><br><span class="line">        <span class="keyword">if</span> <span class="type">Bool</span>.random() &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="type">SearchError</span>.serverError</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 模拟返回结果</span></span><br><span class="line">        <span class="keyword">return</span> [<span class="string">&quot;「<span class="subst">\(trimmed)</span>」相关结果一&quot;</span>, <span class="string">&quot;「<span class="subst">\(trimmed)</span>」相关结果二&quot;</span>, <span class="string">&quot;「<span class="subst">\(trimmed)</span>」相关结果三&quot;</span>, <span class="string">&quot;「<span class="subst">\(trimmed)</span>」更多内容……&quot;</span>]</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@MainActor</span></span><br><span class="line"><span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">SearchViewModel</span>: <span class="title class_ inherited__">ObservableObject</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">let</span> repository: <span class="type">SearchRepository</span></span><br><span class="line">    <span class="comment">// Task&lt;Success, Failure&gt;</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">var</span> currentTask: <span class="type">Task</span>&lt;<span class="type">Void</span>, <span class="type">Never</span>&gt;? <span class="comment">// 成功返回空，不会返回失败</span></span><br><span class="line">    <span class="meta">@Published</span> <span class="keyword">var</span> results: [<span class="type">String</span>] <span class="operator">=</span> []</span><br><span class="line">    <span class="meta">@Published</span> <span class="keyword">var</span> isLoading: <span class="type">Bool</span> <span class="operator">=</span> <span class="literal">false</span></span><br><span class="line">    <span class="meta">@Published</span> <span class="keyword">var</span> errorMessage: <span class="type">String</span>?</span><br><span class="line"></span><br><span class="line">    <span class="keyword">init</span>(<span class="params">repository</span>: <span class="type">SearchRepository</span>) &#123;</span><br><span class="line">        <span class="keyword">self</span>.repository <span class="operator">=</span> repository</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">func</span> <span class="title function_">performSearch</span>(<span class="params">keyword</span>: <span class="type">String</span>) &#123;</span><br><span class="line">        <span class="keyword">let</span> trimmed <span class="operator">=</span> keyword.trimmingCharacters(in: .whitespacesAndNewlines)</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span> trimmed.isEmpty &#123;</span><br><span class="line">            currentTask<span class="operator">?</span>.cancel()</span><br><span class="line">            currentTask <span class="operator">=</span> <span class="literal">nil</span></span><br><span class="line">            results <span class="operator">=</span> []</span><br><span class="line">            isLoading <span class="operator">=</span> <span class="literal">false</span></span><br><span class="line">            errorMessage <span class="operator">=</span> <span class="literal">nil</span></span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        currentTask<span class="operator">?</span>.cancel()</span><br><span class="line"></span><br><span class="line">        isLoading <span class="operator">=</span> <span class="literal">true</span></span><br><span class="line">        errorMessage <span class="operator">=</span> <span class="literal">nil</span></span><br><span class="line"></span><br><span class="line">        currentTask <span class="operator">=</span> <span class="type">Task</span> &#123; [<span class="keyword">weak</span> <span class="keyword">self</span>] <span class="keyword">in</span></span><br><span class="line">            <span class="keyword">guard</span> <span class="keyword">let</span> <span class="keyword">self</span> <span class="keyword">else</span> &#123; <span class="keyword">return</span> &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">do</span> &#123;</span><br><span class="line">                <span class="keyword">let</span> data <span class="operator">=</span> <span class="keyword">try</span> <span class="keyword">await</span> repository.search(keyword: trimmed)</span><br><span class="line">                <span class="keyword">try</span> <span class="type">Task</span>.checkCancellation()</span><br><span class="line"></span><br><span class="line">                results <span class="operator">=</span> data</span><br><span class="line">                isLoading <span class="operator">=</span> <span class="literal">false</span></span><br><span class="line">                errorMessage <span class="operator">=</span> <span class="literal">nil</span></span><br><span class="line"></span><br><span class="line">            &#125; <span class="keyword">catch</span> <span class="keyword">is</span> <span class="type">CancellationError</span> &#123;</span><br><span class="line">                <span class="comment">// 不更新 UI</span></span><br><span class="line">            &#125; <span class="keyword">catch</span> &#123;</span><br><span class="line">                results <span class="operator">=</span> []</span><br><span class="line">                isLoading <span class="operator">=</span> <span class="literal">false</span></span><br><span class="line">                errorMessage <span class="operator">=</span> <span class="string">&quot;搜索失败，请稍后再试&quot;</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">SearchViewController</span>: <span class="title class_ inherited__">UIViewController</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">let</span> searchTextField <span class="operator">=</span> <span class="type">UITextField</span>()</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">let</span> tableView <span class="operator">=</span> <span class="type">UITableView</span>()</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">let</span> loadingIndicator <span class="operator">=</span> <span class="type">UIActivityIndicatorView</span>(style: .medium)</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">let</span> errorLabel <span class="operator">=</span> <span class="type">UILabel</span>()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">let</span> viewModel <span class="operator">=</span> <span class="type">SearchViewModel</span>(repository: <span class="type">SearchRepository</span>())</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">var</span> cancellables <span class="operator">=</span> <span class="type">Set</span>&lt;<span class="type">AnyCancellable</span>&gt;()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="keyword">func</span> <span class="title function_">viewDidLoad</span>() &#123;</span><br><span class="line">        <span class="keyword">super</span>.viewDidLoad()</span><br><span class="line">        setupUI()</span><br><span class="line">        setupLayout()</span><br><span class="line">        bindViewModel()</span><br><span class="line">        bindSearchTextField()</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">func</span> <span class="title function_">setupUI</span>() &#123;</span><br><span class="line">        title <span class="operator">=</span> <span class="string">&quot;搜索示例&quot;</span></span><br><span class="line">        view.backgroundColor <span class="operator">=</span> .systemBackground</span><br><span class="line"></span><br><span class="line">        searchTextField.borderStyle <span class="operator">=</span> .roundedRect</span><br><span class="line">        searchTextField.placeholder <span class="operator">=</span> <span class="string">&quot;输入关键字开始搜索&quot;</span></span><br><span class="line"></span><br><span class="line">        tableView.dataSource <span class="operator">=</span> <span class="keyword">self</span></span><br><span class="line">        tableView.delegate <span class="operator">=</span> <span class="keyword">self</span></span><br><span class="line">        tableView.register(<span class="type">UITableViewCell</span>.<span class="keyword">self</span>, forCellReuseIdentifier: <span class="string">&quot;Cell&quot;</span>)</span><br><span class="line"></span><br><span class="line">        loadingIndicator.hidesWhenStopped <span class="operator">=</span> <span class="literal">true</span></span><br><span class="line"></span><br><span class="line">        errorLabel.textColor <span class="operator">=</span> .systemRed</span><br><span class="line">        errorLabel.font <span class="operator">=</span> <span class="type">UIFont</span>.systemFont(ofSize: <span class="number">14</span>)</span><br><span class="line">        errorLabel.numberOfLines <span class="operator">=</span> <span class="number">0</span></span><br><span class="line">        errorLabel.textAlignment <span class="operator">=</span> .center</span><br><span class="line"></span><br><span class="line">        view.addSubview(searchTextField)</span><br><span class="line">        view.addSubview(tableView)</span><br><span class="line">        view.addSubview(loadingIndicator)</span><br><span class="line">        view.addSubview(errorLabel)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">func</span> <span class="title function_">setupLayout</span>() &#123;</span><br><span class="line">        searchTextField.translatesAutoresizingMaskIntoConstraints <span class="operator">=</span> <span class="literal">false</span></span><br><span class="line">        tableView.translatesAutoresizingMaskIntoConstraints <span class="operator">=</span> <span class="literal">false</span></span><br><span class="line">        loadingIndicator.translatesAutoresizingMaskIntoConstraints <span class="operator">=</span> <span class="literal">false</span></span><br><span class="line">        errorLabel.translatesAutoresizingMaskIntoConstraints <span class="operator">=</span> <span class="literal">false</span></span><br><span class="line"></span><br><span class="line">        <span class="type">NSLayoutConstraint</span>.activate([</span><br><span class="line">            searchTextField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: <span class="number">12</span>),</span><br><span class="line">            searchTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: <span class="number">16</span>),</span><br><span class="line">            searchTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: <span class="operator">-</span><span class="number">16</span>),</span><br><span class="line">            searchTextField.heightAnchor.constraint(equalToConstant: <span class="number">40</span>),</span><br><span class="line"></span><br><span class="line">            errorLabel.topAnchor.constraint(equalTo: searchTextField.bottomAnchor, constant: <span class="number">8</span>),</span><br><span class="line">            errorLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: <span class="number">16</span>),</span><br><span class="line">            errorLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: <span class="operator">-</span><span class="number">16</span>),</span><br><span class="line"></span><br><span class="line">            tableView.topAnchor.constraint(equalTo: errorLabel.bottomAnchor, constant: <span class="number">8</span>),</span><br><span class="line">            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),</span><br><span class="line">            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),</span><br><span class="line">            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),</span><br><span class="line"></span><br><span class="line">            loadingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),</span><br><span class="line">            loadingIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)</span><br><span class="line">        ])</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">func</span> <span class="title function_">bindViewModel</span>() &#123;</span><br><span class="line">        <span class="comment">// 订阅搜索结果</span></span><br><span class="line">        viewModel.<span class="variable">$results</span></span><br><span class="line">            .receive(on: <span class="type">RunLoop</span>.main)</span><br><span class="line">            .sink &#123; [<span class="keyword">weak</span> <span class="keyword">self</span>] <span class="keyword">_</span> <span class="keyword">in</span></span><br><span class="line">                <span class="keyword">self</span><span class="operator">?</span>.tableView.reloadData()</span><br><span class="line">            &#125;</span><br><span class="line">            .store(in: <span class="operator">&amp;</span>cancellables)</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 订阅加载状态</span></span><br><span class="line">        viewModel.<span class="variable">$isLoading</span></span><br><span class="line">            .receive(on: <span class="type">RunLoop</span>.main)</span><br><span class="line">            .sink &#123; [<span class="keyword">weak</span> <span class="keyword">self</span>] isLoading <span class="keyword">in</span></span><br><span class="line">                <span class="keyword">if</span> isLoading &#123;</span><br><span class="line">                    <span class="keyword">self</span><span class="operator">?</span>.loadingIndicator.startAnimating()</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="keyword">self</span><span class="operator">?</span>.loadingIndicator.stopAnimating()</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            .store(in: <span class="operator">&amp;</span>cancellables)</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 订阅错误信息</span></span><br><span class="line">        viewModel.<span class="variable">$errorMessage</span></span><br><span class="line">            .receive(on: <span class="type">RunLoop</span>.main)</span><br><span class="line">            .sink &#123; [<span class="keyword">weak</span> <span class="keyword">self</span>] message <span class="keyword">in</span></span><br><span class="line">                <span class="keyword">self</span><span class="operator">?</span>.errorLabel.text <span class="operator">=</span> message</span><br><span class="line">                <span class="keyword">self</span><span class="operator">?</span>.errorLabel.isHidden <span class="operator">=</span> (message <span class="operator">==</span> <span class="literal">nil</span>)</span><br><span class="line">            &#125;</span><br><span class="line">            .store(in: <span class="operator">&amp;</span>cancellables)</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 如果一个UI状态需要订阅多个属性，有两种方案:</span></span><br><span class="line">        <span class="comment">// 1. 在viewModel中组合一个UI属性供订阅</span></span><br><span class="line">        <span class="comment">// 2. 用CombineLatest 组合多个属性</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">func</span> <span class="title function_">bindSearchTextField</span>() &#123;</span><br><span class="line">        <span class="comment">// 使用 NotificationCenter + Combine 监听文本变化，并做防抖</span></span><br><span class="line">        <span class="type">NotificationCenter</span>.default.publisher(</span><br><span class="line">            for: <span class="type">UITextField</span>.textDidChangeNotification,</span><br><span class="line">            object: searchTextField</span><br><span class="line">        )</span><br><span class="line">        .compactMap &#123; notification <span class="keyword">in</span></span><br><span class="line">            (notification.object <span class="keyword">as?</span> <span class="type">UITextField</span>)<span class="operator">?</span>.text</span><br><span class="line">        &#125;</span><br><span class="line">        .debounce(for: .milliseconds(<span class="number">400</span>), scheduler: <span class="type">RunLoop</span>.main)</span><br><span class="line">        .removeDuplicates()</span><br><span class="line">        .sink &#123; [<span class="keyword">weak</span> <span class="keyword">self</span>] text <span class="keyword">in</span></span><br><span class="line">            <span class="keyword">self</span><span class="operator">?</span>.viewModel.performSearch(keyword: text)</span><br><span class="line">        &#125;</span><br><span class="line">        .store(in: <span class="operator">&amp;</span>cancellables)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">extension</span> <span class="title class_">SearchViewController</span>: <span class="title class_ inherited__">UITableViewDataSource</span>, <span class="title class_ inherited__">UITableViewDelegate</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">func</span> <span class="title function_">tableView</span>(<span class="keyword">_</span> <span class="params">tableView</span>: <span class="type">UITableView</span>, <span class="params">numberOfRowsInSection</span> <span class="params">section</span>: <span class="type">Int</span>) -&gt; <span class="type">Int</span> &#123;</span><br><span class="line">        viewModel.results.count</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">func</span> <span class="title function_">tableView</span>(<span class="keyword">_</span> <span class="params">tableView</span>: <span class="type">UITableView</span>, <span class="params">cellForRowAt</span> <span class="params">indexPath</span>: <span class="type">IndexPath</span>) -&gt; <span class="type">UITableViewCell</span> &#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">let</span> cell <span class="operator">=</span> tableView.dequeueReusableCell(withIdentifier: <span class="string">&quot;Cell&quot;</span>, for: indexPath)</span><br><span class="line">        <span class="keyword">let</span> item <span class="operator">=</span> viewModel.results[indexPath.row]</span><br><span class="line">        <span class="keyword">var</span> config <span class="operator">=</span> cell.defaultContentConfiguration()</span><br><span class="line">        config.text <span class="operator">=</span> item</span><br><span class="line">        cell.contentConfiguration <span class="operator">=</span> config</span><br><span class="line">        <span class="keyword">return</span> cell</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">func</span> <span class="title function_">tableView</span>(<span class="keyword">_</span> <span class="params">tableView</span>: <span class="type">UITableView</span>, <span class="params">didSelectRowAt</span> <span class="params">indexPath</span>: <span class="type">IndexPath</span>) &#123;</span><br><span class="line">        tableView.deselectRow(at: indexPath, animated: <span class="literal">true</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="3-5-示例的目的"><a href="#3-5-示例的目的" class="headerlink" title="3.5 示例的目的"></a>3.5 示例的目的</h3><p>通过这个示例能够看到以下关键点：</p>
+<ul>
+<li>输入节流如何用 Combine 实现</li>
+<li>快速输入时，如何让旧任务自动取消</li>
+<li>请求结果如何用 @Published 统一广播</li>
+<li>控制器如何以最小代码量完成 UI 刷新</li>
+<li>异步逻辑如何从控制器中完全抽离</li>
+<li>状态如何集中管理并自然驱动界面</li>
+</ul>
+<p>这类模式在开发中普遍适用。无论是搜索页面、筛选界面、分页浏览、地图输入提示、动态表格加载，甚至复杂的业务面板，都可以用类似方式处理异步行为。下一章将进入 ViewModel 的实现部分，展示具体代码与架构如何结合，从输入到请求再到状态输出的完整链路。</p>
+<h2 id="4-架构主体：UIKit-MVVM-中三者的分工与协作"><a href="#4-架构主体：UIKit-MVVM-中三者的分工与协作" class="headerlink" title="4. 架构主体：UIKit + MVVM 中三者的分工与协作"></a>4. 架构主体：UIKit + MVVM 中三者的分工与协作</h2><p>为了让这套模式在更大的工程里也保持清晰，需要把 ViewController、ViewModel、Repository 三个角色的责任说清楚。这一章围绕三个问题展开：</p>
+<ol>
+<li>ViewController 到底该做什么</li>
+<li>ViewModel 应该承担哪些逻辑</li>
+<li>Repository 负责的边界在哪里</li>
+</ol>
+<h3 id="4-1-ViewController：只负责输入和展示"><a href="#4-1-ViewController：只负责输入和展示" class="headerlink" title="4.1 ViewController：只负责输入和展示"></a>4.1 ViewController：只负责输入和展示</h3><p>在传统 UIKit 写法中，ViewController 很容易变成“上帝类”：既监听输入，又调网络，还管状态和 UI 更新，代码膨胀得很快。搜索示例的目标是把逻辑尽量移出控制器，让控制器更干净，只保留下面几件事：</p>
+<ol>
+<li>负责搭建和布局界面</li>
+<li>把输入事件转交给 ViewModel</li>
+<li>订阅 ViewModel 的状态并更新 UI</li>
+</ol>
+<p>可以直接对照示例里的控制器结构来理解这种分工。控制器并不直接发起网络请求，而是通过 Combine 把文本变化变成一个输入流：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">NotificationCenter</span>.default.publisher(</span><br><span class="line">    for: <span class="type">UITextField</span>.textDidChangeNotification,</span><br><span class="line">    object: searchTextField</span><br><span class="line">)</span><br><span class="line">.compactMap &#123; notification <span class="keyword">in</span></span><br><span class="line">    (notification.object <span class="keyword">as?</span> <span class="type">UITextField</span>)<span class="operator">?</span>.text</span><br><span class="line">&#125;</span><br><span class="line">.debounce(for: .milliseconds(<span class="number">400</span>), scheduler: <span class="type">RunLoop</span>.main)</span><br><span class="line">.removeDuplicates()</span><br><span class="line">.sink &#123; [<span class="keyword">weak</span> <span class="keyword">self</span>] text <span class="keyword">in</span></span><br><span class="line">    <span class="keyword">self</span><span class="operator">?</span>.viewModel.performSearch(keyword: text)</span><br><span class="line">&#125;</span><br><span class="line">.store(in: <span class="operator">&amp;</span>cancellables)</span><br></pre></td></tr></table></figure>
+<p>这里，控制器关心的只是“文本变了”这件事，以及合适的节奏。至于搜索如何执行、任务如何取消、错误如何处理，都由 ViewModel 负责。</p>
+<p>在输出侧，控制器订阅的是 ViewModel 持有的 @Published 状态：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">viewModel.<span class="variable">$results</span></span><br><span class="line">    .receive(on: <span class="type">RunLoop</span>.main)</span><br><span class="line">    .sink &#123; [<span class="keyword">weak</span> <span class="keyword">self</span>] <span class="keyword">_</span> <span class="keyword">in</span></span><br><span class="line">        <span class="keyword">self</span><span class="operator">?</span>.tableView.reloadData()</span><br><span class="line">    &#125;</span><br><span class="line">    .store(in: <span class="operator">&amp;</span>cancellables)</span><br><span class="line"></span><br><span class="line">viewModel.<span class="variable">$isLoading</span></span><br><span class="line">    .receive(on: <span class="type">RunLoop</span>.main)</span><br><span class="line">    .sink &#123; [<span class="keyword">weak</span> <span class="keyword">self</span>] isLoading <span class="keyword">in</span></span><br><span class="line">        <span class="keyword">if</span> isLoading &#123;</span><br><span class="line">            <span class="keyword">self</span><span class="operator">?</span>.loadingIndicator.startAnimating()</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">self</span><span class="operator">?</span>.loadingIndicator.stopAnimating()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    .store(in: <span class="operator">&amp;</span>cancellables)</span><br><span class="line"></span><br><span class="line">viewModel.<span class="variable">$errorMessage</span></span><br><span class="line">    .receive(on: <span class="type">RunLoop</span>.main)</span><br><span class="line">    .sink &#123; [<span class="keyword">weak</span> <span class="keyword">self</span>] message <span class="keyword">in</span></span><br><span class="line">        <span class="keyword">self</span><span class="operator">?</span>.errorLabel.text <span class="operator">=</span> message</span><br><span class="line">        <span class="keyword">self</span><span class="operator">?</span>.errorLabel.isHidden <span class="operator">=</span> (message <span class="operator">==</span> <span class="literal">nil</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    .store(in: <span class="operator">&amp;</span>cancellables)</span><br></pre></td></tr></table></figure>
+<p>控制器不做额外判断，只根据状态更新 UI。逻辑集中在 ViewModel，界面只负责响应状态，非常直接。这种分工有个明显好处：页面需要改版时，只改 UI 代码；业务逻辑变更时，优先动 ViewModel；对接新接口时，优先动 Repository。层次清晰，心里有底。</p>
+<p>如果某个 ViewModel 属性需要被多个Controller订阅，其实@Published 和 Combine publisher 天然支持多订阅。需要注意的是：多个页面必须持有同一个 ViewModel 或同一个状态源（比如 AppStore），而不是各自 new 一份。可以通过在上层创建 ViewModel 并传入子页面，或者使用共享状态容器的方式来保证状态统一；如果上游逻辑较重，还可以用 share() 让多个订阅共享同一条数据流。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 共享状态容器（AppState / Store）</span></span><br><span class="line"><span class="meta">@MainActor</span></span><br><span class="line"><span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">AppStore</span> &#123;</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">let</span> shared <span class="operator">=</span> <span class="type">AppStore</span>()</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Published</span> <span class="keyword">private(set)</span> <span class="keyword">var</span> user: <span class="type">User</span>?</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 每个页面分别订阅</span></span><br><span class="line"><span class="type">AppStore</span>.shared.<span class="variable">$user</span></span><br><span class="line">    .sink &#123; [<span class="keyword">weak</span> <span class="keyword">self</span>] user <span class="keyword">in</span></span><br><span class="line">        <span class="comment">// 根据 user 更新当前页面</span></span><br><span class="line">    &#125;</span><br><span class="line">    .store(in: <span class="operator">&amp;</span>cancellables)</span><br></pre></td></tr></table></figure>
+<p>这相当于一个轻量级“全局状态中心”，适合确实是全局状态（登录用户、主题、配置等）。</p>
+<h3 id="4-2-ViewModel：串联输入、异步逻辑和状态的核心"><a href="#4-2-ViewModel：串联输入、异步逻辑和状态的核心" class="headerlink" title="4.2 ViewModel：串联输入、异步逻辑和状态的核心"></a>4.2 ViewModel：串联输入、异步逻辑和状态的核心</h3><p>ViewModel 是这套架构的核心，负责把输入流转换为异步任务，再把结果映射为状态输出。在搜索示例里，ViewModel 的职责可以概括为三件事：</p>
+<ol>
+<li>接收关键字，决定是否要发起搜索</li>
+<li>通过 async&#x2F;await 调用 Repository，负责任务取消和错误处理</li>
+<li>更新 @Published 状态，让界面自动感知变化</li>
+</ol>
+<p>示例中的 ViewModel 采用了 @MainActor 注解，保证所有状态更新都在主线程完成：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> defaultSearchRepository <span class="operator">=</span> <span class="type">SearchRepository</span>()</span><br><span class="line"></span><br><span class="line"><span class="meta">@MainActor</span></span><br><span class="line"><span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">SearchViewModel</span>: <span class="title class_ inherited__">ObservableObject</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">let</span> repository: <span class="type">SearchRepository</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">var</span> currentTask: <span class="type">Task</span>&lt;<span class="type">Void</span>, <span class="type">Never</span>&gt;?</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Published</span> <span class="keyword">var</span> results: [<span class="type">String</span>] <span class="operator">=</span> []</span><br><span class="line">    <span class="meta">@Published</span> <span class="keyword">var</span> isLoading: <span class="type">Bool</span> <span class="operator">=</span> <span class="literal">false</span></span><br><span class="line">    <span class="meta">@Published</span> <span class="keyword">var</span> errorMessage: <span class="type">String</span>?</span><br><span class="line"></span><br><span class="line">    <span class="keyword">init</span>(<span class="params">repository</span>: <span class="type">SearchRepository</span> <span class="operator">=</span> defaultSearchRepository) &#123;</span><br><span class="line">        <span class="keyword">self</span>.repository <span class="operator">=</span> repository</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">func</span> <span class="title function_">performSearch</span>(<span class="params">keyword</span>: <span class="type">String</span>) &#123;</span><br><span class="line">        <span class="keyword">let</span> trimmed <span class="operator">=</span> keyword.trimmingCharacters(in: .whitespacesAndNewlines)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> trimmed.isEmpty &#123;</span><br><span class="line">            currentTask<span class="operator">?</span>.cancel()</span><br><span class="line">            currentTask <span class="operator">=</span> <span class="literal">nil</span></span><br><span class="line">            results <span class="operator">=</span> []</span><br><span class="line">            isLoading <span class="operator">=</span> <span class="literal">false</span></span><br><span class="line">            errorMessage <span class="operator">=</span> <span class="literal">nil</span></span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        currentTask<span class="operator">?</span>.cancel()</span><br><span class="line"></span><br><span class="line">        isLoading <span class="operator">=</span> <span class="literal">true</span></span><br><span class="line">        errorMessage <span class="operator">=</span> <span class="literal">nil</span></span><br><span class="line"></span><br><span class="line">        currentTask <span class="operator">=</span> <span class="type">Task</span> &#123; [<span class="keyword">weak</span> <span class="keyword">self</span>] <span class="keyword">in</span></span><br><span class="line">            <span class="keyword">guard</span> <span class="keyword">let</span> <span class="keyword">self</span> <span class="keyword">else</span> &#123; <span class="keyword">return</span> &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">do</span> &#123;</span><br><span class="line">                <span class="keyword">let</span> data <span class="operator">=</span> <span class="keyword">try</span> <span class="keyword">await</span> repository.search(keyword: trimmed)</span><br><span class="line">                <span class="keyword">try</span> <span class="type">Task</span>.checkCancellation()</span><br><span class="line"></span><br><span class="line">                results <span class="operator">=</span> data</span><br><span class="line">                isLoading <span class="operator">=</span> <span class="literal">false</span></span><br><span class="line">                errorMessage <span class="operator">=</span> <span class="literal">nil</span></span><br><span class="line"></span><br><span class="line">            &#125; <span class="keyword">catch</span> <span class="keyword">is</span> <span class="type">CancellationError</span> &#123;</span><br><span class="line">                <span class="comment">// 任务被取消，不更新状态</span></span><br><span class="line">            &#125; <span class="keyword">catch</span> &#123;</span><br><span class="line">                results <span class="operator">=</span> []</span><br><span class="line">                isLoading <span class="operator">=</span> <span class="literal">false</span></span><br><span class="line">                errorMessage <span class="operator">=</span> <span class="string">&quot;搜索失败，请稍后再试&quot;</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>有几个点值得注意:</p>
+<ul>
+<li>输入检查在 ViewModel 内完成。空关键字时不发起请求，而是直接清空结果和状态，这种逻辑属于业务层，不应该留在控制器。</li>
+<li>任务取消逻辑集中在 ViewModel。每次搜索都会取消上一条 Task，避免快速输入导致的任务堆积和乱序问题。也就是说，“最新输入拥有最高优先级”。</li>
+<li>所有状态变化都通过 @Published 暴露出去。控制器只订阅 results、isLoading 和 errorMessage 三个属性，不关心内部逻辑细节。这种状态集中管理方式在复杂页面里会显得格外重要。</li>
+</ul>
+<p>从框架角度看，ViewModel 正好是 Combine、async&#x2F;await 和 @Published 的交汇点：</p>
+<ul>
+<li>文本输入通过 Combine 传入</li>
+<li>业务处理通过 async&#x2F;await 完成</li>
+<li>结果与状态通过 @Published 传播出去</li>
+</ul>
+<p>三者在这里实现了自然的组合。</p>
+<h3 id="4-3-Repository：只负责异步-IO"><a href="#4-3-Repository：只负责异步-IO" class="headerlink" title="4.3 Repository：只负责异步 IO"></a>4.3 Repository：只负责异步 IO</h3><p>Repository 层的目标是提供清晰、可测试的异步接口，不参与 UI 与状态管理。示例中给出了最简化版本：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">SearchRepository</span> &#123;</span><br><span class="line">    <span class="keyword">enum</span> <span class="title class_">SearchError</span>: <span class="title class_ inherited__">Error</span> &#123;</span><br><span class="line">        <span class="keyword">case</span> emptyKeyword</span><br><span class="line">        <span class="keyword">case</span> serverError</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">func</span> <span class="title function_">search</span>(<span class="params">keyword</span>: <span class="type">String</span>) <span class="keyword">async</span> <span class="keyword">throws</span> -&gt; [<span class="type">String</span>] &#123;</span><br><span class="line">        <span class="keyword">let</span> trimmed <span class="operator">=</span> keyword.trimmingCharacters(in: .whitespacesAndNewlines)</span><br><span class="line">        <span class="keyword">if</span> trimmed.isEmpty &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="type">SearchError</span>.emptyKeyword</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">try</span> <span class="keyword">await</span> <span class="type">Task</span>.sleep(nanoseconds: <span class="number">500_000_000</span>)  <span class="comment">// 模拟网络延迟</span></span><br><span class="line">        <span class="keyword">if</span> <span class="type">Bool</span>.random() &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="type">SearchError</span>.serverError</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> [<span class="string">&quot;「<span class="subst">\(trimmed)</span>」相关结果一&quot;</span>, <span class="string">&quot;「<span class="subst">\(trimmed)</span>」相关结果二&quot;</span>, <span class="string">&quot;「<span class="subst">\(trimmed)</span>」相关结果三&quot;</span>, <span class="string">&quot;「<span class="subst">\(trimmed)</span>」更多内容……&quot;</span>]</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在真实项目中，这一层可以进一步扩展：</p>
+<ol>
+<li>把 URLSession 请求封装为 async 函数</li>
+<li>集中处理 HTTP 状态码、解析错误等通用逻辑</li>
+<li>支持缓存逻辑，例如内存缓存或磁盘缓存</li>
+<li>在单元测试中被轻松替换为 mock 实现</li>
+</ol>
+<p>Repository 不需要关心 ViewModel 使用 @Published 还是别的方式，只暴露一个简单的 async 接口。这样做的好处是，未来如果要迁移到 SwiftUI，数据层都不需要大改。</p>
+<h3 id="4-4-三层协作关系的整体视角"><a href="#4-4-三层协作关系的整体视角" class="headerlink" title="4.4 三层协作关系的整体视角"></a>4.4 三层协作关系的整体视角</h3><p>把三部分合起来看，可以得到一条相当清晰的流程线：</p>
+<ol>
+<li>控制器把 UITextField 的变化转成 Combine 事件流</li>
+<li>事件流经 debounce 处理后交给 ViewModel</li>
+<li>ViewModel 调用 async&#x2F;await 的 Repository 方法发起搜索</li>
+<li>任务完成或取消后，ViewModel 更新 @Published 状态</li>
+<li>控制器订阅这些状态并刷新表格、指示器和错误文案</li>
+</ol>
+<p>输入、逻辑、状态各自的归属非常明确：</p>
+<ul>
+<li>输入属于控制器</li>
+<li>逻辑属于 ViewModel</li>
+<li>数据访问属于 Repository</li>
+<li>界面展示则由控制器在订阅状态后完成渲染更新</li>
+</ul>
+<p>这种分工模式不是只服务于一个搜索界面，而是可以在整个 UIKit 项目中复用。无论是登录表单、筛选条件、复杂数据面板、列表分页，甚至多条件联动的业务流程，只要遵循这套分工，异步行为的复杂度都会显著下降。下一章会在这套架构的基础上，进一步深入任务管理与状态一致性的问题，围绕快速输入、取消、乱序结果等常见场景展开，让这套模式在更高强度的异步环境中依旧保持稳定。</p>
+<h2 id="5-异步任务管理：快速输入、取消逻辑与状态一致性"><a href="#5-异步任务管理：快速输入、取消逻辑与状态一致性" class="headerlink" title="5. 异步任务管理：快速输入、取消逻辑与状态一致性"></a>5. 异步任务管理：快速输入、取消逻辑与状态一致性</h2><p>搜索界面本身不算复杂，但在真实使用时，异步行为会快速暴露出不少工程问题。例如输入频繁变化、网络响应顺序不稳定、任务堆积、旧结果覆盖新结果等。这些问题在 UIKit 项目中非常常见，处理得不好，就会造成 UI 闪烁、状态错乱、延迟甚至崩溃。这一章聚焦三个关键主题，也是现代异步架构的核心能力：</p>
+<ol>
+<li>快速输入下的任务取消</li>
+<li>异步结果乱序（Out-of-order）</li>
+<li>任务生命周期管理</li>
+</ol>
+<p>这些内容是构建可预测异步系统最关键的基础。</p>
+<h3 id="5-1-快速输入导致的连续请求风暴"><a href="#5-1-快速输入导致的连续请求风暴" class="headerlink" title="5.1 快速输入导致的连续请求风暴"></a>5.1 快速输入导致的连续请求风暴</h3><p>在搜索界面中，文本框输入通常是连续的。在短时间内触发十几次甚至几十次输入改动是很常见的。如果每一次输入都直接触发网络请求，会导致一系列问题：</p>
+<ul>
+<li>网络被频繁请求</li>
+<li>用户体验糟糕</li>
+<li>旧请求还没结束，新的又被发送</li>
+<li>请求堆积最终影响性能和电量</li>
+</ul>
+<p>使用 Combine 的 debounce 方法，可以让文本输入在短时间稳定下来后再触发搜索。例如示例使用了 400ms 的防抖时间。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.debounce(for: .milliseconds(<span class="number">400</span>), scheduler: <span class="type">RunLoop</span>.main)</span><br></pre></td></tr></table></figure>
+<p>这使得输入行为变得可控，不会在用户快速打字时触发一连串请求。debounce 对 UI 输入来说基本是必需的，但还不够，因为就算触发次数减少，仍然可能遇到一个更麻烦的问题：乱序。</p>
+<h3 id="5-2-异步结果乱序：典型的-Out-of-Order-问题"><a href="#5-2-异步结果乱序：典型的-Out-of-Order-问题" class="headerlink" title="5.2 异步结果乱序：典型的 Out-of-Order 问题"></a>5.2 异步结果乱序：典型的 Out-of-Order 问题</h3><p>即便输入节流处理得再好，最终还是不可避免会存在以下情况：</p>
+<ol>
+<li>用户输入 A，发起请求 A</li>
+<li>用户马上输入 B，发起请求 B</li>
+<li>请求 B 更快返回</li>
+<li>请求 A 稍慢返回，但覆盖了结果</li>
+</ol>
+<p>结果界面显示的却是 A 的结果，而用户明明输入的是 B。这个问题不是 Combine 的锅，也不是 async&#x2F;await 的锅，而是网络和线程调度本身的正常行为。唯一能解决的方法，是让逻辑保证：只有最新的请求可以更新界面，旧任务的输出应被忽略，示例中的 ViewModel 已经展示了这种做法，通过取消方式实现：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">currentTask<span class="operator">?</span>.cancel()</span><br><span class="line">currentTask <span class="operator">=</span> <span class="type">Task</span> &#123; <span class="operator">...</span> &#125;</span><br></pre></td></tr></table></figure>
+<p>每次开始新的搜索任务，都将旧任务取消。除此之外，还应该在 Task 内检查是否已经被取消：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> <span class="type">Task</span>.checkCancellation()</span><br></pre></td></tr></table></figure>
+<p>这行代码确保在 await 恢复后再继续逻辑之前，确认任务仍然有效。要点是：</p>
+<ul>
+<li>取消并不等于马上终止，需要主动检查</li>
+<li>检查点越靠近结果更新越有效</li>
+<li>必须在状态更新前进行校验</li>
+</ul>
+<p>正确处理 out-of-order 问题后，搜索结果始终与最新输入保持一致。</p>
+<h3 id="5-3-任务生命周期管理"><a href="#5-3-任务生命周期管理" class="headerlink" title="5.3 任务生命周期管理"></a>5.3 任务生命周期管理</h3><p>常见 UIKit 项目的另一个坑是任务生命周期失控。包括：</p>
+<ul>
+<li>任务没取消，用户切换页面还在执行</li>
+<li>快速输入导致数十个任务堆积</li>
+<li>ViewModel 销毁后任务仍在后台运行</li>
+<li>Cell 重用中任务无法映射到正确的 indexPath</li>
+</ul>
+<p>这些问题看起来分散，根源却一致：任务的生命周期应该绑定到具体的业务实体，而不是任由其在全局运行。<br>在示例中，任务被明确地绑定到 ViewModel：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">var</span> currentTask: <span class="type">Task</span>&lt;<span class="type">Void</span>, <span class="type">Never</span>&gt;?</span><br></pre></td></tr></table></figure>
+<p>ViewModel 存在时任务存在，ViewModel 被释放时任务一并取消，每次启动新任务会取消旧任务。UIKit 第一视图层级较为复杂，控制器生命周期不稳定，尤其在 push、pop、modal 切换过程中，ViewController 可能被多次加载、销毁、重新构建。因此把任务放在控制器里并不理想。</p>
+<p>放在 ViewModel 内部会更加稳定，因为：ViewModel 通常与页面绑定。它的生命周期更接近业务状态，不容易被 UI 事件意外触发或移除。</p>
+<h3 id="5-4-approach-对比：为什么不用-OperationQueue-或-GCD？"><a href="#5-4-approach-对比：为什么不用-OperationQueue-或-GCD？" class="headerlink" title="5.4 approach 对比：为什么不用 OperationQueue 或 GCD？"></a>5.4 approach 对比：为什么不用 OperationQueue 或 GCD？</h3><p>UIKit 时代常见的任务机制包括：</p>
+<ul>
+<li>DispatchWorkItem</li>
+<li>GCD 异步队列</li>
+<li>OperationQueue &#x2F; Operation</li>
+</ul>
+<p>它们仍然可用，但 async&#x2F;await 和 Task 足以替代这些较老机制：</p>
+<ul>
+<li>更自然的控制流（await）</li>
+<li>更清晰的取消语义</li>
+<li>任务结构化，不需要手动管理依赖</li>
+<li>更贴近 Swift 并发模型</li>
+</ul>
+<p>举个简单例子，GCD 取消任务实际上并不是真正的取消；OperationQueue 的取消需要手动检查 cancel 状态；而 Swift 的 Task 拥有真正的取消传播机制，简化了大量控制代码。对于搜索示例这种 UI 驱动的异步行为而言，Task 更适合承担核心角色。</p>
+<p><strong>小结：任务管理的三个关键点</strong><br>整个系统要稳定运行，需要关注三个点：</p>
+<ul>
+<li>输入节流，用 debounce 控制触发频率，让事件进入有序节奏。</li>
+<li>最新任务优先，每次请求前取消旧任务，确保结果不会乱序污染 UI。</li>
+<li>生命周期绑定，让任务绑定到 ViewModel，让逻辑跟随业务状态走，而不是跟随 UI 生命周期走。</li>
+</ul>
+<p>具备这些基础后，就能安全、清晰地处理大部分异步场景。下一章将在此基础上进一步展开，讨论如何让 UI 更新更高效，包括列表加载、滚动过程中的取消、异步图片加载，以及更复杂界面中如何使用相同模式提升体验。</p>
+<h2 id="6-UI-异步优化：列表加载、滚动过程与异步图片的处理方式"><a href="#6-UI-异步优化：列表加载、滚动过程与异步图片的处理方式" class="headerlink" title="6. UI 异步优化：列表加载、滚动过程与异步图片的处理方式"></a>6. UI 异步优化：列表加载、滚动过程与异步图片的处理方式</h2><p>异步任务在真实界面中的表现，往往不是简单的“发起请求并显示结果”。UIKit 的 UI 交互更多来自滚动、快速变化的可视区域、列表重用、多层内容组合。只要涉及列表或异步加载，就会带来任务取消、绑定关系不清晰、数据错位、闪烁等问题。这一章围绕三个常见的 UIKit 场景展开：</p>
+<ol>
+<li>列表内容异步加载</li>
+<li>滚动动作加速导致的任务取消</li>
+<li>Cell 重用与异步任务错位</li>
+</ol>
+<p>这些问题的解决思路，与搜索示例使用的结构化异步模型高度一致，只是延伸到了更复杂的 UI 交互中。</p>
+<h3 id="6-1-UITableView-与异步加载的典型问题"><a href="#6-1-UITableView-与异步加载的典型问题" class="headerlink" title="6.1 UITableView 与异步加载的典型问题"></a>6.1 UITableView 与异步加载的典型问题</h3><p>列表是 UIKit 最常见的独立视图，而列表滚动又是异步逻辑出错的地方。常见典型问题包括：</p>
+<ul>
+<li>任务完成顺序与 Cell 显示顺序不一致</li>
+<li>Cell 重用导致旧任务结果出现在新位置</li>
+<li>滚动太快触发大量网络请求</li>
+<li>加载过程中 UI 闪烁或出现错误图片</li>
+</ul>
+<p>这些问题本质上与搜索示例中遇到的 Out-of-order 类似，但影响范围更大，因为一个列表可能同时存在数十到数百个 Cell。在这种情况下，异步任务必须和 Cell、indexPath 或数据模型绑定得更加准确，否则很容易出现错位。</p>
+<h3 id="6-2-使用-indexPath-绑定任务的最小可靠策略"><a href="#6-2-使用-indexPath-绑定任务的最小可靠策略" class="headerlink" title="6.2 使用 indexPath 绑定任务的最小可靠策略"></a>6.2 使用 indexPath 绑定任务的最小可靠策略</h3><p>一种简单且有效的处理方式，是在发起异步任务前记录当前 indexPath，任务完成后再检查是否仍然匹配。示例代码如下：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">func</span> <span class="title function_">configure</span>(<span class="params">with</span> <span class="params">item</span>: <span class="type">Item</span>, <span class="params">at</span> <span class="params">indexPath</span>: <span class="type">IndexPath</span>) &#123;</span><br><span class="line">    <span class="keyword">self</span>.indexPath <span class="operator">=</span> indexPath</span><br><span class="line">    currentTask<span class="operator">?</span>.cancel()</span><br><span class="line">    currentTask <span class="operator">=</span> <span class="type">Task</span> &#123;</span><br><span class="line">        <span class="keyword">let</span> image <span class="operator">=</span> <span class="keyword">try</span> <span class="keyword">await</span> imageLoader.load(item.imageURL)</span><br><span class="line">        <span class="keyword">try</span> <span class="type">Task</span>.checkCancellation()</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">self</span>.indexPath <span class="operator">==</span> indexPath &#123;</span><br><span class="line">            <span class="keyword">self</span>.imageView.image <span class="operator">=</span> image</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这段模式具备几个特点：</p>
+<ul>
+<li>每个 Cell 持有自己的 Task</li>
+<li>Cell 重用时会取消旧任务</li>
+<li>完成回调会检查 indexPath 是否一致</li>
+<li>只有匹配的结果才会被应用到 UI</li>
+</ul>
+<p>这比传统的 tag 对比方式更安全，也比通知或回调方式更集中。</p>
+<h3 id="6-3-滚动过程中的节流"><a href="#6-3-滚动过程中的节流" class="headerlink" title="6.3 滚动过程中的节流"></a>6.3 滚动过程中的节流</h3><p>快速滚动时触发网络或解码任务，会导致卡顿甚至掉帧。这类问题可以用 Combine 的 throttle 或 debounce 控制触发频率。例如实现“下拉加载更多”或“滚动到底部加载下一页”，通常会监听 scrollView 的偏移量：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">scrollPublisher</span><br><span class="line">    .throttle(for: .milliseconds(<span class="number">200</span>), scheduler: <span class="type">RunLoop</span>.main, latest: <span class="literal">true</span>)</span><br><span class="line">    .sink &#123; offset <span class="keyword">in</span></span><br><span class="line">        <span class="keyword">if</span> offset.isNearBottom &#123;</span><br><span class="line">            viewModel.loadNextPage()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    .store(in: <span class="operator">&amp;</span>cancellables)</span><br></pre></td></tr></table></figure>
+<p>节流处理能显著减少不必要的计算和网络请求，使滚动保持流畅。</p>
+<h3 id="6-4-异步图片加载：更通用的结构"><a href="#6-4-异步图片加载：更通用的结构" class="headerlink" title="6.4 异步图片加载：更通用的结构"></a>6.4 异步图片加载：更通用的结构</h3><p>UIKit 场景中图片加载是极常见的工作。一个健壮的加载器通常具备以下特性：</p>
+<ul>
+<li>缓存支持（内存缓存、磁盘缓存）</li>
+<li>请求合并（同一 URL 不要重复请求）</li>
+<li>任务取消（Cell 滚动时不浪费资源）</li>
+<li>失效检查（确保图片与当前 Cell 对应）</li>
+</ul>
+<p>一个简单的加载器可以使用 actor 管理缓存：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">actor</span> <span class="title class_">ImageCache</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">var</span> cache: [<span class="type">URL</span>: <span class="type">UIImage</span>] <span class="operator">=</span> [:]</span><br><span class="line">    <span class="keyword">func</span> <span class="title function_">image</span>(<span class="params">for</span> <span class="params">url</span>: <span class="type">URL</span>) -&gt; <span class="type">UIImage</span>? &#123;</span><br><span class="line">        cache[url]</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">func</span> <span class="title function_">set</span>(<span class="keyword">_</span> <span class="params">image</span>: <span class="type">UIImage</span>, <span class="params">for</span> <span class="params">url</span>: <span class="type">URL</span>) &#123;</span><br><span class="line">        cache[url] <span class="operator">=</span> image</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>actor 是 Swift 里用于构建线程安全引用类型的关键字，自动防止并发访问冲突，不需要自己加锁，比 class 更适合管理共享可变状态。加载逻辑：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">func</span> <span class="title function_">load</span>(<span class="keyword">_</span> <span class="params">url</span>: <span class="type">URL</span>) <span class="keyword">async</span> <span class="keyword">throws</span> -&gt; <span class="type">UIImage</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">let</span> cached <span class="operator">=</span> <span class="keyword">await</span> cache.image(for: url) &#123;</span><br><span class="line">        <span class="keyword">return</span> cached</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">let</span> (data, <span class="keyword">_</span>) <span class="operator">=</span> <span class="keyword">try</span> <span class="keyword">await</span> <span class="type">URLSession</span>.shared.data(from: url)</span><br><span class="line">    <span class="keyword">guard</span> <span class="keyword">let</span> image <span class="operator">=</span> <span class="type">UIImage</span>(data: data) <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="type">ImageError</span>.invalidData</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">await</span> cache.set(image, for: url)</span><br><span class="line">    <span class="keyword">return</span> image</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这种结构可以不依赖第三方库，且可以自然结合 Task 和任务取消机制。</p>
+<h3 id="6-5-列表异步加载的最佳工程实践"><a href="#6-5-列表异步加载的最佳工程实践" class="headerlink" title="6.5 列表异步加载的最佳工程实践"></a>6.5 列表异步加载的最佳工程实践</h3><p>将前面所有内容整合，可以总结出一套可广泛适用的最佳实践模式：</p>
+<ul>
+<li>任务绑定到 Cell 或 ViewModel</li>
+<li>所有异步加载必须具备任务取消能力</li>
+<li>Cell 重用时立即取消旧任务</li>
+<li>结果更新之前必须检查有效性</li>
+<li>滚动事件需要节流或合并</li>
+<li>缓存逻辑放在独立模块，避免 ViewModel 重复计算</li>
+<li>任何 UI 状态更新都应回到主线程（@MainActor 或 MainActor.run）</li>
+</ul>
+<p>这些原则能让列表滚动、异步加载和 UI 刷新保持稳定，也能避免难以定位的错位 bug。</p>
+<h3 id="6-6-UI-与异步结合的核心思想"><a href="#6-6-UI-与异步结合的核心思想" class="headerlink" title="6.6 UI 与异步结合的核心思想"></a>6.6 UI 与异步结合的核心思想</h3><p>无论是图片加载、搜索提示、分页还是后台数据刷新，最终都可以概括成一个核心思想：异步行为必须与界面状态一致，不一致的原因要么是任务没取消，要么是状态没有集中管理，要么是事件过度频繁，要么是完成回调时上下文已经变化。</p>
+<p>结构化并发、Combine 和 @Published 的组合，其实就是把这些问题交回到了一个更清晰的架构体系里：</p>
+<ul>
+<li>Combine 负责输入节奏和事件流</li>
+<li>async&#x2F;await 提供可靠的执行模型</li>
+<li>@Published 提供一致状态输出</li>
+<li>UI 则根据状态做展示，不关心异步细节。</li>
+</ul>
+<p>下一章将进一步讨论错误处理与状态管理，解释如何让状态体系更稳定、更容易扩展，以及如何在复杂业务中构建可控制的状态机。</p>
+<h2 id="7-错误处理与状态管理：构建清晰、可维护的状态系统"><a href="#7-错误处理与状态管理：构建清晰、可维护的状态系统" class="headerlink" title="7. 错误处理与状态管理：构建清晰、可维护的状态系统"></a>7. 错误处理与状态管理：构建清晰、可维护的状态系统</h2><p>异步行为不仅带来任务和时序上的复杂度，还会引发更容易被忽略的问题：错误如何统一处理、状态如何保持清晰、UI 如何在状态变化中保持一致。随着界面逻辑越来越复杂，处理不好这一层，很容易出现 UI 混乱、加载指示器闪烁、错误提示覆盖不对时机的问题。这一章聚焦于三件核心事情：</p>
+<ol>
+<li>如何让错误处理更统一</li>
+<li>如何构建稳定的状态系统</li>
+<li>如何让 UI 始终跟随状态，而不是跟随逻辑分支</li>
+</ol>
+<p>这部分内容看似偏理论，但在实际开发中很实用，可以显著降低后续改动的风险。</p>
+<h3 id="7-1-错误来源的多样性与统一入口"><a href="#7-1-错误来源的多样性与统一入口" class="headerlink" title="7.1 错误来源的多样性与统一入口"></a>7.1 错误来源的多样性与统一入口</h3><p>在一个真实的异步系统中，错误可能来自多种层级：</p>
+<ul>
+<li>网络连接错误</li>
+<li>服务器返回错误</li>
+<li>超时</li>
+<li>解析失败</li>
+<li>非预期数据格式</li>
+<li>任务取消</li>
+<li>ViewModel 的业务校验错误</li>
+<li>自定义逻辑抛出的异常</li>
+</ul>
+<p>如果每个错误都用不同的方式在不同地方处理，分散在各处、风格不一致、不利于维护。搜索示例中使用了统一的错误入口：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#125; <span class="keyword">catch</span> &#123;</span><br><span class="line">    results <span class="operator">=</span> []</span><br><span class="line">    isLoading <span class="operator">=</span> <span class="literal">false</span></span><br><span class="line">    errorMessage <span class="operator">=</span> <span class="string">&quot;搜索失败，请稍后再试&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>所有错误都被统一归集到一个状态更新点，UI 只依赖 errorMessage，不关心错误类型。这种方式有几个特点：</p>
+<ul>
+<li>ViewModel 是错误的屏障，控制器不处理错误</li>
+<li>所有错误都转成统一的 UI 状态</li>
+<li>UI 层不需要写大量 if&#x2F;else 判断</li>
+</ul>
+<p>这让界面逻辑变得轻量、稳定。</p>
+<h3 id="7-2-使用-Published-构建清晰状态流"><a href="#7-2-使用-Published-构建清晰状态流" class="headerlink" title="7.2 使用 @Published 构建清晰状态流"></a>7.2 使用 @Published 构建清晰状态流</h3><p>在 MVC 模式中，状态往往散布在多个地方，也可能因为回调顺序不一致导致 UI 的状态与业务状态不同步。引入 @Published 后，状态变得集中且可观察。以搜索示例为例：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Published</span> <span class="keyword">var</span> results: [<span class="type">String</span>] <span class="operator">=</span> []</span><br><span class="line"><span class="meta">@Published</span> <span class="keyword">var</span> isLoading: <span class="type">Bool</span> <span class="operator">=</span> <span class="literal">false</span></span><br><span class="line"><span class="meta">@Published</span> <span class="keyword">var</span> errorMessage: <span class="type">String</span>?</span><br></pre></td></tr></table></figure>
+<p>任何层修改了这三个状态之一，控制器就能立即更新界面，不需要自己写判断逻辑。后续如果界面增加更多元素，例如：</p>
+<ul>
+<li>空状态文案</li>
+<li>重试按钮</li>
+<li>下拉刷新</li>
+<li>分页状态指示器</li>
+</ul>
+<p>依然只需要补充新的 @Published 属性，而不需要到处改判断条件。ViewModel 变成了整个页面的状态源，而不是把状态藏在控制器内部，各个部分独立更新。</p>
+<h3 id="7-3-状态更新顺序的稳定性"><a href="#7-3-状态更新顺序的稳定性" class="headerlink" title="7.3 状态更新顺序的稳定性"></a>7.3 状态更新顺序的稳定性</h3><p>一个常见问题是：加载状态、结果状态、错误状态之间的更新顺序可能混乱，会导致 UI 闪动或状态不一致。例如：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 开始加载</span></span><br><span class="line">isLoading <span class="operator">=</span> <span class="literal">true</span></span><br><span class="line">results <span class="operator">=</span> []</span><br><span class="line">errorMessage <span class="operator">=</span> <span class="literal">nil</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 异步结束</span></span><br><span class="line">isLoading <span class="operator">=</span> <span class="literal">false</span></span><br><span class="line">results <span class="operator">=</span> <span class="operator">…</span></span><br><span class="line">errorMessage <span class="operator">=</span> <span class="literal">nil</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 异步抛出了错误，可能变成</span></span><br><span class="line">isLoading <span class="operator">=</span> <span class="literal">false</span></span><br><span class="line">results <span class="operator">=</span> []</span><br><span class="line">errorMessage <span class="operator">=</span> “失败”</span><br></pre></td></tr></table></figure>
+<p>为了避免状态不一致，有两个基本原则：  </p>
+<h4 id="原则一：同一事件产生的状态更新放在一起"><a href="#原则一：同一事件产生的状态更新放在一起" class="headerlink" title="原则一：同一事件产生的状态更新放在一起"></a>原则一：同一事件产生的状态更新放在一起</h4><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">func</span> <span class="title function_">performSearch</span>(<span class="params">keyword</span>: <span class="type">String</span>) &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    <span class="comment">// 加载中</span></span><br><span class="line">    isLoading <span class="operator">=</span> <span class="literal">true</span></span><br><span class="line">    errorMessage <span class="operator">=</span> <span class="literal">nil</span></span><br><span class="line"></span><br><span class="line">    currentTask <span class="operator">=</span> <span class="type">Task</span> &#123; [<span class="keyword">weak</span> <span class="keyword">self</span>] <span class="keyword">in</span></span><br><span class="line">        <span class="keyword">guard</span> <span class="keyword">let</span> <span class="keyword">self</span> <span class="keyword">else</span> &#123; <span class="keyword">return</span> &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">do</span> &#123;</span><br><span class="line">            <span class="keyword">let</span> data <span class="operator">=</span> <span class="keyword">try</span> <span class="keyword">await</span> repository.search(keyword: trimmed)</span><br><span class="line">            <span class="keyword">try</span> <span class="type">Task</span>.checkCancellation()</span><br><span class="line">	</span><br><span class="line"><span class="comment">// 在成功分支中处理</span></span><br><span class="line">            results <span class="operator">=</span> data</span><br><span class="line">            isLoading <span class="operator">=</span> <span class="literal">false</span></span><br><span class="line">            errorMessage <span class="operator">=</span> <span class="literal">nil</span></span><br><span class="line">        &#125; <span class="keyword">catch</span> <span class="keyword">is</span> <span class="type">CancellationError</span> &#123;</span><br><span class="line">            <span class="comment">// 不更新 UI</span></span><br><span class="line">        &#125; <span class="keyword">catch</span> &#123;</span><br><span class="line">         <span class="comment">// 在错误分支中处理</span></span><br><span class="line">            results <span class="operator">=</span> []</span><br><span class="line">            isLoading <span class="operator">=</span> <span class="literal">false</span></span><br><span class="line">            errorMessage <span class="operator">=</span> <span class="string">&quot;搜索失败，请稍后再试&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这种写法的优势是：</p>
+<ul>
+<li>逻辑清晰</li>
+<li>不会出现遗漏</li>
+<li>控制器自动感知状态变化</li>
+</ul>
+<h4 id="原则二：状态之间要有明确职责区分"><a href="#原则二：状态之间要有明确职责区分" class="headerlink" title="原则二：状态之间要有明确职责区分"></a>原则二：状态之间要有明确职责区分</h4><p>例如避免让 isLoading 决定 error 是否展示，而是让 errorMessage 自己控制。这样每个状态只负责一个 UI 维度：</p>
+<ul>
+<li>results 管列表</li>
+<li>isLoading 管指示器</li>
+<li>errorMessage 管错误提示</li>
+</ul>
+<p>视图不需要再额外判断三个状态之间的关系。</p>
+<h3 id="7-4-错误状态的可扩展性"><a href="#7-4-错误状态的可扩展性" class="headerlink" title="7.4 错误状态的可扩展性"></a>7.4 错误状态的可扩展性</h3><p>后续如果需要给错误增加更多信息：</p>
+<ul>
+<li>错误的类型</li>
+<li>错误的来源</li>
+<li>是否可重试</li>
+<li>提示的文案</li>
+<li>应该展示哪种 UI</li>
+</ul>
+<p>可以从 errorMessage: String? 演进为枚举：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> <span class="title class_">SearchErrorState</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> none</span><br><span class="line">    <span class="keyword">case</span> message(<span class="type">String</span>)</span><br><span class="line">    <span class="keyword">case</span> retryable(<span class="type">String</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Published</span> <span class="keyword">var</span> errorState: <span class="type">SearchErrorState</span> <span class="operator">=</span> .none</span><br></pre></td></tr></table></figure>
+<p>这种状态机式写法非常适合复杂界面，尤其是多个状态互斥的页面：空白页、加载中、正常结果、错误展示。通过 enum 可以自然表达彼此之间的关系，比使用多个 Bool 值会好很多。</p>
+<h3 id="7-5-处理取消带来的状态问题"><a href="#7-5-处理取消带来的状态问题" class="headerlink" title="7.5 处理取消带来的状态问题"></a>7.5 处理取消带来的状态问题</h3><p>取消是一种特殊场景，因为取消意味着任务“本来是在执行，但中途不再需要结果”。如果不加处理，可能出现：</p>
+<ul>
+<li>取消后突然覆盖结果</li>
+<li>取消后错误提示出现</li>
+<li>取消后 UI 回到错误状态</li>
+<li>取消后加载状态保持为 true</li>
+</ul>
+<p>示例中的做法是：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">catch</span> <span class="keyword">is</span> <span class="type">CancellationError</span> &#123;</span><br><span class="line">    <span class="comment">// 不更新 UI</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>意味着取消并不属于成功，不属于错误，也不属于空态，只是一种“保持当前状态就好”的情况。这是处理取消最稳定且最自然的方式。</p>
+<p><strong>状态管理的小结</strong><br>整个状态系统遵循以下三个核心：</p>
+<ul>
+<li><strong>所有状态都由 ViewModel 统一持有</strong><br>  控制器永远不拥有业务状态，只做 UI 展示。</li>
+<li><strong>状态之间职责分明，不相互影响</strong><br>  loading、error、results 是三条平行的轴。</li>
+<li><strong>错误和取消必须有明确、可预测的行为</strong><br>  取消不会影响 UI，错误统一集中处理</li>
+</ul>
+<p>只要坚持这三点，后续即便界面变得更复杂，异步逻辑更密集，整个页面依旧能够保持稳定，不容易陷入“加了一个判断，UI 又乱了”的局面。</p>
+<h2 id="8-测试策略：在异步与状态驱动架构中保持可验证性"><a href="#8-测试策略：在异步与状态驱动架构中保持可验证性" class="headerlink" title="8. 测试策略：在异步与状态驱动架构中保持可验证性"></a>8. 测试策略：在异步与状态驱动架构中保持可验证性</h2><p>具备良好结构的异步架构，必须能够被测试。UIKit 项目如果没有测试支撑，一旦异步逻辑变复杂，就会面临大量回归问题：状态更新顺序不对、取消行为出错、错误展示位置不正确、无限 loading、重复请求等。</p>
+<p>本章重点讨论构建在 Combine + async&#x2F;await + @Published 基础上的搜索模块，应该如何编写稳定、可重复且真正有价值的测试。核心分三块：</p>
+<ol>
+<li>测试 ViewModel 的状态流</li>
+<li>测试 async&#x2F;await 的异步逻辑</li>
+<li>测试 Combine 输入事件</li>
+</ol>
+<h3 id="8-1-测试-ViewModel：验证状态更新是否正确"><a href="#8-1-测试-ViewModel：验证状态更新是否正确" class="headerlink" title="8.1 测试 ViewModel：验证状态更新是否正确"></a>8.1 测试 ViewModel：验证状态更新是否正确</h3><p>ViewModel 是搜索模块的核心逻辑，测试重点是确保它在不同输入和不同异步结果下能给出正确的状态变化。由于使用了 @Published，可以通过 Combine 来观察它的状态。<br>一个简单的测试示例：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">func</span> <span class="title function_">test_searchSuccess</span>() <span class="keyword">async</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> mockRepo <span class="operator">=</span> <span class="type">MockSearchRepository</span>(result: [<span class="string">&quot;A&quot;</span>, <span class="string">&quot;B&quot;</span>])</span><br><span class="line">    <span class="keyword">let</span> vm <span class="operator">=</span> <span class="keyword">await</span> <span class="type">SearchViewModel</span>(repository: mockRepo)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">var</span> states <span class="operator">=</span> [[<span class="type">String</span>]]()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> cancellable <span class="operator">=</span> <span class="keyword">await</span> vm.<span class="variable">$results</span></span><br><span class="line">        .sink &#123; value <span class="keyword">in</span></span><br><span class="line">            states.append(value)</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">await</span> vm.performSearch(keyword: <span class="string">&quot;Hi&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 允许任务执行一段时间</span></span><br><span class="line">    <span class="keyword">try?</span> <span class="keyword">await</span> <span class="type">Task</span>.sleep(nanoseconds: <span class="number">100_000_000</span>)</span><br><span class="line"></span><br><span class="line">    <span class="type">XCTAssertEqual</span>(states.last, [<span class="string">&quot;A&quot;</span>, <span class="string">&quot;B&quot;</span>])</span><br><span class="line"></span><br><span class="line">    cancellable.cancel()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>要点：</p>
+<ul>
+<li>使用 Mock repository 来控制异步返回</li>
+<li>使用 await 捕获状态变化</li>
+<li>测试的是结果状态，而非 UI</li>
+<li>检查最后的状态是否符合预期</li>
+</ul>
+<p>这种方式对于复杂状态流（包含 loading、error、data）同样有效。</p>
+<h3 id="8-2-测试-loading-与-error-状态"><a href="#8-2-测试-loading-与-error-状态" class="headerlink" title="8.2 测试 loading 与 error 状态"></a>8.2 测试 loading 与 error 状态</h3><p>例如测试错误的情况：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">func</span> <span class="title function_">test_searchError</span>() <span class="keyword">async</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> mockRepo <span class="operator">=</span> <span class="type">MockSearchRepository</span>(error: .serverError)</span><br><span class="line">    <span class="keyword">let</span> vm <span class="operator">=</span> <span class="keyword">await</span> <span class="type">SearchViewModel</span>(repository: mockRepo)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">await</span> vm.performSearch(keyword: <span class="string">&quot;Hello&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try?</span> <span class="keyword">await</span> <span class="type">Task</span>.sleep(nanoseconds: <span class="number">100_000_000</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> errorMessage <span class="operator">=</span> <span class="keyword">await</span> vm.errorMessage</span><br><span class="line">    <span class="keyword">let</span> results <span class="operator">=</span> <span class="keyword">await</span> vm.results</span><br><span class="line"></span><br><span class="line">    <span class="type">XCTAssertNil</span>(results)</span><br><span class="line">    <span class="type">XCTAssertEqual</span>(errorMessage, <span class="string">&quot;搜索失败，请稍后再试&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过这种方式可以单独验证每一种错误分支。</p>
+<h3 id="8-3-测试取消行为"><a href="#8-3-测试取消行为" class="headerlink" title="8.3 测试取消行为"></a>8.3 测试取消行为</h3><p>取消行为是异步逻辑中最容易出错的部分，尤其在连续输入时。测试取消的关键是确保旧任务不会覆盖新任务结果：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">func</span> <span class="title function_">test_searchCancellation</span>() <span class="keyword">async</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> mockRepo <span class="operator">=</span> <span class="type">SlowMockRepo</span>()</span><br><span class="line">    <span class="keyword">let</span> vm <span class="operator">=</span> <span class="keyword">await</span> <span class="type">SearchViewModel</span>(repository: mockRepo)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">await</span> vm.performSearch(keyword: <span class="string">&quot;A&quot;</span>)</span><br><span class="line">    <span class="keyword">await</span> vm.performSearch(keyword: <span class="string">&quot;B&quot;</span>)  <span class="comment">// 取消 A</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">try?</span> <span class="keyword">await</span> <span class="type">Task</span>.sleep(nanoseconds: <span class="number">200_000_000</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> results <span class="operator">=</span> <span class="keyword">await</span> vm.results</span><br><span class="line">    <span class="type">XCTAssertEqual</span>(results, [<span class="string">&quot;B result&quot;</span>])</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里关键点在 mock repo 加入延迟，用来模拟 network 乱序，核心验证任务取消是否生效。</p>
+<h3 id="8-4-测试-async-函数：模拟各种异步行为"><a href="#8-4-测试-async-函数：模拟各种异步行为" class="headerlink" title="8.4 测试 async 函数：模拟各种异步行为"></a>8.4 测试 async 函数：模拟各种异步行为</h3><p>Mock repository 可以分为三类：</p>
+<ul>
+<li>成功快速返回</li>
+<li>成功但延迟</li>
+<li>失败返回</li>
+</ul>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">MockRepository</span>: <span class="title class_ inherited__">SearchRepositoryProtocol</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> delay: <span class="type">UInt64</span></span><br><span class="line">    <span class="keyword">let</span> result: [<span class="type">String</span>]<span class="operator">?</span></span><br><span class="line">    <span class="keyword">let</span> error: <span class="type">Error</span>?</span><br><span class="line"></span><br><span class="line">    <span class="keyword">func</span> <span class="title function_">search</span>(<span class="params">keyword</span>: <span class="type">String</span>) <span class="keyword">async</span> <span class="keyword">throws</span> -&gt; [<span class="type">String</span>] &#123;</span><br><span class="line">        <span class="keyword">try</span> <span class="keyword">await</span> <span class="type">Task</span>.sleep(nanoseconds: delay)</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">let</span> error <span class="operator">=</span> error &#123; <span class="keyword">throw</span> error &#125;</span><br><span class="line">        <span class="keyword">return</span> result <span class="operator">??</span> []</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用不同组合就能模拟各种网络场景。</p>
+<h3 id="8-5-测试-Combine-输入：模拟用户输入"><a href="#8-5-测试-Combine-输入：模拟用户输入" class="headerlink" title="8.5 测试 Combine 输入：模拟用户输入"></a>8.5 测试 Combine 输入：模拟用户输入</h3><p>在单元测试环境中，UIKit 的控件事件无法直接触发，例如 UITextField 的编辑事件。因此在测试输入逻辑时，重点不是去“模拟 UITextField”，而是直接测试 Combine。</p>
+<p>模拟方式是手动创建事件源，例如 PassthroughSubject，用它来构造与真实输入一致的事件流，然后观察经过 debounce、过滤、转换之后的输出是否正确。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">func</span> <span class="title function_">test_textInputDebounce</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> subject <span class="operator">=</span> <span class="type">PassthroughSubject</span>&lt;<span class="type">String</span>, <span class="type">Never</span>&gt;()</span><br><span class="line">    <span class="keyword">var</span> values <span class="operator">=</span> [<span class="type">String</span>]()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> cancellable <span class="operator">=</span> subject</span><br><span class="line">        .debounce(for: .milliseconds(<span class="number">300</span>), scheduler: <span class="type">DispatchQueue</span>.main)</span><br><span class="line">        .sink &#123; values.append(<span class="variable">$0</span>) &#125;</span><br><span class="line"></span><br><span class="line">    subject.send(<span class="string">&quot;H&quot;</span>)</span><br><span class="line">    subject.send(<span class="string">&quot;He&quot;</span>)</span><br><span class="line">    subject.send(<span class="string">&quot;Hel&quot;</span>)</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 等待 500ms 保证 debounce 触发</span></span><br><span class="line">    <span class="keyword">let</span> expectation <span class="operator">=</span> <span class="type">XCTestExpectation</span>(description: <span class="string">&quot;Wait&quot;</span>)</span><br><span class="line">    <span class="type">DispatchQueue</span>.main.asyncAfter(deadline: .now() <span class="operator">+</span> <span class="number">0.5</span>) &#123;</span><br><span class="line">        expectation.fulfill()</span><br><span class="line">    &#125;</span><br><span class="line">    wait(for: [expectation], timeout: <span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">    <span class="type">XCTAssertEqual</span>(values.last, <span class="string">&quot;Hel&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>能验证 UI 输入事件是否被防抖正确处理。</p>
+<h3 id="8-6-最佳实践：测试中要避免的误区"><a href="#8-6-最佳实践：测试中要避免的误区" class="headerlink" title="8.6 最佳实践：测试中要避免的误区"></a>8.6 最佳实践：测试中要避免的误区</h3><ul>
+<li>避免直接等固定时间（sleep），应使用小的延迟或 Task.yield，让测试稳定且快速</li>
+<li>避免测试 UI 细节，应测试状态，而非 UI 地方的 label 文案</li>
+<li>避免在同一测试中验证太多状态变化，测试的粒度越清晰，可维护性越高</li>
+<li>避免使用真实网络，测试必须完全可控，不能受外部环境影响</li>
+<li>当 ViewModel 使用 @MainActor 时，确保测试也在主线程执行，这是 Swift Concurrency 下常见的问题</li>
+</ul>
+<p><strong>测试总结</strong><br>通过 async&#x2F;await 与 Combine 的合作，测试反而变得比旧式 callback 更清晰：</p>
+<ul>
+<li>ViewModel 逻辑可测试</li>
+<li>状态可捕获</li>
+<li>任务取消可模拟</li>
+<li>错误分支可控制</li>
+<li>Combine 输入可模拟</li>
+<li>整个链路可重复验证</li>
+</ul>
+<p>有了测试，异步架构的维护成本会大幅降低，重构时也不会担心隐藏状态变化导致 UI 出问题。下一章将重点讨论如何让 UIKit 项目逐步迁移到这种现代异步架构，无需重写，也无需一次性切入，适合在已有项目中渐进式采用。</p>
+<h2 id="9-渐进式迁移：让现有-UIKit-项目平滑过渡到现代异步架构"><a href="#9-渐进式迁移：让现有-UIKit-项目平滑过渡到现代异步架构" class="headerlink" title="9. 渐进式迁移：让现有 UIKit 项目平滑过渡到现代异步架构"></a>9. 渐进式迁移：让现有 UIKit 项目平滑过渡到现代异步架构</h2><p>UIKit 项目大多数都处于“维护 + 增量开发”的状态，重写成本高、风险大，开发节奏也不允许一次性切换架构。因此，引入 Combine、async&#x2F;await 和 @Published 必须是渐进式的，既保持原有代码可用，又让新的逻辑逐步采用更清晰的异步结构。</p>
+<p>这一章重点讨论三个方面：</p>
+<ol>
+<li>迁移顺序：哪些部分可以最先升级</li>
+<li>如何与旧代码共存</li>
+<li>团队层面的可执行规范</li>
+</ol>
+<p>目标不是“推翻重写”，而是在现有结构上自然升级。</p>
+<h3 id="9-1-第一阶段：从网络层开始迁移到-async-await"><a href="#9-1-第一阶段：从网络层开始迁移到-async-await" class="headerlink" title="9.1 第一阶段：从网络层开始迁移到 async&#x2F;await"></a>9.1 第一阶段：从网络层开始迁移到 async&#x2F;await</h3><p>网络层是最适合开始迁移的地方，原因很简单：</p>
+<ul>
+<li>网络请求本来就是异步操作</li>
+<li>逻辑往往集中、封装良好</li>
+<li>几乎不依赖 UI</li>
+<li>回调方式写起来最乱，引入 async 后立刻见效</li>
+</ul>
+<p>例如把旧的回调式 API：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">func</span> <span class="title function_">search</span>(<span class="params">keyword</span>: <span class="type">String</span>, <span class="params">completion</span>: <span class="keyword">@escaping</span> ([<span class="type">String</span>]<span class="operator">?</span>, <span class="type">Error</span>?) -&gt; <span class="type">Void</span>)</span><br></pre></td></tr></table></figure>
+<p>替换成 async 版本：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">func</span> <span class="title function_">search</span>(<span class="params">keyword</span>: <span class="type">String</span>) <span class="keyword">async</span> <span class="keyword">throws</span> -&gt; [<span class="type">String</span>]</span><br></pre></td></tr></table></figure>
+<p>然后把旧调用方式替换为：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> data <span class="operator">=</span> <span class="keyword">try</span> <span class="keyword">await</span> repository.search(keyword: text)</span><br></pre></td></tr></table></figure>
+<p>这个变化非常局部，不会影响 UI，也不会改变调用方的结构。并且，网络层一旦 async 化，后续 ViewModel 的简化几乎是自然发生的。</p>
+<h3 id="9-2-第二阶段：用-Combine-管控输入事件"><a href="#9-2-第二阶段：用-Combine-管控输入事件" class="headerlink" title="9.2 第二阶段：用 Combine 管控输入事件"></a>9.2 第二阶段：用 Combine 管控输入事件</h3><p>当网络逻辑稳定后，就可以把 UI 输入行为使用 Combine 管理起来。例如：</p>
+<ul>
+<li>文本输入的防抖</li>
+<li>按钮点击的节流</li>
+<li>滚动触发下一页</li>
+<li>KVO 的替换</li>
+<li>通知中心事件的统一处理</li>
+</ul>
+<p>具体写法类似搜索示例里的：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">NotificationCenter</span>.default.publisher(</span><br><span class="line">    for: <span class="type">UITextField</span>.textDidChangeNotification,</span><br><span class="line">    object: searchTextField</span><br><span class="line">)</span><br><span class="line">.debounce(for: .milliseconds(<span class="number">400</span>), scheduler: <span class="type">RunLoop</span>.main)</span><br><span class="line">.sink &#123; [<span class="keyword">weak</span> <span class="keyword">self</span>] text <span class="keyword">in</span></span><br><span class="line">    <span class="keyword">self</span><span class="operator">?</span>.viewModel.performSearch(keyword: text)</span><br><span class="line">&#125;</span><br><span class="line">.store(in: <span class="operator">&amp;</span>cancellables)</span><br></pre></td></tr></table></figure>
+<p>这一阶段的升级不会改变原来的 MVC 或 MVVM 结构，只是将“输入事件控制”从零散的回调移到一个更可控的事件管道里。</p>
+<h3 id="9-3-第三阶段：状态统一管理-——-引入-Published-的最关键改造"><a href="#9-3-第三阶段：状态统一管理-——-引入-Published-的最关键改造" class="headerlink" title="9.3 第三阶段：状态统一管理 —— 引入 @Published 的最关键改造"></a>9.3 第三阶段：状态统一管理 —— 引入 @Published 的最关键改造</h3><p>MVC 的核心痛点是“状态散落在控制器内部”。引入 @Published 后，状态集中到 ViewModel，由界面自动响应。<br>升级路径如下：</p>
+<h4 id="9-3-1-第一层：将结果数据移动到-Published"><a href="#9-3-1-第一层：将结果数据移动到-Published" class="headerlink" title="9.3.1 第一层：将结果数据移动到 @Published"></a>9.3.1 第一层：将结果数据移动到 @Published</h4><p>例如：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Published</span> <span class="keyword">var</span> results: [<span class="type">String</span>] <span class="operator">=</span> []</span><br></pre></td></tr></table></figure>
+<p>原来控制器维护的数据移到 ViewModel，这一步立刻降低控制器复杂度。</p>
+<h4 id="9-3-2-第二层：把-loading-状态搬过去"><a href="#9-3-2-第二层：把-loading-状态搬过去" class="headerlink" title="9.3.2 第二层：把 loading 状态搬过去"></a>9.3.2 第二层：把 loading 状态搬过去</h4><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Published</span> <span class="keyword">var</span> isLoading: <span class="type">Bool</span> <span class="operator">=</span> <span class="literal">false</span></span><br></pre></td></tr></table></figure>
+<p>loading 的显示逻辑从 UI 判断变成状态输出。</p>
+<h4 id="9-3-3-第三层：把-error-逻辑搬过去"><a href="#9-3-3-第三层：把-error-逻辑搬过去" class="headerlink" title="9.3.3 第三层：把 error 逻辑搬过去"></a>9.3.3 第三层：把 error 逻辑搬过去</h4><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Published</span> <span class="keyword">var</span> errorMessage: <span class="type">String</span>?</span><br></pre></td></tr></table></figure>
+<p>错误集中处理，控制器只负责展示。做到这里，ViewModel 基本成为完整的状态中心。</p>
+<h3 id="9-4-与旧代码共存：不需要一次性全面切换"><a href="#9-4-与旧代码共存：不需要一次性全面切换" class="headerlink" title="9.4 与旧代码共存：不需要一次性全面切换"></a>9.4 与旧代码共存：不需要一次性全面切换</h3><p>采用渐进式迁移时，有几个常见情况需要处理：</p>
+<h4 id="9-4-1-场景一：旧回调-API-不动，但新逻辑想用-async"><a href="#9-4-1-场景一：旧回调-API-不动，但新逻辑想用-async" class="headerlink" title="9.4.1 场景一：旧回调 API 不动，但新逻辑想用 async"></a>9.4.1 场景一：旧回调 API 不动，但新逻辑想用 async</h4><p>可以用 continuation 封装：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">func</span> <span class="title function_">search</span>(<span class="params">keyword</span>: <span class="type">String</span>) <span class="keyword">async</span> <span class="keyword">throws</span> -&gt; [<span class="type">String</span>] &#123;</span><br><span class="line">    <span class="keyword">try</span> <span class="keyword">await</span> withCheckedThrowingContinuation &#123; continuation <span class="keyword">in</span></span><br><span class="line">        legacyAPI.search(keyword: keyword) &#123; result, error <span class="keyword">in</span></span><br><span class="line">            <span class="keyword">if</span> <span class="keyword">let</span> result <span class="operator">=</span> result &#123;</span><br><span class="line">                continuation.resume(returning: result)</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                continuation.resume(throwing: error <span class="operator">??</span> <span class="type">SomeError</span>.unknown)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样不会动旧 API，却能让新代码用 async 统一处理。而要把 async 函数转换成旧式回调形式（completion handler），做法和上面 “回调 → async” 的 continuation 方向刚好相反：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">func</span> <span class="title function_">search</span>(<span class="params">keyword</span>: <span class="type">String</span>, <span class="params">completion</span>: <span class="keyword">@escaping</span> ([<span class="type">String</span>]<span class="operator">?</span>, <span class="type">Error</span>?) -&gt; <span class="type">Void</span>) &#123;</span><br><span class="line">    <span class="type">Task</span> &#123;</span><br><span class="line">        <span class="keyword">do</span> &#123;</span><br><span class="line">            <span class="keyword">let</span> result <span class="operator">=</span> <span class="keyword">try</span> <span class="keyword">await</span> search(keyword: keyword)</span><br><span class="line">            completion(result, <span class="literal">nil</span>)</span><br><span class="line">        &#125; <span class="keyword">catch</span> &#123;</span><br><span class="line">            completion(<span class="literal">nil</span>, error)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="9-4-2-场景二：部分界面用-Combine，部分不用"><a href="#9-4-2-场景二：部分界面用-Combine，部分不用" class="headerlink" title="9.4.2 场景二：部分界面用 Combine，部分不用"></a>9.4.2 场景二：部分界面用 Combine，部分不用</h4><p>完全没问题。Combine 可以独立存在，不需要全局使用才能发挥价值。</p>
+<h4 id="9-4-3-场景三：部分页面有-ViewModel，部分仍在控制器写逻辑"><a href="#9-4-3-场景三：部分页面有-ViewModel，部分仍在控制器写逻辑" class="headerlink" title="9.4.3 场景三：部分页面有 ViewModel，部分仍在控制器写逻辑"></a>9.4.3 场景三：部分页面有 ViewModel，部分仍在控制器写逻辑</h4><p>也是常见状态，不必强推统一架构。随着业务变动，自然会逐渐偏向 ViewModel 模式。</p>
+<h3 id="9-5-存在风险的迁移方式（应避免）"><a href="#9-5-存在风险的迁移方式（应避免）" class="headerlink" title="9.5 存在风险的迁移方式（应避免）"></a>9.5 存在风险的迁移方式（应避免）</h3><ul>
+<li><strong>一次性全局替换网络层</strong><br>  很难测试，不安全。</li>
+<li><strong>强制所有输入都改成 Combine</strong><br>  每个页面情况不同，不必教条。</li>
+<li><strong>所有状态都迁移到 @Published</strong><br>  只迁移对 UI 有意义的状态，不要滥用。</li>
+<li><strong>让控制器和 ViewModel 同时持有状态</strong><br>  容易导致状态不同步，是常见陷阱。</li>
+</ul>
+<h3 id="9-6-团队层面的可执行规范"><a href="#9-6-团队层面的可执行规范" class="headerlink" title="9.6 团队层面的可执行规范"></a>9.6 团队层面的可执行规范</h3><p>以下规则是迁移过程中非常实用的，在多数工程里都适用：</p>
+<ul>
+<li><strong>网络层必须提供 async API</strong><br>  即便底层仍然是回调，也必须对上层只暴露 async 版本。</li>
+<li><strong>输入事件应该通过 Combine 管控</strong><br>  特别是文本输入、滚动、通知等高频事件。</li>
+<li><strong>ViewModel 必须管理状态</strong><br>  控制器不保存任何业务状态，只负责展示。</li>
+<li><strong>取消逻辑要集中管理</strong><br>  不允许散落在控制器或多个函数中。</li>
+<li><strong>不把 UI 依赖塞进 Repository 层</strong><br>  Repository 保持纯粹。</li>
+</ul>
+<p>这些规则可以让团队的“写法”更统一，也能让后续协作更顺畅。</p>
+<p><strong>渐进式迁移的总结</strong><br>整个迁移过程可以总结为三步：</p>
+<ol>
+<li>先把网络逻辑 async 化（最少风险）</li>
+<li>再用 Combine 管控输入（结构更清晰）</li>
+<li>最后集中状态到 ViewModel（核心改造）</li>
+</ol>
+<p>升级后的代码具备以下优点：</p>
+<ul>
+<li>逻辑线性</li>
+<li>状态集中</li>
+<li>输入稳定</li>
+<li>取消及时</li>
+<li>UI 更轻量</li>
+</ul>
+<p>这让旧的 UIKit 项目拥有了现代异步架构的可读性、可维护性和可预测性。下一章将着眼于架构整体的未来方向，包括更复杂场景中的并发处理、Swift 未来的趋势，以及 UIKit 项目长期可持续的现代化策略。</p>
+<h2 id="10-UIKit-未来趋势"><a href="#10-UIKit-未来趋势" class="headerlink" title="10. UIKit 未来趋势"></a>10. UIKit 未来趋势</h2><p>UIKit 依旧是大量成熟应用的主力，也会继续存在很长时间。它不会因为 SwiftUI 的推进而被替代，尤其是在复杂业务、历史包袱较深或团队人数有限的项目中。</p>
+<p>但这并不意味着 UIKit 项目无法向现代并发架构迈进。随着 Swift Concurrency、actor、AsyncSequence 等能力不断完善，UIKit 完全可以逐步升级，获得稳定、安全且更具扩展性的异步体系。</p>
+<p>这一章从更宏观的角度讨论未来方向，重点关注三个层面：</p>
+<ol>
+<li>Swift 并发体系的发展趋势</li>
+<li>UIKit 项目中并发相关的演进方向</li>
+<li>更长期的组织与工程策略</li>
+</ol>
+<p>它们都围绕一个核心理念：<strong>UIKit 不需要转向 SwiftUI 才能拥抱现代异步能力，现代异步能力反而更能延长 UIKit 的寿命。</strong></p>
+<h3 id="10-1-Swift-并发体系将在未来持续强化"><a href="#10-1-Swift-并发体系将在未来持续强化" class="headerlink" title="10.1 Swift 并发体系将在未来持续强化"></a>10.1 Swift 并发体系将在未来持续强化</h3><p>Swift 的并发模型刚经历了几年的快速发展，现在逐渐走向稳定和体系化。从 Swift 5.5 到 Swift 6，可以观察到明显趋势：</p>
+<ul>
+<li>async&#x2F;await 成为主要异步接口方式</li>
+<li>actor 成为默认的线程安全机制</li>
+<li>发送与共享状态的隔离更加严格</li>
+<li>AsyncSequence 成为事件流的统一抽象</li>
+<li>Task 取消、优先级、隔离系统更严格</li>
+</ul>
+<p>未来的系统 API 会越来越多采用 async 版本：网络、文件、数据库访问、蓝牙、推送、传感器等，都可能提供 async 接口来替换旧回调模式。UIKit 即便保持现状，也会直接受益。</p>
+<h3 id="10-2-Combine-的定位逐渐转向“事件流工具”"><a href="#10-2-Combine-的定位逐渐转向“事件流工具”" class="headerlink" title="10.2 Combine 的定位逐渐转向“事件流工具”"></a>10.2 Combine 的定位逐渐转向“事件流工具”</h3><p>Combine 早期被当作“官方版 RxSwift”，承担过异步链路、状态管理、响应式架构等多种职责。但随着 Swift Concurrency 成熟，async&#x2F;await 逐渐接管业务逻辑与任务链路，@Observable（iOS17引入） 负责状态驱动，Combine 也自然回到了最适合自己的位置：处理持续产生的事件。</p>
+<p>它最擅长的是输入与事件节奏控制，包括文本输入、滚动行为、系统通知、KVO、节流防抖以及多事件组合等，这些都不是 async&#x2F;await 能替代的能力。未来更合理的分工会是：</p>
+<ul>
+<li>事件 → Combine</li>
+<li>异步逻辑 → async&#x2F;await</li>
+<li>状态 → @Published 或 AsyncSequence</li>
+</ul>
+<p>Combine 不会退出舞台，而是专注于事件流的处理，在 UIKit 中依旧不可或缺。</p>
+<h3 id="10-3-Published-会进一步弱化-MVC-的状态散落问题"><a href="#10-3-Published-会进一步弱化-MVC-的状态散落问题" class="headerlink" title="10.3 @Published 会进一步弱化 MVC 的状态散落问题"></a>10.3 @Published 会进一步弱化 MVC 的状态散落问题</h3><p>UIKit 的 MVC 一直被诟病，是因为状态散落在控制器、视图、回调中。引入 @Published 后，状态得以统一管理，避免 MVC 中常见的：重复刷新、多点更新、状态不一致、回调交织导致的混乱。</p>
+<p>未来 @Published 或其衍生工具（如 Observable macro）会成为 UIKit 开发中非常自然的选择。尤其在：</p>
+<ul>
+<li>网络列表</li>
+<li>表单页</li>
+<li>筛选逻辑</li>
+<li>动态内容展示</li>
+<li>错误提示与 loading 管理</li>
+</ul>
+<p>这些场景下都可以直接从状态驱动 UI。</p>
+<h3 id="10-4-UIKit-长期并发架构的核心会向“状态机-actor”演进"><a href="#10-4-UIKit-长期并发架构的核心会向“状态机-actor”演进" class="headerlink" title="10.4 UIKit 长期并发架构的核心会向“状态机 + actor”演进"></a>10.4 UIKit 长期并发架构的核心会向“状态机 + actor”演进</h3><p>随着业务复杂度增加，状态机结构自然成为更高级的抽象。例如：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> <span class="title class_">SearchState</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> idle</span><br><span class="line">    <span class="keyword">case</span> loading</span><br><span class="line">    <span class="keyword">case</span> success([<span class="type">Item</span>])</span><br><span class="line">    <span class="keyword">case</span> failure(<span class="type">String</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>未来的 ViewModel 很可能会是这种形式：</p>
+<ul>
+<li>输入事件通过 Combine 进入</li>
+<li>状态机运转逻辑通过 async 串行执行</li>
+<li>状态变化通过 @Published 或 AsyncSequence 输出</li>
+<li>并发资源通过 actor 管理</li>
+</ul>
+<p>这种结构天然符合 Swift 并发设计，既清晰又安全。</p>
+<h3 id="10-5-actor-将成为管理共享资源的主力"><a href="#10-5-actor-将成为管理共享资源的主力" class="headerlink" title="10.5 actor 将成为管理共享资源的主力"></a>10.5 actor 将成为管理共享资源的主力</h3><p>UIKit 项目的复杂场景通常会涉及共享资源：图片缓存、数据缓存、网络会话、后台同步任务、数据库写入。这些是 class + GCD 难以完全安全管理的，而 actor 的设计正好适用于这些情况：线程安全、访问有序、不会死锁、易于维护</p>
+<p>最终效果是：<strong>整个应用的共享资源层会逐步被 actor 接管。</strong></p>
+<h3 id="10-6-UIKit-Swift-Concurrency-会长期共存"><a href="#10-6-UIKit-Swift-Concurrency-会长期共存" class="headerlink" title="10.6 UIKit + Swift Concurrency 会长期共存"></a>10.6 UIKit + Swift Concurrency 会长期共存</h3><p>未来趋势非常明确：</p>
+<ul>
+<li>UIKit 依然成熟、稳定、适合复杂业务</li>
+<li>SwiftUI 更易声明式，但生态与成熟度还在发展</li>
+<li>Swift Concurrency 更像一层“基础设施”，对所有 UI 技术都适用</li>
+</ul>
+<p>因此，不需要将 UIKit 项目强制迁移到 SwiftUI，也不必陷入“UIKit 会消失”的误解。更现实的趋势是：</p>
+<ul>
+<li>UIKit 继续作为 UI 层</li>
+<li>Swift Concurrency 管理逻辑层</li>
+<li>Combine 管理事件流与用户输入</li>
+<li>@Published 成为状态驱动 UI 的统一抽象</li>
+</ul>
+<p>三者堆叠在一起，形成了“现代 UIKit 架构”真正的雏形。</p>
+<h3 id="10-7-从工程视角看，渐进式才是真正可行的路线"><a href="#10-7-从工程视角看，渐进式才是真正可行的路线" class="headerlink" title="10.7 从工程视角看，渐进式才是真正可行的路线"></a>10.7 从工程视角看，渐进式才是真正可行的路线</h3><p>长期来看，有三条实际可落地的方向：</p>
+<ol>
+<li>网络层与异步资源全面 async 化</li>
+<li>事件流逐步替换为 Combine</li>
+<li>状态集中到 ViewModel</li>
+</ol>
+<p>当这三步做到位，即便 UI 仍是 UIKit，整体架构已经拥有现代 Swift 的大部分能力。团队协作方面，也能得到明显收益：</p>
+<ul>
+<li>状态变更点减少</li>
+<li>逻辑从控制器迁移到 ViewModel</li>
+<li>异步代码更可测</li>
+<li>架构更统一</li>
+<li>回归 bug 减少</li>
+</ul>
+<p>这些优势往往比“换 UI 框架”带来的价值更直接、更现实。</p>
+<h3 id="10-8-向更远未来的可能性"><a href="#10-8-向更远未来的可能性" class="headerlink" title="10.8 向更远未来的可能性"></a>10.8 向更远未来的可能性</h3><p>未来可能会出现一些更先进的工具或模式：</p>
+<ul>
+<li>SwiftData + async persistent store（ Swift 并发生态下的全新数据库系统）</li>
+<li>更多系统 API 变成 async</li>
+<li>Observable macro（@Observable宏） 统一取代 @Published</li>
+<li>Task 组管理器、Task 取消链工具抽象</li>
+<li>更多标准化 AsyncSequence 事件流</li>
+</ul>
+<p>它们不会改变架构方向，而是进一步强化 Swift 并发生态。UIKit 项目完全能够享受这些演进成果。</p>
+<p><strong>总结</strong><br>这一系列章节展示了一个事实：UIKit 项目并不会因为年代长就失去现代异步能力，它完全可以与 Swift 最新的并发技术深度融合，只要从网络层、输入事件、状态管理三个角度逐步推进，最终能得到一个结构清晰、可维护、安全并发的系统。</p>
+<ul>
+<li>Combine 管输入</li>
+<li>async&#x2F;await 管逻辑</li>
+<li>@Published 管状态</li>
+<li>actor 管共享资源</li>
+</ul>
+<p>这是 UIKit 项目的“现代化四件套”。</p>
+<h2 id="11-总结：UIKit-的现代异步架构"><a href="#11-总结：UIKit-的现代异步架构" class="headerlink" title="11. 总结：UIKit 的现代异步架构"></a>11. 总结：UIKit 的现代异步架构</h2><p>经过前面的所有章节，可以看到 UIKit 项目与 Combine、async&#x2F;await、@Published 完全能够自然结合，不仅不会显得突兀，反而能在复杂业务中带来更清晰的层次、更稳定的异步行为和更可控的状态系统。</p>
+<p>这一章将整个体系收束成一个完整的体系，从整体视角把关键点再次串起来，形成一套可以在实际工程中可借鉴的架构思路。</p>
+<h3 id="11-1-整体结构：输入、逻辑、状态三层分工"><a href="#11-1-整体结构：输入、逻辑、状态三层分工" class="headerlink" title="11.1 整体结构：输入、逻辑、状态三层分工"></a>11.1 整体结构：输入、逻辑、状态三层分工</h3><p>现代 UIKit 异步架构最核心的思想，是将异步行为拆成三个清晰的层次：</p>
+<ul>
+<li><strong>输入（Combine）</strong><br>  负责管理用户行为、滚动、文本输入、通知等源源不断的事件流。通过防抖、节流、合并等方式让事件进入“可管理”的节奏</li>
+<li><strong>逻辑（async&#x2F;await）</strong><br>  负责真正的业务处理，例如网络请求、数据转换、分页逻辑。结构化并发让逻辑变直观、可预测，Task 的取消机制让旧任务不会污染最新结果</li>
+<li><strong>状态（@Published）</strong><br>  负责将可视状态集中管理，例如 loading、结果、错误信息，状态是界面的唯一驱动力，控制器不参与业务判断</li>
+</ul>
+<p>将输入、逻辑、状态拆开之后，每一层都变得简单、可理解、可替换，也方便测试。</p>
+<h3 id="11-2-Combine-的定位：事件流与节奏器"><a href="#11-2-Combine-的定位：事件流与节奏器" class="headerlink" title="11.2 Combine 的定位：事件流与节奏器"></a>11.2 Combine 的定位：事件流与节奏器</h3><p>Combine 在 UIKit 项目中的作用主要集中在：</p>
+<ul>
+<li>文本输入防抖（搜索、筛选）</li>
+<li>滚动事件节流（分页加载）</li>
+<li>监听系统通知（键盘、 app 生命周期）</li>
+<li>处理 KVO（只要需要观察某个属性变化）</li>
+<li>将多个输入组合成一个统一的触发点</li>
+</ul>
+<p>它不是业务逻辑的承载者，也不应该承担状态管理。它的最佳位置是“输入层”。</p>
+<h3 id="11-3-async-await：主力异步执行引擎"><a href="#11-3-async-await：主力异步执行引擎" class="headerlink" title="11.3 async&#x2F;await：主力异步执行引擎"></a>11.3 async&#x2F;await：主力异步执行引擎</h3><p>异步逻辑通过 async&#x2F;await 能得到最明显的结构改善。从搜索示例中可以看出：</p>
+<ul>
+<li>避免回调层层嵌套</li>
+<li>任务取消更精确</li>
+<li>错误传播自然、集中</li>
+<li>代码顺序可读性更高</li>
+</ul>
+<p>未来系统 API 将更多提供 async 版本，这意味着 async&#x2F;await 会成为主流异步方式，不再只是可选项。</p>
+<h3 id="11-4-Published：把状态从控制器中解放出来"><a href="#11-4-Published：把状态从控制器中解放出来" class="headerlink" title="11.4 @Published：把状态从控制器中解放出来"></a>11.4 @Published：把状态从控制器中解放出来</h3><p>UIKit 的经典问题之一就是状态混乱：</p>
+<ul>
+<li>tableView 什么时候刷新</li>
+<li>loading 什么时候展示</li>
+<li>错误提示什么时候出现</li>
+<li>不同回调导致状态不一致</li>
+</ul>
+<p>@Published 将状态集中到 ViewModel，使得控制器只需要订阅变化：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">viewModel.<span class="variable">$results</span> <span class="operator">→</span> 刷新表格  </span><br><span class="line">viewModel.<span class="variable">$isLoading</span> <span class="operator">→</span> 控制菊花  </span><br><span class="line">viewModel.<span class="variable">$errorMessage</span> <span class="operator">→</span> 更新错误提示  </span><br></pre></td></tr></table></figure>
+<p>控制器不再负责判断，只做展示，整个页面关系清晰许多。</p>
+<h3 id="11-5-Task-取消与-Out-of-Order-的解决方案"><a href="#11-5-Task-取消与-Out-of-Order-的解决方案" class="headerlink" title="11.5 Task 取消与 Out-of-Order 的解决方案"></a>11.5 Task 取消与 Out-of-Order 的解决方案</h3><p>现代异步架构真正的难点在于：<strong>多个异步任务并行执行时，哪个结果应该被 UI 接受？</strong> UIKit 的搜索、图片加载、分页都容易发生旧任务覆盖新任务的问题。通过 Task 的取消机制和有效性检查：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">currentTask<span class="operator">?</span>.cancel()</span><br><span class="line"><span class="keyword">try</span> <span class="type">Task</span>.checkCancellation()</span><br></pre></td></tr></table></figure>
+<p>结合 indexPath 匹配、状态判断等策略，可以消除乱序带来的 UI 错位。这是 Swift 并发模型相较 GCD 最大的优势之一。</p>
+<h3 id="11-6-actor：为共享资源提供更安全的并发模型"><a href="#11-6-actor：为共享资源提供更安全的并发模型" class="headerlink" title="11.6 actor：为共享资源提供更安全的并发模型"></a>11.6 actor：为共享资源提供更安全的并发模型</h3><p>共享资源一直是 UIKit 工程中最容易出错的地方，例如：</p>
+<ul>
+<li>图片缓存</li>
+<li>全局的 session</li>
+<li>计数器</li>
+<li>后台任务队列</li>
+</ul>
+<p>过去依赖 DispatchQueue 或锁机制，容易出现死锁或竞争。actor 的出现让共享状态变得自然安全，可以放心把缓存、会话、长任务管理器都放在里面统一处理。</p>
+<h3 id="11-7-测试能力更强、更清晰"><a href="#11-7-测试能力更强、更清晰" class="headerlink" title="11.7 测试能力更强、更清晰"></a>11.7 测试能力更强、更清晰</h3><p>使用现代并发模型，测试反而变得容易：</p>
+<ul>
+<li>ViewModel 逻辑可通过 async 单测</li>
+<li>状态可通过 Combine 订阅验证</li>
+<li>取消和延迟可通过 mock 精确控制</li>
+<li>输入事件可通过 Subject 模拟</li>
+</ul>
+<p>相比旧式回调，这种结构更可控、边界更明确。</p>
+<h3 id="11-8-渐进式迁移路径：适合所有-UIKit-项目"><a href="#11-8-渐进式迁移路径：适合所有-UIKit-项目" class="headerlink" title="11.8 渐进式迁移路径：适合所有 UIKit 项目"></a>11.8 渐进式迁移路径：适合所有 UIKit 项目</h3><p>全文提出的迁移路径已经在多个实际工程中验证过：</p>
+<ol>
+<li>第一步：网络层 async 化</li>
+<li>第二步：输入事件使用 Combine</li>
+<li>第三步：状态集中到 ViewModel</li>
+</ol>
+<p>这种路径风险最低、收益最明显、可局部替换，不影响原业务架构。对于老项目也适用，对于新项目更是直接可用。</p>
+<h3 id="11-9-UIKit-的未来：不是被替代，而是与现代并发共存"><a href="#11-9-UIKit-的未来：不是被替代，而是与现代并发共存" class="headerlink" title="11.9 UIKit 的未来：不是被替代，而是与现代并发共存"></a>11.9 UIKit 的未来：不是被替代，而是与现代并发共存</h3><p>SwiftUI 的推进并不会立即淘汰 UIKit，它和 UIKit 的关系更像是互补：</p>
+<ul>
+<li>SwiftUI 擅长声明式 UI</li>
+<li>UIKit 擅长成熟业务和复杂界面</li>
+</ul>
+<p>UI 实现方式可以不同，但底层并发架构应该统一。UIKit 项目只要采用 Combine + async&#x2F;await + @Published，就能彻底摆脱传统异步困境，形成一个稳定、现代的异步模型。</p>
+<h2 id="附录1：Rx-与-Combine-的体系对比"><a href="#附录1：Rx-与-Combine-的体系对比" class="headerlink" title="附录1：Rx 与 Combine 的体系对比"></a>附录1：Rx 与 Combine 的体系对比</h2><p>UIKit 项目在处理事件流、异步逻辑时，常见的方案除了 Combine 之外，还有 RxSwift &#x2F; RxCocoa。这两套体系在使用方式上很相似，但底层理念有很大不同，适用场景和未来方向也有明显差异。本章从架构、生态、异步模型、整合能力等几个角度，对两者做一个系统性的对比，方便在项目中做技术选型。</p>
+<h3 id="1-整体定位上的根本区别"><a href="#1-整体定位上的根本区别" class="headerlink" title="1. 整体定位上的根本区别"></a>1. 整体定位上的根本区别</h3><p>RxSwift 来自 ReactiveX 体系，是一套跨语言的一致化响应式编程模型，与 Swift 无强绑定；Combine 则是苹果官方实现的响应式框架，与 Swift 语言自身紧密结合。可以用一句话概括：<strong>Rx 构建的是“响应式的体系”，Combine 则是 Swift 并发生态的一部分。</strong> 这种定位产生了后续几乎所有差异。</p>
+<h3 id="2-基础模型：Observable-vs-Publisher"><a href="#2-基础模型：Observable-vs-Publisher" class="headerlink" title="2. 基础模型：Observable vs Publisher"></a>2. 基础模型：Observable vs Publisher</h3><p>Rx 使用 Observable &#x2F; Observer 模型，类型丰富、灵活性高；Combine 使用 Publisher &#x2F; Subscriber 模型，错误类型是泛型参数，类型系统更严谨。Rx 更自由、概念更多；Combine 更严格，语言层面融入度更高。</p>
+<h3 id="3-操作符的数量与表达力"><a href="#3-操作符的数量与表达力" class="headerlink" title="3. 操作符的数量与表达力"></a>3. 操作符的数量与表达力</h3><p>RxSwift 的操作符极其丰富，几乎覆盖各种事件流需求；Combine 的原生操作符较少，复杂组合需要 CombineExt 辅助。<br>如果事件转换非常复杂，Rx 的上限更高；如果主要是 UI 输入、过滤、防抖这类常见场景，Combine 完全够用。</p>
+<h3 id="4-异步系统的整合能力"><a href="#4-异步系统的整合能力" class="headerlink" title="4. 异步系统的整合能力"></a>4. 异步系统的整合能力</h3><p>这是两者最大的分水岭。<br>Rx 并不与 Swift Concurrency 有天然关系，需要手动桥接；<br>Combine 能与 async&#x2F;await 和 AsyncSequence 深度整合，这是官方面向未来的方向。</p>
+<p>Publisher 可以直接转为 AsyncSequence：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> <span class="keyword">await</span> value <span class="keyword">in</span> publisher.values &#123; <span class="operator">...</span> &#125;</span><br></pre></td></tr></table></figure>
+<p>未来系统 API 会更多采用 async&#x2F;await 与 AsyncSequence，这让 Combine 更具长期优势。</p>
+<h3 id="5-调度模型与线程管理"><a href="#5-调度模型与线程管理" class="headerlink" title="5. 调度模型与线程管理"></a>5. 调度模型与线程管理</h3><p>Rx 有完整的 Scheduler 体系，可对线程切换做非常精细的控制；Combine 的调度方式更简单，依赖 RunLoop &#x2F; DispatchQueue 这类系统组件。</p>
+<p>灵活度：Rx 更强，简单性：Combine 更好。取舍取决于项目复杂度。</p>
+<h3 id="6-生态库与成熟度"><a href="#6-生态库与成熟度" class="headerlink" title="6. 生态库与成熟度"></a>6. 生态库与成熟度</h3><p>RxSwift 家族的生态非常完善，包括 RxCocoa、RxRelay、RxTest 等工具库，资料多、示例多、社区成熟，是老项目和大型项目的常见选择。<br>Combine 的生态较小，但 CombineCocoa、CombineExt 已够覆盖大多数常见需求。随着 async&#x2F;await 推进，Combine 的定位逐渐变成 Swift 生态的自然一部分。</p>
+<h3 id="7-UIKit-控件支持能力"><a href="#7-UIKit-控件支持能力" class="headerlink" title="7. UIKit 控件支持能力"></a>7. UIKit 控件支持能力</h3><p>RxCocoa 对 UIKit 的控件包装非常完整：按钮、输入框、文本视图、滚动事件、手势、导航条按钮等都开箱即用。</p>
+<p>Combine 原生支持有限，需要自己扩展Publisher或使用 CombineCocoa。UIKit 支持的成熟度：<strong>RxCocoa &gt; CombineCocoa &gt; Combine 原生</strong></p>
+<h3 id="8-学习曲线与团队成本"><a href="#8-学习曲线与团队成本" class="headerlink" title="8. 学习曲线与团队成本"></a>8. 学习曲线与团队成本</h3><p>RxSwift 的学习曲线更高，概念更多，操作符数量庞大；Combine 体系较轻量，与 Swift 原生语法更统一，对团队更友好。</p>
+<p>对于需要快速让多人掌握一致风格的团队而言，Combine 的成本更低。</p>
+<h3 id="9-性能与系统级优化"><a href="#9-性能与系统级优化" class="headerlink" title="9. 性能与系统级优化"></a>9. 性能与系统级优化</h3><p>Combine 是系统级框架，与 Swift&#x2F;SwiftUI&#x2F;Swift Concurrency 深度配合，在执行效率、优化空间、未来 API 一致性方面更有优势。RxSwift 属于第三方库，性能足够好，但无法做到系统级优化。</p>
+<h3 id="10-综合结论"><a href="#10-综合结论" class="headerlink" title="10. 综合结论"></a>10. 综合结论</h3><p><strong>RxSwift 更强大、更灵活、更成熟，适合事件组合非常复杂或已有大量 Rx 代码的项目。</strong><br><strong>Combine 更轻量、语言层级更统一、与 Swift 并发整合更深，是新 UIKit 项目的更佳选择。</strong></p>
+<p>一句更直观的总结：</p>
+<blockquote>
+<p><strong>Rx 是“泛用型响应式框架”，Combine 是“苹果生态官方响应式方案”。在 Swift 并发时代，Combine 的长期价值更高；在复杂事件流场景下，Rx 的表达力仍然更强。</strong></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://www.keychan.xyz/2025/12/05/045-asynchronous-transformation-of-uikit-project/" title="UIKit 项目异步改造：Combine、async&#x2F;await、@Published">https://www.keychan.xyz/2025/12/05/045-asynchronous-transformation-of-uikit-project/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86/" rel="tag"># 状态管理</a>
+              <a href="/tags/Swift/" rel="tag"># Swift</a>
+              <a href="/tags/MVVM/" rel="tag"># MVVM</a>
+              <a href="/tags/%E5%BC%82%E6%AD%A5%E7%BC%96%E7%A8%8B/" rel="tag"># 异步编程</a>
+              <a href="/tags/%E5%93%8D%E5%BA%94%E5%BC%8F%E7%BC%96%E7%A8%8B/" rel="tag"># 响应式编程</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/12/02/044-pytorch-building-blocks-building-systems/" rel="prev" title="PyTorch：从搭积木到构建系统">
+                  <i class="fa fa-angle-left"></i> PyTorch：从搭积木到构建系统
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">350k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.min.js","integrity":"sha256-G8ouPAnw4zzMbnAenHnVz6h9XpKbNdOkrqTh7AadyHs="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.mengyajia.com","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2025/12/05/045-asynchronous-transformation-of-uikit-project/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>
