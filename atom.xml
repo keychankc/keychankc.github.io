@@ -6,7 +6,7 @@
   <link href="https://www.keychan.xyz/atom.xml" rel="self"/>
   
   <link href="https://www.keychan.xyz/"/>
-  <updated>2025-12-05T05:28:30.429Z</updated>
+  <updated>2025-12-09T13:10:28.450Z</updated>
   <id>https://www.keychan.xyz/</id>
   
   <author>
@@ -15,6 +15,34 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Swift 隔离式并发实践：actor、Global Actor 与 Sendable</title>
+    <link href="https://www.keychan.xyz/2025/12/09/046-swift-concurrency/"/>
+    <id>https://www.keychan.xyz/2025/12/09/046-swift-concurrency/</id>
+    <published>2025-12-09T12:35:12.000Z</published>
+    <updated>2025-12-09T13:10:28.450Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-为什么-async-await-不能解决并发问题&quot;&gt;&lt;a href=&quot;#1-为什么-async-await-不能解决并发问题&quot; class=&quot;headerlink&quot; title=&quot;1. 为什么 async&amp;#x2F;await 不能解决并发问题&quot;&gt;&lt;/a&gt;1. 为什么 async&amp;#x2F;await 不能解决并发问题&lt;/h2&gt;&lt;p&gt;Swift Concurrency 带来的第一个直观变化，是 async&amp;#x2F;await 让异步调用读起来像同步代码。之前一长串回调嵌套，现在可以按顺序写清楚：先请求网络，再解析，再更新状态。但在真实项目里，异步“写起来舒服”只是表面，很多时候真正的痛点不在于“怎么写异步逻辑”，而在于“多个任务同时访问同一份状态时发生的问题”。线程变多、任务变多、入口变多之后，只要可变状态没有明确的限制，就可能带来问题。&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://gist.github.com/keychankc/be207faff229cc2b97da168aaf9aadb7&quot;&gt;获取服务端配置&lt;/a&gt;就是一个非常典型的并发场景：有本地缓存，有后台刷新，有多处调用，有UI依赖结果，还有可能叠加服务端推送。表面上只是“拉一份配置下来”，但内部状态在多个任务之间来回穿插，如果不做隔离，async&amp;#x2F;await 并不能有效处理这些逻辑。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="iOS 开发" scheme="https://www.keychan.xyz/categories/iOS-%E5%BC%80%E5%8F%91/"/>
+    
+    
+    <category term="Swift" scheme="https://www.keychan.xyz/tags/Swift/"/>
+    
+    <category term="Swift并发" scheme="https://www.keychan.xyz/tags/Swift%E5%B9%B6%E5%8F%91/"/>
+    
+    <category term="actor" scheme="https://www.keychan.xyz/tags/actor/"/>
+    
+    <category term="AsyncSequence" scheme="https://www.keychan.xyz/tags/AsyncSequence/"/>
+    
+    <category term="协程" scheme="https://www.keychan.xyz/tags/%E5%8D%8F%E7%A8%8B/"/>
+    
+  </entry>
   
   <entry>
     <title>UIKit 项目异步改造：Combine、async/await、@Published</title>
@@ -49,7 +77,7 @@
     <link href="https://www.keychan.xyz/2025/12/02/044-pytorch-building-blocks-building-systems/"/>
     <id>https://www.keychan.xyz/2025/12/02/044-pytorch-building-blocks-building-systems/</id>
     <published>2025-12-02T05:09:12.000Z</published>
-    <updated>2025-12-02T05:15:44.139Z</updated>
+    <updated>2025-12-09T12:45:26.863Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-从零搭建一个-PyTorch-模型&quot;&gt;&lt;a href=&quot;#1-从零搭建一个-PyTorch-模型&quot; class=&quot;headerlink&quot; title=&quot;1. 从零搭建一个 PyTorch 模型&quot;&gt;&lt;/a&gt;1. 从零搭建一个 PyTorch 模型&lt;/h2&gt;&lt;p&gt;在正式讨论 PyTorch 之前，我们先从一个&lt;strong&gt;最小可用训练流程&lt;/strong&gt;入手：用最少的代码搭建并训练一个小型神经网络。通过这个过程来快速建立对 PyTorch 的整体认知：&lt;strong&gt;数据从哪里来？如何流入模型？损失如何计算？梯度如何反向传播？参数又是如何被更新的？&lt;/strong&gt; 后面章节会对这些环节再做细致拆解，我们先做一个“总览式体验”。&lt;/p&gt;
@@ -538,35 +566,6 @@
     <category term="目标网络" scheme="https://www.keychan.xyz/tags/%E7%9B%AE%E6%A0%87%E7%BD%91%E7%BB%9C/"/>
     
     <category term="经验回放" scheme="https://www.keychan.xyz/tags/%E7%BB%8F%E9%AA%8C%E5%9B%9E%E6%94%BE/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>PPO算法在连续与离散动作空间中的案例实践</title>
-    <link href="https://www.keychan.xyz/2025/07/30/026-rl-ppo-discrete-continuous-case/"/>
-    <id>https://www.keychan.xyz/2025/07/30/026-rl-ppo-discrete-continuous-case/</id>
-    <published>2025-07-30T03:40:12.000Z</published>
-    <updated>2025-09-21T12:04:48.541Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-PPO算法与动作空间类型概览&quot;&gt;&lt;a href=&quot;#1-PPO算法与动作空间类型概览&quot; class=&quot;headerlink&quot; title=&quot;1.PPO算法与动作空间类型概览&quot;&gt;&lt;/a&gt;1.PPO算法与动作空间类型概览&lt;/h2&gt;&lt;h3 id=&quot;1-PPO（Proximal-Policy-Optimization）简介&quot;&gt;&lt;a href=&quot;#1-PPO（Proximal-Policy-Optimization）简介&quot; class=&quot;headerlink&quot; title=&quot;1.PPO（Proximal Policy Optimization）简介&quot;&gt;&lt;/a&gt;1.PPO（Proximal Policy Optimization）简介&lt;/h3&gt;&lt;p&gt;PPO（近端策略优化）是OpenAI于2017年提出的强化学习算法，通过创新的”剪切目标函数”设计，在保证训练稳定性的同时实现高效策略优化。其核心思想是&lt;strong&gt;通过约束策略更新幅度，防止策略突变导致的性能崩溃，解决了传统策略梯度方法（如TRPO）的工程实现复杂性问题&lt;/strong&gt;。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="强化学习" scheme="https://www.keychan.xyz/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/"/>
-    
-    <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
-    
-    
-    <category term="PyTorch" scheme="https://www.keychan.xyz/tags/PyTorch/"/>
-    
-    <category term="策略优化" scheme="https://www.keychan.xyz/tags/%E7%AD%96%E7%95%A5%E4%BC%98%E5%8C%96/"/>
-    
-    <category term="PPO" scheme="https://www.keychan.xyz/tags/PPO/"/>
-    
-    <category term="离散动作" scheme="https://www.keychan.xyz/tags/%E7%A6%BB%E6%95%A3%E5%8A%A8%E4%BD%9C/"/>
-    
-    <category term="连续动作" scheme="https://www.keychan.xyz/tags/%E8%BF%9E%E7%BB%AD%E5%8A%A8%E4%BD%9C/"/>
     
   </entry>
   
