@@ -6,7 +6,7 @@
   <link href="https://www.keychan.xyz/atom.xml" rel="self"/>
   
   <link href="https://www.keychan.xyz/"/>
-  <updated>2025-12-09T13:10:28.450Z</updated>
+  <updated>2025-12-16T12:52:07.209Z</updated>
   <id>https://www.keychan.xyz/</id>
   
   <author>
@@ -15,6 +15,36 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>「无人机系列⑤」从数据到决策：飞控软件架构与通信体系</title>
+    <link href="https://www.keychan.xyz/2025/12/16/047-flight-control-software-architecture-communication-system/"/>
+    <id>https://www.keychan.xyz/2025/12/16/047-flight-control-software-architecture-communication-system/</id>
+    <published>2025-12-16T12:48:12.000Z</published>
+    <updated>2025-12-16T12:52:07.209Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-从物理世界到“可控信息”——飞控软件的使命&quot;&gt;&lt;a href=&quot;#1-从物理世界到“可控信息”——飞控软件的使命&quot; class=&quot;headerlink&quot; title=&quot;1. 从物理世界到“可控信息”——飞控软件的使命&quot;&gt;&lt;/a&gt;1. 从物理世界到“可控信息”——飞控软件的使命&lt;/h2&gt;&lt;p&gt;在前几篇内容中，我们已经从系统工程视角初步对无人机有了一定的理解，从空气动力学角度探讨了“为什么能飞”，从传感器与硬件角度认识了无人机如何感知世界，并在控制算法篇中建立了“飞控如何决策与调节”的基础框架。&lt;/p&gt;
+&lt;p&gt;然而，所有物理量、传感器读数与控制规律最终都必须通过软件进行组织、调度与执行，才能形成一个真正稳定、可控的飞行器。本章从软件角度展开，属于飞控软件的基础部分，为保证后续章节的连贯性，建议完整阅读，使后续的体系结构、调度机制、通信框架等内容更易衔接。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="无人机" scheme="https://www.keychan.xyz/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/"/>
+    
+    
+    <category term="飞控软件架构" scheme="https://www.keychan.xyz/tags/%E9%A3%9E%E6%8E%A7%E8%BD%AF%E4%BB%B6%E6%9E%B6%E6%9E%84/"/>
+    
+    <category term="无人机通信协议" scheme="https://www.keychan.xyz/tags/%E6%97%A0%E4%BA%BA%E6%9C%BA%E9%80%9A%E4%BF%A1%E5%8D%8F%E8%AE%AE/"/>
+    
+    <category term="ATKP协议" scheme="https://www.keychan.xyz/tags/ATKP%E5%8D%8F%E8%AE%AE/"/>
+    
+    <category term="MAVLink" scheme="https://www.keychan.xyz/tags/MAVLink/"/>
+    
+    <category term="实时系统设计" scheme="https://www.keychan.xyz/tags/%E5%AE%9E%E6%97%B6%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/"/>
+    
+    <category term="姿态估计" scheme="https://www.keychan.xyz/tags/%E5%A7%BF%E6%80%81%E4%BC%B0%E8%AE%A1/"/>
+    
+  </entry>
   
   <entry>
     <title>Swift 隔离式并发实践：actor、Global Actor 与 Sendable</title>
@@ -452,9 +482,9 @@
     
     <category term="Flutter" scheme="https://www.keychan.xyz/tags/Flutter/"/>
     
-    <category term="底层原理" scheme="https://www.keychan.xyz/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
-    
     <category term="布局" scheme="https://www.keychan.xyz/tags/%E5%B8%83%E5%B1%80/"/>
+    
+    <category term="底层原理" scheme="https://www.keychan.xyz/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
     
   </entry>
   
@@ -475,13 +505,13 @@
     
     <category term="Flutter" scheme="https://www.keychan.xyz/tags/Flutter/"/>
     
+    <category term="底层原理" scheme="https://www.keychan.xyz/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
+    
     <category term="GPU渲染" scheme="https://www.keychan.xyz/tags/GPU%E6%B8%B2%E6%9F%93/"/>
     
     <category term="Skia" scheme="https://www.keychan.xyz/tags/Skia/"/>
     
     <category term="Impeller" scheme="https://www.keychan.xyz/tags/Impeller/"/>
-    
-    <category term="底层原理" scheme="https://www.keychan.xyz/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
     
   </entry>
   
@@ -538,34 +568,6 @@
     <category term="神经网络" scheme="https://www.keychan.xyz/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
     
     <category term="策略梯度" scheme="https://www.keychan.xyz/tags/%E7%AD%96%E7%95%A5%E6%A2%AF%E5%BA%A6/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>DQN(Deep Q-Network)系列算法解析与实践</title>
-    <link href="https://www.keychan.xyz/2025/08/14/027-rl-dqn-case/"/>
-    <id>https://www.keychan.xyz/2025/08/14/027-rl-dqn-case/</id>
-    <published>2025-08-14T05:40:12.000Z</published>
-    <updated>2025-09-21T12:04:48.541Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-任务与背景介绍&quot;&gt;&lt;a href=&quot;#1-任务与背景介绍&quot; class=&quot;headerlink&quot; title=&quot;1. 任务与背景介绍&quot;&gt;&lt;/a&gt;1. 任务与背景介绍&lt;/h2&gt;&lt;p&gt;在 Gym&amp;#x2F;Gymnasium 的 &lt;strong&gt;MountainCar-v0&lt;/strong&gt; 环境中，有这样一个场景：一辆小车被困在两个山坡之间，目标是到达右侧山坡顶端的红旗位置。&lt;/p&gt;
-&lt;p&gt;乍一看，这似乎只需要踩油门往右冲就行，但现实并非如此，小车的发动机动力不足，单次加速无法直接登顶，它会在半途滑落回谷底。正确的策略是先向左加速爬上左坡，然后顺势向右冲下去，再反复摆动、积累动能，最终才能冲上右侧山顶。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="强化学习" scheme="https://www.keychan.xyz/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/"/>
-    
-    <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
-    
-    
-    <category term="神经网络" scheme="https://www.keychan.xyz/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
-    
-    <category term="PyTorch" scheme="https://www.keychan.xyz/tags/PyTorch/"/>
-    
-    <category term="目标网络" scheme="https://www.keychan.xyz/tags/%E7%9B%AE%E6%A0%87%E7%BD%91%E7%BB%9C/"/>
-    
-    <category term="经验回放" scheme="https://www.keychan.xyz/tags/%E7%BB%8F%E9%AA%8C%E5%9B%9E%E6%94%BE/"/>
     
   </entry>
   
