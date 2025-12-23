@@ -6,7 +6,7 @@
   <link href="https://www.keychan.xyz/atom.xml" rel="self"/>
   
   <link href="https://www.keychan.xyz/"/>
-  <updated>2025-12-16T12:52:07.209Z</updated>
+  <updated>2025-12-23T10:06:23.739Z</updated>
   <id>https://www.keychan.xyz/</id>
   
   <author>
@@ -15,6 +15,36 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>从 YOLO 到 DETR：目标检测范式的演化与分工</title>
+    <link href="https://www.keychan.xyz/2025/12/23/048-from-yolo-to-detr/"/>
+    <id>https://www.keychan.xyz/2025/12/23/048-from-yolo-to-detr/</id>
+    <published>2025-12-23T10:05:12.000Z</published>
+    <updated>2025-12-23T10:06:23.739Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-DETR-出现的原因&quot;&gt;&lt;a href=&quot;#1-DETR-出现的原因&quot; class=&quot;headerlink&quot; title=&quot;1. DETR 出现的原因&quot;&gt;&lt;/a&gt;1. DETR 出现的原因&lt;/h2&gt;&lt;p&gt;在目标检测的发展历程中，YOLO 与 DETR 往往被视为两种截然不同的技术路线，其差异不仅体现在网络结构或训练策略上，更反映了对“目标检测这一问题应当如何建模”的根本理解差别。&lt;/p&gt;
+&lt;p&gt;直观而言，YOLO 系列方法遵循的是一种密集预测思路：模型在图像的各个空间位置上独立判断是否存在目标，并同时回归其类别与边界框位置。这种做法强调局部决策与并行计算，因而具备极高的推理效率，但也不可避免地会对同一目标产生多次冗余预测，必须借助非极大值抑制等后处理机制进行去重。具体可参考： &lt;a href=&quot;https://www.keychan.xyz/2025/04/17/011-yolo-eval-metrics-yolov1/&quot;&gt;物体检测评估指标和YOLO-v1实现思路&lt;/a&gt;&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="PyTorch" scheme="https://www.keychan.xyz/tags/PyTorch/"/>
+    
+    <category term="计算机视觉" scheme="https://www.keychan.xyz/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
+    
+    <category term="目标检测" scheme="https://www.keychan.xyz/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/"/>
+    
+    <category term="YOLO" scheme="https://www.keychan.xyz/tags/YOLO/"/>
+    
+    <category term="detr" scheme="https://www.keychan.xyz/tags/detr/"/>
+    
+    <category term="Transformer" scheme="https://www.keychan.xyz/tags/Transformer/"/>
+    
+  </entry>
   
   <entry>
     <title>「无人机系列⑤」从数据到决策：飞控软件架构与通信体系</title>
@@ -457,11 +487,11 @@
     
     <category term="状态管理" scheme="https://www.keychan.xyz/tags/%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86/"/>
     
+    <category term="依赖注入" scheme="https://www.keychan.xyz/tags/%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5/"/>
+    
     <category term="路由" scheme="https://www.keychan.xyz/tags/%E8%B7%AF%E7%94%B1/"/>
     
     <category term="模块化" scheme="https://www.keychan.xyz/tags/%E6%A8%A1%E5%9D%97%E5%8C%96/"/>
-    
-    <category term="依赖注入" scheme="https://www.keychan.xyz/tags/%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5/"/>
     
   </entry>
   
@@ -482,9 +512,9 @@
     
     <category term="Flutter" scheme="https://www.keychan.xyz/tags/Flutter/"/>
     
-    <category term="布局" scheme="https://www.keychan.xyz/tags/%E5%B8%83%E5%B1%80/"/>
-    
     <category term="底层原理" scheme="https://www.keychan.xyz/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
+    
+    <category term="布局" scheme="https://www.keychan.xyz/tags/%E5%B8%83%E5%B1%80/"/>
     
   </entry>
   
@@ -505,13 +535,13 @@
     
     <category term="Flutter" scheme="https://www.keychan.xyz/tags/Flutter/"/>
     
-    <category term="底层原理" scheme="https://www.keychan.xyz/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
-    
     <category term="GPU渲染" scheme="https://www.keychan.xyz/tags/GPU%E6%B8%B2%E6%9F%93/"/>
     
     <category term="Skia" scheme="https://www.keychan.xyz/tags/Skia/"/>
     
     <category term="Impeller" scheme="https://www.keychan.xyz/tags/Impeller/"/>
+    
+    <category term="底层原理" scheme="https://www.keychan.xyz/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
     
   </entry>
   
@@ -529,34 +559,6 @@
 &lt;li&gt;行动结果对未来奖励有长远影响（跳跃错过管道可能直接失败）&lt;/li&gt;
 &lt;li&gt;游戏场景变化多端，能充分考察智能体的泛化能力&lt;/li&gt;
 &lt;/ul&gt;</summary>
-    
-    
-    
-    <category term="强化学习" scheme="https://www.keychan.xyz/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/"/>
-    
-    <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
-    
-    
-    <category term="神经网络" scheme="https://www.keychan.xyz/tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
-    
-    <category term="策略梯度" scheme="https://www.keychan.xyz/tags/%E7%AD%96%E7%95%A5%E6%A2%AF%E5%BA%A6/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>A3C 算法原理与超级马里奥实践（上）</title>
-    <link href="https://www.keychan.xyz/2025/08/22/028-rl-ac-a3c-mario-case-1/"/>
-    <id>https://www.keychan.xyz/2025/08/22/028-rl-ac-a3c-mario-case-1/</id>
-    <published>2025-08-22T05:40:12.000Z</published>
-    <updated>2025-09-21T12:04:48.542Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-AC-算法&quot;&gt;&lt;a href=&quot;#1-AC-算法&quot; class=&quot;headerlink&quot; title=&quot;1. AC 算法&quot;&gt;&lt;/a&gt;1. AC 算法&lt;/h2&gt;&lt;h3 id=&quot;1-1-策略梯度&quot;&gt;&lt;a href=&quot;#1-1-策略梯度&quot; class=&quot;headerlink&quot; title=&quot;1.1 策略梯度&quot;&gt;&lt;/a&gt;1.1 策略梯度&lt;/h3&gt;&lt;p&gt;在强化学习中，如果我们想让智能体学会这样一个 &lt;strong&gt;策略&lt;/strong&gt;（在不同状态下选什么动作）:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;一个动作能带来高奖励，就要让它以后更可能被选上&lt;/li&gt;
-&lt;li&gt;一个动作只能带来低回报，就要减少使用它的频率&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;而策略梯度就是一个这样的工具，&lt;strong&gt;“根据奖励信号，调整策略参数，让好动作更可能被选中，坏动作少被选上。”&lt;/strong&gt;&lt;/p&gt;</summary>
     
     
     

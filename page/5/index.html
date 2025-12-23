@@ -152,7 +152,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-count">49</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -191,6 +191,129 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2025/04/08/009-opencv-tracking/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's blog">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | KeyChan's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/04/08/009-opencv-tracking/" class="post-title-link" itemprop="url">OpenCV之目标追踪</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-04-08 22:29:12" itemprop="dateCreated datePublished" datetime="2025-04-08T22:29:12+08:00">2025-04-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-09-21 20:04:48" itemprop="dateModified" datetime="2025-09-21T20:04:48+08:00">2025-09-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a>
+        </span>
+    </span>
+
+  
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>2.3k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>8 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="1-目标追踪"><a href="#1-目标追踪" class="headerlink" title="1.目标追踪"></a>1.目标追踪</h2><p>目标追踪（Object Tracking）是指在视频序列中持续追踪目标的位置，这是计算机视觉中的核心难点，其核心挑战包括遮挡、光照变化和快速运动。在视频分析、自动驾驶、智能监控、人机交互等领域中应用广泛。</p>
+<h3 id="1-按任务类型分类"><a href="#1-按任务类型分类" class="headerlink" title="1.按任务类型分类"></a>1.按任务类型分类</h3><ol>
+<li>单目标追踪（SOT, Single Object Tracking）：只追踪一个初始帧中给定的目标，典型方法如：<ol>
+<li>Siamese-based Tracking（孪生网络）</li>
+<li>Transformer-based Tracking</li>
+</ol>
+</li>
+<li>多目标追踪（MOT, Multi-Object Tracking）：同时追踪多个目标，通常包括目标检测与数据关联两个阶段，典型方法如：<ol>
+<li>基于检测的跟踪（Tracking-by-Detection）</li>
+<li>端到端方法</li>
+</ol>
+</li>
+<li>多摄像头追踪（MTMC, Multi-Camera Multi-Object Tracking）：跨视角数据关联，更复杂的特征匹配，常结合ReID、时空建模、图神经网络等</li>
+</ol>
+<h2 id="2-传统目标追踪算法"><a href="#2-传统目标追踪算法" class="headerlink" title="2.传统目标追踪算法"></a>2.传统目标追踪算法</h2><p>除了基于深度学习的追踪算法，还有依赖传统的机器学习的目标追踪算法，它们适用于某些轻量级、实时或资源受限的场景（如嵌入式设备）。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2025/04/08/009-opencv-tracking/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -1161,7 +1284,7 @@
       <i class="fa fa-chart-line"></i>
     </span>
       <span>站点总字数：</span>
-    <span title="站点总字数">382k</span>
+    <span title="站点总字数">401k</span>
   </span>
 </div>
 <div class="busuanzi-count">
