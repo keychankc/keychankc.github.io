@@ -152,7 +152,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">51</span>
+          <span class="site-state-item-count">52</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -163,7 +163,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">110</span>
+        <span class="site-state-item-count">114</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -191,6 +191,110 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2026/01/07/051-unet-deeplab-mask2former-segment-anything/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's blog">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | KeyChan's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2026/01/07/051-unet-deeplab-mask2former-segment-anything/" class="post-title-link" itemprop="url">从像素预测到可提示分割：UNet、DeepLab、Mask2Former 到 Segment Anything</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-01-07 18:21:12 / 修改时间：18:21:11" itemprop="dateCreated datePublished" datetime="2026-01-07T18:21:12+08:00">2026-01-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a>
+        </span>
+    </span>
+
+  
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>16k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>57 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="1-视觉分割任务回顾：从像素预测到结构理解"><a href="#1-视觉分割任务回顾：从像素预测到结构理解" class="headerlink" title="1. 视觉分割任务回顾：从像素预测到结构理解"></a>1. 视觉分割任务回顾：从像素预测到结构理解</h2><p>视觉分割是计算机视觉体系中一类<strong>基础而关键</strong>的任务。与图像分类主要回答“图像中包含哪些语义概念”不同，分割进一步要求回答“这些对象在图像中的<strong>具体位置、形状与边界</strong>是什么”。这意味着分割并非以整幅图像或候选框为单位进行判断，而是<strong>直接作用于像素层面</strong>，需要对图像中<strong>每一个像素</strong>给出明确的归属结果。</p>
+<p>正因为输出粒度从“区域”细化到“像素”，视觉分割不仅考验模型的语义理解能力，更对其<strong>空间表达能力、上下文建模能力以及结构化预测能力</strong>提出了更高要求。在进入可提示分割与通用分割模型的讨论之前，有必要首先对分割任务本身的定义、输出形式以及任务类型进行系统回顾，从而为后续模型结构与问题设定的演进奠定清晰而统一的概念基础。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2026/01/07/051-unet-deeplab-mask2former-segment-anything/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -1157,116 +1261,6 @@
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2025/11/11/041-flight-control-hardware-sensor-system/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/key_avatar.png">
-      <meta itemprop="name" content="KeyChan">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="KeyChan's blog">
-      <meta itemprop="description" content="全干工程师">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | KeyChan's blog">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/11/11/041-flight-control-hardware-sensor-system/" class="post-title-link" itemprop="url">「无人机③」飞控硬件与传感器系统</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2025-11-11 15:20:12" itemprop="dateCreated datePublished" datetime="2025-11-11T15:20:12+08:00">2025-11-11</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-12-30 17:38:54" itemprop="dateModified" datetime="2025-12-30T17:38:54+08:00">2025-12-30</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/" itemprop="url" rel="index"><span itemprop="name">无人机</span></a>
-        </span>
-    </span>
-
-  
-  
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>14k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>52 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="1-飞控结构与数据流"><a href="#1-飞控结构与数据流" class="headerlink" title="1. 飞控结构与数据流"></a>1. 飞控结构与数据流</h2><p>飞控系统（Flight Controller, FC）是无人机的“大脑”，负责接收传感器信息、进行状态估计、计算控制量，并最终驱动电机或舵机执行动作。要理解一台无人机如何保持稳定飞行，我们首先要弄清楚飞控的内部<strong>结构组成</strong>与<strong>数据流动路径</strong>。</p>
-<h3 id="1-1-模块组成：从“感知”到“执行”"><a href="#1-1-模块组成：从“感知”到“执行”" class="headerlink" title="1.1 模块组成：从“感知”到“执行”"></a>1.1 模块组成：从“感知”到“执行”</h3><p>一个典型的飞控系统由四大核心模块构成，每个模块既有明确的功能分工，又通过标准化接口实现数据协作。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2025/11/11/041-flight-control-hardware-sensor-system/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
   <nav class="pagination">
     <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/2/"><i class="fa fa-angle-right"></i></a>
   </nav>
@@ -1291,7 +1285,7 @@
       <i class="fa fa-chart-line"></i>
     </span>
       <span>站点总字数：</span>
-    <span title="站点总字数">416k</span>
+    <span title="站点总字数">432k</span>
   </span>
 </div>
 <div class="busuanzi-count">

@@ -6,7 +6,7 @@
   <link href="https://www.keychan.xyz/atom.xml" rel="self"/>
   
   <link href="https://www.keychan.xyz/"/>
-  <updated>2025-12-31T12:56:05.970Z</updated>
+  <updated>2026-01-07T10:21:11.188Z</updated>
   <id>https://www.keychan.xyz/</id>
   
   <author>
@@ -15,6 +15,36 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>从像素预测到可提示分割：UNet、DeepLab、Mask2Former 到 Segment Anything</title>
+    <link href="https://www.keychan.xyz/2026/01/07/051-unet-deeplab-mask2former-segment-anything/"/>
+    <id>https://www.keychan.xyz/2026/01/07/051-unet-deeplab-mask2former-segment-anything/</id>
+    <published>2026-01-07T10:21:12.000Z</published>
+    <updated>2026-01-07T10:21:11.188Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-视觉分割任务回顾：从像素预测到结构理解&quot;&gt;&lt;a href=&quot;#1-视觉分割任务回顾：从像素预测到结构理解&quot; class=&quot;headerlink&quot; title=&quot;1. 视觉分割任务回顾：从像素预测到结构理解&quot;&gt;&lt;/a&gt;1. 视觉分割任务回顾：从像素预测到结构理解&lt;/h2&gt;&lt;p&gt;视觉分割是计算机视觉体系中一类&lt;strong&gt;基础而关键&lt;/strong&gt;的任务。与图像分类主要回答“图像中包含哪些语义概念”不同，分割进一步要求回答“这些对象在图像中的&lt;strong&gt;具体位置、形状与边界&lt;/strong&gt;是什么”。这意味着分割并非以整幅图像或候选框为单位进行判断，而是&lt;strong&gt;直接作用于像素层面&lt;/strong&gt;，需要对图像中&lt;strong&gt;每一个像素&lt;/strong&gt;给出明确的归属结果。&lt;/p&gt;
+&lt;p&gt;正因为输出粒度从“区域”细化到“像素”，视觉分割不仅考验模型的语义理解能力，更对其&lt;strong&gt;空间表达能力、上下文建模能力以及结构化预测能力&lt;/strong&gt;提出了更高要求。在进入可提示分割与通用分割模型的讨论之前，有必要首先对分割任务本身的定义、输出形式以及任务类型进行系统回顾，从而为后续模型结构与问题设定的演进奠定清晰而统一的概念基础。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="目标分割" scheme="https://www.keychan.xyz/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/"/>
+    
+    <category term="DeepLab" scheme="https://www.keychan.xyz/tags/DeepLab/"/>
+    
+    <category term="UNet" scheme="https://www.keychan.xyz/tags/UNet/"/>
+    
+    <category term="Mask2Former" scheme="https://www.keychan.xyz/tags/Mask2Former/"/>
+    
+    <category term="SegmentAnything" scheme="https://www.keychan.xyz/tags/SegmentAnything/"/>
+    
+    <category term="图形分割" scheme="https://www.keychan.xyz/tags/%E5%9B%BE%E5%BD%A2%E5%88%86%E5%89%B2/"/>
+    
+  </entry>
   
   <entry>
     <title>2025 个人年终总结</title>
@@ -436,9 +466,9 @@
     <category term="无人机" scheme="https://www.keychan.xyz/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/"/>
     
     
-    <category term="控制理论" scheme="https://www.keychan.xyz/tags/%E6%8E%A7%E5%88%B6%E7%90%86%E8%AE%BA/"/>
-    
     <category term="飞控系统" scheme="https://www.keychan.xyz/tags/%E9%A3%9E%E6%8E%A7%E7%B3%BB%E7%BB%9F/"/>
+    
+    <category term="控制理论" scheme="https://www.keychan.xyz/tags/%E6%8E%A7%E5%88%B6%E7%90%86%E8%AE%BA/"/>
     
     <category term="无人机基础" scheme="https://www.keychan.xyz/tags/%E6%97%A0%E4%BA%BA%E6%9C%BA%E5%9F%BA%E7%A1%80/"/>
     
@@ -545,29 +575,6 @@
     <category term="路由" scheme="https://www.keychan.xyz/tags/%E8%B7%AF%E7%94%B1/"/>
     
     <category term="模块化" scheme="https://www.keychan.xyz/tags/%E6%A8%A1%E5%9D%97%E5%8C%96/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>「Flutter系列②」约束与布局：RenderObject、CustomPaint 与 Sliver 协议</title>
-    <link href="https://www.keychan.xyz/2025/09/29/031-flutter-practical-constraints-and-layout/"/>
-    <id>https://www.keychan.xyz/2025/09/29/031-flutter-practical-constraints-and-layout/</id>
-    <published>2025-09-29T15:40:12.000Z</published>
-    <updated>2025-10-15T01:46:42.590Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-为什么要自定义-RenderObject&quot;&gt;&lt;a href=&quot;#1-为什么要自定义-RenderObject&quot; class=&quot;headerlink&quot; title=&quot;1. 为什么要自定义 RenderObject&quot;&gt;&lt;/a&gt;1. 为什么要自定义 RenderObject&lt;/h2&gt;&lt;p&gt;在 Flutter 中，我们平时开发中最常打交道的是 &lt;strong&gt;Widget&lt;/strong&gt;。它们像是 UI 的“配置表”，描述界面要长什么样。但 Widget 并不真正负责绘制，它只是告诉框架“我要一个红色的方块”或者“我要一个可滚动的列表”。真正负责把这些需求落到屏幕上的，是底层的 &lt;strong&gt;RenderObject&lt;/strong&gt;。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="跨平台框架" scheme="https://www.keychan.xyz/categories/%E8%B7%A8%E5%B9%B3%E5%8F%B0%E6%A1%86%E6%9E%B6/"/>
-    
-    
-    <category term="Flutter" scheme="https://www.keychan.xyz/tags/Flutter/"/>
-    
-    <category term="底层原理" scheme="https://www.keychan.xyz/tags/%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
-    
-    <category term="布局" scheme="https://www.keychan.xyz/tags/%E5%B8%83%E5%B1%80/"/>
     
   </entry>
   

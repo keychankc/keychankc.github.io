@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.keychan.xyz","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="1. 视觉分割任务回顾：从像素预测到结构理解视觉分割是计算机视觉体系中一类基础而关键的任务。与图像分类主要回答“图像中包含哪些语义概念”不同，分割进一步要求回答“这些对象在图像中的具体位置、形状与边界是什么”。这意味着分割并非以整幅图像或候选框为单位进行判断，而是直接作用于像素层面，需要对图像中每一个像素给出明确的归属结果。 正因为输出粒度从“区域”细化到“像素”，视觉分割不仅考验模型的语义理解能">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从像素预测到可提示分割：UNet、DeepLab、Mask2Former 到 Segment Anything">
+<meta property="og:url" content="https://www.keychan.xyz/2026/01/07/051-unet-deeplab-mask2former-segment-anything/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s blog">
+<meta property="og:description" content="1. 视觉分割任务回顾：从像素预测到结构理解视觉分割是计算机视觉体系中一类基础而关键的任务。与图像分类主要回答“图像中包含哪些语义概念”不同，分割进一步要求回答“这些对象在图像中的具体位置、形状与边界是什么”。这意味着分割并非以整幅图像或候选框为单位进行判断，而是直接作用于像素层面，需要对图像中每一个像素给出明确的归属结果。 正因为输出粒度从“区域”细化到“像素”，视觉分割不仅考验模型的语义理解能">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250514143841.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/ZndL1U.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250514150209.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/KoUO8I.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250702153232.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/LX5DjD.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/v85pZR.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/bOhnhV.png">
+<meta property="article:published_time" content="2026-01-07T10:21:12.000Z">
+<meta property="article:modified_time" content="2026-01-07T10:21:11.188Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="目标分割">
+<meta property="article:tag" content="DeepLab">
+<meta property="article:tag" content="UNet">
+<meta property="article:tag" content="Mask2Former">
+<meta property="article:tag" content="SegmentAnything">
+<meta property="article:tag" content="图形分割">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250514143841.png">
+
+
+<link rel="canonical" href="https://www.keychan.xyz/2026/01/07/051-unet-deeplab-mask2former-segment-anything/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.keychan.xyz/2026/01/07/051-unet-deeplab-mask2former-segment-anything/","path":"2026/01/07/051-unet-deeplab-mask2former-segment-anything/","title":"从像素预测到可提示分割：UNet、DeepLab、Mask2Former 到 Segment Anything"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>从像素预测到可提示分割：UNet、DeepLab、Mask2Former 到 Segment Anything | KeyChan's blog</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.mengyajia.com">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's blog" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E8%A7%86%E8%A7%89%E5%88%86%E5%89%B2%E4%BB%BB%E5%8A%A1%E5%9B%9E%E9%A1%BE%EF%BC%9A%E4%BB%8E%E5%83%8F%E7%B4%A0%E9%A2%84%E6%B5%8B%E5%88%B0%E7%BB%93%E6%9E%84%E7%90%86%E8%A7%A3"><span class="nav-text">1. 视觉分割任务回顾：从像素预测到结构理解</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E5%88%86%E5%89%B2%E4%BB%BB%E5%8A%A1%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%AE%9A%E4%B9%89%E4%B8%8E%E8%BE%93%E5%87%BA%E5%BD%A2%E5%BC%8F"><span class="nav-text">1.1 分割任务的基本定义与输出形式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-%E4%B8%89%E7%B1%BB%E7%BB%8F%E5%85%B8%E5%88%86%E5%89%B2%E4%BB%BB%E5%8A%A1%EF%BC%9A%E8%AF%AD%E4%B9%89%E5%88%86%E5%89%B2%E3%80%81%E5%AE%9E%E4%BE%8B%E5%88%86%E5%89%B2%E4%B8%8E%E5%85%A8%E6%99%AF%E5%88%86%E5%89%B2"><span class="nav-text">1.2 三类经典分割任务：语义分割、实例分割与全景分割</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E5%88%86%E5%89%B2%E6%A8%A1%E5%9E%8B%E7%BB%93%E6%9E%84%E6%BC%94%E8%BF%9B%EF%BC%9A%E4%B8%8D%E5%90%8C%E8%AE%BE%E8%AE%A1%E5%9C%A8%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98"><span class="nav-text">2. 分割模型结构演进：不同设计在解决什么问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-UNet%EF%BC%9A%E5%83%8F%E7%B4%A0%E7%BA%A7%E9%A2%84%E6%B5%8B%E7%9A%84%E7%BB%93%E6%9E%84%E8%B5%B7%E7%82%B9"><span class="nav-text">2.1 UNet：像素级预测的结构起点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-DeepLab%EF%BC%9A%E5%BC%95%E5%85%A5%E4%B8%8A%E4%B8%8B%E6%96%87%E6%84%9F%E7%9F%A5%E7%9A%84%E5%88%86%E5%89%B2%E6%A8%A1%E5%9E%8B"><span class="nav-text">2.2 DeepLab：引入上下文感知的分割模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-Mask2Former%EF%BC%9A%E7%BB%9F%E4%B8%80%E8%A7%86%E8%A7%92%E4%B8%8B%E7%9A%84%E5%88%86%E5%89%B2%E5%BB%BA%E6%A8%A1"><span class="nav-text">2.3 Mask2Former：统一视角下的分割建模</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E4%BB%8E%E8%87%AA%E5%8A%A8%E5%88%86%E5%89%B2%E5%88%B0%E5%8F%AF%E6%8F%90%E7%A4%BA%E5%88%86%E5%89%B2%EF%BC%9A%E9%97%AE%E9%A2%98%E6%98%AF%E5%A6%82%E4%BD%95%E8%A2%AB%E9%87%8D%E6%96%B0%E5%AE%9A%E4%B9%89%E7%9A%84"><span class="nav-text">3. 从自动分割到可提示分割：问题是如何被重新定义的</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E4%BC%A0%E7%BB%9F%E8%87%AA%E5%8A%A8%E5%88%86%E5%89%B2%E8%8C%83%E5%BC%8F%E7%9A%84%E9%9A%90%E5%90%AB%E5%81%87%E8%AE%BE%E4%B8%8E%E9%99%90%E5%88%B6"><span class="nav-text">3.1 传统自动分割范式的隐含假设与限制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E5%8F%AF%E6%8F%90%E7%A4%BA%E5%88%86%E5%89%B2%E7%9A%84%E6%8F%90%E5%87%BA%EF%BC%9A%E4%BB%8E%E6%A8%A1%E5%9E%8B%E8%87%AA%E5%8A%A8%E5%86%B3%E5%AE%9A%E5%88%B0%E5%A4%96%E9%83%A8%E6%9D%A1%E4%BB%B6%E6%8C%87%E5%AE%9A"><span class="nav-text">3.2 可提示分割的提出：从模型自动决定到外部条件指定</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-%E5%8F%AF%E6%8F%90%E7%A4%BA%E5%88%86%E5%89%B2%E4%B8%8E%E4%BC%A0%E7%BB%9F%E5%88%86%E5%89%B2%E7%9A%84%E5%B7%AE%E5%BC%82%E4%B8%8E%E8%81%94%E7%B3%BB"><span class="nav-text">3.3 可提示分割与传统分割的差异与联系</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-Segment-Anything-Model%EF%BC%9A%E4%BD%9C%E4%B8%BA%E9%80%9A%E7%94%A8%E5%88%86%E5%89%B2%E5%B7%A5%E5%85%B7%E7%9A%84%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1"><span class="nav-text">4. Segment Anything Model：作为通用分割工具的系统设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-SAM-%E7%9A%84%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84%E4%B8%8E%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="nav-text">4.1 SAM 的整体架构与工作流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-SAM-%E6%94%AF%E6%8C%81%E7%9A%84%E6%8F%90%E7%A4%BA%E5%BD%A2%E5%BC%8F%E4%B8%8E%E4%BD%BF%E7%94%A8%E9%80%BB%E8%BE%91"><span class="nav-text">4.2 SAM 支持的提示形式与使用逻辑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-SAM-%E7%9A%84%E8%83%BD%E5%8A%9B%E8%BE%B9%E7%95%8C%E4%B8%8E%E5%B8%B8%E8%A7%81%E5%A4%B1%E8%B4%A5%E6%A8%A1%E5%BC%8F"><span class="nav-text">4.3 SAM 的能力边界与常见失败模式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E5%AE%9E%E8%B7%B5%EF%BC%9A%E5%9F%BA%E4%BA%8E-Segment-Anything-%E7%9A%84%E4%BA%A4%E4%BA%92%E5%BC%8F%E5%88%86%E5%89%B2%E6%A0%87%E6%B3%A8"><span class="nav-text">5. 实践：基于 Segment Anything 的交互式分割标注</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-%E5%AE%9E%E8%B7%B5%E7%9B%AE%E6%A0%87%E4%B8%8E%E4%BB%BB%E5%8A%A1%E8%AE%BE%E5%AE%9A"><span class="nav-text">5.1 实践目标与任务设定</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-%E4%BA%A4%E4%BA%92%E5%BC%8F%E5%88%86%E5%89%B2%E6%A0%87%E6%B3%A8%E7%B3%BB%E7%BB%9F%E5%AE%9E%E7%8E%B0"><span class="nav-text">5.2 交互式分割标注系统实现</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#5-2-1-%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E7%9A%84%E5%8D%95%E6%AC%A1%E7%BC%96%E7%A0%81"><span class="nav-text">5.2.1 图像特征的单次编码</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-2-2-%E5%9F%BA%E4%BA%8E%E9%BC%A0%E6%A0%87%E6%8F%90%E7%A4%BA%E7%9A%84%E5%A4%9A%E8%BD%AE%E9%A2%84%E6%B5%8B"><span class="nav-text">5.2.2 基于鼠标提示的多轮预测</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-2-3-%E6%8E%A9%E7%A0%81%E7%A1%AE%E8%AE%A4%E4%B8%8E%E7%BB%93%E6%9E%9C%E4%BF%9D%E5%AD%98"><span class="nav-text">5.2.3 掩码确认与结果保存</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-%E5%9F%BA%E4%BA%8E-COCO-%E6%A0%87%E6%B3%A8%E7%9A%84%E7%9C%9F%E5%80%BC%E6%8E%A9%E7%A0%81%E6%9E%84%E5%BB%BA"><span class="nav-text">5.3 基于 COCO 标注的真值掩码构建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-%E8%AF%84%E4%BC%B0%E6%8C%87%E6%A0%87%E4%B8%8E%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C"><span class="nav-text">5.4 评估指标与实验结果</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#5-4-1-%E5%88%86%E5%89%B2%E8%B4%A8%E9%87%8F%E6%8C%87%E6%A0%87"><span class="nav-text">5.4.1 分割质量指标</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-4-2-%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C%E7%A4%BA%E4%BE%8B"><span class="nav-text">5.4.2 实验结果示例</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E8%BF%90%E8%A1%8C%E7%A4%BA%E4%BE%8B"><span class="nav-text">实验运行示例</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BA%A4%E4%BA%92%E6%88%90%E6%9C%AC%E4%B8%8E%E5%88%86%E5%89%B2%E8%B4%A8%E9%87%8F%E7%9A%84%E5%AE%9A%E9%87%8F%E7%BB%93%E6%9E%9C"><span class="nav-text">交互成本与分割质量的定量结果</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E8%AF%84%E5%88%86%E4%B8%8E%E7%9C%9F%E5%AE%9E%E8%B4%A8%E9%87%8F%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7%E8%A7%82%E5%AF%9F"><span class="nav-text">模型评分与真实质量的一致性观察</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-5-%E5%B7%A5%E7%A8%8B%E6%B3%A8%E6%84%8F%E7%82%B9%E4%B8%8E%E5%AE%9E%E8%B7%B5%E7%BB%8F%E9%AA%8C"><span class="nav-text">5.5 工程注意点与实践经验</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E6%8F%90%E7%A4%BA%E8%AE%BE%E8%AE%A1%E5%AF%B9%E5%88%86%E5%89%B2%E7%BB%93%E6%9E%9C%E7%9A%84%E5%BD%B1%E5%93%8D%E4%B8%8E%E7%BB%8F%E9%AA%8C%E6%80%BB%E7%BB%93"><span class="nav-text">6. 提示设计对分割结果的影响与经验总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-%E4%B8%8D%E5%90%8C%E6%8F%90%E7%A4%BA%E7%AD%96%E7%95%A5%E7%9A%84%E6%95%88%E6%9E%9C%E5%B7%AE%E5%BC%82"><span class="nav-text">6.1 不同提示策略的效果差异</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-%E6%8F%90%E7%A4%BA%E7%BB%84%E5%90%88%E4%B8%8E%E5%BC%95%E5%85%A5%E9%A1%BA%E5%BA%8F%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="nav-text">6.2 提示组合与引入顺序的影响</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-%E6%8F%90%E7%A4%BA%E8%AE%BE%E8%AE%A1%E7%9A%84%E7%BB%8F%E9%AA%8C%E6%80%A7%E5%8E%9F%E5%88%99"><span class="nav-text">6.3 提示设计的经验性原则</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E5%B7%A5%E7%A8%8B%E8%A7%86%E8%A7%92%E4%B8%8B%E7%9A%84%E5%BA%94%E7%94%A8%E8%BE%B9%E7%95%8C%E4%B8%8E%E5%AE%9E%E8%B7%B5%E5%BB%BA%E8%AE%AE"><span class="nav-text">7. 工程视角下的应用边界与实践建议</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#7-1-%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF%E5%88%86%E6%9E%90%EF%BC%9A%E4%BD%95%E6%97%B6%E4%BD%BF%E7%94%A8-SAM-%E6%9B%B4%E5%85%B7%E4%BC%98%E5%8A%BF"><span class="nav-text">7.1 适用场景分析：何时使用 SAM 更具优势</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-2-%E4%B8%8D%E9%80%82%E7%94%A8%E6%88%96%E9%9C%80%E8%B0%A8%E6%85%8E%E4%BD%BF%E7%94%A8%E7%9A%84%E5%9C%BA%E6%99%AF"><span class="nav-text">7.2 不适用或需谨慎使用的场景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-3-%E4%B8%8E%E5%85%B6%E4%BB%96%E5%88%86%E5%89%B2%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%8D%8F%E5%90%8C%E4%BD%BF%E7%94%A8%E6%96%B9%E5%BC%8F"><span class="nav-text">7.3 与其他分割模型的协同使用方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-4-%E5%B7%A5%E7%A8%8B%E8%90%BD%E5%9C%B0%E4%B8%AD%E7%9A%84%E5%AE%9E%E8%B7%B5%E5%BB%BA%E8%AE%AE"><span class="nav-text">7.4 工程落地中的实践建议</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E6%80%BB%E7%BB%93%E4%B8%8E%E5%B1%95%E6%9C%9B%EF%BC%9A%E4%BB%8E%E5%88%86%E5%89%B2%E6%A8%A1%E5%9E%8B%E5%88%B0%E5%8F%AF%E8%B0%83%E7%94%A8%E7%9A%84%E8%A7%86%E8%A7%89%E8%83%BD%E5%8A%9B"><span class="nav-text">8. 总结与展望：从分割模型到可调用的视觉能力</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#8-1-%E6%A0%B8%E5%BF%83%E5%86%85%E5%AE%B9%E5%9B%9E%E9%A1%BE"><span class="nav-text">8.1 核心内容回顾</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-2-%E5%8F%AF%E6%8F%90%E7%A4%BA%E5%88%86%E5%89%B2%E5%B8%A6%E6%9D%A5%E7%9A%84%E6%96%B9%E6%B3%95%E8%AE%BA%E5%90%AF%E7%A4%BA"><span class="nav-text">8.2 可提示分割带来的方法论启示</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-3-%E6%9C%AA%E6%9D%A5%E5%8F%91%E5%B1%95%E6%96%B9%E5%90%91%E4%B8%8E%E6%8C%91%E6%88%98"><span class="nav-text">8.3 未来发展方向与挑战</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-%E5%A4%87%E6%B3%A8"><span class="nav-text">9. 备注</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">52</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">114</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2026/01/07/051-unet-deeplab-mask2former-segment-anything/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's blog">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="从像素预测到可提示分割：UNet、DeepLab、Mask2Former 到 Segment Anything | KeyChan's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          从像素预测到可提示分割：UNet、DeepLab、Mask2Former 到 Segment Anything
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-01-07 18:21:12 / 修改时间：18:21:11" itemprop="dateCreated datePublished" datetime="2026-01-07T18:21:12+08:00">2026-01-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a>
+        </span>
+    </span>
+
+  
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2026/01/07/051-unet-deeplab-mask2former-segment-anything/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2026/01/07/051-unet-deeplab-mask2former-segment-anything/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>16k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>57 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="1-视觉分割任务回顾：从像素预测到结构理解"><a href="#1-视觉分割任务回顾：从像素预测到结构理解" class="headerlink" title="1. 视觉分割任务回顾：从像素预测到结构理解"></a>1. 视觉分割任务回顾：从像素预测到结构理解</h2><p>视觉分割是计算机视觉体系中一类<strong>基础而关键</strong>的任务。与图像分类主要回答“图像中包含哪些语义概念”不同，分割进一步要求回答“这些对象在图像中的<strong>具体位置、形状与边界</strong>是什么”。这意味着分割并非以整幅图像或候选框为单位进行判断，而是<strong>直接作用于像素层面</strong>，需要对图像中<strong>每一个像素</strong>给出明确的归属结果。</p>
+<p>正因为输出粒度从“区域”细化到“像素”，视觉分割不仅考验模型的语义理解能力，更对其<strong>空间表达能力、上下文建模能力以及结构化预测能力</strong>提出了更高要求。在进入可提示分割与通用分割模型的讨论之前，有必要首先对分割任务本身的定义、输出形式以及任务类型进行系统回顾，从而为后续模型结构与问题设定的演进奠定清晰而统一的概念基础。</p>
+<span id="more"></span>
+<h3 id="1-1-分割任务的基本定义与输出形式"><a href="#1-1-分割任务的基本定义与输出形式" class="headerlink" title="1.1 分割任务的基本定义与输出形式"></a>1.1 分割任务的基本定义与输出形式</h3><p>从问题形式上看，视觉分割可以被视为一种典型的<strong>像素级预测任务</strong>。给定输入图像，模型需要为其中的<strong>每一个像素</strong>输出对应的类别标签或概率值，并确保输出结果在空间上与输入图像<strong>严格对齐</strong>。这一特点决定了分割任务天然具有显著的<strong>几何与结构属性</strong>，模型不仅需要“理解图像内容”，还需要将语义信息<strong>精确映射回图像平面</strong>。</p>
+<p>与图像分类相比，分割任务关注的并非全局语义，而是图像内部的<strong>空间组织关系</strong>；与目标检测相比，分割任务的目标并非给出有限数量的边界框，而是<strong>直接刻画目标的精确轮廓</strong>。因此，<strong>结构化定位能力</strong>是分割任务最核心的特征之一。</p>
+<p>从输出形式来看，分割结果通常以二维图或多通道张量的形式表示，常见形式主要包括以下几类。</p>
+<ul>
+<li><strong>二值掩码</strong>。该形式多用于单目标或前景–背景分割场景，每个像素仅需判断是否属于目标区域。二值掩码形式直观、实现简单，在医学影像分析、目标抠图等应用中被广泛采用。</li>
+<li><strong>多类掩码</strong>。这是语义分割中最常见的输出形式，每个像素被赋予一个离散的语义类别编号。模型可以直接输出类别索引，也可以输出每个类别对应的概率图，再通过后处理得到最终分割结果。</li>
+<li><strong>概率分布或置信图</strong>。在这一形式下，模型为每个像素输出其属于不同类别的概率值，从而显式表达预测不确定性。这种输出在<strong>交互式修正、阈值调节以及多模型融合</strong>等场景中具有更高的工程价值。</li>
+</ul>
+<p>与检测任务相比，分割任务在表达能力上的优势十分明显。边界框只能给出<strong>粗粒度的空间定位</strong>，而分割掩码能够精确描述目标的<strong>形状、边界以及内部结构</strong>。正因如此，分割在医学影像处理、遥感影像解译、自动驾驶环境感知等场景中具有<strong>不可替代的地位</strong>。</p>
+<p>然而，像素级输出同时也意味着更高的代价。分割模型需要处理<strong>更密集的监督信号</strong>，对标注质量高度敏感，而<strong>像素级标注成本本身又极为高昂</strong>。这一现实约束，构成了分割技术长期演进中的关键瓶颈，也直接推动了后续关于交互式分割与可提示分割范式的探索。</p>
+<img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250514143841.png" width="70%" />
+<center>图1-1 目标检测与语义分割输出形式对比示意图</center>
+
+<p>左面为目标检测结果，模型以若干矩形边界框及对应的类别标签对目标进行定位与识别。当目标形状较为复杂或边界不规则时，边界框只能提供粗略的位置范围，难以精确贴合目标的真实轮廓。右面为语义分割结果，模型对图像中每一个像素进行预测，并以不同颜色标注不同语义区域，从而清晰刻画出目标与背景之间的边界细节及其空间结构。</p>
+<h3 id="1-2-三类经典分割任务：语义分割、实例分割与全景分割"><a href="#1-2-三类经典分割任务：语义分割、实例分割与全景分割" class="headerlink" title="1.2 三类经典分割任务：语义分割、实例分割与全景分割"></a>1.2 三类经典分割任务：语义分割、实例分割与全景分割</h3><p>尽管“分割”常被作为一个统称使用，但在研究与工程实践中，其目标定义并不单一。根据是否区分同类目标个体，以及是否要求输出覆盖整幅图像，分割任务通常被划分为<strong>语义分割、实例分割与全景分割</strong>三类。清晰区分这三类任务，是理解后续模型结构设计与训练目标差异的重要前提。</p>
+<p><strong>语义分割</strong>关注的是<strong>类别层面的像素归属</strong>，如图1-2 b。在这一任务中，每个像素都被赋予一个语义类别标签，例如道路、建筑、天空或行人，但<strong>同一类别中的不同个体不作区分</strong>。语义分割强调<strong>语义一致性与上下文理解能力</strong>，其输出通常被视为一幅完整的语义地图，在场景理解和环境建模中发挥基础性作用。</p>
+<p><strong>实例分割</strong>在语义分割的基础上进一步提出要求，即不仅需要判断像素属于哪一类，还需要<strong>区分同一类别中的不同实例</strong>。例如在包含多名行人车辆的图像中，如图1-2 c，每一个行人都应对应一张独立的掩码。实例分割本质上同时涉及<strong>目标级区分与像素级轮廓刻画</strong>，对模型的结构建模能力提出了更高要求。</p>
+<p><strong>全景分割</strong>试图在统一框架下整合上述两类任务，如图1-2 d。其核心思想是同时处理<strong>可数目标</strong>与<strong>不可数背景区域</strong>，既区分实例级目标，又对连续区域进行语义标注，并保证输出结果在整幅图像上<strong>覆盖完整且互不冲突</strong>。全景分割强调表达的<strong>一致性与完整性</strong>，在自动驾驶和机器人感知系统中具有重要应用价值。</p>
+<p>需要指出的是，这三类任务之间并不存在简单的替代关系，而是由<strong>应用需求驱动的差异化定义</strong>。语义分割侧重整体场景语义，实例分割侧重个体区分，全景分割则追求统一表达。任务定义的不同，直接影响模型是否需要<strong>实例级查询机制、匹配策略以及更复杂的后处理流程</strong>。</p>
+<img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/ZndL1U.png" width="70%" />
+<center> 图1-2 语义分割、实例分割与全景分割输出形式对比示意图</center>
+
+<p><strong>本章小结</strong><br>本章围绕视觉分割任务的基本定义与分类，对分割问题的核心特征进行了系统梳理。可以看到，<strong>视觉分割的本质是像素级的结构化预测</strong>，其价值在于对目标形状、边界以及空间关系的精确刻画；与此同时，<strong>像素级输出所带来的高建模复杂度与高标注成本</strong>，也构成了分割技术长期演进中的重要现实约束。</p>
+<p>通过区分语义分割、实例分割与全景分割三类任务，可以进一步理解不同分割模型在设计目标上的侧重点。这些概念与任务边界，将在后续章节中反复出现，并直接影响模型结构选择与问题设定方式。下一章将以此为基础，进一步讨论分割模型在结构层面的演进逻辑，以及不同设计分别在解决哪些关键困难。</p>
+<h2 id="2-分割模型结构演进：不同设计在解决什么问题"><a href="#2-分割模型结构演进：不同设计在解决什么问题" class="headerlink" title="2. 分割模型结构演进：不同设计在解决什么问题"></a>2. 分割模型结构演进：不同设计在解决什么问题</h2><p>在明确了分割任务的定义与类型之后，随之而来的核心问题是：<strong>模型应当如何从图像中学习并生成像素级的结构化结果</strong>。分割模型的发展并非简单的性能堆叠过程，而是围绕若干长期存在的关键困难，不断调整其结构设计与建模假设。这些困难主要体现在 <strong>语义信息与空间细节之间的权衡、多尺度目标的统一处理，以及对复杂场景中多个目标的区分能力</strong> 等方面。</p>
+<p>本章将以三类具有代表性的模型为线索，梳理分割模型在结构层面的演进逻辑。需要强调的是，这一演进并不意味着旧模型被新模型完全取代，而是反映了<strong>不同结构在解决不同问题时所体现出的设计取向</strong>。理解这些取向，有助于把握后续可提示分割模型在结构与问题设定上的合理性。</p>
+<h3 id="2-1-UNet：像素级预测的结构起点"><a href="#2-1-UNet：像素级预测的结构起点" class="headerlink" title="2.1 UNet：像素级预测的结构起点"></a>2.1 UNet：像素级预测的结构起点</h3><p>UNet 是分割领域中最具代表性的早期模型之一，其提出为像素级预测任务提供了一种<strong>直观而有效的结构范式</strong>。UNet 的核心思想可以概括为 <strong>编码器–解码器结构</strong>，通过逐步压缩与恢复空间分辨率，实现从图像到像素标签的映射。</p>
+<p>在编码阶段，模型通过多层卷积与下采样操作逐渐降低特征图的空间分辨率，同时提升特征的<strong>语义抽象程度</strong>。这一过程有利于捕获局部纹理与高层语义信息，但不可避免地会丢失精细的空间细节。为了解决这一问题，UNet 在解码阶段引入了与编码阶段对称的上采样路径，通过反卷积或插值操作逐步恢复分辨率，并将编码阶段对应层级的特征通过<strong>跳跃连接</strong>引入解码过程。</p>
+<p>这种跳跃连接的设计是 UNet 成功的关键。<strong>高层特征负责语义判断，低层特征保留边界与局部结构信息</strong>，两者在解码阶段的融合，使模型能够在保持语义一致性的同时，恢复较为精确的像素边界。正因如此，UNet 在医学影像分割等对边界精度要求极高的场景中长期占据重要地位。</p>
+<p>然而，UNet 的结构也存在明显局限。由于其主要依赖<strong>局部卷积操作</strong>，模型的感受野增长较为有限，在面对大尺度目标或复杂场景时，对<strong>全局上下文</strong>的建模能力不足。这一问题在自然场景分割中尤为突出，也直接推动了后续模型在结构设计上的改进。</p>
+<p>具体可参考：<a href="https://www.keychan.xyz/2025/05/19/016-image-segmentation-u-net/">图像分割与U-Net系列模型解析</a><br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/Pasted%20image%2020250514150209.png" width="80%" /></p>
+<center>图2-1 UNet 编码器–解码器对称结构示意图</center>
+
+<p>该图展示了 UNet 模型典型的编码器–解码器对称结构及其特征传递方式。左侧为编码阶段，通过多层 <strong>3×3 卷积与 ReLU 激活</strong>逐步提取特征，并借助 <strong>2×2 最大池化</strong>不断降低特征图的空间分辨率，从而获得更高层次的语义表示。随着分辨率下降，特征通道数逐级增加，以增强对复杂语义结构的表达能力。<br>右侧为解码阶段，通过 <strong>2×2 上采样卷积</strong>逐步恢复特征图分辨率，并与编码阶段中对应尺度的特征图进行<strong>跳跃连接（copy and crop）</strong>。这种连接方式将低层特征中保留的精细空间信息与高层特征中的语义信息进行融合，有效弥补下采样过程中造成的细节损失。<br>图中标注的特征图尺寸变化与通道数配置，直观体现了 UNet 在不同分辨率层级之间的对应关系，以及跳跃连接在<strong>恢复目标边界与空间结构细节</strong>中的关键作用。这一结构设计奠定了 UNet 在像素级分割任务中兼顾语义一致性与边界精度的基础。</p>
+<h3 id="2-2-DeepLab：引入上下文感知的分割模型"><a href="#2-2-DeepLab：引入上下文感知的分割模型" class="headerlink" title="2.2 DeepLab：引入上下文感知的分割模型"></a>2.2 DeepLab：引入上下文感知的分割模型</h3><p>针对 UNet 在<strong>全局语义建模能力不足</strong>的问题，DeepLab 系列模型从感受野设计的角度对分割结构进行了系统改进。其核心思想在于，通过扩大<strong>有效感受野</strong>，使模型在不显著增加参数量的情况下，能够同时感知更大范围的上下文信息。</p>
+<p>DeepLab 的关键技术之一是<strong>空洞卷积</strong>。与标准卷积不同，空洞卷积在卷积核元素之间引入间隔，从而在保持特征图分辨率不变的前提下，显著扩大感受野。这种设计避免了频繁下采样带来的空间信息损失，使模型能够在较高分辨率特征图上进行语义推理。</p>
+<p>在此基础上，DeepLab 系列进一步提出了<strong>空洞空间金字塔池化模块</strong>，通过并行使用不同空洞率的卷积，对同一特征图进行多尺度处理。该模块使模型能够同时捕获<strong>局部细节与全局语义</strong>，对于尺度变化显著的目标尤为有效。随着版本演进，DeepLab 还引入了更精细的解码结构，以改善边界质量。</p>
+<p>从结构取向上看，DeepLab 更强调<strong>语义一致性与上下文理解能力</strong>，相比 UNet 更适合处理自然场景中的大尺度区域。然而，由于其输出本质上仍是<strong>像素级语义预测</strong>，模型并不直接区分同类目标的不同实例，这也限制了其在实例级分析任务中的适用范围。</p>
+<p>具体可参考：<a href="https://www.keychan.xyz/2025/06/10/019-deeplab-series/">图像分割DeepLab系列算法思路分析</a><br>  <img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/KoUO8I.png" alt="KoUO8I"></p>
+<center>图2-2 空洞空间金字塔池化（ASPP）结构示意图</center>
+
+<p>该图展示了 DeepLab 系列模型中空洞空间金字塔池化模块的整体结构及其工作方式。输入特征在保持空间分辨率不变的前提下，被并行送入多个分支进行处理。其中包含一个 1×1 卷积分支，以及多个具有不同空洞率的 3×3 空洞卷积分支（如 r6、r12、r18），同时还引入了池化分支用于补充全局上下文信息。不同分支对应不同大小的有效感受野，使模型能够在同一尺度上同时感知局部细节与大尺度语义结构。<br>各分支输出的特征随后在通道维度上进行拼接，并通过 1×1 卷积进行融合与压缩，形成兼具多尺度上下文信息的特征表示。通过这种设计，DeepLab 能够在<strong>不依赖额外下采样、不降低特征图分辨率</strong>的情况下有效扩大感受野，从而提升分割任务中对复杂场景与尺度变化目标的建模能力。</p>
+<h3 id="2-3-Mask2Former：统一视角下的分割建模"><a href="#2-3-Mask2Former：统一视角下的分割建模" class="headerlink" title="2.3 Mask2Former：统一视角下的分割建模"></a>2.3 Mask2Former：统一视角下的分割建模</h3><p>随着 Transformer 架构在视觉领域的广泛应用，分割模型的建模方式开始发生更为根本性的变化。Mask2Former 是这一阶段的代表性工作，其核心贡献在于提出了一种<strong>统一的分割建模视角</strong>，将语义分割、实例分割与全景分割统一为 <strong>掩码预测问题</strong>。</p>
+<p>Mask2Former 的关键思想是<strong>基于查询的分割建模</strong>。模型不再直接对每一个像素进行独立分类，而是通过一组<strong>可学习的查询向量</strong>，与图像特征进行交互，预测一组掩码及其对应的语义信息。每一个查询可以被视为一个潜在的目标或区域，其输出是一张软掩码以及对应的类别预测。</p>
+<p>这种设计带来了两个重要变化。首先，分割结果不再依赖于像素级的独立决策，而是以<strong>集合的形式进行预测</strong>，更符合目标级结构的表达方式。其次，不同分割任务之间的差异被显著弱化，模型只需通过不同的训练目标与后处理策略，即可适配语义、实例或全景分割需求。</p>
+<p>从结构复杂度的角度看，Mask2Former 相较于 UNet 和 DeepLab 引入了更复杂的<strong>注意力机制与匹配策略</strong>，对计算资源与实现细节提出了更高要求。但其以掩码为中心的统一建模思想，为后续通用分割模型的发展提供了重要启示，也为可提示分割范式奠定了关键技术基础。</p>
+<p>具体可参考：<a href="https://www.keychan.xyz/2025/07/08/023-segmentation-mask2former/">从像素到区域：MaskFormer 系列详解</a><br><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/key_blog/image_20250702153232.png"></p>
+<center>图2-3 基于查询的分割建模流程示意图（Mask2Former）</center>
+
+<p>该图展示了 Mask2Former 所采用的基于查询的分割预测流程。输入图像首先经过主干网络与特征编码器，生成具有丰富语义信息的图像特征表示。随后，一组可学习的查询向量被送入 Transformer 解码器，与图像特征进行全局交互。每个查询在注意力机制的引导下，从特征图中聚合与自身最相关的区域信息。</p>
+<p>在解码阶段，每个查询同时输出两类结果：一是对应的分割掩码预测，用于刻画目标或区域的空间形状；二是对应的类别预测，用于确定该掩码的语义属性。通过这种方式，模型将分割任务建模为<strong>由查询驱动的掩码集合预测问题</strong>，而非传统的逐像素独立分类。</p>
+<p>该流程直观体现了 Mask2Former 与经典分割模型在建模方式上的根本差异：分割结果不再由像素级分类器直接生成，而是由查询统一生成并管理，从而为语义分割、实例分割与全景分割提供了统一而灵活的建模框架。</p>
+<p><strong>本章小结</strong><br>本章从结构设计的角度回顾了分割模型的发展脉络。UNet 通过<strong>编码器–解码器结构</strong>奠定了像素级预测的基本范式，DeepLab 通过引入<strong>空洞卷积与多尺度上下文建模</strong>强化了语义一致性，而 Mask2Former 则进一步将分割任务抽象为<strong>基于查询的掩码预测问题</strong>，实现了多种分割任务的统一表达。</p>
+<p>可以看到，不同模型并非简单的替代关系，而是在不同设计假设下，对分割任务中的关键困难给出了各自的解决方案。理解这些结构选择背后的动机，是进一步理解可提示分割与通用分割模型设计逻辑的重要前提。</p>
+<h2 id="3-从自动分割到可提示分割：问题是如何被重新定义的"><a href="#3-从自动分割到可提示分割：问题是如何被重新定义的" class="headerlink" title="3. 从自动分割到可提示分割：问题是如何被重新定义的"></a>3. 从自动分割到可提示分割：问题是如何被重新定义的</h2><p>在前两章中，分割任务的定义以及典型模型结构已经得到了系统梳理。无论是以<strong>像素分类</strong>为核心的卷积模型，还是以<strong>查询驱动的掩码预测</strong>为核心的 Transformer 架构，它们在问题设定上都隐含着一个共同前提：模型需要在<strong>给定输入图像的情况下，自动输出完整且确定的分割结果</strong>。这一设定在数据分布稳定、任务边界清晰的场景中长期有效，但随着应用环境的复杂化，其局限性也逐渐显现。</p>
+<p>本章将从<strong>问题设定层面</strong>出发，分析传统自动分割范式所依赖的隐含假设，并说明这些假设为何在开放场景中逐步失效，进而引出<strong>可提示分割</strong>这一新的问题定义方式。需要强调的是，这一转变并非简单的模型结构升级，而是对 <strong>“分割任务究竟由谁来定义”</strong> 这一根本问题的重新思考。</p>
+<h3 id="3-1-传统自动分割范式的隐含假设与限制"><a href="#3-1-传统自动分割范式的隐含假设与限制" class="headerlink" title="3.1 传统自动分割范式的隐含假设与限制"></a>3.1 传统自动分割范式的隐含假设与限制</h3><p>经典分割模型在设计与使用过程中，通常建立在若干<strong>隐含但关键的假设</strong>之上。这些假设在早期应用中并不显性，但随着分割技术走向更复杂的场景，其限制逐渐凸显。</p>
+<p>首先，传统分割模型默认<strong>任务类别集合在训练与推理阶段保持一致</strong>。模型在训练时被明确告知需要区分哪些语义类别或实例类型，并在推理阶段始终围绕这一固定集合进行预测。这一假设使模型能够针对特定任务进行高度优化，但也意味着模型对<strong>新类别或长尾目标的适应能力有限</strong>。</p>
+<p>其次，自动分割模型隐含地假设<strong>输入图像中需要被分割的对象是明确且完整的</strong>。模型的目标是对整幅图像给出全量分割结果，而并不关心在实际应用中是否只需要关注图像中的某一局部区域或某一个特定对象。这种“全图一次性预测”的方式在自动化流程中具有效率优势，但在探索式、交互式或分析式场景中往往显得冗余。</p>
+<p>再次，传统分割模型对<strong>大规模、高质量标注数据</strong>高度依赖。无论是语义分割还是实例分割，像素级标注都需要大量人工成本。一旦应用场景或数据分布发生变化，原有模型往往需要重新收集数据并进行训练，迁移成本较高。</p>
+<p>这些假设在封闭环境下并不构成严重问题，但在<strong>开放场景、长尾分布以及人机协同系统</strong>中，其局限性开始集中暴露。模型虽然可能在标准评测指标上表现优异，却难以灵活响应实际需求的变化。</p>
+<h3 id="3-2-可提示分割的提出：从模型自动决定到外部条件指定"><a href="#3-2-可提示分割的提出：从模型自动决定到外部条件指定" class="headerlink" title="3.2 可提示分割的提出：从模型自动决定到外部条件指定"></a>3.2 可提示分割的提出：从模型自动决定到外部条件指定</h3><p>可提示分割的核心思想在于：<strong>分割任务的具体目标不再完全由模型参数隐式决定，而是通过外部输入在推理阶段显式指定</strong>。与其要求模型在所有情况下输出完整分割结果，不如允许外部条件明确指出“希望分割什么”。</p>
+<p>在这一设定下，分割模型的角色发生了根本性变化。模型不再是一个封闭的自动预测器，而是转变为一个<strong>可被条件化调用的分割引擎</strong>。外部条件可以以多种形式存在，例如在图像中给出一个或多个点、一个粗略的边界框，或是一段描述性文本。这些输入并非简单的辅助信息，而是<strong>直接参与分割推理过程</strong>，影响模型最终输出的掩码结果。</p>
+<p>从问题定义的角度来看，可提示分割将原本隐含在训练数据与模型参数中的任务约束，显式地暴露为推理阶段的<strong>可控变量</strong>。模型不再需要预先覆盖所有可能的目标类别，而是专注于在当前条件约束下，生成与提示一致的分割结果。这种方式在开放场景中具有显著优势，也为分割模型的<strong>泛化能力</strong>提供了新的实现路径。</p>
+<h3 id="3-3-可提示分割与传统分割的差异与联系"><a href="#3-3-可提示分割与传统分割的差异与联系" class="headerlink" title="3.3 可提示分割与传统分割的差异与联系"></a>3.3 可提示分割与传统分割的差异与联系</h3><p>尽管问题设定发生了变化，可提示分割并非对传统分割范式的完全否定。两者在本质上仍然共享相同的核心能力，即从图像中提取多层次特征，并将其映射为<strong>像素级的结构化输出</strong>。不同之处在于，分割决策过程是否受到<strong>外部条件的显式约束</strong>。</p>
+<p>在传统自动分割中，模型在推理阶段面对的是一个相对封闭的问题空间，其输出的多样性主要来自输入图像本身。而在可提示分割中，输出空间同时受到<strong>图像内容与提示信息</strong>的共同制约。相同的图像，在不同提示条件下，可以产生<strong>截然不同但同样合理</strong>的分割结果。</p>
+<p>这种差异也直接影响了评价视角。在可提示分割场景中，分割质量不再仅由单一的精度指标衡量，还需要结合<strong>交互成本、提示次数以及结果稳定性</strong>等因素进行综合分析。从这一角度看，可提示分割更接近一种<strong>人机协同问题</strong>，而非纯粹的离线预测任务。</p>
+<img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/LX5DjD.png" width="70%" />
+<center>图3-1 可提示分割的输入–输出关系示意图（Segment Anything）</center>
+
+<p>该图展示了可提示分割模型的基本工作方式强调“分割由提示条件驱动”的核心思想。模型的输入不仅包含原始图像，还包括来自外部的分割提示信息。提示可以采用多种形式，例如前景或背景点、边界框、已有的粗略掩码，或文本描述等，这些不同形式的提示在模型中被统一编码，并作为条件约束参与分割推理过程。</p>
+<p>在给定图像与提示的共同作用下，模型生成与提示语义一致的有效分割掩码。图中可以看到，相同的输入图像在不同提示条件下，模型关注的目标区域会发生变化，最终输出的分割结果也随之调整。这一流程表明，分割结果不再是模型对图像的唯一、固定预测，而是由图像内容与提示信息共同决定。</p>
+<p>该示意直观体现了可提示分割相较于传统自动分割的根本差异，即将“分割什么”的决策权部分从模型内部转移到推理阶段，使分割模型成为一种<strong>可被外部指令控制的视觉能力模块</strong>。</p>
+<p><strong>本章小结</strong><br>本章从问题设定的角度讨论了分割范式的转变。传统自动分割模型在<strong>固定任务与封闭数据分布</strong>下表现稳定，但在开放环境中暴露出<strong>灵活性与可控性不足</strong>的问题。可提示分割通过引入外部条件，将“分割什么”的决策权部分转移到推理阶段，从而为分割模型提供了更高的<strong>可控性与泛化潜力</strong>。</p>
+<p>在这一背景下，分割模型不再仅仅是一个静态的预测工具，而逐渐演变为一种<strong>可交互、可复用的视觉能力模块</strong>。下一章将围绕这一思想，进一步分析 Segment Anything Model 的系统设计及其如何在工程层面实现可提示分割。</p>
+<h2 id="4-Segment-Anything-Model：作为通用分割工具的系统设计"><a href="#4-Segment-Anything-Model：作为通用分割工具的系统设计" class="headerlink" title="4. Segment Anything Model：作为通用分割工具的系统设计"></a>4. Segment Anything Model：作为通用分割工具的系统设计</h2><p>在前一章中，分割问题的设定已经从“模型自动完成整幅图像的分割任务”转向“在<strong>外部条件约束</strong>下生成所需的分割结果”。在这一新设定下，模型不再仅仅面对固定类别或固定输出形式，而需要在<strong>多种提示条件</strong>下稳定执行分割。Segment Anything Model 正是在这一背景下提出，其目标并非针对某一具体数据集或单一应用场景进行优化，而是构建一个<strong>可被反复调用、可被外部指令控制的通用分割工具</strong>。</p>
+<p>本章将从系统设计的角度，对 Segment Anything Model 的整体结构、提示机制以及能力边界进行分析，重点解决三个问题：<strong>为何这种模型能够工作、应当如何使用、以及在什么情况下不适合使用</strong>。</p>
+<h3 id="4-1-SAM-的整体架构与工作流程"><a href="#4-1-SAM-的整体架构与工作流程" class="headerlink" title="4.1 SAM 的整体架构与工作流程"></a>4.1 SAM 的整体架构与工作流程</h3><p>从结构上看，Segment Anything Model 并未追求端到端的一体化设计，而是明确划分为三个功能相对独立、职责清晰的模块：<strong>图像编码器、提示编码器与掩码解码器</strong>。这种模块化结构是 SAM 能够在多种使用场景中保持灵活性的关键。</p>
+<ul>
+<li><strong>图像编码器</strong>负责从输入图像中提取高层次的视觉特征。该模块通常基于大规模视觉 Transformer 进行训练，其输出是一组具有较强语义表达能力的特征表示。这一步可以被视为一次<strong>通用视觉理解</strong>过程，其结果在后续不同提示条件下可以被重复使用，从而显著降低交互式使用时的整体计算成本。</li>
+<li><strong>提示编码器</strong>用于处理外部输入的提示信息。无论是点、框还是已有掩码，这些提示都不会直接参与像素级计算，而是被映射为与图像特征处于<strong>同一表示空间</strong>中的嵌入向量。通过这一设计，不同形式的提示可以被统一建模，并以一致的方式影响分割推理过程。</li>
+<li><strong>掩码解码器</strong>是 SAM 中最具交互特性的模块。它接收图像特征与提示嵌入，通过注意力机制生成一个或多个候选分割掩码。值得注意的是，解码器通常采用<strong>相对轻量的结构</strong>，使得在交互式使用场景中能够快速响应提示变化，而无需重复执行代价较高的图像编码步骤。</li>
+</ul>
+<p>从整体流程来看，SAM 的一次分割预测并非单纯的前向传播，而是由<strong>图像理解、条件指定与结果生成</strong>三步协同完成。这种解耦设计使模型在工程层面更接近一个<strong>可复用的功能模块</strong>，而非一次性执行的任务模型。</p>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/v85pZR.png" alt="v85pZR"></p>
+<center>图4-1 Segment Anything Model（SAM）整体架构与数据流示意图</center>
+
+<p>该图展示了 Segment Anything Model 的整体系统架构及其在推理阶段的数据流向。输入图像首先经过<strong>图像编码器</strong>进行一次性特征提取，生成高维的图像嵌入表示。该图像特征在后续分割过程中被缓存并重复使用，使得模型在多次交互中无需重复执行高成本的图像编码操作。</p>
+<p>来自外部的分割提示通过<strong>提示编码器</strong>进行处理，不同形式的提示（如点、边界框、文本或已有掩码）被统一映射为提示嵌入，并在掩码解码阶段注入。掩码解码器同时接收图像嵌入与提示嵌入，通过注意力机制生成多个候选分割掩码及其对应的置信度评分。</p>
+<p>图中右侧展示了模型输出的<strong>多掩码预测结果</strong>，每个掩码均附带一个评分，用于衡量其与当前提示条件的匹配程度。通过将图像理解与提示驱动的掩码生成过程解耦，SAM 能够在同一图像特征上高效地反复应用不同提示，从而支持快速、低成本的交互式分割。这一结构设计体现了 SAM 作为通用、可调用分割工具的核心思想。</p>
+<h3 id="4-2-SAM-支持的提示形式与使用逻辑"><a href="#4-2-SAM-支持的提示形式与使用逻辑" class="headerlink" title="4.2 SAM 支持的提示形式与使用逻辑"></a>4.2 SAM 支持的提示形式与使用逻辑</h3><p>SAM 的一个核心特征在于其对<strong>多种提示形式</strong>的原生支持。不同提示并非等价替代关系，而是对应不同程度的约束强度与使用目的。</p>
+<p><strong>点提示</strong>是最基础的提示方式。通过在图像中指定前景点或背景点，模型被引导关注局部区域。这种方式交互成本最低，适合快速探索图像结构，但在目标边界复杂或目标密集的场景中，往往需要多次交互才能获得稳定结果。</p>
+<p><strong>框提示</strong>提供了更强的空间约束。通过给定一个粗略的边界框，模型的搜索空间被显著压缩，分割结果通常更加稳定。这种方式在目标位置大致已知的情况下尤为高效，常被用于<strong>半自动标注流程</strong>中。</p>
+<p><strong>掩码提示</strong>用于在已有分割结果的基础上进行细化或修正。模型将输入掩码视为一种软约束，在此基础上生成更符合边界的输出。这一机制使 SAM 能够支持<strong>渐进式交互</strong>，而非每次从零开始预测。</p>
+<p>在实际使用中，这些提示形式往往被<strong>组合使用</strong>。点提示用于初始定位，框提示用于稳定结果，掩码提示用于精修边界。SAM 并未强制规定提示的使用顺序，而是通过统一的提示编码机制，为分割过程提供了足够的灵活性，使结果能够逐步收敛。</p>
+<h3 id="4-3-SAM-的能力边界与常见失败模式"><a href="#4-3-SAM-的能力边界与常见失败模式" class="headerlink" title="4.3 SAM 的能力边界与常见失败模式"></a>4.3 SAM 的能力边界与常见失败模式</h3><p>尽管 SAM 在通用性与交互性方面表现突出，但其能力并非没有边界。明确这些边界，是合理使用该模型的前提。</p>
+<p>在处理<strong>尺寸极小或结构极为细碎的目标</strong>时，SAM 的分割结果往往不稳定。这一问题与图像编码器的特征分辨率以及训练数据中目标尺度分布密切相关。在此类场景中，单纯增加提示数量并不一定能够显著改善结果。</p>
+<p>在<strong>复杂遮挡或高度重叠</strong>的场景中，提示信息可能无法唯一确定期望分割的对象，从而导致模型在多个候选掩码之间摇摆。这种不确定性在交互式使用时尤为明显，需要通过更强约束或人工判断进行干预。</p>
+<p>此外，分割质量与交互成本之间并不存在简单的线性关系。在某些情况下，模型能够在较少提示下生成高质量掩码；而在另一些情况下，即便结果精度较高，也可能需要多次提示才能达到可用状态。因此，<strong>单一精度指标不足以全面评价 SAM 的实际效果</strong>。</p>
+<p>这些现象表明，SAM 更适合作为一种<strong>辅助型通用工具</strong>，而非完全替代任务专用分割模型的解决方案。合理的使用方式应当结合具体应用需求，在<strong>自动化程度、交互成本与结果质量</strong>之间进行权衡。</p>
+<p><strong>本章小结</strong><br>本章从系统设计的角度分析了 Segment Anything Model 的核心结构与使用逻辑。通过<strong>模块化架构</strong>，SAM 将图像理解、提示条件与掩码生成有效解耦，从而支持多种形式的可提示分割。在实际应用中，点、框与掩码等不同提示形式为分割过程提供了灵活且可控的干预手段。</p>
+<p>同时，SAM 也存在明确的能力边界，其表现受到目标尺度、场景复杂度以及交互策略等多方面因素的影响。理解这些特性，有助于在后续实践中更合理地将 SAM 融入数据构建与分割流程中。下一章将进一步通过具体实践，展示如何利用 SAM 进行交互式分割标注，并评估其在真实任务中的效率与效果。</p>
+<h2 id="5-实践：基于-Segment-Anything-的交互式分割标注"><a href="#5-实践：基于-Segment-Anything-的交互式分割标注" class="headerlink" title="5. 实践：基于 Segment Anything 的交互式分割标注"></a>5. 实践：基于 Segment Anything 的交互式分割标注</h2><p>在前述章节中，Segment Anything Model 的<strong>问题设定、系统结构与能力边界</strong>已经得到系统阐述。然而，模型能力并不天然等价于工程价值。对于分割模型而言，其实际意义往往体现在<strong>数据构建与标注流程</strong>中，而非仅仅体现在固定测试集上的极限性能。</p>
+<p>因此，本章将 Segment Anything 置于<strong>真实的交互式标注场景</strong>中，通过一个可复现的工程实验，系统分析在人工参与条件下，<strong>分割质量如何随交互成本变化</strong>，从而判断可提示分割在数据构建流程中的实际适用性。</p>
+<h3 id="5-1-实践目标与任务设定"><a href="#5-1-实践目标与任务设定" class="headerlink" title="5.1 实践目标与任务设定"></a>5.1 实践目标与任务设定</h3><p>交互式分割标注的核心目标，并非完全消除人工参与，而是通过模型辅助，<strong>显著降低像素级标注的复杂度与重复性</strong>。在实际工程中，像素级分割标注往往是数据构建中最耗时、最昂贵的环节之一。</p>
+<p><strong>任务设定</strong><br>实验采用如下设定：</p>
+<ul>
+<li>输入：自然场景图像（COCO val2017 子集）</li>
+<li>输出：单目标二值分割掩码</li>
+<li>交互方式：<ul>
+<li>鼠标左键：前景点（foreground）</li>
+<li>鼠标右键：背景点（background）</li>
+<li>p：触发预测</li>
+<li>s：确认并保存</li>
+</ul>
+</li>
+<li>人工不直接绘制掩码，而仅通过<strong>点提示</strong>与模型交互</li>
+</ul>
+<p>评估同时关注两个维度：</p>
+<ul>
+<li><strong>分割结果的可用性</strong></li>
+<li><strong>交互成本</strong>（提示次数、时间）</li>
+</ul>
+<h3 id="5-2-交互式分割标注系统实现"><a href="#5-2-交互式分割标注系统实现" class="headerlink" title="5.2 交互式分割标注系统实现"></a>5.2 交互式分割标注系统实现</h3><h4 id="5-2-1-图像特征的单次编码"><a href="#5-2-1-图像特征的单次编码" class="headerlink" title="5.2.1 图像特征的单次编码"></a>5.2.1 图像特征的单次编码</h4><p>在每张图像进入交互前，系统首先对图像进行一次前向编码，并缓存特征：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> segment_anything <span class="keyword">import</span> sam_model_registry, SamPredictor</span><br><span class="line"><span class="keyword">import</span> cv2</span><br><span class="line"></span><br><span class="line">sam = sam_model_registry[<span class="string">&quot;vit_h&quot;</span>](checkpoint=<span class="string">&quot;sam_vit_h_4b8939.pth&quot;</span>)</span><br><span class="line">sam.to(device)</span><br><span class="line">predictor = SamPredictor(sam)</span><br><span class="line"></span><br><span class="line">image = cv2.imread(img_path)</span><br><span class="line">image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)</span><br><span class="line">predictor.set_image(image)</span><br></pre></td></tr></table></figure>
+<p>该设计确保后续多轮提示不会重复进行高成本的图像编码，是交互式使用的关键工程前提。</p>
+<h4 id="5-2-2-基于鼠标提示的多轮预测"><a href="#5-2-2-基于鼠标提示的多轮预测" class="headerlink" title="5.2.2 基于鼠标提示的多轮预测"></a>5.2.2 基于鼠标提示的多轮预测</h4><p>系统在 OpenCV 窗口中注册鼠标回调，实时记录前景与背景点：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">points, labels = [], []</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">on_mouse</span>(<span class="params">event, x, y, flags, param</span>):</span><br><span class="line">    <span class="keyword">if</span> event == cv2.EVENT_LBUTTONDOWN:</span><br><span class="line">        points.append([x, y])</span><br><span class="line">        labels.append(<span class="number">1</span>)  <span class="comment"># foreground</span></span><br><span class="line">    <span class="keyword">elif</span> event == cv2.EVENT_RBUTTONDOWN:</span><br><span class="line">        points.append([x, y])</span><br><span class="line">        labels.append(<span class="number">0</span>)  <span class="comment"># background</span></span><br></pre></td></tr></table></figure>
+<p>当按下 p 键时，触发预测：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line">point_coords = np.array(points, dtype=np.float32)</span><br><span class="line">point_labels = np.array(labels, dtype=np.int32)</span><br><span class="line"></span><br><span class="line">masks, scores, _ = predictor.predict(</span><br><span class="line">    point_coords=point_coords,</span><br><span class="line">    point_labels=point_labels,</span><br><span class="line">    multimask_output=<span class="literal">True</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">best_idx = <span class="built_in">int</span>(np.argmax(scores))</span><br><span class="line">best_mask = masks[best_idx]</span><br><span class="line">best_score = <span class="built_in">float</span>(scores[best_idx])</span><br></pre></td></tr></table></figure>
+<p>该过程返回多个候选掩码，系统选择内部置信度最高的结果作为当前输出。</p>
+<h4 id="5-2-3-掩码确认与结果保存"><a href="#5-2-3-掩码确认与结果保存" class="headerlink" title="5.2.3 掩码确认与结果保存"></a>5.2.3 掩码确认与结果保存</h4><p>当人工认为当前掩码达到可用状态时，按下 s 进行保存，同时记录完整实验信息：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"></span><br><span class="line">elapsed_sec = time.time() - start_time</span><br><span class="line"></span><br><span class="line">cv2.imwrite(</span><br><span class="line">    <span class="string">f&quot;outputs/masks/<span class="subst">&#123;image_stem&#125;</span>.png&quot;</span>,</span><br><span class="line">    (best_mask.astype(<span class="string">&quot;uint8&quot;</span>) * <span class="number">255</span>)</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">summary_writer.writerow([</span><br><span class="line">    image_name,</span><br><span class="line">    <span class="built_in">len</span>(points),</span><br><span class="line">    labels.count(<span class="number">1</span>),</span><br><span class="line">    labels.count(<span class="number">0</span>),</span><br><span class="line">    elapsed_sec,</span><br><span class="line">    <span class="built_in">min</span>(<span class="built_in">max</span>(best_score, <span class="number">0.0</span>), <span class="number">1.0</span>),</span><br><span class="line">    iou,</span><br><span class="line">    dice,</span><br><span class="line">    <span class="string">f&quot;masks/<span class="subst">&#123;image_stem&#125;</span>.png&quot;</span>,</span><br><span class="line">    json.dumps(&#123;</span><br><span class="line">        <span class="string">&quot;points&quot;</span>: points,</span><br><span class="line">        <span class="string">&quot;labels&quot;</span>: labels,</span><br><span class="line">        <span class="string">&quot;label_meaning&quot;</span>: <span class="string">&quot;1=foreground(LMB), 0=background(RMB)&quot;</span></span><br><span class="line">    &#125;)</span><br><span class="line">])</span><br></pre></td></tr></table></figure>
+<p>这一设计使每一次标注不仅生成结果，同时也生成<strong>可分析的过程数据</strong>。</p>
+<h3 id="5-3-基于-COCO-标注的真值掩码构建"><a href="#5-3-基于-COCO-标注的真值掩码构建" class="headerlink" title="5.3 基于 COCO 标注的真值掩码构建"></a>5.3 基于 COCO 标注的真值掩码构建</h3><p>为了在部分样本上定量评估分割质量，本实验引入像素级真值掩码。COCO 官方标注以 JSON 形式存储，无法直接用于逐像素比较，因此需进行离线转换。</p>
+<p><strong>COCO JSON → PNG 掩码</strong><br>核心逻辑如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pycocotools.coco <span class="keyword">import</span> COCO</span><br><span class="line"><span class="keyword">import</span> cv2</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line">coco = COCO(<span class="string">&quot;instances_val2017.json&quot;</span>)</span><br><span class="line">img_id = coco.getImgIds(imgIds=[])[<span class="number">0</span>]</span><br><span class="line">anns = coco.loadAnns(coco.getAnnIds(imgIds=[img_id]))</span><br><span class="line"></span><br><span class="line">h, w = img_info[<span class="string">&quot;height&quot;</span>], img_info[<span class="string">&quot;width&quot;</span>]</span><br><span class="line">mask = np.zeros((h, w), dtype=np.uint8)</span><br><span class="line"></span><br><span class="line">largest = <span class="built_in">max</span>(anns, key=<span class="keyword">lambda</span> a: a[<span class="string">&quot;area&quot;</span>])</span><br><span class="line">mask = coco.annToMask(largest)</span><br><span class="line"></span><br><span class="line">cv2.imwrite(<span class="string">f&quot;data/gts/<span class="subst">&#123;image_stem&#125;</span>.png&quot;</span>, mask * <span class="number">255</span>)</span><br></pre></td></tr></table></figure>
+<p>默认采用<strong>面积最大实例</strong>作为真值目标，用于保证评估的一致性。</p>
+<h3 id="5-4-评估指标与实验结果"><a href="#5-4-评估指标与实验结果" class="headerlink" title="5.4 评估指标与实验结果"></a>5.4 评估指标与实验结果</h3><h4 id="5-4-1-分割质量指标"><a href="#5-4-1-分割质量指标" class="headerlink" title="5.4.1 分割质量指标"></a>5.4.1 分割质量指标</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">intersection = np.logical_and(pred, gt).<span class="built_in">sum</span>()</span><br><span class="line">union = np.logical_or(pred, gt).<span class="built_in">sum</span>()</span><br><span class="line"></span><br><span class="line">iou = intersection / (union + <span class="number">1e-6</span>)</span><br><span class="line">dice = <span class="number">2</span> * intersection / (pred.<span class="built_in">sum</span>() + gt.<span class="built_in">sum</span>() + <span class="number">1e-6</span>)</span><br></pre></td></tr></table></figure>
+<h4 id="5-4-2-实验结果示例"><a href="#5-4-2-实验结果示例" class="headerlink" title="5.4.2 实验结果示例"></a>5.4.2 实验结果示例</h4><p>在上述实验设置下，对基于 Segment Anything 的交互式分割标注流程进行了实际运行。以下内容基于真实运行日志、自动生成的统计记录（JSON &#x2F; CSV）以及对应的分割可视化结果，对实验现象进行具体分析。</p>
+<h5 id="实验运行示例"><a href="#实验运行示例" class="headerlink" title="实验运行示例"></a><strong>实验运行示例</strong></h5><p>实验通过如下命令启动，对 COCO val2017 图像进行逐张交互式分割标注：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">python scripts/sam_interactive_annotate.py \</span><br><span class="line">  --img_dir data/images \</span><br><span class="line">  --gt_dir data/gts \</span><br><span class="line">  --out_dir outputs \</span><br><span class="line">  --sam_ckpt checkpoints/sam_vit_h_4b8939.pth</span><br></pre></td></tr></table></figure>
+<p>系统在每张图像上提供鼠标交互界面，支持前景与背景点提示，并在触发预测后输出候选掩码、置信度评分以及评估指标。</p>
+<p>以下为连续两张样本图像的运行日志节选：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">=== [1/4986] 000000000632.jpg ===</span><br><span class="line">[PRED] candidates=3 best_score=1.0009 clicks=2</span><br><span class="line">[EVAL] IoU=0.9130 Dice=0.9545</span><br><span class="line">[SAVE] mask -&gt; outputs/masks/000000000632.png</span><br><span class="line"></span><br><span class="line">=== [2/4986] 000000000872.jpg ===</span><br><span class="line">[PRED] candidates=3 best_score=0.9929 clicks=4</span><br><span class="line">[EVAL] IoU=0.8985 Dice=0.9465</span><br><span class="line">[SAVE] mask -&gt; outputs/masks/000000000872.png</span><br></pre></td></tr></table></figure>
+<p>可以看到，在极少交互次数下，模型已经能够生成质量较高的分割结果。</p>
+<h5 id="交互成本与分割质量的定量结果"><a href="#交互成本与分割质量的定量结果" class="headerlink" title="交互成本与分割质量的定量结果"></a><strong>交互成本与分割质量的定量结果</strong></h5><p>系统在每次保存分割结果时，都会将交互过程与评估结果写入结构化 JSON 记录。对应上述两张图像，其统计结果如下：</p>
+<table>
+<thead>
+<tr>
+<th><strong>图像</strong></th>
+<th><strong>点击次数</strong></th>
+<th><strong>前景点</strong></th>
+<th><strong>背景点</strong></th>
+<th><strong>用时（秒）</strong></th>
+<th><strong>SAM 置信度</strong></th>
+<th><strong>IoU</strong></th>
+<th><strong>Dice</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>000000000632.jpg</td>
+<td>2</td>
+<td>2</td>
+<td>0</td>
+<td>20.99</td>
+<td>1.0009</td>
+<td>0.9130</td>
+<td>0.9545</td>
+</tr>
+<tr>
+<td>000000000872.jpg</td>
+<td>4</td>
+<td>4</td>
+<td>0</td>
+<td>23.18</td>
+<td>0.9929</td>
+<td>0.8985</td>
+<td>0.9465</td>
+</tr>
+</tbody></table>
+<p>这些数据直接反映了交互式分割在工程层面的几个关键特征。首先，在目标语义明确、空间结构相对集中的场景中，仅需 <strong>2–4 次前景点提示</strong>，即可获得 IoU 约 0.9、Dice 约 0.95 的分割质量。这一质量水平已能够满足大多数训练数据构建与分析任务的需求。</p>
+<p>其次，尽管第二个样本使用了更多的交互点，其分割质量与第一个样本处于同一数量级，表明分割质量在少量交互后迅速进入稳定区间，提示次数并不存在明显的线性增益关系。</p>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/bOhnhV.png" alt="bOhnhV"></p>
+<center>图5-1 分割结果的可视化对照</center>
+
+<p>上图展示了交互式分割完成后的实际可视化结果示例。图中可以看到，模型生成的掩码在目标主体区域内具有良好的覆盖性，同时在边界处保持了较高的一致性。</p>
+<h5 id="模型评分与真实质量的一致性观察"><a href="#模型评分与真实质量的一致性观察" class="headerlink" title="模型评分与真实质量的一致性观察"></a><strong>模型评分与真实质量的一致性观察</strong></h5><p>在上述两个样本中，模型返回的候选掩码内部评分（sam_best_score）均接近 1.0，且与最终计算得到的 IoU 与 Dice 指标保持一致的高水平。这说明在当前实验条件下，SAM 的候选掩码排序机制能够较好地反映分割结果的相对质量。</p>
+<p>需要注意的是，该评分并非像素级精度指标，而是用于候选掩码之间的选择。在多实例或语义不明确的场景中，其与真实分割质量之间的关系仍需进一步分析。</p>
+<p>综合运行日志、定量统计结果与可视化对照，可以得到以下结论：在交互目标与真值实例一致的前提下，Segment Anything Model 能够在极低交互成本下完成高质量分割；分割质量在少量交互后迅速达到稳定区间，额外提示的边际收益有限；<br>交互式分割的工程价值主要体现在<strong>效率、可控性与可复用性</strong>，而非追求完全自动化或极限精度。</p>
+<h3 id="5-5-工程注意点与实践经验"><a href="#5-5-工程注意点与实践经验" class="headerlink" title="5.5 工程注意点与实践经验"></a>5.5 工程注意点与实践经验</h3><ul>
+<li>仅使用前景点时，掩码易扩张；适量背景点可显著提升稳定性</li>
+<li>SAM 的 best_score 不等价于 IoU，仅适合候选排序</li>
+<li>多实例图像中，GT 实例选择策略对评估结果影响显著</li>
+<li>在无 GT 场景中，应以交互成本而非精度作为核心指标</li>
+</ul>
+<p><strong>本章小结</strong><br>本章通过一个示例验证了 Segment Anything Model 在交互式分割标注场景中的实际价值。实验表明，可提示分割的优势不在于完全自动化，而在于将复杂的标注任务转化为一系列<strong>可控、可修正、可量化的交互过程</strong>。</p>
+<h2 id="6-提示设计对分割结果的影响与经验总结"><a href="#6-提示设计对分割结果的影响与经验总结" class="headerlink" title="6. 提示设计对分割结果的影响与经验总结"></a>6. 提示设计对分割结果的影响与经验总结</h2><p>在前一章的实践中可以看到，Segment Anything Model 的分割质量并非仅由模型本身决定，<strong>提示的形式、数量与组织方式</strong>同样对结果产生显著影响。提示并不是简单的触发信号，而是作为<strong>条件信息直接参与分割推理过程</strong>。不同提示策略所引导的分割路径，往往会在稳定性、精度以及交互成本等方面呈现出明显差异。</p>
+<p>本章将围绕提示设计这一核心问题展开讨论，通过对不同提示策略的对比分析，总结其对分割结果的影响规律，并在实践经验的基础上归纳可复用的设计原则。</p>
+<h3 id="6-1-不同提示策略的效果差异"><a href="#6-1-不同提示策略的效果差异" class="headerlink" title="6.1 不同提示策略的效果差异"></a>6.1 不同提示策略的效果差异</h3><p>从功能角度看，提示可以被理解为对分割搜索空间的<strong>逐步约束手段</strong>。约束越强，模型输出的不确定性越低，但同时也会提高对提示准确性的依赖程度。因此，不同提示形式在实际使用中各有侧重。</p>
+<p><strong>点提示</strong>是交互成本最低的提示方式。通过在目标内部或背景区域指定少量点，模型即可生成候选分割结果。在目标与背景具有明显区分特征的场景中，点提示往往能够快速引导模型获得较为完整的掩码。然而，当目标边界复杂或背景干扰较强时，仅依赖点提示容易出现<strong>漏分或过分割</strong>现象。</p>
+<p><strong>多点提示</strong>通过在目标不同区域引入额外约束，能够显著提升分割结果的稳定性。相较于单点提示，多点策略更适合结构复杂或与背景高度相似的目标，但提示数量的增加也意味着更高的交互成本。因此，多点提示通常作为对初始结果的补充，而非默认起点。</p>
+<p><strong>框提示</strong>提供了一种更强的空间先验。通过给定一个粗略边界框，模型的搜索空间被显著压缩，分割结果在多数情况下更加稳定。这种方式在目标位置大致已知的场景中尤为高效，尤其适用于半自动标注流程。但若框选范围不合理，也可能<strong>限制模型对目标完整边界的恢复能力</strong> 。</p>
+<p><strong>掩码提示</strong>主要用于对已有结果进行细化。与点或框提示不同，掩码提示本身携带了较为完整的空间结构信息，模型在此基础上进行修正时，通常能够更好地贴合真实边界。但其效果高度依赖于初始掩码质量，若初始结果存在系统性偏差，后续修正空间有限。</p>
+<h3 id="6-2-提示组合与引入顺序的影响"><a href="#6-2-提示组合与引入顺序的影响" class="headerlink" title="6.2 提示组合与引入顺序的影响"></a>6.2 提示组合与引入顺序的影响</h3><p>在实际使用中，提示往往并非孤立出现，而是以<strong>组合形式</strong>参与分割过程。提示的引入顺序，会在一定程度上影响模型的收敛路径与最终结果。</p>
+<p>一种常见且有效的策略是由<strong>弱约束逐步过渡到强约束</strong>。在初始阶段，使用点提示对目标进行粗定位，使模型快速生成候选掩码；随后，根据输出情况引入额外点提示或框提示，进一步缩小搜索空间；在结果基本稳定后，再通过掩码提示对边界进行精细调整。这种顺序既符合交互直觉，也有助于控制整体交互成本。</p>
+<p>相反，若在初始阶段即引入强约束提示，例如不精确的框或掩码，模型可能在早期便被限制在次优区域内，导致后续调整空间受限。这种现象在目标边界模糊或存在遮挡的场景中尤为明显。</p>
+<p>上述现象表明，可提示分割并非一次性决策问题，而是一个具有<strong>路径依赖性</strong>的交互过程。合理的提示设计需要关注分割过程的演化，而不仅仅是最终输出。</p>
+<h3 id="6-3-提示设计的经验性原则"><a href="#6-3-提示设计的经验性原则" class="headerlink" title="6.3 提示设计的经验性原则"></a>6.3 提示设计的经验性原则</h3><p>综合不同提示策略在实践中的表现，可以总结出若干具有普遍意义的经验性原则。</p>
+<p>在大多数情况下，提示应提供<strong>必要而非充分的约束</strong>。过强的初始约束虽然能够快速收敛，但也可能放大早期误差；适度的不确定性反而有助于模型利用自身表征能力进行补偿。</p>
+<p>提示应优先用于<strong>消除歧义</strong>，而非替代模型判断。当目标与背景高度相似、或存在多个潜在候选区域时，提示的价值最为明显；而在结构清晰、语义突出的场景中，过多提示并不会带来显著收益。</p>
+<p>提示策略还应与具体任务目标相匹配。在<strong>效率优先</strong>的场景中，允许一定程度的边界误差以减少交互次数；而在<strong>精度优先</strong>的场景中，则应接受更高的交互成本，以换取稳定可靠的分割结果。</p>
+<p>这些原则并非严格规则，而是在实践中逐步形成的经验总结。它们强调了提示设计在可提示分割中的核心地位，也说明了<strong>模型能力与使用策略之间的紧密关联</strong>。</p>
+<p><strong>本章小结</strong><br>本章围绕提示设计这一关键因素，分析了不同提示策略及其组合方式对分割结果的影响。通过对比可以看到，提示不仅决定了分割结果的初始方向，还影响了整个交互过程的收敛效率与稳定性。</p>
+<p>从这一视角出发，可提示分割不再仅被视为模型性能的体现，而是<strong>模型表征能力与提示策略共同作用的结果</strong>。理解并合理运用这一关系，是在实际场景中充分发挥 Segment Anything Model 价值的重要前提。</p>
+<h2 id="7-工程视角下的应用边界与实践建议"><a href="#7-工程视角下的应用边界与实践建议" class="headerlink" title="7. 工程视角下的应用边界与实践建议"></a>7. 工程视角下的应用边界与实践建议</h2><p>在前述章节中，Segment Anything Model 的<strong>问题设定、系统结构、交互流程与提示策略</strong>已经得到较为完整的讨论。然而，在将这一模型引入真实工程环境时，一个不可回避的问题是：<strong>在什么条件下应当使用 SAM，在什么条件下不应当使用，或者需要与其他方法配合使用</strong>。从工程视角出发，对模型能力边界、资源成本与流程整合进行理性评估，是确保技术方案可落地、可维护的关键。</p>
+<p>本章将围绕<strong>应用适配性、资源与性能约束、系统协同方式</strong>三个方面，对 SAM 在工程实践中的使用给出经验性建议。</p>
+<h3 id="7-1-适用场景分析：何时使用-SAM-更具优势"><a href="#7-1-适用场景分析：何时使用-SAM-更具优势" class="headerlink" title="7.1 适用场景分析：何时使用 SAM 更具优势"></a>7.1 适用场景分析：何时使用 SAM 更具优势</h3><p>从实际应用效果来看，SAM 在以下类型的场景中往往能够体现出明显优势。</p>
+<p>首先，在<strong>数据规模有限、标注成本高昂</strong>的场景中，SAM 能够显著降低像素级标注的工作量。通过交互式分割方式，可以在不完全依赖人工精细描绘的前提下，快速构建质量可控的分割数据集。这一优势在<strong>新领域探索、原型系统搭建以及长尾类别数据收集</strong>过程中尤为突出。</p>
+<p>其次，在<strong>任务目标不固定或需求频繁变化</strong>的场景中，可提示分割的灵活性具有明显价值。当分割目标无法在事先被完整枚举时，固定类别的自动分割模型往往难以适应，而 SAM 允许在推理阶段通过提示<strong>动态指定分割对象</strong>，从而减少模型重训练与数据再标注的成本。</p>
+<p>再次，在<strong>需要人机协同的交互式系统</strong>中，SAM 更接近一种通用视觉工具。分割过程不再是一次性输出，而是可以随着需求变化逐步修正与优化。这种特性在<strong>视觉分析工具、标注平台与辅助决策系统</strong>中具有较高的实用价值。</p>
+<h3 id="7-2-不适用或需谨慎使用的场景"><a href="#7-2-不适用或需谨慎使用的场景" class="headerlink" title="7.2 不适用或需谨慎使用的场景"></a>7.2 不适用或需谨慎使用的场景</h3><p>尽管 SAM 在通用性方面表现突出，但在某些应用条件下，其使用并不一定是最优选择。</p>
+<p>在<strong>对实时性与算力消耗高度敏感</strong>的系统中，SAM 的计算成本可能成为主要限制因素。其图像编码阶段通常依赖大规模视觉 Transformer，在资源受限或低延迟要求的环境中难以高效运行。在此类场景中，<strong>针对特定任务训练的轻量级分割模型</strong>往往更具工程优势。</p>
+<p>在<strong>完全自动化、无人工干预</strong>的生产流水线中，可提示分割的交互特性反而可能成为负担。若应用场景与训练数据分布高度一致，传统自动分割模型在<strong>稳定性与推理效率</strong>上更容易满足工程需求。</p>
+<p>此外，对于<strong>结构高度规则、边界清晰且类别固定</strong>的任务，SAM 的通用性优势难以充分发挥，其性能往往受限于通用训练目标，而不如专用模型经过针对性优化后的效果稳定。</p>
+<h3 id="7-3-与其他分割模型的协同使用方式"><a href="#7-3-与其他分割模型的协同使用方式" class="headerlink" title="7.3 与其他分割模型的协同使用方式"></a>7.3 与其他分割模型的协同使用方式</h3><p>在实际工程中，SAM 并不一定需要作为唯一的分割解决方案。更合理的做法是将其视为分割系统中的一个<strong>功能模块</strong>，与其他模型形成互补关系。</p>
+<p>一种常见策略是将 SAM 用于<strong>数据构建阶段</strong>。通过交互式分割快速生成初始标注数据，再利用这些数据训练任务专用分割模型。这样既能降低标注成本，又能在部署阶段获得<strong>更高效、更稳定的推理性能</strong>。</p>
+<p>另一种策略是在系统中同时保留<strong>自动分割模型与 SAM</strong>。当自动模型输出结果不确定或质量不足时，引入 SAM 作为辅助工具进行局部修正，从而在保证整体效率的同时提升结果可靠性。</p>
+<p>这种协同使用方式强调的是<strong>工具组合而非模型替代</strong>，有助于在复杂工程环境中平衡灵活性、性能与维护成本。</p>
+<h3 id="7-4-工程落地中的实践建议"><a href="#7-4-工程落地中的实践建议" class="headerlink" title="7.4 工程落地中的实践建议"></a>7.4 工程落地中的实践建议</h3><p>结合实际经验，在工程层面引入 SAM 时，可以遵循若干通用建议。</p>
+<p>在系统设计阶段，应明确区分<strong>离线高质量处理</strong>与<strong>在线低延迟需求</strong>，避免在不必要的场景中引入高成本模块。<br>在交互式流程中，应对提示策略进行<strong>规范化约束</strong>，避免不同样本间操作随意导致结果不可比。<br>在评估阶段，应同时记录<strong>分割质量指标与交互成本指标</strong>，而非仅关注最终精度。</p>
+<p>这些建议并非固定规范，而是用于帮助在复杂工程条件下，合理评估 SAM 的引入价值与使用方式。</p>
+<p><strong>本章小结</strong><br>本章从工程实践的角度，对 Segment Anything Model 的<strong>适用场景、使用限制以及协同策略</strong>进行了系统分析。可以看到，SAM 更适合作为一种<strong>通用、可交互的分割工具</strong>，在数据构建、分析式任务与开放场景中发挥作用，而并非在所有条件下替代任务专用模型。</p>
+<p>通过理性评估模型能力与工程需求之间的匹配关系，并将 SAM 与其他分割方法进行合理组合，可以更有效地将<strong>可提示分割理念</strong>转化为具有实际价值的工程实践。下一章将对全文内容进行总结，并讨论从分割模型走向<strong>可调用视觉能力</strong>的更长期发展方向。</p>
+<h2 id="8-总结与展望：从分割模型到可调用的视觉能力"><a href="#8-总结与展望：从分割模型到可调用的视觉能力" class="headerlink" title="8. 总结与展望：从分割模型到可调用的视觉能力"></a>8. 总结与展望：从分割模型到可调用的视觉能力</h2><p>在前述章节中，围绕视觉分割任务的<strong>基本定义、模型结构演进、问题设定转变以及 Segment Anything Model 的实践应用</strong>，已经形成了一条较为完整的技术脉络。本章将对这些内容进行综合性回顾，并在此基础上讨论可提示分割模型对视觉系统设计方式所带来的更深层影响。</p>
+<p>需要强调的是，本章的目的并非对某一具体模型给出结论性评价，而是尝试从<strong>方法论与系统设计层面</strong>总结经验，并梳理未来可能的发展方向。</p>
+<h3 id="8-1-核心内容回顾"><a href="#8-1-核心内容回顾" class="headerlink" title="8.1 核心内容回顾"></a>8.1 核心内容回顾</h3><p>从任务视角来看，视觉分割本质上是一类<strong>对空间结构高度敏感的像素级预测问题</strong>。语义分割、实例分割与全景分割虽然在输出形式上存在差异，但都围绕“如何将连续的视觉信号转化为结构化表示”这一核心目标展开。分割任务的价值，正体现在其对目标形状、边界与空间关系的精确刻画能力。</p>
+<p>从模型结构演进的角度来看，分割模型的发展并非简单的线性替代过程。UNet 通过<strong>编码器–解码器结构与跳跃连接</strong>解决了像素级预测中语义与细节融合的问题；DeepLab 通过引入<strong>空洞卷积与多尺度上下文建模</strong>提升了模型对全局语义的感知能力；Mask2Former 则进一步将分割统一为<strong>基于查询的掩码预测问题</strong>，弱化了不同分割任务之间的建模差异。</p>
+<p>在问题设定层面，<strong>可提示分割代表了一种显著不同的思路</strong>。分割目标不再完全由训练阶段的标注规则隐式决定，而是通过推理阶段的外部条件进行动态指定。这一变化使分割模型从封闭的任务执行器，逐渐转变为<strong>可被反复调用与组合使用的视觉能力模块</strong>。</p>
+<p>在实践层面，Segment Anything Model 展示了这一思路在工程中的可行性。通过<strong>模块化设计与多种提示形式的支持</strong>，SAM 能够在交互式分割与数据构建场景中显著降低人工成本。同时，其能力边界与使用限制也表明，通用性并不等同于适用于所有任务，合理的使用方式仍需结合具体需求进行判断。</p>
+<h3 id="8-2-可提示分割带来的方法论启示"><a href="#8-2-可提示分割带来的方法论启示" class="headerlink" title="8.2 可提示分割带来的方法论启示"></a>8.2 可提示分割带来的方法论启示</h3><p>从更宏观的角度看，可提示分割的意义不仅在于提升某一类任务的性能，而在于<strong>改变了视觉模型的使用方式</strong>。模型不再被视为“针对固定问题给出固定答案的系统”，而是逐渐演化为“在条件约束下提供视觉能力的工具”。</p>
+<p>这一转变带来了若干重要启示。首先，<strong>模型能力与任务定义之间的边界开始模糊</strong>。通过提示机制，部分任务约束被从模型参数中解耦出来，转移到推理阶段进行控制，从而降低了模型面对新需求时的适配成本。</p>
+<p>其次，<strong>评价标准发生了变化</strong>。在可提示分割场景中，分割质量不再是唯一关注点，交互成本、结果稳定性与使用效率逐渐成为同等重要的指标。这一变化有助于推动模型设计更加贴近真实应用场景。</p>
+<p>最后，可提示分割强调了<strong>人机协同在视觉系统中的价值</strong>。模型并不需要在所有情况下独立完成任务，而是可以在外部引导下逐步逼近目标结果。这一思想在复杂环境和开放问题中尤为重要。</p>
+<h3 id="8-3-未来发展方向与挑战"><a href="#8-3-未来发展方向与挑战" class="headerlink" title="8.3 未来发展方向与挑战"></a>8.3 未来发展方向与挑战</h3><p>尽管可提示分割已经展现出较高的实用价值，其发展仍面临诸多挑战。<strong>计算成本</strong>依然是通用分割模型大规模部署的主要障碍之一，如何在保持通用性的同时降低资源消耗，是后续研究的重要方向。</p>
+<p>此外，<strong>提示设计仍高度依赖经验</strong>。如何对提示策略进行系统建模，使其具备可分析、可优化的理论基础，有助于进一步提升交互式分割的稳定性与可预测性。</p>
+<p>从更长远的角度看，可提示分割可能只是视觉模型“接口化”的一个起点。随着多模态模型的发展，分割、检测、理解等能力有望在<strong>统一框架下通过指令进行调用</strong>，视觉系统将不再局限于单一任务，而是作为通用感知模块服务于更复杂的决策与推理过程。</p>
+<h2 id="9-备注"><a href="#9-备注" class="headerlink" title="9. 备注"></a>9. 备注</h2><ul>
+<li>coco数据集Images <a target="_blank" rel="noopener" href="http://images.cocodataset.org/zips/val2017.zip">http://images.cocodataset.org/zips/val2017.zip</a></li>
+<li>coco数据集Annotations: <a target="_blank" rel="noopener" href="http://images.cocodataset.org/annotations/annotations_trainval2017.zip">http://images.cocodataset.org/annotations/annotations_trainval2017.zip</a></li>
+<li>sam_vit_h_4b8939.pth<code>default</code> or <code>vit_h</code>: <a target="_blank" rel="noopener" href="https://github.com/facebookresearch/segment-anything">https://github.com/facebookresearch/segment-anything</a> </li>
+<li>sam_interactive_annotation完整代码: <a target="_blank" rel="noopener" href="https://github.com/keychankc/dl_code_for_blog/tree/main/050-sam_interactive_annotation">https://github.com/keychankc/dl_code_for_blog/tree/main/050-sam_interactive_annotation</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://www.keychan.xyz/2026/01/07/051-unet-deeplab-mask2former-segment-anything/" title="从像素预测到可提示分割：UNet、DeepLab、Mask2Former 到 Segment Anything">https://www.keychan.xyz/2026/01/07/051-unet-deeplab-mask2former-segment-anything/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/" rel="tag"># 目标分割</a>
+              <a href="/tags/DeepLab/" rel="tag"># DeepLab</a>
+              <a href="/tags/UNet/" rel="tag"># UNet</a>
+              <a href="/tags/Mask2Former/" rel="tag"># Mask2Former</a>
+              <a href="/tags/SegmentAnything/" rel="tag"># SegmentAnything</a>
+              <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%88%86%E5%89%B2/" rel="tag"># 图形分割</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/12/31/050-2025-year-end-summary/" rel="prev" title="2025 个人年终总结">
+                  <i class="fa fa-angle-left"></i> 2025 个人年终总结
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">432k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.min.js","integrity":"sha256-G8ouPAnw4zzMbnAenHnVz6h9XpKbNdOkrqTh7AadyHs="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.mengyajia.com","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2026/01/07/051-unet-deeplab-mask2former-segment-anything/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>
