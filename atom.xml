@@ -6,7 +6,7 @@
   <link href="https://www.keychan.xyz/atom.xml" rel="self"/>
   
   <link href="https://www.keychan.xyz/"/>
-  <updated>2026-01-27T14:04:55.625Z</updated>
+  <updated>2026-02-03T13:19:48.876Z</updated>
   <id>https://www.keychan.xyz/</id>
   
   <author>
@@ -15,6 +15,41 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>视觉自监督学习：从对比学习到 MAE，再到通用视觉表征</title>
+    <link href="https://www.keychan.xyz/2026/02/03/055-visual-self-supervised-learning/"/>
+    <id>https://www.keychan.xyz/2026/02/03/055-visual-self-supervised-learning/</id>
+    <published>2026-02-03T13:19:12.000Z</published>
+    <updated>2026-02-03T13:19:48.876Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-引言：自监督学习，真的能“看懂”图像吗？&quot;&gt;&lt;a href=&quot;#1-引言：自监督学习，真的能“看懂”图像吗？&quot; class=&quot;headerlink&quot; title=&quot;1. 引言：自监督学习，真的能“看懂”图像吗？&quot;&gt;&lt;/a&gt;1. 引言：自监督学习，真的能“看懂”图像吗？&lt;/h2&gt;&lt;p&gt;在很长一段时间里，计算机视觉的进步，几乎完全依赖一种方式：&lt;strong&gt;监督学习&lt;/strong&gt;。简单来说，就是给模型大量图片，再告诉它“这是什么”，让它不断做题、纠错、记答案。&lt;/p&gt;
+&lt;p&gt;ImageNet 分类、COCO 检测与分割，这些经典成果，都是在这种模式下取得的。只要数据够多、标签够准，模型的分数就能不断刷新。但随着模型越来越大、应用场景越来越真实，这条路开始遇到问题了：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;标注图片成本很高&lt;/li&gt;
+&lt;li&gt;真实世界并不总是“有标准答案”&lt;/li&gt;
+&lt;li&gt;模型在新场景下，经常表现失常&lt;/li&gt;
+&lt;/ul&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="计算机视觉" scheme="https://www.keychan.xyz/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
+    
+    <category term="迁移学习" scheme="https://www.keychan.xyz/tags/%E8%BF%81%E7%A7%BB%E5%AD%A6%E4%B9%A0/"/>
+    
+    <category term="Transformer" scheme="https://www.keychan.xyz/tags/Transformer/"/>
+    
+    <category term="自监督学习" scheme="https://www.keychan.xyz/tags/%E8%87%AA%E7%9B%91%E7%9D%A3%E5%AD%A6%E4%B9%A0/"/>
+    
+    <category term="对比学习" scheme="https://www.keychan.xyz/tags/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0/"/>
+    
+    <category term="MAE" scheme="https://www.keychan.xyz/tags/MAE/"/>
+    
+  </entry>
   
   <entry>
     <title>「产品实践①」从代码到产品：工程思维的切换</title>
@@ -556,33 +591,6 @@
     <category term="无人机基础" scheme="https://www.keychan.xyz/tags/%E6%97%A0%E4%BA%BA%E6%9C%BA%E5%9F%BA%E7%A1%80/"/>
     
     <category term="系统工程" scheme="https://www.keychan.xyz/tags/%E7%B3%BB%E7%BB%9F%E5%B7%A5%E7%A8%8B/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>「Flutter系列⑥」跨平台交互、插件开发与发布运维</title>
-    <link href="https://www.keychan.xyz/2025/10/15/035-flutter-interaction-plugin-ci-cd/"/>
-    <id>https://www.keychan.xyz/2025/10/15/035-flutter-interaction-plugin-ci-cd/</id>
-    <published>2025-10-15T12:20:12.000Z</published>
-    <updated>2025-10-15T01:47:22.166Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-概述&quot;&gt;&lt;a href=&quot;#1-概述&quot; class=&quot;headerlink&quot; title=&quot;1. 概述&quot;&gt;&lt;/a&gt;1. 概述&lt;/h2&gt;&lt;p&gt;可能有人刚使用 Flutter 时，会有类似疑问：“为什么我在 Flutter 里调用不了系统相机？”，“蓝牙、NFC、推送这些底层能力怎么都得靠插件？”&lt;br&gt;这类问题背后，其实反映了一个事实——&lt;strong&gt;Flutter 并不是一个“包揽一切”的框架&lt;/strong&gt;。它的核心职责，是负责跨平台 UI 渲染和逻辑运行，而&lt;strong&gt;真正和系统打交道的，仍然是 Android、iOS、Web、桌面这些原生层&lt;/strong&gt;。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="跨平台框架" scheme="https://www.keychan.xyz/categories/%E8%B7%A8%E5%B9%B3%E5%8F%B0%E6%A1%86%E6%9E%B6/"/>
-    
-    
-    <category term="Flutter" scheme="https://www.keychan.xyz/tags/Flutter/"/>
-    
-    <category term="插件开发" scheme="https://www.keychan.xyz/tags/%E6%8F%92%E4%BB%B6%E5%BC%80%E5%8F%91/"/>
-    
-    <category term="自动化测试" scheme="https://www.keychan.xyz/tags/%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/"/>
-    
-    <category term="发布运维" scheme="https://www.keychan.xyz/tags/%E5%8F%91%E5%B8%83%E8%BF%90%E7%BB%B4/"/>
-    
-    <category term="多端集成" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E7%AB%AF%E9%9B%86%E6%88%90/"/>
     
   </entry>
   
