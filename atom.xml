@@ -6,7 +6,7 @@
   <link href="https://www.keychan.xyz/atom.xml" rel="self"/>
   
   <link href="https://www.keychan.xyz/"/>
-  <updated>2026-02-03T13:19:48.876Z</updated>
+  <updated>2026-02-10T13:48:36.145Z</updated>
   <id>https://www.keychan.xyz/</id>
   
   <author>
@@ -15,6 +15,36 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>视觉多模态：CLIP、ALIGN 与视觉语言对齐</title>
+    <link href="https://www.keychan.xyz/2026/02/10/056-visual-multimodal/"/>
+    <id>https://www.keychan.xyz/2026/02/10/056-visual-multimodal/</id>
+    <published>2026-02-10T13:20:12.000Z</published>
+    <updated>2026-02-10T13:48:36.145Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-从早期跨模态学习到-CLIP：视觉和语言对齐是如何发展的&quot;&gt;&lt;a href=&quot;#1-从早期跨模态学习到-CLIP：视觉和语言对齐是如何发展的&quot; class=&quot;headerlink&quot; title=&quot;1. 从早期跨模态学习到 CLIP：视觉和语言对齐是如何发展的&quot;&gt;&lt;/a&gt;1. 从早期跨模态学习到 CLIP：视觉和语言对齐是如何发展的&lt;/h2&gt;&lt;p&gt;在 CLIP 出现之前，让计算机同时“看懂图像、理解文字”，其实已经是一个被研究了很多年的问题。只要稍微想一想就能明白：如果模型既能处理图像，又能处理语言，那它就有可能完成图文搜索、图片描述、视觉问答等各种任务，这听起来非常有吸引力。&lt;/p&gt;
+&lt;p&gt;也正因为如此，计算机视觉和自然语言处理领域的研究者，早早就开始尝试“跨模态学习”，也就是把图像和文本放在同一个模型里一起建模。然而，有些尴尬的是：这些方法虽然在论文里能跑出不错的结果，但很难真正变成一种&lt;strong&gt;稳定、通用、可以长期复用的基础能力&lt;/strong&gt;。模型往往是“为某个任务量身定做的”，而不是“可以反复拿来用的工具”。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="对比学习" scheme="https://www.keychan.xyz/tags/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0/"/>
+    
+    <category term="CLIP" scheme="https://www.keychan.xyz/tags/CLIP/"/>
+    
+    <category term="ALIGN" scheme="https://www.keychan.xyz/tags/ALIGN/"/>
+    
+    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
+    
+    <category term="RAG-Vision" scheme="https://www.keychan.xyz/tags/RAG-Vision/"/>
+    
+    <category term="系统级接口" scheme="https://www.keychan.xyz/tags/%E7%B3%BB%E7%BB%9F%E7%BA%A7%E6%8E%A5%E5%8F%A3/"/>
+    
+  </entry>
   
   <entry>
     <title>视觉自监督学习：从对比学习到 MAE，再到通用视觉表征</title>
@@ -566,31 +596,6 @@
     <category term="认知科学" scheme="https://www.keychan.xyz/tags/%E8%AE%A4%E7%9F%A5%E7%A7%91%E5%AD%A6/"/>
     
     <category term="人工智能哲学" scheme="https://www.keychan.xyz/tags/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%93%B2%E5%AD%A6/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>「无人机①」从玩具到系统工程：无人机的全景</title>
-    <link href="https://www.keychan.xyz/2025/10/21/036-the-full-view-of-the-drone/"/>
-    <id>https://www.keychan.xyz/2025/10/21/036-the-full-view-of-the-drone/</id>
-    <published>2025-10-21T09:02:12.000Z</published>
-    <updated>2025-12-30T09:38:41.461Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-无人机是什么：从航模到系统&quot;&gt;&lt;a href=&quot;#1-无人机是什么：从航模到系统&quot; class=&quot;headerlink&quot; title=&quot;1. 无人机是什么：从航模到系统&quot;&gt;&lt;/a&gt;1. 无人机是什么：从航模到系统&lt;/h2&gt;&lt;p&gt;在多数人的印象里，无人机似乎就是一架“能飞起来的玩具”。但当我们深入一点去看就会发现，真正意义上的“无人机”，并不仅仅指一台可以在空中保持平衡的飞行器，而是一套复杂的&lt;strong&gt;无人系统（Unmanned System）&lt;/strong&gt;。它既包含飞行平台，也包含控制、通信、感知、能源等完整子系统。换句话说——无人机不仅仅是能飞，而是一个&lt;strong&gt;能自主感知、判断与执行的系统工程&lt;/strong&gt;。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="无人机" scheme="https://www.keychan.xyz/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/"/>
-    
-    
-    <category term="控制理论" scheme="https://www.keychan.xyz/tags/%E6%8E%A7%E5%88%B6%E7%90%86%E8%AE%BA/"/>
-    
-    <category term="飞控系统" scheme="https://www.keychan.xyz/tags/%E9%A3%9E%E6%8E%A7%E7%B3%BB%E7%BB%9F/"/>
-    
-    <category term="无人机基础" scheme="https://www.keychan.xyz/tags/%E6%97%A0%E4%BA%BA%E6%9C%BA%E5%9F%BA%E7%A1%80/"/>
-    
-    <category term="系统工程" scheme="https://www.keychan.xyz/tags/%E7%B3%BB%E7%BB%9F%E5%B7%A5%E7%A8%8B/"/>
     
   </entry>
   
