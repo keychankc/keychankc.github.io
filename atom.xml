@@ -67,9 +67,9 @@
     <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
-    <category term="计算机视觉" scheme="https://www.keychan.xyz/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
-    
     <category term="迁移学习" scheme="https://www.keychan.xyz/tags/%E8%BF%81%E7%A7%BB%E5%AD%A6%E4%B9%A0/"/>
+    
+    <category term="计算机视觉" scheme="https://www.keychan.xyz/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
     
     <category term="Transformer" scheme="https://www.keychan.xyz/tags/Transformer/"/>
     
@@ -141,7 +141,7 @@
     <link href="https://www.keychan.xyz/2026/01/13/052-non-fictional-reading-strategies-in-the-ai-era/"/>
     <id>https://www.keychan.xyz/2026/01/13/052-non-fictional-reading-strategies-in-the-ai-era/</id>
     <published>2026-01-13T12:37:12.000Z</published>
-    <updated>2026-01-13T12:38:39.301Z</updated>
+    <updated>2026-02-11T07:05:38.815Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-AI-带来的阅读悖论：更快，却更空洞&quot;&gt;&lt;a href=&quot;#1-AI-带来的阅读悖论：更快，却更空洞&quot; class=&quot;headerlink&quot; title=&quot;1. AI 带来的阅读悖论：更快，却更空洞&quot;&gt;&lt;/a&gt;1. AI 带来的阅读悖论：更快，却更空洞&lt;/h2&gt;&lt;p&gt;我们已处于一个新的阅读环境中：&lt;strong&gt;很多时候，章节还没细读，就已经能知道要点，书还没读完，就已经知道它要说什么。&lt;/strong&gt; AI（大语言模型）在进入知识生产与传播之后，不只改变了写作，也在悄悄重塑阅读——尤其是非虚构阅读。它能把一个章节快速压缩成要点，能把复杂推理变成顺滑的叙述，把原本需要耐心理解的内容，提前整理好。&lt;/p&gt;
