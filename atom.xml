@@ -6,7 +6,7 @@
   <link href="https://www.keychan.xyz/atom.xml" rel="self"/>
   
   <link href="https://www.keychan.xyz/"/>
-  <updated>2026-02-10T13:48:36.145Z</updated>
+  <updated>2026-02-17T06:51:26.662Z</updated>
   <id>https://www.keychan.xyz/</id>
   
   <author>
@@ -15,6 +15,38 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>GPT 的进化史：从语言建模到世界建模</title>
+    <link href="https://www.keychan.xyz/2026/02/17/057-the-evolutionary-history-of-gpt/"/>
+    <id>https://www.keychan.xyz/2026/02/17/057-the-evolutionary-history-of-gpt/</id>
+    <published>2026-02-17T06:50:12.000Z</published>
+    <updated>2026-02-17T06:51:26.662Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-语言模型的起点：自回归建模范式如何成立&quot;&gt;&lt;a href=&quot;#1-语言模型的起点：自回归建模范式如何成立&quot; class=&quot;headerlink&quot; title=&quot;1. 语言模型的起点：自回归建模范式如何成立&quot;&gt;&lt;/a&gt;1. 语言模型的起点：自回归建模范式如何成立&lt;/h2&gt;&lt;p&gt;很多人在第一次接触 GPT 时，往往会把注意力放在“模型越来越大”这件事上，好像只要参数足够多，能力自然就会出现。但如果只从规模的角度理解 GPT 的起点，很容易忽略一个更根本的问题：&lt;strong&gt;语言模型究竟在学什么？又是如何把人类语言转化为一个可以被训练、被优化的对象？&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;这一章并不从复杂的结构或数学公式讲起，而是回到语言模型最原始、也最朴素的任务定义。正是这个看似简单的起点，最终支撑起了 GPT 系列后续所有的能力扩展。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="大语言模型" scheme="https://www.keychan.xyz/tags/%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/"/>
+    
+    <category term="ScalingLaws" scheme="https://www.keychan.xyz/tags/ScalingLaws/"/>
+    
+    <category term="上下文窗口" scheme="https://www.keychan.xyz/tags/%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AA%97%E5%8F%A3/"/>
+    
+    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
+    
+    <category term="世界模型" scheme="https://www.keychan.xyz/tags/%E4%B8%96%E7%95%8C%E6%A8%A1%E5%9E%8B/"/>
+    
+    <category term="自回归建模" scheme="https://www.keychan.xyz/tags/%E8%87%AA%E5%9B%9E%E5%BD%92%E5%BB%BA%E6%A8%A1/"/>
+    
+    <category term="采样策略" scheme="https://www.keychan.xyz/tags/%E9%87%87%E6%A0%B7%E7%AD%96%E7%95%A5/"/>
+    
+  </entry>
   
   <entry>
     <title>视觉多模态：CLIP、ALIGN 与视觉语言对齐</title>
@@ -34,11 +66,11 @@
     
     <category term="对比学习" scheme="https://www.keychan.xyz/tags/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0/"/>
     
+    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
+    
     <category term="CLIP" scheme="https://www.keychan.xyz/tags/CLIP/"/>
     
     <category term="ALIGN" scheme="https://www.keychan.xyz/tags/ALIGN/"/>
-    
-    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
     
     <category term="RAG-Vision" scheme="https://www.keychan.xyz/tags/RAG-Vision/"/>
     
@@ -569,33 +601,6 @@
     <category term="结构设计" scheme="https://www.keychan.xyz/tags/%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1/"/>
     
     <category term="四旋翼控制" scheme="https://www.keychan.xyz/tags/%E5%9B%9B%E6%97%8B%E7%BF%BC%E6%8E%A7%E5%88%B6/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>智能体的十年：遗忘，是智慧的特性</title>
-    <link href="https://www.keychan.xyz/2025/10/24/037-forgetting-characteristic-of-intelligence/"/>
-    <id>https://www.keychan.xyz/2025/10/24/037-forgetting-characteristic-of-intelligence/</id>
-    <published>2025-10-24T02:50:12.000Z</published>
-    <updated>2025-10-24T02:57:05.767Z</updated>
-    
-    
-    <summary type="html">Karpathy 的最终洞见极具哲学意味：也许 AGI 的关键，不在于让机器记住更多，而在于让它学会智能地遗忘。”记忆不是智能的核心，抽象与反思才是。人类的遗忘能力，正是我们能够理解、概括、创造的基础。未来的 AI 发展方向，也许不是更大的模型，而是更像人脑的模型—— 能遗忘、能重组、能在噪声中找到秩序。</summary>
-    
-    
-    
-    <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
-    
-    <category term="趋势与洞察" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/%E8%B6%8B%E5%8A%BF%E4%B8%8E%E6%B4%9E%E5%AF%9F/"/>
-    
-    
-    <category term="智能体" scheme="https://www.keychan.xyz/tags/%E6%99%BA%E8%83%BD%E4%BD%93/"/>
-    
-    <category term="强化学习" scheme="https://www.keychan.xyz/tags/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/"/>
-    
-    <category term="认知科学" scheme="https://www.keychan.xyz/tags/%E8%AE%A4%E7%9F%A5%E7%A7%91%E5%AD%A6/"/>
-    
-    <category term="人工智能哲学" scheme="https://www.keychan.xyz/tags/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%93%B2%E5%AD%A6/"/>
     
   </entry>
   

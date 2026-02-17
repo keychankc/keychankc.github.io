@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.keychan.xyz","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="1. 语言模型的起点：自回归建模范式如何成立很多人在第一次接触 GPT 时，往往会把注意力放在“模型越来越大”这件事上，好像只要参数足够多，能力自然就会出现。但如果只从规模的角度理解 GPT 的起点，很容易忽略一个更根本的问题：语言模型究竟在学什么？又是如何把人类语言转化为一个可以被训练、被优化的对象？ 这一章并不从复杂的结构或数学公式讲起，而是回到语言模型最原始、也最朴素的任务定义。正是这个看似">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GPT 的进化史：从语言建模到世界建模">
+<meta property="og:url" content="https://www.keychan.xyz/2026/02/17/057-the-evolutionary-history-of-gpt/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s blog">
+<meta property="og:description" content="1. 语言模型的起点：自回归建模范式如何成立很多人在第一次接触 GPT 时，往往会把注意力放在“模型越来越大”这件事上，好像只要参数足够多，能力自然就会出现。但如果只从规模的角度理解 GPT 的起点，很容易忽略一个更根本的问题：语言模型究竟在学什么？又是如何把人类语言转化为一个可以被训练、被优化的对象？ 这一章并不从复杂的结构或数学公式讲起，而是回到语言模型最原始、也最朴素的任务定义。正是这个看似">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-02-17T06:50:12.000Z">
+<meta property="article:modified_time" content="2026-02-17T06:51:26.662Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="大语言模型">
+<meta property="article:tag" content="ScalingLaws">
+<meta property="article:tag" content="上下文窗口">
+<meta property="article:tag" content="多模态">
+<meta property="article:tag" content="世界模型">
+<meta property="article:tag" content="自回归建模">
+<meta property="article:tag" content="采样策略">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://www.keychan.xyz/2026/02/17/057-the-evolutionary-history-of-gpt/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.keychan.xyz/2026/02/17/057-the-evolutionary-history-of-gpt/","path":"2026/02/17/057-the-evolutionary-history-of-gpt/","title":"GPT 的进化史：从语言建模到世界建模"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>GPT 的进化史：从语言建模到世界建模 | KeyChan's blog</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.mengyajia.com">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's blog" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%E7%9A%84%E8%B5%B7%E7%82%B9%EF%BC%9A%E8%87%AA%E5%9B%9E%E5%BD%92%E5%BB%BA%E6%A8%A1%E8%8C%83%E5%BC%8F%E5%A6%82%E4%BD%95%E6%88%90%E7%AB%8B"><span class="nav-text">1. 语言模型的起点：自回归建模范式如何成立</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E4%BB%8E%E8%AF%AD%E8%A8%80%E5%BB%BA%E6%A8%A1%E5%88%B0%E7%94%9F%E6%88%90%E5%BC%8F%E5%BB%BA%E6%A8%A1%E8%8C%83%E5%BC%8F"><span class="nav-text">1.1 从语言建模到生成式建模范式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-%E6%9D%A1%E4%BB%B6%E6%A6%82%E7%8E%87%E5%88%86%E8%A7%A3%E4%B8%8E%E8%87%AA%E5%9B%9E%E5%BD%92%E5%81%87%E8%AE%BE"><span class="nav-text">1.2 条件概率分解与自回归假设</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-Decoder-only-Transformer%EF%BC%9A%E4%B8%80%E7%A7%8D%E4%B8%BA%E8%A7%84%E6%A8%A1%E8%80%8C%E7%94%9F%E7%9A%84%E7%BB%93%E6%9E%84"><span class="nav-text">1.3 Decoder-only Transformer：一种为规模而生的结构</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-GPT-1-%E5%88%B0-GPT-5%EF%BC%9A%E8%A7%84%E6%A8%A1%E6%89%A9%E5%B1%95%E4%B8%8E%E8%83%BD%E5%8A%9B%E6%BC%94%E5%8C%96%E7%9A%84%E7%9C%9F%E5%AE%9E%E9%80%BB%E8%BE%91"><span class="nav-text">2. GPT-1 到 GPT-5：规模扩展与能力演化的真实逻辑</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-GPT-1%EF%BC%9A%E9%80%9A%E7%94%A8%E9%A2%84%E8%AE%AD%E7%BB%83%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%E7%9A%84%E8%B5%B7%E7%82%B9"><span class="nav-text">2.1 GPT-1：通用预训练语言模型的起点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-GPT-2-%E4%B8%8E-GPT-3%EF%BC%9A%E8%A7%84%E6%A8%A1%E6%89%A9%E5%B1%95%E4%B8%8E%E4%B8%8A%E4%B8%8B%E6%96%87%E5%86%85%E5%AD%A6%E4%B9%A0%E8%83%BD%E5%8A%9B%E7%9A%84%E5%87%BA%E7%8E%B0"><span class="nav-text">2.2 GPT-2 与 GPT-3：规模扩展与上下文内学习能力的出现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-Scaling-Laws%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9C%E6%9B%B4%E5%A4%A7%E2%80%9D%E5%BE%80%E5%BE%80%E7%9C%9F%E7%9A%84%E6%9B%B4%E5%BC%BA"><span class="nav-text">2.3 Scaling Laws：为什么“更大”往往真的更强</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-GPT-4-%E4%B8%8E-GPT-5%EF%BC%9A%E4%BB%8E%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%E8%B5%B0%E5%90%91%E4%B8%96%E7%95%8C%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%B0%9D%E8%AF%95"><span class="nav-text">2.4 GPT-4 与 GPT-5：从语言模型走向世界模型的尝试</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-%E4%B8%96%E7%95%8C%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%93%8D%E4%BD%9C%E6%80%A7%E5%AE%9A%E4%B9%89%E4%B8%8E%E8%BE%B9%E7%95%8C"><span class="nav-text">2.5 世界模型的操作性定义与边界</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E7%94%9F%E6%88%90%E5%B9%B6%E9%9D%9E%E5%8F%96%E6%9C%80%E5%A4%A7%E5%80%BC%EF%BC%9A%E8%87%AA%E5%9B%9E%E5%BD%92%E9%87%87%E6%A0%B7%E7%AD%96%E7%95%A5%E8%A7%A3%E6%9E%90"><span class="nav-text">3. 生成并非取最大值：自回归采样策略解析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E8%B4%AA%E5%A9%AA%E8%A7%A3%E7%A0%81%E4%B8%8E%E7%94%9F%E6%88%90%E9%80%80%E5%8C%96%E9%97%AE%E9%A2%98"><span class="nav-text">3.1 贪婪解码与生成退化问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-Top-k%E3%80%81Top-p-%E4%B8%8E%E6%B8%A9%E5%BA%A6%E7%B3%BB%E6%95%B0"><span class="nav-text">3.2 Top-k、Top-p 与温度系数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-%E4%B8%8D%E5%90%8C%E4%BB%BB%E5%8A%A1%E4%B8%8B%E7%9A%84%E9%87%87%E6%A0%B7%E7%AD%96%E7%95%A5%E9%80%89%E6%8B%A9"><span class="nav-text">3.3 不同任务下的采样策略选择</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E5%AF%B9%E9%BD%90%E7%9A%84%E5%BC%95%E5%85%A5%EF%BC%9ARLHF-%E5%A6%82%E4%BD%95%E5%A1%91%E9%80%A0-GPT-%E7%9A%84%E8%A1%8C%E4%B8%BA%E8%BE%B9%E7%95%8C"><span class="nav-text">4. 对齐的引入：RLHF 如何塑造 GPT 的行为边界</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E4%BB%8E%E8%AF%AD%E8%A8%80%E5%BB%BA%E6%A8%A1%E7%9B%AE%E6%A0%87%E5%88%B0%E4%BA%BA%E7%B1%BB%E5%81%8F%E5%A5%BD%E7%9B%AE%E6%A0%87"><span class="nav-text">4.1 从语言建模目标到人类偏好目标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-RLHF-%E7%9A%84%E4%B8%89%E9%98%B6%E6%AE%B5%E5%B7%A5%E7%A8%8B%E6%B5%81%E7%A8%8B"><span class="nav-text">4.2 RLHF 的三阶段工程流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-RLHF-%E6%94%B9%E5%8F%98%E4%BA%86%E4%BB%80%E4%B9%88%EF%BC%8C%E5%8F%88%E6%B2%A1%E6%9C%89%E6%94%B9%E5%8F%98%E4%BB%80%E4%B9%88"><span class="nav-text">4.3 RLHF 改变了什么，又没有改变什么</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AA%97%E5%8F%A3%EF%BC%9A%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%B7%A5%E4%BD%9C%E8%AE%B0%E5%BF%86%E4%B8%8E%E8%83%BD%E5%8A%9B%E8%BE%B9%E7%95%8C"><span class="nav-text">5. 上下文窗口：模型的工作记忆与能力边界</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AA%97%E5%8F%A3%E7%9A%84%E5%AE%9A%E4%B9%89%E4%B8%8E%E4%BD%9C%E7%94%A8%E6%9C%BA%E5%88%B6"><span class="nav-text">5.1 上下文窗口的定义与作用机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-%E9%95%BF%E4%B8%8A%E4%B8%8B%E6%96%87%E5%B8%A6%E6%9D%A5%E7%9A%84%E8%AE%A1%E7%AE%97%E4%B8%8E%E5%B7%A5%E7%A8%8B%E6%8C%91%E6%88%98"><span class="nav-text">5.2 长上下文带来的计算与工程挑战</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-%E9%95%BF%E4%B8%8A%E4%B8%8B%E6%96%87%E6%B3%A8%E6%84%8F%E5%8A%9B%E7%AD%96%E7%95%A5%E6%A6%82%E8%A7%88"><span class="nav-text">5.3 长上下文注意力策略概览</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-KV-Cache%EF%BC%9A%E6%8E%A8%E7%90%86%E6%95%88%E7%8E%87%E7%9A%84%E5%85%B3%E9%94%AE%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1"><span class="nav-text">6. KV Cache：推理效率的关键系统设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-KV-Cache-%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="nav-text">6.1 KV Cache 的基本原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-KV-Cache-%E5%B8%A6%E6%9D%A5%E7%9A%84%E5%86%85%E5%AD%98%E4%B8%8E%E6%80%A7%E8%83%BD%E4%BB%A3%E4%BB%B7"><span class="nav-text">6.2 KV Cache 带来的内存与性能代价</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-%E5%B7%A5%E7%A8%8B%E8%A7%86%E8%A7%92%E4%B8%8B%E7%9A%84%E7%BB%BC%E5%90%88%E6%9D%83%E8%A1%A1"><span class="nav-text">6.3 工程视角下的综合权衡</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E5%BC%80%E6%BA%90%E5%A4%A7%E6%A8%A1%E5%9E%8B%E8%B0%B1%E7%B3%BB%EF%BC%9A%E4%B8%8D%E5%90%8C-GPT-%E8%B7%AF%E7%BA%BF%E7%9A%84%E5%8F%96%E8%88%8D"><span class="nav-text">7. 开源大模型谱系：不同 GPT 路线的取舍</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#7-1-LLaMA-%E7%B3%BB%E5%88%97%EF%BC%9A%E9%AB%98%E6%95%88%E3%80%81%E5%B9%B2%E5%87%80%E7%9A%84%E5%9F%BA%E7%A1%80%E6%A8%A1%E5%9E%8B%E8%B7%AF%E7%BA%BF"><span class="nav-text">7.1 LLaMA 系列：高效、干净的基础模型路线</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-2-%E5%8D%83%E9%97%AE%EF%BC%88Qwen%EF%BC%89%E4%B8%8E-DeepSeek%EF%BC%9A%E5%B7%A5%E7%A8%8B%E4%B8%8E%E4%BB%BB%E5%8A%A1%E5%AF%BC%E5%90%91%E7%9A%84%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B%E8%B7%AF%E7%BA%BF"><span class="nav-text">7.2 千问（Qwen）与 DeepSeek：工程与任务导向的国产模型路线</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-3-Claude%EF%BC%9A%E4%BB%A5%E5%AE%89%E5%85%A8%E6%80%A7%E4%B8%8E%E4%B8%80%E8%87%B4%E6%80%A7%E4%B8%BA%E6%A0%B8%E5%BF%83%E7%9A%84%E5%BC%BA%E5%AF%B9%E9%BD%90%E8%B7%AF%E7%BA%BF"><span class="nav-text">7.3 Claude：以安全性与一致性为核心的强对齐路线</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-4-Gemma%EF%BC%9A%E8%BD%BB%E9%87%8F%E5%8C%96%E4%B8%8E%E5%8F%AF%E6%8E%A7%E6%80%A7%E7%9A%84%E5%B9%B3%E8%A1%A1%E5%9E%8B%E8%B7%AF%E7%BA%BF"><span class="nav-text">7.4 Gemma：轻量化与可控性的平衡型路线</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E5%90%8C%E4%B8%80%E4%BB%BB%E5%8A%A1%E4%B8%8B%E7%9A%84%E6%A8%A1%E5%9E%8B%E5%AF%B9%E6%AF%94%E5%88%86%E6%9E%90"><span class="nav-text">8. 同一任务下的模型对比分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#8-1-%E5%AE%9E%E9%AA%8C%E8%AE%BE%E7%BD%AE%E4%B8%8E%E4%BB%BB%E5%8A%A1%E9%80%89%E6%8B%A9"><span class="nav-text">8.1 实验设置与任务选择</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-2-%E5%A4%9A%E7%BB%B4%E8%AF%84%E4%BC%B0%E6%8C%87%E6%A0%87%E8%AE%BE%E8%AE%A1"><span class="nav-text">8.2 多维评估指标设计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-3-%E4%B8%8A%E4%B8%8B%E6%96%87%E9%95%BF%E5%BA%A6%E9%B2%81%E6%A3%92%E6%80%A7%E5%88%86%E6%9E%90"><span class="nav-text">8.3 上下文长度鲁棒性分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-4-%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C%E8%A7%A3%E8%AF%BB%E4%B8%8E%E9%80%89%E5%9E%8B%E5%90%AF%E7%A4%BA"><span class="nav-text">8.4 实验结果解读与选型启示</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-%E4%BB%8E%E8%AF%AD%E8%A8%80%E5%BB%BA%E6%A8%A1%E5%88%B0%E7%B3%BB%E7%BB%9F%E6%99%BA%E8%83%BD%E7%9A%84%E6%95%B4%E4%BD%93%E5%9B%BE%E6%99%AF"><span class="nav-text">9. 从语言建模到系统智能的整体图景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%8E%E8%AF%AD%E8%A8%80%E5%BB%BA%E6%A8%A1%E5%BC%80%E5%A7%8B%EF%BC%8C%E4%B8%80%E5%88%87%E8%83%BD%E5%8A%9B%E7%9A%84%E5%85%B1%E5%90%8C%E8%B5%B7%E7%82%B9"><span class="nav-text">从语言建模开始，一切能力的共同起点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%84%E6%A8%A1%E6%89%A9%E5%B1%95%E5%B8%A6%E6%9D%A5%E7%9A%84%E4%B8%8D%E6%98%AF%E9%AD%94%E6%B3%95%EF%BC%8C%E8%80%8C%E6%98%AF%E7%BB%9F%E8%AE%A1%E8%A6%86%E7%9B%96"><span class="nav-text">规模扩展带来的不是魔法，而是统计覆盖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E6%88%90%E7%AD%96%E7%95%A5%E4%B8%8E%E5%AF%B9%E9%BD%90%E6%9C%BA%E5%88%B6%EF%BC%8C%E5%A1%91%E9%80%A0%E4%BA%86%E6%A8%A1%E5%9E%8B%E7%9A%84%E2%80%9C%E8%A1%8C%E4%B8%BA%E6%96%B9%E5%BC%8F%E2%80%9D"><span class="nav-text">生成策略与对齐机制，塑造了模型的“行为方式”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8A%E4%B8%8B%E6%96%87%E4%B8%8E%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%EF%BC%8C%E5%AE%9A%E4%B9%89%E4%BA%86%E8%83%BD%E5%8A%9B%E7%9A%84%E5%AE%9E%E9%99%85%E8%BE%B9%E7%95%8C"><span class="nav-text">上下文与系统设计，定义了能力的实际边界</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E6%A0%B7%E5%8C%96%E6%A8%A1%E5%9E%8B%E8%B7%AF%E7%BA%BF%EF%BC%8C%E5%8F%8D%E6%98%A0%E7%9A%84%E6%98%AF%E4%B8%8D%E5%90%8C%E5%8F%96%E8%88%8D%E8%80%8C%E9%9D%9E%E4%BC%98%E5%8A%A3"><span class="nav-text">多样化模型路线，反映的是不同取舍而非优劣</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA%E6%95%B4%E4%BD%93%E6%80%A7%E7%9A%84%E7%90%86%E8%A7%A3%E8%A7%86%E8%A7%92"><span class="nav-text">一个整体性的理解视角</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">58</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">141</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2026/02/17/057-the-evolutionary-history-of-gpt/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's blog">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="GPT 的进化史：从语言建模到世界建模 | KeyChan's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          GPT 的进化史：从语言建模到世界建模
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-02-17 14:50:12 / 修改时间：14:51:26" itemprop="dateCreated datePublished" datetime="2026-02-17T14:50:12+08:00">2026-02-17</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a>
+        </span>
+    </span>
+
+  
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2026/02/17/057-the-evolutionary-history-of-gpt/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2026/02/17/057-the-evolutionary-history-of-gpt/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>18k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>1:05</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="1-语言模型的起点：自回归建模范式如何成立"><a href="#1-语言模型的起点：自回归建模范式如何成立" class="headerlink" title="1. 语言模型的起点：自回归建模范式如何成立"></a>1. 语言模型的起点：自回归建模范式如何成立</h2><p>很多人在第一次接触 GPT 时，往往会把注意力放在“模型越来越大”这件事上，好像只要参数足够多，能力自然就会出现。但如果只从规模的角度理解 GPT 的起点，很容易忽略一个更根本的问题：<strong>语言模型究竟在学什么？又是如何把人类语言转化为一个可以被训练、被优化的对象？</strong></p>
+<p>这一章并不从复杂的结构或数学公式讲起，而是回到语言模型最原始、也最朴素的任务定义。正是这个看似简单的起点，最终支撑起了 GPT 系列后续所有的能力扩展。</p>
+<span id="more"></span>
+<h3 id="1-1-从语言建模到生成式建模范式"><a href="#1-1-从语言建模到生成式建模范式" class="headerlink" title="1.1 从语言建模到生成式建模范式"></a>1.1 从语言建模到生成式建模范式</h3><p>我们可以先从一个非常日常的体验开始理解语言模型在做什么。当我们在手机上输入一句话，比如“我今天想去”，输入法通常会给出一组候选词，如“吃饭”“上班”“跑步”。这些推荐并不是凭空出现的，而是基于一个非常简单的判断：在当前这段文字之后，哪一些词更常出现。</p>
+<p>语言模型做的事情，本质上也是如此。它的核心目标是：在已经看到一部分文本的情况下，估计接下来最可能出现什么内容。</p>
+<p>但如果只把它理解为“猜下一个词”，就低估了这个任务的深度。严格来说，语言模型并不是在关心某一个位置的预测是否准确，而是在尝试回答一个更整体的问题：<strong>这一整段文本在语言世界中出现的可能性有多大。</strong></p>
+<p>一段自然语言文本，可以被看作是由多个词或符号组成的序列。如果从整体上直接去建模“这整段话出现的概率”，几乎是不可能完成的任务，因为组合空间太大了。语言模型真正巧妙的地方，在于它借助概率论中的基本思想，把一个复杂的整体问题拆解成一系列形式完全一致的小问题。直觉上可以这样理解：</p>
+<p>一整段话是否“自然”，取决于每一步是否“接得顺”。只要模型学会了在任意上下文下判断“接下来怎么写更合理”，那么把这些判断串联起来，就等价于学会了整段文本的概率结构。这一拆解带来了几个非常重要的结果。</p>
+<p>首先，生成能力几乎是自动出现的。只要模型在任意时刻都能给出“下一个词的概率分布”，就可以通过不断重复这个过程，一步一步地把文本写出来。因此，文本生成并不是额外附加的功能，而是语言建模任务本身自然导出的结果。</p>
+<p>其次，这种建模方式不依赖固定的任务标签。无论是写文章、做翻译，还是回答问题，本质上都可以被描述为“在给定上下文的条件下，继续生成合适的文本”。在这种视角下，看似差异巨大的任务，被统一到同一种形式之中。</p>
+<p>最后，生成式语言建模关注的不是“输入属于哪个类别”，而是“语言本身的统计规律”。模型学习的是哪些表达常出现、哪些搭配更自然、哪些句式通常出现在什么语境中。这种关注点的变化，是 GPT 能够逐步走向通用能力的重要前提。</p>
+<pre class="mermaid">flowchart LR
+  %% 文本序列
+  w1["我"] --> w2["今天"] --> w3["想"] --> w4["去"] --> w5["?"]
+
+  %% 条件概率
+  w1 -.-> p1["P(w1)"]
+  w2 -.-> p2["P(w2|w1)"]
+  w3 -.-> p3["P(w3|w1..w2)"]
+  w4 -.-> p4["P(w4|w1..w3)"]
+  w5 -.-> p5["P(w5|w1..w4)"]
+
+  %% 下一词预测与生成
+  p5 --> d["下一词概率分布<br/>{吃饭, 上班, 跑步, …}"]
+  d --> g["选择 / 采样一个词"]
+  g --> w5</pre>
+<center>图 1-1 生成式语言建模中的条件概率分解与逐步生成过程</center>
+
+<p>如上图展示了生成式语言模型的基本建模思路。一段文本被视为由词（或 token）组成的序列，整体文本出现的概率通过概率链式法则，被分解为一系列“在已有上下文条件下预测下一个词”的条件概率。模型在给定前文时输出下一词的概率分布，并通过选择或采样得到新词，再将其并入上下文，重复这一过程，从而实现文本的逐步生成。</p>
+<h3 id="1-2-条件概率分解与自回归假设"><a href="#1-2-条件概率分解与自回归假设" class="headerlink" title="1.2 条件概率分解与自回归假设"></a>1.2 条件概率分解与自回归假设</h3><p>在把语言建模拆解为逐步预测之后，模型还需要遵守一个非常重要的约束：<strong>在预测当前位置的词时，只能使用已经出现过的内容，而不能利用未来的信息。</strong></p>
+<p>这一约束被称为自回归假设。乍一看，它似乎限制了模型的能力，但实际上，这个假设解决的是一个非常关键的一致性问题。</p>
+<p>可以用考试来类比。如果学生在做题时可以提前看到标准答案，那么训练阶段的成绩当然会很好，但这种能力在真实考试中毫无意义。同样，如果模型在训练时能够看到整句话的全部内容，那么它学到的规律在真正生成文本时就无法使用，因为未来的词本来就是尚未生成的。</p>
+<p>自回归假设保证了训练过程和生成过程在信息使用方式上完全一致。模型在训练时学会的，正是它在推理阶段能够依赖的能力。这种因果顺序上的一致性，是自回归模型在生成任务中表现稳定的重要原因。</p>
+<p>从优化角度看，这一假设也极大简化了训练过程。整段文本概率的最大化，被自然地转化为对每一步预测的累积优化。每一个位置都可以看作一个独立的训练样本，其输入是已有文本，输出是下一个词。这样一来，语言建模就可以使用非常标准的训练流程来完成。</p>
+<p>在评估时，常见的指标是困惑度。可以把它粗略理解为模型在预测下一个词时有多“犹豫”。困惑度越低，说明模型对语言分布越熟悉。不过需要注意的是，这一指标主要反映的是统计拟合程度，而不是推理能力或语义理解水平。</p>
+<p>将自回归模型与双向建模方式对比，可以更清楚地看到这种选择的意义。双向模型在建模时可以同时利用前后文，更适合理解和表示学习任务。而自回归模型则通过严格的生成顺序，使训练目标与生成行为保持一致，从结构上更适合用于文本生成。</p>
+<pre class="mermaid">flowchart TB
+
+subgraph AR["自回归（因果）"]
+  direction LR
+  a1["w1"] --> a2["w2"] --> a3["w3"] --> a4["w4（当前）"]
+  a4 -.-> ah["只能看：w1..w3"]
+  af["未来：w5 w6 ..."] -.-> a4
+end
+
+subgraph BI["双向（非因果）"]
+  direction LR
+  b1["w1"] --- b2["w2"] --- b3["w3"] --- b4["w4（当前）"] --- b5["w5"] --- b6["w6..."]
+  b4 -.-> bh["可看：w1..w3 与 w5.."]
+end</pre>
+<center>图 1-2 自回归建模与双向建模的信息可见性对比</center>
+
+<p>该图对比了自回归建模与双向建模在信息使用方式上的差异。在自回归建模中，当前位置只能利用历史上下文，未来词被显式遮蔽，以保证训练与生成阶段的一致性；而在双向建模中，当前位置可同时利用前后文信息，更适合表示学习与理解类任务。</p>
+<h3 id="1-3-Decoder-only-Transformer：一种为规模而生的结构"><a href="#1-3-Decoder-only-Transformer：一种为规模而生的结构" class="headerlink" title="1.3 Decoder-only Transformer：一种为规模而生的结构"></a>1.3 Decoder-only Transformer：一种为规模而生的结构</h3><p>在明确了自回归建模目标之后，接下来的问题自然是：<strong>用什么样的模型结构，才能最直接、最稳定地实现这种“一步一步生成”的建模方式。</strong></p>
+<p>GPT 系列最终选择的是 decoder-only Transformer。这里的 “decoder-only”，并不是指模型功能上的“残缺版本”，而是指它只保留了 Transformer 架构中<strong>负责生成的那一半结构</strong>。</p>
+<p>在标准的 Transformer 设计中，模型通常由两部分组成：编码器和解码器。编码器的作用是读取并理解完整输入，解码器则在此基础上逐步生成输出。这种结构非常适合翻译等“输入与输出明确分离”的任务，但对于纯文本生成而言，引入完整的编码器并非必要。</p>
+<p>decoder-only Transformer 采取了更直接的方式。模型只保留解码器结构，将“读入已有文本”和“继续生成后续文本”这两件事，统一在同一个网络中完成。换句话说，模型始终面对的是一个不断增长的文本序列，每一层都在做同一件事情：在已有上下文的基础上，预测接下来该怎么写。</p>
+<p>这一结构选择，与自回归建模目标高度一致。其核心在于自注意力机制与因果掩码的结合。因果掩码会在注意力计算中屏蔽未来位置，使模型在任意时刻只能利用已经出现的词。这样一来，自回归假设不再只是训练时的约定，而是被明确地写进了模型的计算结构之中，训练和生成过程在机制层面保持完全一致。  </p>
+<p>与包含编码器和解码器的复杂结构相比，decoder-only 架构在形式上更加统一。模型的每一层都执行相同类型的计算，没有专门负责“理解输入”的模块，也没有专门负责“生成输出”的模块。这种高度一致的层级结构，使模型在扩大层数和参数规模时更加稳定，也显著降低了实现和调试的复杂度。</p>
+<p>从工程角度看，这一选择的影响尤为深远。在生成文本时，模型是沿着时间顺序逐步向前推进的，而历史部分的中间表示在后续步骤中并不会发生变化。decoder-only Transformer 的结构非常适合对这些中间结果进行缓存，从而避免在每一步生成时重复计算历史内容。这不仅提升了推理效率，也为后续系统级优化奠定了基础。</p>
+<p>因此，decoder-only Transformer 并不是为某一个具体任务量身定做的结构，而是围绕“可以不断堆大、可以稳定训练、可以高效推理”这一长期目标所设计的通用生成架构。正是这种在建模目标、结构形式和工程实现之间高度一致的设计，使 GPT 系列模型能够沿着规模扩展的路径持续演化。</p>
+<pre class="mermaid">flowchart LR
+
+p["提示词（Prompt）<br/>任务说明 / 示例 / 约束"]
+  --> c["上下文拼接后的输入序列<br/>Prompt + 历史文本"]
+  --> m["语言模型<br/>Decoder-only Transformer"]
+  --> o["模型输出<br/>生成的回答文本"]
+
+o -.-> f["继续对话 / 追加新提示"]
+f -.-> c</pre>
+<center>图 1-3 提示词在自回归语言模型中的作用机制</center>
+
+<p>该图展示了提示词在语言模型推理过程中的作用方式。提示词并不会改变模型参数，而是作为输入上下文的一部分，与已有文本共同构成模型的条件信息。语言模型在此基础上进行自回归生成，输出结果又可被追加为新的上下文，从而形成以提示词为核心的交互式生成流程。</p>
+<p><strong>本章小结</strong><br>本章从语言建模这一最基础的问题出发，解释了 GPT 系列模型所依赖的自回归建模范式是如何成立的。</p>
+<p>通过将整段文本的概率拆解为逐步预测，自然语言被转化为一系列可训练、可扩展的学习目标。自回归假设保证了模型在训练和生成阶段的信息使用方式保持一致，而 decoder-only Transformer 则在结构层面为这一范式提供了稳定、可扩展的实现基础。</p>
+<p>正是在这一理论与结构框架之上，后续关于模型规模、能力演化、对齐机制以及系统优化的讨论才具有共同的出发点。</p>
+<h2 id="2-GPT-1-到-GPT-5：规模扩展与能力演化的真实逻辑"><a href="#2-GPT-1-到-GPT-5：规模扩展与能力演化的真实逻辑" class="headerlink" title="2. GPT-1 到 GPT-5：规模扩展与能力演化的真实逻辑"></a>2. GPT-1 到 GPT-5：规模扩展与能力演化的真实逻辑</h2><p>在第一章中已经看到，GPT 系列并不是从某个“神奇结构”开始的，而是建立在一个非常稳定的基础之上：自回归语言建模加上 decoder-only Transformer。在这个基础确立之后，接下来发生的事情，看起来就变得非常直观了：模型越来越大，能力也越来越强。</p>
+<p>但如果只用“变大了”来概括 GPT 的演化过程，很容易产生一种误解，好像能力是线性堆出来的，只要参数数量翻倍，就一定会多出某种明确的新功能。事实并非如此。本章要做的，是把 GPT-1 到 GPT-5 的发展过程拆开来看，解释清楚<strong>哪些变化来自方法本身，哪些变化主要是规模放大带来的统计效应</strong>，以及为什么“世界模型”这个概念既有合理性，也需要被谨慎使用。</p>
+<h3 id="2-1-GPT-1：通用预训练语言模型的起点"><a href="#2-1-GPT-1：通用预训练语言模型的起点" class="headerlink" title="2.1 GPT-1：通用预训练语言模型的起点"></a>2.1 GPT-1：通用预训练语言模型的起点</h3><p>GPT-1 出现时，并不是为了展示多么惊艳的生成能力。相反，它解决的是一个在当时非常现实的问题：自然语言处理长期依赖任务定制模型，成本高、复用性差。</p>
+<p>在 GPT-1 之前，如果你想做情感分析、文本分类、问答或推断关系，通常的做法是为每个任务分别设计模型和训练流程。即便模型结构相似，也很难真正共享能力。每一个新任务，几乎都意味着从头开始收集标注数据和训练模型。</p>
+<p>GPT-1 的思路发生了一个关键转变。它不再从“我要解决某个具体任务”出发，而是先问一个更基础的问题：<strong>能不能先学会语言本身，再去适配不同任务？</strong></p>
+<p>于是，GPT-1 采用了一个两阶段流程。第一阶段，模型在大规模无标注文本上进行语言建模训练，学习语言的基本统计结构，比如词序、句式、常见表达方式等。第二阶段，再用相对较小规模的标注数据，对模型进行微调，让它适配具体任务。</p>
+<p>从今天的角度看，GPT-1 的模型规模并不大，训练数据也远不能和后续模型相比，它的能力主要体现在传统的语言理解任务上。但它第一次明确证明了一点：<strong>自回归语言模型不仅能生成文本，还可以作为通用的语言表示基础。</strong></p>
+<p>这一结论非常重要。它意味着，语言建模不只是一个“生成用的玩具任务”，而是可以成为整个自然语言处理体系的底座。这为后续继续扩大模型规模，提供了方法论上的信心。</p>
+<h3 id="2-2-GPT-2-与-GPT-3：规模扩展与上下文内学习能力的出现"><a href="#2-2-GPT-2-与-GPT-3：规模扩展与上下文内学习能力的出现" class="headerlink" title="2.2 GPT-2 与 GPT-3：规模扩展与上下文内学习能力的出现"></a>2.2 GPT-2 与 GPT-3：规模扩展与上下文内学习能力的出现</h3><p>真正让研究界和工程界感到意外的变化，出现在 GPT-2 和 GPT-3 阶段。</p>
+<p>随着模型参数数量和训练数据规模的显著增长，人们发现模型开始表现出一些在训练目标中从未被明确要求的行为。其中最典型的，是所谓的 zero-shot 和 few-shot 能力。模型在没有进行任何额外训练的情况下，仅凭输入中的少量示例，就能完成新任务。可以从一个更直观的角度来理解这种现象。</p>
+<p>在 GPT-2 和 GPT-3 的训练过程中，模型接触了海量文本，其中包含了无数种任务形式，比如问答、说明、列表、教程、对话、代码示例等。这些内容并没有被明确标注为“任务”，而是作为语言的一部分，被混合在训练数据中。</p>
+<p>当模型规模足够大时，它不再只是记住局部的词语搭配，而是开始在参数中隐式地存储大量“语言使用模式”。这些模式包括：在什么样的上下文中，人类通常会给出什么样的回应；看到类似示例排列时，输出通常遵循怎样的格式。</p>
+<p>于是，在推理阶段，如果你在输入中给模型放入几个示例，或者用自然语言描述任务要求，模型就有可能在这些已学过的模式中找到“相似情形”，并顺着这种模式继续生成。这种能力并不依赖参数更新，而完全发生在上下文之内。</p>
+<p>从这个角度看，提示并不是一种魔法，而更像是一种“任务线索”。它帮助模型在已经学会的大量语言模式中，定位当前应该采用哪一种行为方式。</p>
+<pre class="mermaid">flowchart LR
+
+s1["规模扩展<br/>参数更多 数据更多"]
+  --> s2["训练阶段覆盖更广<br/>见到大量“任务样式”文本<br/>问答 教程 列表 代码..."]
+  --> s3["参数中隐式存储<br/>语言使用模式<br/>输入形式→输出形式"]
+  --> s4["推理阶段提供线索<br/>提示词 + 少量示例<br/>或自然语言指令"]
+  --> s5["上下文内学习出现<br/>zero-shot / few-shot<br/>无需更新参数"]</pre>
+<center>图2-1 模型规模扩展与上下文内学习能力出现的概念路径图</center>
+
+<p>该图用一条简化路径说明 GPT-2 到 GPT-3 阶段的关键变化：随着模型与数据规模扩大，训练语料中包含的“任务样式”覆盖更广，模型在参数中逐步积累可复用的语言模式。推理时通过提示词或少量示例提供任务线索，模型即可在上下文内匹配并延续相应模式，从而表现出 zero-shot 与 few-shot 的能力。</p>
+<h3 id="2-3-Scaling-Laws：为什么“更大”往往真的更强"><a href="#2-3-Scaling-Laws：为什么“更大”往往真的更强" class="headerlink" title="2.3 Scaling Laws：为什么“更大”往往真的更强"></a>2.3 Scaling Laws：为什么“更大”往往真的更强</h3><p>在 GPT-2 和 GPT-3 的实验结果基础上，研究者逐渐总结出一些经验规律，通常被称为缩放定律。缩放定律并不试图给出复杂的理论证明，而是来自大量实验观察。它揭示了一个相对稳定的现象：</p>
+<p>在语言建模任务中，只要数据质量和训练过程保持稳定，模型的训练损失会随着参数规模、数据规模和计算量的增加而持续下降，而且这种下降在相当大的范围内并不会迅速停滞。</p>
+<p>这意味着一件非常现实的事情。与其频繁更换模型结构，不如在一个已经验证有效的结构上，持续投入更多数据和算力，往往能获得更可预测的收益。</p>
+<p>但需要强调的是，缩放定律并不是“无条件成立”的。它隐含了一些前提条件，例如数据必须足够多样且质量可靠，训练过程需要足够稳定，模型结构本身也要能够承受规模扩展。一旦这些条件被破坏，单纯把模型做大，并不会自动带来能力提升。</p>
+<p>理解这一点，有助于避免把“规模”神秘化。规模扩展是一种有效手段，但它并不能替代对数据、结构和优化细节的认真设计。</p>
+<h3 id="2-4-GPT-4-与-GPT-5：从语言模型走向世界模型的尝试"><a href="#2-4-GPT-4-与-GPT-5：从语言模型走向世界模型的尝试" class="headerlink" title="2.4 GPT-4 与 GPT-5：从语言模型走向世界模型的尝试"></a>2.4 GPT-4 与 GPT-5：从语言模型走向世界模型的尝试</h3><p>进入 GPT-4 及之后的阶段，模型的能力开始明显超出传统语言任务的范围。</p>
+<p>一方面，多模态输入的引入，使模型不再局限于处理文本，而能够同时接收图像等其他形式的信息。另一方面，模型开始与外部工具和函数接口结合，其输出不再只是自然语言，而可以触发实际操作或调用系统能力。</p>
+<p>这些变化使得模型的行为看起来更像是在“做决策”，而不仅仅是在“接着说话”。正是在这样的背景下，“世界模型”这个概念开始被频繁提及。</p>
+<p>在一种宽松的理解下，世界模型指的是模型内部对状态、行为以及行为后果之间关系的表征能力。例如，模型能够在描述性环境中进行多步推理，预测不同选择可能导致的结果。</p>
+<p>但需要保持清醒的是，目前的 GPT 系列模型并不是在直接与真实世界交互。它们的“世界”主要来自训练数据中对世界的描述，是通过语言和符号间接构建的。因此，它们更擅长在“被描述的环境”中推断，而不是在真实物理环境中持续学习。</p>
+<h3 id="2-5-世界模型的操作性定义与边界"><a href="#2-5-世界模型的操作性定义与边界" class="headerlink" title="2.5 世界模型的操作性定义与边界"></a>2.5 世界模型的操作性定义与边界</h3><p>为了避免概念泛化，对世界模型给出一个最低限度的操作性定义是有帮助的。通常可以从三个方面来理解：</p>
+<ul>
+<li>是否能够表示环境状态，</li>
+<li>是否能够在多种可能行为中进行选择，</li>
+<li>是否能够预测行为可能带来的后果。</li>
+</ul>
+<p>按照这一标准来看，当前的 GPT 系列模型在语言描述的场景中，确实具备部分世界模型特征。例如，它们能够在文字构建的情境中进行多步推理，并比较不同决策路径的结果。</p>
+<p>但与此同时，这种能力高度依赖已有数据分布。模型并不会在与环境交互中持续更新内部状态，也缺乏真正的长期记忆机制。因此，更准确的说法是：<strong>这些模型正在逼近一种“以语言为媒介的近似世界模型”，而非完整意义上的世界建模系统。</strong></p>
+<p>这样的界定，有助于既承认模型能力的进步，又避免对其理解范围的过度解读。</p>
+<p><strong>本章小结</strong><br>本章沿着 GPT-1 到 GPT-5 的发展脉络，分析了模型能力如何在稳定建模范式之上逐步演化。</p>
+<p>可以看到，GPT-1 确立了通用预训练的思想，GPT-2 和 GPT-3 通过规模扩展催生了上下文内学习行为，而 GPT-4 及之后的模型则开始在多模态和工具使用层面拓展能力边界。贯穿其中的，并不是频繁更换建模目标，而是在稳定结构和目标下，持续放大规模所带来的统计效应。</p>
+<p>在这一背景下，从语言建模到世界建模更像是一条渐进外推的路径，而不是一次范式的突然跳跃。这种理解方式，为后续关于生成策略、对齐机制以及系统设计的讨论提供了更加稳健的认知基础。</p>
+<h2 id="3-生成并非取最大值：自回归采样策略解析"><a href="#3-生成并非取最大值：自回归采样策略解析" class="headerlink" title="3. 生成并非取最大值：自回归采样策略解析"></a>3. 生成并非取最大值：自回归采样策略解析</h2><p>在前两章中，我们已经弄清楚了一件事：自回归语言模型通过不断预测“下一个词”，获得了生成整段文本的能力。但真正开始使用模型时，很快就会发现一个现实问题：<strong>模型“能生成”，并不等于“生成得好”。</strong></p>
+<p>哪怕模型在训练阶段对语言分布学得非常准确，如果在生成阶段处理不当，输出结果依然可能显得死板、重复，甚至越写越奇怪。因此，生成阶段并不是一个可以随意处理的细节，而是决定模型行为表现的关键环节。</p>
+<p>这一章要回答的核心问题是：<strong>在每一步预测中，模型给出了一个概率分布，我们究竟应该如何从中“选词”，才能得到质量更高的文本？</strong></p>
+<h3 id="3-1-贪婪解码与生成退化问题"><a href="#3-1-贪婪解码与生成退化问题" class="headerlink" title="3.1 贪婪解码与生成退化问题"></a>3.1 贪婪解码与生成退化问题</h3><p>最直观的生成方式，是在每一步都选择概率最高的那个词。这种方法看起来非常合理，通常被称为贪婪解码。</p>
+<p>从数学角度看，如果目标是让整段文本的概率尽可能高，那么每一步都选“当前最可能的词”，似乎是一个顺理成章的选择。很多初学者在第一次实现文本生成时，也往往会自然地采用这种策略。但在实践中，贪婪解码几乎总会遇到问题。</p>
+<p>最常见的现象包括反复使用相同的词语或句式，语义逐渐变得空洞，文本在写到一定长度后陷入固定模式。这种情况并不是因为模型“学坏了”，而是语言分布本身的特性所导致的。</p>
+<p>自然语言的概率分布通常非常不均匀。少数高频词在很多上下文中都拥有最高概率，例如“的”“是”“然后”这类词。当模型在每一步都只选择概率最大的词时，生成过程就会不断被拉向这些高频区域。</p>
+<p>更关键的是，自回归生成具有反馈效应。模型当前生成的内容，会成为下一步的输入。如果某一步选择了一个看似合理但信息量很低的词，那么后续预测就会围绕这个低信息上下文展开，进一步放大单调性，最终导致文本质量整体下降。</p>
+<p>这说明一个重要事实：<strong>最大化每一步的局部概率，并不等价于生成高质量的整体文本。</strong> 要缓解这一问题，就必须在生成过程中引入一定的不确定性，让模型有机会探索概率分布中的其他可能性。</p>
+<h3 id="3-2-Top-k、Top-p-与温度系数"><a href="#3-2-Top-k、Top-p-与温度系数" class="headerlink" title="3.2 Top-k、Top-p 与温度系数"></a>3.2 Top-k、Top-p 与温度系数</h3><p>为了解决贪婪解码带来的退化问题，人们提出了多种基于采样的生成策略。这些方法的共同目标，是在不破坏整体合理性的前提下，为生成过程保留一定的多样性。</p>
+<p>其中最常见的三种手段，是 <strong>Top-k 采样</strong>、<strong>Top-p 采样</strong>和<strong>温度系数</strong>。</p>
+<p>Top-k 采样的思路相对直观。在每一步预测时，模型并不从完整的词表中选择，而是只保留概率最高的前 k 个词，然后在这个较小的集合中按照概率进行随机采样。这样做的好处是，可以有效避免极低概率词被选中，同时又不会像贪婪解码那样过于死板。<br>不过，固定的 k 值也带来了一些局限。如果当前分布本身非常集中，那么前 k 个词的范围可能过大；而在分布较为平坦的情况下，同样的 k 值又可能把合理候选词裁剪得过多。</p>
+<p>Top-p 采样试图解决这一问题。它不再固定候选词的数量，而是根据累计概率来动态确定候选集合。具体来说，模型会选择概率从高到低累加，直到总和达到设定的阈值 p，然后只在这个集合中进行采样。<br>这种方式更加自适应。当模型对下一个词非常确定时，候选集合会自然变小；当模型不确定性较高时，候选范围则会自动扩大。在实际应用中，Top-p 往往能在稳定性和多样性之间取得更好的平衡。</p>
+<p>温度系数则从另一个角度影响生成行为。它通过缩放模型输出的分数，来改变概率分布的形状。较低的温度会让分布更加尖锐，使高概率词更容易被选中，生成结果更保守。较高的温度会让分布更加平滑，使低概率词获得更多机会，从而增加随机性。<br>需要注意的是，温度本身并不决定候选范围，而是整体调整概率结构，因此通常会与 Top-k 或 Top-p 结合使用。</p>
+<pre class="mermaid">flowchart LR
+
+d0["下一词概率分布<br/>按概率从高到低排序"]
+  --> tk["Top-k<br/>保留前 k 个候选<br/>在集合内采样"]
+  --> out1["输出 token<br/>保留多样性"]
+
+d0 --> tp["Top-p<br/>保留累计概率≥p 的最小集合<br/>在集合内采样"]
+tp --> out2["输出 token<br/>自适应候选大小"]
+
+d0 --> t0["温度 T<br/>调整分布形状<br/>T↓更尖锐 T↑更平滑"]
+t0 --> mix["与 Top-k / Top-p 结合使用<br/>再进行采样"]
+mix --> out3["输出 token<br/>控制随机性强弱"]</pre>
+<center>图3-1 Top-k、Top-p 与温度系数对候选空间与随机性的影响示意图</center>
+
+<p>该图以同一“下一词概率分布”为起点，展示三类常用采样策略如何改变生成选择空间。Top-k 通过固定候选数量截断分布，Top-p 通过累计概率阈值自适应确定候选集合，而温度系数通过整体缩放分布来调节随机性强弱，通常与 Top-k 或 Top-p 结合使用以平衡多样性与稳定性。</p>
+<h3 id="3-3-不同任务下的采样策略选择"><a href="#3-3-不同任务下的采样策略选择" class="headerlink" title="3.3 不同任务下的采样策略选择"></a>3.3 不同任务下的采样策略选择</h3><p>采样策略并不存在对所有任务都最优的固定配置。合理的选择，始终取决于任务目标本身。</p>
+<p>在强调确定性和正确性的场景中，例如信息抽取、数学推理或结构化输出，过多的随机性往往会带来风险。这类任务更希望模型稳定地给出一致答案，而不是在多种说法之间摇摆。因此，较低的温度配合更保守的采样设置，通常更为合适。</p>
+<p>相反，在文本创作、对话生成或头脑风暴等任务中，多样性本身就是质量的重要组成部分。如果生成结果过于确定，反而容易显得模板化。在这些场景下，引入适当的随机性，有助于模型探索语言分布中的不同表达方式。</p>
+<p>一个容易被忽视但非常重要的事实是：<strong>采样策略并不会让模型“凭空变聪明”。它只是重新分配模型已经学到的概率质量。</strong></p>
+<p>如果模型在某个问题上缺乏相关知识或理解存在偏差，那么无论采用什么采样策略，都无法从根本上解决问题。理解这一点，有助于在实际应用中区分“模型能力不足”和“生成策略不当”这两类问题。</p>
+<p><strong>本章小结</strong><br>本章围绕自回归语言模型的生成阶段，解释了为什么“每一步选最可能的词”并不是一个好的生成策略。贪婪解码容易导致文本重复和语义退化，而基于采样的方法通过引入受控的不确定性，为生成质量提供了重要调节手段。</p>
+<p>Top-k、Top-p 和温度系数并不是彼此替代的技巧，而是从不同角度影响模型的生成行为。合理配置这些参数，可以在不改变模型参数的前提下，显著改变模型的输出风格和质量。</p>
+<p>这也进一步说明，自回归语言模型的能力并非完全固化在参数之中。在推理阶段，生成策略仍然为模型行为提供了一个重要的调节空间。</p>
+<h2 id="4-对齐的引入：RLHF-如何塑造-GPT-的行为边界"><a href="#4-对齐的引入：RLHF-如何塑造-GPT-的行为边界" class="headerlink" title="4. 对齐的引入：RLHF 如何塑造 GPT 的行为边界"></a>4. 对齐的引入：RLHF 如何塑造 GPT 的行为边界</h2><p>在前几章中，我们已经看到，自回归建模、规模扩展和采样策略，让语言模型具备了相当强的生成能力。模型可以写文章、回答问题、延续对话，甚至在一些场景中表现出类似推理的行为。</p>
+<p>但当这些模型真正被拿来使用时，一个问题很快变得无法回避：<strong>会说话，并不等于会“好好说话”。</strong></p>
+<p>模型有时会给出看起来很自信、但实际上并不正确的回答；有时会误解用户意图，给出不合时宜的内容；在开放场景中，它的行为也可能显得不稳定。这些问题并不是因为模型“不够大”，而是因为它所优化的目标，与人类实际使用时的期望并不完全一致。</p>
+<p>这一章要解释的，正是对齐机制为何被引入，以及以 RLHF 为代表的方法，是如何在不改变语言建模核心的前提下，重新塑造模型行为边界的。</p>
+<h3 id="4-1-从语言建模目标到人类偏好目标"><a href="#4-1-从语言建模目标到人类偏好目标" class="headerlink" title="4.1 从语言建模目标到人类偏好目标"></a>4.1 从语言建模目标到人类偏好目标</h3><p>回顾语言模型的预训练目标，可以发现它其实非常中性。模型被要求做的事情，是尽可能拟合训练语料中的语言分布。只要某种表达在数据中出现得足够频繁，模型就会倾向于在类似上下文中复现这种表达。</p>
+<p>这种目标在统计意义上是合理的，但它并不关心几个现实问题。模型并不会区分哪些说法是准确的、哪些只是常见的；也不会判断哪些回答对用户真正有帮助，哪些只是“听起来像个回答”。</p>
+<p>当模型被部署到真实环境中时，这种中性目标很容易暴露出局限性。用户并不只是希望模型“像互联网上的人那样说话”，而是希望它回答得有用、可靠，并且符合基本的使用规范。</p>
+<p>对齐机制正是在这一背景下被引入的。它的核心思想可以用一句话概括：<strong>在保留语言建模能力的基础上，让模型的输出更贴近人类偏好。</strong></p>
+<p>需要强调的是，对齐并不是要推翻语言建模这个基础目标。模型仍然依赖预训练阶段学到的语言能力。对齐做的事情，更像是在这些能力之上加上一层“行为约束”，让模型在多种可能的说法中，更倾向于选择那些人类更愿意接受的结果。</p>
+<h3 id="4-2-RLHF-的三阶段工程流程"><a href="#4-2-RLHF-的三阶段工程流程" class="headerlink" title="4.2 RLHF 的三阶段工程流程"></a>4.2 RLHF 的三阶段工程流程</h3><p>在实际系统中，最常见的对齐方式是基于人类反馈的强化学习流程，也就是通常所说的 RLHF。虽然具体实现会有所差异，但整体思路可以分成三个相互衔接的阶段。</p>
+<ul>
+<li>第一阶段通常被称为监督微调。<br>  在这一阶段，人类会整理一批高质量的示例，展示在给定指令下，模型“应该如何回答”。模型通过模仿这些示例，学会基本的指令理解方式和回答风格。这一步的作用，是把模型的输出分布，从“随意生成”拉回到一个相对可控的范围内。</li>
+<li>第二阶段是奖励模型的训练。<br>  在这一阶段，人类不再直接给出标准答案，而是对多个候选回答进行比较，判断哪一个更好。通过大量这样的偏好标注，可以训练出一个奖励模型，用来给回答打分。这个模型并不生成文本，而是扮演“评审”的角色，把人类的主观偏好转化为数值信号。</li>
+<li>第三阶段才是真正的强化学习优化。<br>  语言模型在这一阶段被视为一个策略，它不断生成回答，并通过奖励模型获得反馈。优化的目标，是在保持语言合理性的前提下，提高获得高奖励的概率。经过这一过程，模型会逐渐学会哪些回答更可能被人类认可。</li>
+</ul>
+<p>从整体上看，RLHF 并不是一个单点技术，而是一套将人类判断引入模型训练流程的工程体系。</p>
+<pre class="mermaid">flowchart LR
+
+sft["阶段一：监督微调（SFT）<br/>人类示例数据<br/>指令 → 理想回答"]
+  --> lm1["语言模型<br/>学会基本指令理解<br/>与回答风格"]
+
+rmdata["阶段二：偏好标注数据<br/>多个候选回答<br/>人类比较好坏"]
+  --> rm["奖励模型<br/>输出偏好评分"]
+
+lm1 --> rl["阶段三：强化学习优化<br/>语言模型作为策略<br/>最大化奖励得分"]
+rm --> rl</pre>
+<center>图4-1 RLHF 的三阶段工程流程示意图</center>
+
+<p>该图展示了基于人类反馈的强化学习（RLHF）的典型三阶段流程。模型首先通过监督微调学习基本的指令理解与回答方式，其后利用人类偏好训练奖励模型，最后在强化学习阶段以奖励模型为反馈信号优化生成行为。整体流程体现了对齐并非单一步骤，而是由多个环节协同完成的工程体系。</p>
+<h3 id="4-3-RLHF-改变了什么，又没有改变什么"><a href="#4-3-RLHF-改变了什么，又没有改变什么" class="headerlink" title="4.3 RLHF 改变了什么，又没有改变什么"></a>4.3 RLHF 改变了什么，又没有改变什么</h3><p>理解 RLHF 的价值，关键在于分清它真正改变了什么，以及它并没有改变什么。</p>
+<p>首先，RLHF 并不会让模型突然获得新的知识或推理能力。模型在对齐阶段所能利用的内容，仍然来自预训练阶段已经学到的语言模式和世界信息。强化学习并不是在“教新东西”，而是在已有能力范围内，重新调整输出倾向。</p>
+<p>其次，RLHF 主要影响的是模型的行为选择，而不是底层建模能力。</p>
+<p>在面对不确定问题时，对齐后的模型往往更谨慎，更倾向于给出安全或保守的回答。这并不意味着模型“理解得更深”，而是它在多种可能输出中，学会了选择风险更低的那一种。</p>
+<p>从使用体验上看，这种变化既带来了收益，也伴随着代价。一方面，模型的输出更稳定、更符合预期，更适合在开放环境中使用；另一方面，过强的对齐约束也可能压缩模型的表达空间，使回答显得冗长、保守，甚至在某些场景中显得回避问题。</p>
+<p>因此，对齐并不能被简单理解为“性能提升”。它更像是一种行为层面的取舍，用一致性和可控性，换取一定程度的灵活性和多样性。</p>
+<p><strong>本章小结</strong><br>本章解释了为什么在语言建模和生成能力之外，还需要额外引入对齐机制。单纯依赖预训练目标，无法保证模型在真实使用场景中表现可靠，而 RLHF 提供了一种将人类偏好系统性引入模型行为的工程路径。</p>
+<p>需要清楚的是，对齐并没有改变 GPT 系列的基本建模范式。模型仍然是自回归语言模型，仍然依赖大规模数据和概率建模。对齐所做的，是在这一能力基础之上，重新塑造模型“该怎么用”的行为边界。</p>
+<p>正是在能力与行为被区分开的框架下，后续关于上下文窗口、推理效率和系统设计的问题，才能被更清晰地讨论。</p>
+<h2 id="5-上下文窗口：模型的工作记忆与能力边界"><a href="#5-上下文窗口：模型的工作记忆与能力边界" class="headerlink" title="5. 上下文窗口：模型的工作记忆与能力边界"></a>5. 上下文窗口：模型的工作记忆与能力边界</h2><p>在前一章中，我们已经看到，对齐机制让模型在行为层面变得更加可控。但即便模型在“怎么回答”上被调教得再好，它在任何时刻能够使用的信息，仍然受到一个非常硬的限制：<strong>上下文窗口</strong>。</p>
+<p>无论模型参数规模有多大，它在生成下一个词时，真正能够直接看到的内容，都只来自一段有限长度的输入。本章要解释的，正是这个限制如何影响模型的记忆方式、推理能力以及实际使用效果。</p>
+<h3 id="5-1-上下文窗口的定义与作用机制"><a href="#5-1-上下文窗口的定义与作用机制" class="headerlink" title="5.1 上下文窗口的定义与作用机制"></a>5.1 上下文窗口的定义与作用机制</h3><p>上下文窗口，指的是模型在一次前向计算中，能够接收和处理的最大文本长度。可以把它理解成模型当前的“工作台面”，所有可用的信息，都必须摆在这张台面上。</p>
+<p>需要特别强调的是，上下文并不是模型的长期记忆。模型并不会像人一样，把刚才对话中的事实永久存储下来。相反，模型在每一步生成时，都是根据当前窗口内的内容来估计下一个词的概率。一旦某些信息被挤出这个窗口，它们在形式上就不再参与模型的决策过程。</p>
+<p>这也是为什么在长对话或长文档处理中，模型有时会出现“前后不一致”的现象。并不是模型突然变笨了，而是关键信息已经不在它当前能看到的范围之内。</p>
+<p>不过，上下文窗口的作用也不仅仅是存放文本长度这么简单。由于自注意力机制会在窗口内部对所有词进行关联建模，模型可以在这一范围内捕捉复杂的依赖关系。例如，它可以追踪代词指向、维持逻辑一致性，甚至进行多步推理。</p>
+<p>因此，可以把上下文窗口理解为模型的“工作记忆”。它决定了模型在当前任务中，能够同时考虑多少信息，也直接影响了推理深度和一致性上限。</p>
+<h3 id="5-2-长上下文带来的计算与工程挑战"><a href="#5-2-长上下文带来的计算与工程挑战" class="headerlink" title="5.2 长上下文带来的计算与工程挑战"></a>5.2 长上下文带来的计算与工程挑战</h3><p>从直觉上看，如果上下文窗口是限制模型能力的瓶颈，那么把窗口做得越大，模型似乎就越强。但在实际系统中，这件事远没有想象中简单。</p>
+<p>在基于自注意力机制的模型中，计算量会随着上下文长度迅速增长。窗口越长，模型在每一步生成时需要考虑的关联关系就越多，计算和内存开销都会随之放大。</p>
+<p>除了计算成本，显存占用也是一个非常现实的问题。无论是在训练还是推理阶段，自注意力机制都需要保存大量中间结果。当上下文长度从几千增长到几万时，即便模型本身的参数数量不变，系统资源消耗也可能成为主要瓶颈。</p>
+<p>这意味着，上下文长度并不是一个可以随意调大的参数。每一次扩展，都需要在模型结构、计算方式和硬件资源之间做出权衡。</p>
+<h3 id="5-3-长上下文注意力策略概览"><a href="#5-3-长上下文注意力策略概览" class="headerlink" title="5.3 长上下文注意力策略概览"></a>5.3 长上下文注意力策略概览</h3><p>为了在有限资源下支持更长的上下文，研究和工程实践中提出了多种改进策略。这些方法的共同目标，是在不完全牺牲建模能力的前提下，降低长序列带来的计算压力。</p>
+<p>一种常见思路是限制注意力的作用范围。模型在计算注意力时，只关注当前位置附近的一段文本，而不是整段上下文。这种方法可以显著降低计算量，但代价是模型对远距离依赖的建模能力会有所削弱。</p>
+<p>另一类方法通过引入稀疏结构，让模型只在少数关键位置之间建立联系。这种方式在特定任务中效果显著，但通常依赖于精心设计的结构或规则，否则容易遗漏重要信息。</p>
+<p>还有一些方法尝试改变注意力计算的数学形式，把原本随长度平方增长的复杂度，降低到接近线性的水平。这类方法在理论上非常吸引人，但在实践中往往需要在精度、稳定性和实现复杂度之间进行权衡。</p>
+<p>总体来看，长上下文并不存在放之四海而皆准的解决方案。不同方法代表的是在能力、效率和工程可行性之间的不同取舍。</p>
+<p><strong>本章小结</strong><br>本章围绕上下文窗口这一核心概念，解释了它如何限制语言模型在任一时刻能够使用的信息范围。上下文窗口既是模型进行推理和保持一致性的基础，也是其能力边界的重要来源。</p>
+<p>尽管通过工程手段可以在一定程度上扩展上下文长度，但这种扩展始终伴随着计算和资源代价。因此，模型在真实系统中的表现，并不只取决于参数规模，还深受上下文设计和工程实现的影响。</p>
+<p>正是在这一限制条件下，推理效率、缓存机制等系统层面的优化变得至关重要，也自然引出了下一章关于推理加速的讨论。</p>
+<h2 id="6-KV-Cache：推理效率的关键系统设计"><a href="#6-KV-Cache：推理效率的关键系统设计" class="headerlink" title="6. KV Cache：推理效率的关键系统设计"></a>6. KV Cache：推理效率的关键系统设计</h2><p>在上一章中已经看到，上下文窗口限制了模型一次能够处理的信息量。而即便上下文长度保持不变，自回归语言模型在生成文本时，仍然会遇到另一个非常现实的问题：<strong>生成得越多，计算就越慢</strong>。</p>
+<p>如果不加任何优化，模型在每生成一个新词时，都会重新处理此前的全部上下文。这种做法在短文本中尚且可以接受，但在长文本或多轮对话场景下，很快就会变得不可承受。KV Cache 正是在这一背景下被引入的关键系统设计。</p>
+<h3 id="6-1-KV-Cache-的基本原理"><a href="#6-1-KV-Cache-的基本原理" class="headerlink" title="6.1 KV Cache 的基本原理"></a>6.1 KV Cache 的基本原理</h3><p>要理解 KV Cache，首先需要回到 Transformer 的自注意力机制。在自注意力中，每一层都会为输入的每个词计算三类向量，通常称为 Query、Key 和 Value。直觉上可以这样理解：</p>
+<ul>
+<li>Query 表示“我现在想找什么信息”，</li>
+<li>Key 表示“我这里有什么信息”，</li>
+<li>Value 表示“如果你找到了我，可以用哪些内容”。</li>
+</ul>
+<p>在自回归生成过程中，有一个非常重要的事实：当模型已经处理过前面的文本后，那些历史词对应的 Key 和 Value 并不会因为后面生成的新词而发生变化。</p>
+<p>KV Cache 正是利用了这一点。在第一次处理输入上下文时，模型会为每一层计算并保存所有历史词对应的 Key 和 Value。之后每生成一个新词，只需要为这个新位置计算 Query，再与已经缓存好的 Key 和 Value 进行注意力计算即可。  </p>
+<p>这样做的效果非常直接。模型不再需要反复为历史文本重新计算中间结果，而是可以在已有计算的基础上继续向前推进。</p>
+<p>从计算复杂度的角度看，这种缓存机制把强调“重复历史”的计算过程，转变为只关注“新增部分”的计算过程。生成过程因此变得更加高效。</p>
+<h3 id="6-2-KV-Cache-带来的内存与性能代价"><a href="#6-2-KV-Cache-带来的内存与性能代价" class="headerlink" title="6.2 KV Cache 带来的内存与性能代价"></a>6.2 KV Cache 带来的内存与性能代价</h3><p>KV Cache 显著提升了推理速度，但它并不是没有代价的。缓存下来的 Key 和 Value 需要被持续存放在显存或内存中。缓存占用的空间，会随着上下文长度、模型层数以及隐藏维度线性增长。在大模型和长上下文设置下，KV Cache 往往成为推理阶段最主要的内存消耗来源。</p>
+<p>这一点在高并发场景中尤为明显。当系统同时处理多个请求时，每个请求都需要维护自己的一份 KV Cache。模型参数可以在不同请求之间共享，但缓存不能。结果就是，显存使用量会随着并发数量快速增长。</p>
+<p>此外，缓存的读写本身也会对性能产生影响。频繁访问大规模缓存，会带来额外的内存带宽压力。在某些场景中，推理速度的瓶颈不再是算力，而是内存访问效率。</p>
+<p>因此，KV Cache 把推理阶段的主要挑战，从“算得动算不动”，转移到了“存得下存不下”。</p>
+<h3 id="6-3-工程视角下的综合权衡"><a href="#6-3-工程视角下的综合权衡" class="headerlink" title="6.3 工程视角下的综合权衡"></a>6.3 工程视角下的综合权衡</h3><p>从工程实践来看，是否使用 KV Cache，以及如何使用，并不是一个简单的开关问题，而是需要在多个维度之间进行权衡。</p>
+<p>首先是上下文长度与并发能力之间的取舍。更长的上下文意味着更大的缓存占用，从而压缩系统可支持的并发数量。在实际部署中，往往需要通过限制上下文长度、裁剪历史内容或分阶段处理请求，来换取更稳定的吞吐表现。</p>
+<p>其次是延迟与资源利用率之间的平衡。KV Cache 对单个请求的生成延迟改善非常明显，但在短文本或低并发场景下，其收益可能并不突出。此时，缓存管理本身的复杂性反而可能成为负担。</p>
+<p>最后，KV Cache 还会与长上下文注意力策略产生相互影响。一些稀疏或分块注意力方法，会改变 Key 和 Value 的组织方式，从而影响缓存的粒度和复用效率。这要求模型结构设计与系统实现在早期就进行协同考虑。</p>
+<p><strong>本章小结</strong><br>本章从系统角度解释了 KV Cache 在自回归语言模型推理中的核心作用。通过缓存历史词的 Key 和 Value，模型避免了重复计算，使生成过程的时间复杂度大幅下降。</p>
+<p>与此同时，这一优化也将推理阶段的主要瓶颈，从计算能力转移到了内存容量和带宽。显存占用、并发能力以及缓存管理，成为影响系统性能的新关键因素。</p>
+<p>理解 KV Cache 所带来的收益与代价，有助于在不同应用场景中做出合理的系统配置选择，也为后续关于模型选型与实战评估的讨论提供了重要背景。</p>
+<h2 id="7-开源大模型谱系：不同-GPT-路线的取舍"><a href="#7-开源大模型谱系：不同-GPT-路线的取舍" class="headerlink" title="7. 开源大模型谱系：不同 GPT 路线的取舍"></a>7. 开源大模型谱系：不同 GPT 路线的取舍</h2><p>在前几章中，我们已经从建模范式、规模扩展、对齐机制以及系统实现等角度，解释了 GPT 系列模型能力形成的内在逻辑。但当模型真正被拿来使用时，一个更现实的问题随之出现：<strong>面对这么多大模型，究竟该选哪一个？</strong></p>
+<p>这一问题并不存在统一答案。不同模型并不是在同一条直线上比拼“谁最强”，而是在能力、成本和使用目标之间做出了不同取舍。本章的目的，正是为这些差异建立一个清晰的理解框架。</p>
+<h3 id="7-1-LLaMA-系列：高效、干净的基础模型路线"><a href="#7-1-LLaMA-系列：高效、干净的基础模型路线" class="headerlink" title="7.1 LLaMA 系列：高效、干净的基础模型路线"></a>7.1 LLaMA 系列：高效、干净的基础模型路线</h3><p>LLaMA 系列模型的设计目标，并不是在所有任务上做到最好，而是提供一个高质量、可复用的基础模型。</p>
+<p>在结构上，LLaMA 采用了非常标准的 decoder-only Transformer，没有引入过多复杂的模块。这种选择使模型在训练和推理时都更加稳定，也更容易适配现有的微调和部署工具。</p>
+<p>更重要的是，LLaMA 在行为上相对“干净”。由于其对齐强度较低，模型的输出更接近原始语言建模的结果。这意味着，它在未经额外微调的情况下，可能不如强对齐模型那样“会说话”，但却为下游开发者保留了更大的调整空间。</p>
+<p>因此，LLaMA 更适合作为底座模型使用。它提供的是一块相对中性的能力基石，而不是一个已经高度定型的成品系统。</p>
+<h3 id="7-2-千问（Qwen）与-DeepSeek：工程与任务导向的国产模型路线"><a href="#7-2-千问（Qwen）与-DeepSeek：工程与任务导向的国产模型路线" class="headerlink" title="7.2 千问（Qwen）与 DeepSeek：工程与任务导向的国产模型路线"></a>7.2 千问（Qwen）与 DeepSeek：工程与任务导向的国产模型路线</h3><p>与 LLaMA 更强调“干净的基础能力”不同，千问（Qwen）与 DeepSeek 所代表的，是一种<strong>更贴近实际应用与工程落地的模型路线</strong>。</p>
+<p>这类模型在设计之初，就并非只把目标放在“通用语言建模”本身，而是更明确地考虑了真实使用场景中的任务需求、系统集成以及推理成本等因素。</p>
+<p>以千问（Qwen）系列为例，其一大特点在于对<strong>指令理解、多轮对话以及工具调用等使用形态的系统性支持</strong>。在保持 decoder-only Transformer 这一主流架构不变的前提下，千问在数据构成和对齐策略上，更加贴近“人如何与模型交互”这一实际问题。这使得模型在未经复杂二次改造的情况下，就具备较好的可用性和一致性。</p>
+<p>DeepSeek 则在另一条轴线上做出了鲜明取舍。其模型路线更强调<strong>任务导向与推理能力的集中优化</strong>，尤其是在代码生成、数学推理和结构化问题求解等场景中，表现出较强的针对性。相较于强调通用对话体验，DeepSeek 更倾向于通过数据选择与训练策略，让模型在特定能力维度上形成优势。</p>
+<p>需要注意的是，这两类模型并未改变自回归语言建模的基本范式，其差异更多体现在<strong>训练目标的侧重点与工程配置</strong>上。换言之，它们并不是在“重新定义 GPT 路线”，而是在既有范式下，朝着不同应用方向进行优化。</p>
+<p>这种路线的优势在于落地性强。模型往往更容易被直接嵌入到现有系统中，减少大量额外对齐或工程改造的成本。但相应地，其通用性和可塑性，可能不如更“中性”的基础模型路线。</p>
+<p>从谱系角度看，千问与 DeepSeek 并不试图覆盖所有可能的能力边界，而是在能力、成本与目标任务之间，做出了更加明确、更加现实的取舍。</p>
+<h3 id="7-3-Claude：以安全性与一致性为核心的强对齐路线"><a href="#7-3-Claude：以安全性与一致性为核心的强对齐路线" class="headerlink" title="7.3 Claude：以安全性与一致性为核心的强对齐路线"></a>7.3 Claude：以安全性与一致性为核心的强对齐路线</h3><p>在模型谱系中，Claude 系列代表了一条以<strong>安全性、一致性与长期可控性</strong>为核心目标的模型路线。</p>
+<p>在设计上，Claude 更强调对输出行为的系统性约束。通过较为严格的对齐策略，模型在复杂对话、多轮交互以及长文档处理场景中，通常表现出更高的稳定性。这使其在面对开放式问题时，更少出现明显偏离预期的回答。</p>
+<p>这种取向并非没有代价。由于对生成行为施加了较强约束，Claude 在某些需要高度自由探索或发散式创作的任务中，可能显得相对保守。但在需要持续交互、风险控制或一致性要求较高的应用中，这种稳健性往往是更重要的考量。</p>
+<p>从谱系角度看，Claude 更接近一种“面向系统级使用”的模型，其能力优势并不体现在单次回答的灵活性上，而体现在长期使用过程中的可靠表现。</p>
+<h3 id="7-4-Gemma：轻量化与可控性的平衡型路线"><a href="#7-4-Gemma：轻量化与可控性的平衡型路线" class="headerlink" title="7.4 Gemma：轻量化与可控性的平衡型路线"></a>7.4 Gemma：轻量化与可控性的平衡型路线</h3><p>与 Claude 强调系统级稳健性不同，Gemma 所代表的，是一条更注重<strong>轻量化与可控性平衡</strong>的模型路线。</p>
+<p>在保持主流 decoder-only Transformer 架构的前提下，Gemma 在模型规模、对齐强度和工程复杂度之间进行了谨慎取舍。这使其在资源受限或对部署透明度要求较高的环境中，更容易被集成和维护。</p>
+<p>Gemma 的目标并非覆盖最广泛的能力边界，而是提供一种在性能、成本和可控性之间较为均衡的选择。相较于更大规模、强对齐的模型，它为开发者保留了更多在具体应用中进行定制和调整的空间。</p>
+<p>因此，Gemma 更适合作为一种“可嵌入型”模型存在。它不追求在所有任务上达到最优表现，而是强调在明确约束条件下的稳定运行与可预期行为。</p>
+<p><strong>本章小结</strong><br>本章从模型谱系的角度，分析了不同 GPT 路线在设计目标和工程取舍上的差异。可以看到，不同模型并不是简单地追求“能力最大化”，而是在基础能力、工程效率和对齐策略之间做出了不同选择。理解这些选择背后的逻辑，有助于在具体应用中，根据实际需求做出更合理的模型选型。</p>
+<p>这种多样化的发展路径，也说明当代大模型并不是一项单一技术，而是一整套围绕建模、系统和使用目标不断分化的技术体系。</p>
+<h2 id="8-同一任务下的模型对比分析"><a href="#8-同一任务下的模型对比分析" class="headerlink" title="8. 同一任务下的模型对比分析"></a>8. 同一任务下的模型对比分析</h2><p>在前几章中，我们已经从建模范式、对齐机制以及工程实现等角度，分析了大模型能力是如何形成的。然而，当模型真正进入使用阶段，一个更现实的问题不可避免地出现：<strong>在具体任务中，如何判断不同模型“谁更合适”</strong>。</p>
+<p>需要强调的是，本章的目标并不是给出一个“最强模型”的排名。事实上，在大模型场景下，这样的结论往往既不稳定，也缺乏实际指导意义。本章关注的核心问题是：<strong>在同一任务下，如何通过合理的实验设计与评估指标，理解不同模型之间的真实差异与取舍关系。</strong></p>
+<p>为避免抽象讨论，下面将以一个具体任务作为贯穿示例，说明模型对比应如何展开。</p>
+<h3 id="8-1-实验设置与任务选择"><a href="#8-1-实验设置与任务选择" class="headerlink" title="8.1 实验设置与任务选择"></a>8.1 实验设置与任务选择</h3><p>模型对比的第一步，并不是选择模型本身，而是明确“要比较什么”。作为贯穿示例，考虑如下任务：</p>
+<p><strong>示例任务：长文档摘要</strong></p>
+<blockquote>
+<p>给定一篇长度约为 15,000 字的技术报告，要求模型生成一段结构清晰、信息完整的中文摘要，需覆盖背景、核心方法与主要结论。</p>
+</blockquote>
+<p>这一任务具有很强的代表性。一方面，它对上下文长度和信息整合能力提出了较高要求；另一方面，它并不依赖复杂的外部评测基准，贴近真实使用场景，适合用于模型对比。</p>
+<p>在实验设置中，可以选取多种类型的模型作为对比对象，例如：有的模型更强调基础建模能力，有的模型对齐程度较高，适合直接交互使用，还有的模型在推理效率和资源消耗上更具优势。关键不在于模型来源，而在于它们在设计目标上的差异。</p>
+<p>为保证对比的公平性，所有模型应尽量在相同或等价的条件下运行，包括相同的推理框架、采样策略和上下文长度设置。只有在模型本身存在硬性限制时，才进行最小必要的调整，以避免将系统差异误判为模型能力差异。</p>
+<h3 id="8-2-多维评估指标设计"><a href="#8-2-多维评估指标设计" class="headerlink" title="8.2 多维评估指标设计"></a>8.2 多维评估指标设计</h3><p>在模型评估中，一个常见误区是依赖单一指标，试图用一个分数概括模型表现。在生成任务中，这种做法往往会掩盖重要差异。以长文档摘要任务为例，评估至少需要从三个层面展开。</p>
+<ul>
+<li>在<strong>能力层面</strong>，可以重点观察：<br>  摘要是否覆盖了文档中的关键结论，是否存在明显遗漏；表述是否前后一致，是否出现事实性错误。这些问题直接关系到模型是否“真的读懂了”输入内容。</li>
+<li>在<strong>性能层面</strong>，推理延迟和整体生成时间是不可忽视的因素。即便两个模型生成的摘要质量相近，如果其中一个模型的响应时间明显更长，其实际可用性也会受到限制。</li>
+<li>在<strong>资源层面</strong>，显存占用和内存增长趋势尤为关键。对于长文档任务，KV Cache 往往成为主要内存消耗来源，不同模型在这一维度上的差异，会直接影响其在真实系统中的部署方式。</li>
+</ul>
+<p>将这些指标结合起来分析，往往比单独比较某一个数值，更能揭示模型之间的真实差别。</p>
+<h3 id="8-3-上下文长度鲁棒性分析"><a href="#8-3-上下文长度鲁棒性分析" class="headerlink" title="8.3 上下文长度鲁棒性分析"></a>8.3 上下文长度鲁棒性分析</h3><p>随着输入文本长度的增加，模型行为往往会发生变化。上下文长度鲁棒性分析，正是用来刻画这种变化的工具。</p>
+<p>在示例任务中，可以通过逐步增加输入文档长度，观察模型摘要质量的变化。例如，当输入接近上下文上限时，模型是否仍能保留文档开头的重要背景信息，是否能够在摘要中维持清晰的逻辑结构。</p>
+<p>实践中经常可以观察到这样的现象：某些模型在中短文本下表现稳定，但在长文档中容易遗忘早期信息，导致摘要重点偏移；而另一些模型虽然仍能保持较好的信息覆盖，却伴随着推理延迟和显存占用的快速上升。</p>
+<p>将输出质量与性能、资源指标结合分析，可以更清楚地看到模型能力背后的工程代价。这种分析方式，有助于避免只关注“模型能不能做”，而忽视“在当前约束下是否值得做”。</p>
+<h3 id="8-4-实验结果解读与选型启示"><a href="#8-4-实验结果解读与选型启示" class="headerlink" title="8.4 实验结果解读与选型启示"></a>8.4 实验结果解读与选型启示</h3><p>模型对比实验的真正价值，并不在于选出一个绝对意义上的最优模型，而在于理解不同模型在特定任务与约束条件下的适用边界。</p>
+<p>回到长文档摘要任务，如果应用场景是离线分析或低并发环境，优先选择在长上下文下一致性更强、信息覆盖更完整的模型，通常是合理的选择。即便其推理成本较高，也可以通过资源调度来消化。</p>
+<p>但如果场景强调高并发或低延迟，例如作为检索系统中的一个子模块，那么推理效率和显存占用往往比极致的摘要质量更重要。在这种情况下，生成结果略有缺失但性能更稳定的模型，反而可能是更优解。</p>
+<p>由此可以看到，模型选型并不存在通用答案。真正重要的，是在明确任务目标和系统约束的前提下，理解不同模型在能力、性能与成本之间的取舍关系。</p>
+<p><strong>本章小结</strong><br>本章通过一个具体的长文档摘要任务，展示了如何在同一任务下，对不同模型进行系统化对比分析。通过合理的实验设置、多维评估指标以及上下文鲁棒性分析，可以将前文关于建模、对齐与工程权衡的讨论，转化为可操作的评估方法。</p>
+<p>最终可以看到，大模型的选择并不是寻找“最强者”，而是在具体约束条件下，找到能力与成本之间最合适的平衡点。这种以任务为中心的评估视角，是理解和使用当代大模型的重要前提。</p>
+<h2 id="9-从语言建模到系统智能的整体图景"><a href="#9-从语言建模到系统智能的整体图景" class="headerlink" title="9. 从语言建模到系统智能的整体图景"></a>9. 从语言建模到系统智能的整体图景</h2><p>在这本内容中，我们从一个看似非常简单的问题出发，一路走到了当代大型语言模型所展现出的复杂能力。这条路径并不是由某一次突然的技术突破构成的，而是由一系列在理论、工程和使用目标之间不断取舍、不断叠加的选择所塑造的。</p>
+<p>如果要用一句话概括 GPT 系列模型的发展逻辑，可以说是：<strong>从学会“怎么接话”，逐步走向“在系统中可用的智能行为”。</strong></p>
+<h3 id="从语言建模开始，一切能力的共同起点"><a href="#从语言建模开始，一切能力的共同起点" class="headerlink" title="从语言建模开始，一切能力的共同起点"></a>从语言建模开始，一切能力的共同起点</h3><p>整条技术路线的起点，是语言建模这个非常朴素的任务定义。模型被要求做的事情，并不是理解世界、推理因果，甚至也不是完成具体任务，而只是学习在给定上下文的情况下，下一个词更可能是什么。</p>
+<p>通过条件概率分解，这个目标被拆解成了一系列可以稳定训练的小预测问题。自回归假设进一步保证了训练过程和生成过程在信息使用方式上的一致性。decoder-only Transformer 则用一种结构上高度统一的方式，把这种建模目标落实为可以不断扩展的网络结构。</p>
+<p>这一阶段解决的核心问题是：<strong>如何把语言变成一个可计算、可优化、可规模化的问题。</strong> 只要这一基础是稳定的，后续所有能力的出现，都有了共同的起点。</p>
+<h3 id="规模扩展带来的不是魔法，而是统计覆盖"><a href="#规模扩展带来的不是魔法，而是统计覆盖" class="headerlink" title="规模扩展带来的不是魔法，而是统计覆盖"></a>规模扩展带来的不是魔法，而是统计覆盖</h3><p>在基础范式确立之后，GPT 系列沿着一个看似简单、但实际上非常有力的方向演进，那就是持续扩大模型规模、数据规模和计算规模。</p>
+<p>GPT-1 验证了语言建模可以作为通用能力底座，GPT-2 和 GPT-3 则通过规模扩展，逐步展现出上下文内学习等此前并未被显式设计的行为。这些能力并不是突然“被发明”出来的，而是模型在足够大的数据覆盖下，开始隐式记住并复现大量语言使用模式的自然结果。</p>
+<p>缩放定律为这一过程提供了经验上的支撑，但它并不意味着规模可以无限替代设计。规模有效的前提，始终依赖于数据质量、训练稳定性和结构适配性。</p>
+<p>因此，更合理的理解方式是：<strong>规模扩展放大了模型已经具备的建模能力，而不是凭空创造了新能力。</strong></p>
+<h3 id="生成策略与对齐机制，塑造了模型的“行为方式”"><a href="#生成策略与对齐机制，塑造了模型的“行为方式”" class="headerlink" title="生成策略与对齐机制，塑造了模型的“行为方式”"></a>生成策略与对齐机制，塑造了模型的“行为方式”</h3><p>当模型具备了生成能力之后，新的问题随之出现：模型在生成时究竟应该如何“做选择”。</p>
+<p>生成阶段的采样策略决定了模型输出的多样性与稳定性。贪婪解码虽然直观，却容易导致文本退化；Top-k、Top-p 和温度系数等方法，通过引入受控的不确定性，让模型在语言分布中探索更多可能性。</p>
+<p>但即便生成策略调整得当，模型的行为仍然主要反映训练语料中的统计分布。这正是对齐机制被引入的原因。以 RLHF 为代表的对齐流程，并没有改变模型的核心建模方式，而是在已有能力之上，引导模型更倾向于符合人类偏好的输出。</p>
+<p>在这一过程中，能力获取和行为选择被清晰地区分开来。模型“能做什么”，主要由预训练决定；模型“该怎么做”，则更多由对齐机制塑造。</p>
+<h3 id="上下文与系统设计，定义了能力的实际边界"><a href="#上下文与系统设计，定义了能力的实际边界" class="headerlink" title="上下文与系统设计，定义了能力的实际边界"></a>上下文与系统设计，定义了能力的实际边界</h3><p>当模型走向真实应用场景时，工程因素开始成为不可忽视的限制条件。</p>
+<p>上下文窗口决定了模型在任一时刻能够直接使用的信息范围。它更像是一种工作记忆，而不是长期存储。上下文长度的扩展，虽然可以提升模型在长任务中的表现，但也伴随着显著的计算和内存代价。</p>
+<p>KV Cache 等系统级优化，使自回归生成在工程上变得可行，但同时也把推理阶段的瓶颈从计算转移到了内存和并发能力上。这意味着，大模型的实际表现，并不只是模型参数规模的函数，而是深受系统设计和资源配置的影响。</p>
+<p>换句话说，<strong>模型能力只有在系统中被正确支撑时，才能真正被使用出来。</strong></p>
+<h3 id="多样化模型路线，反映的是不同取舍而非优劣"><a href="#多样化模型路线，反映的是不同取舍而非优劣" class="headerlink" title="多样化模型路线，反映的是不同取舍而非优劣"></a>多样化模型路线，反映的是不同取舍而非优劣</h3><p>在开源与半开源模型谱系中，可以看到多种不同的发展路线。有的模型强调基础能力的干净与可复用，有的模型通过工程优化追求更高性价比，还有的模型通过更强的对齐策略换取稳定性和安全性。</p>
+<p>这些模型之间的差异，并不简单等同于“谁更强”。它们代表的是在能力、成本、对齐强度和使用目标之间做出的不同选择。</p>
+<p>通过在同一任务下进行多维评估，可以更清楚地看到这些取舍如何影响实际表现，也有助于在具体应用场景中做出理性的模型选型。</p>
+<h3 id="一个整体性的理解视角"><a href="#一个整体性的理解视角" class="headerlink" title="一个整体性的理解视角"></a>一个整体性的理解视角</h3><p>综合全文讨论，可以得到一个相对清晰的结论。当代大型语言模型，并不是一个单一算法或单一模型结构，而是一个由概率建模假设、训练数据与规模、生成策略、对齐机制以及系统工程共同构成的复杂技术系统。任何单一因素，都不足以独立解释模型的能力来源。</p>
+<p>因此，从语言建模到世界建模，更适合被理解为一条渐进演化的路径。在这条路径上，模型的能力不断被外推，但始终受制于数据分布、上下文限制以及工程现实。</p>
+<p>理解这一整体图景，有助于既不过度神化模型能力，也不低估其实际价值。它为后续的研究、工程实践和理性应用，提供了一个更加稳健的认知基础。</p>
+<script type="module"> import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';	mermaid.initialize({startOnLoad: true, flowchart: {curve: 'linear'}}); </script>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://www.keychan.xyz/2026/02/17/057-the-evolutionary-history-of-gpt/" title="GPT 的进化史：从语言建模到世界建模">https://www.keychan.xyz/2026/02/17/057-the-evolutionary-history-of-gpt/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/" rel="tag"># 大语言模型</a>
+              <a href="/tags/ScalingLaws/" rel="tag"># ScalingLaws</a>
+              <a href="/tags/%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AA%97%E5%8F%A3/" rel="tag"># 上下文窗口</a>
+              <a href="/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/" rel="tag"># 多模态</a>
+              <a href="/tags/%E4%B8%96%E7%95%8C%E6%A8%A1%E5%9E%8B/" rel="tag"># 世界模型</a>
+              <a href="/tags/%E8%87%AA%E5%9B%9E%E5%BD%92%E5%BB%BA%E6%A8%A1/" rel="tag"># 自回归建模</a>
+              <a href="/tags/%E9%87%87%E6%A0%B7%E7%AD%96%E7%95%A5/" rel="tag"># 采样策略</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/02/10/056-visual-multimodal/" rel="prev" title="视觉多模态：CLIP、ALIGN 与视觉语言对齐">
+                  <i class="fa fa-angle-left"></i> 视觉多模态：CLIP、ALIGN 与视觉语言对齐
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">521k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.min.js","integrity":"sha256-G8ouPAnw4zzMbnAenHnVz6h9XpKbNdOkrqTh7AadyHs="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.mengyajia.com","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2026/02/17/057-the-evolutionary-history-of-gpt/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>
