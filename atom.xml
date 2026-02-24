@@ -6,7 +6,7 @@
   <link href="https://www.keychan.xyz/atom.xml" rel="self"/>
   
   <link href="https://www.keychan.xyz/"/>
-  <updated>2026-02-17T06:51:26.662Z</updated>
+  <updated>2026-02-24T05:18:27.921Z</updated>
   <id>https://www.keychan.xyz/</id>
   
   <author>
@@ -15,6 +15,32 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>「无人机⑧」飞行调试与性能优化</title>
+    <link href="https://www.keychan.xyz/2026/02/24/058-flight-debugging-performance-optimization/"/>
+    <id>https://www.keychan.xyz/2026/02/24/058-flight-debugging-performance-optimization/</id>
+    <published>2026-02-24T05:18:12.000Z</published>
+    <updated>2026-02-24T05:18:27.921Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-本篇定位与调试假设声明&quot;&gt;&lt;a href=&quot;#1-本篇定位与调试假设声明&quot; class=&quot;headerlink&quot; title=&quot;1. 本篇定位与调试假设声明&quot;&gt;&lt;/a&gt;1. 本篇定位与调试假设声明&lt;/h2&gt;&lt;p&gt;飞行调试与性能优化是无人机从“能够起飞”走向“工程可用”的关键环节。在完整的无人机系统中，飞控算法、机械结构、动力系统、传感器与电源并非孤立存在，其飞行表现是多系统耦合后的综合结果。因此，飞行调试并不是单纯的参数修改过程，而是一项具有明确边界、假设前提和验收目标的系统工程活动。  &lt;/p&gt;
+&lt;p&gt;在展开具体调试方法之前，有必要首先明确本篇的适用范围、研究对象以及隐含假设。这不仅有助于统一技术语境，也能避免在实际工程中对调试能力和调试目标产生不合理预期。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="无人机" scheme="https://www.keychan.xyz/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/"/>
+    
+    
+    <category term="飞行调试" scheme="https://www.keychan.xyz/tags/%E9%A3%9E%E8%A1%8C%E8%B0%83%E8%AF%95/"/>
+    
+    <category term="PID调参" scheme="https://www.keychan.xyz/tags/PID%E8%B0%83%E5%8F%82/"/>
+    
+    <category term="Failsafe" scheme="https://www.keychan.xyz/tags/Failsafe/"/>
+    
+    <category term="日志分析" scheme="https://www.keychan.xyz/tags/%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90/"/>
+    
+  </entry>
   
   <entry>
     <title>GPT 的进化史：从语言建模到世界建模</title>
@@ -32,13 +58,13 @@
     <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
+    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
+    
     <category term="大语言模型" scheme="https://www.keychan.xyz/tags/%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/"/>
     
     <category term="ScalingLaws" scheme="https://www.keychan.xyz/tags/ScalingLaws/"/>
     
     <category term="上下文窗口" scheme="https://www.keychan.xyz/tags/%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AA%97%E5%8F%A3/"/>
-    
-    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
     
     <category term="世界模型" scheme="https://www.keychan.xyz/tags/%E4%B8%96%E7%95%8C%E6%A8%A1%E5%9E%8B/"/>
     
@@ -66,11 +92,11 @@
     
     <category term="对比学习" scheme="https://www.keychan.xyz/tags/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0/"/>
     
-    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
-    
     <category term="CLIP" scheme="https://www.keychan.xyz/tags/CLIP/"/>
     
     <category term="ALIGN" scheme="https://www.keychan.xyz/tags/ALIGN/"/>
+    
+    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
     
     <category term="RAG-Vision" scheme="https://www.keychan.xyz/tags/RAG-Vision/"/>
     
@@ -575,32 +601,6 @@
     <category term="泛化能力" scheme="https://www.keychan.xyz/tags/%E6%B3%9B%E5%8C%96%E8%83%BD%E5%8A%9B/"/>
     
     <category term="智能涌现" scheme="https://www.keychan.xyz/tags/%E6%99%BA%E8%83%BD%E6%B6%8C%E7%8E%B0/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>「无人机②」天上飞的力学：空气动力与结构设计</title>
-    <link href="https://www.keychan.xyz/2025/10/28/038-drone-aerodynamic-structural-design/"/>
-    <id>https://www.keychan.xyz/2025/10/28/038-drone-aerodynamic-structural-design/</id>
-    <published>2025-10-28T08:20:12.000Z</published>
-    <updated>2025-12-30T09:38:46.900Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-为什么无人机能飞？——从推力说起&quot;&gt;&lt;a href=&quot;#1-为什么无人机能飞？——从推力说起&quot; class=&quot;headerlink&quot; title=&quot;1. 为什么无人机能飞？——从推力说起&quot;&gt;&lt;/a&gt;1. 为什么无人机能飞？——从推力说起&lt;/h2&gt;&lt;p&gt;想象一下，当你打开一台电风扇时，风扇叶片旋转，会将空气往前“推”，而你能感受到一股反方向的力。这股力其实就是空气反作用在风扇上的&lt;strong&gt;推力&lt;/strong&gt;。无人机的螺旋桨与此类似，只不过它不是把空气往前吹，而是&lt;strong&gt;把空气往下推&lt;/strong&gt;，于是空气反过来向上“托起”整台无人机。&lt;/p&gt;
-&lt;p&gt;这就是无人机能悬停在空中的根本原因：它依靠桨叶高速旋转，使气流形成“下洗”（Downwash），从而获得一个向上的&lt;strong&gt;空气动力&lt;/strong&gt;。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="无人机" scheme="https://www.keychan.xyz/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/"/>
-    
-    
-    <category term="空气动力学" scheme="https://www.keychan.xyz/tags/%E7%A9%BA%E6%B0%94%E5%8A%A8%E5%8A%9B%E5%AD%A6/"/>
-    
-    <category term="推力计算" scheme="https://www.keychan.xyz/tags/%E6%8E%A8%E5%8A%9B%E8%AE%A1%E7%AE%97/"/>
-    
-    <category term="结构设计" scheme="https://www.keychan.xyz/tags/%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1/"/>
-    
-    <category term="四旋翼控制" scheme="https://www.keychan.xyz/tags/%E5%9B%9B%E6%97%8B%E7%BF%BC%E6%8E%A7%E5%88%B6/"/>
     
   </entry>
   
