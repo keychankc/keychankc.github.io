@@ -58,13 +58,13 @@
     <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
+    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
+    
     <category term="大语言模型" scheme="https://www.keychan.xyz/tags/%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/"/>
     
     <category term="ScalingLaws" scheme="https://www.keychan.xyz/tags/ScalingLaws/"/>
     
     <category term="上下文窗口" scheme="https://www.keychan.xyz/tags/%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AA%97%E5%8F%A3/"/>
-    
-    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
     
     <category term="世界模型" scheme="https://www.keychan.xyz/tags/%E4%B8%96%E7%95%8C%E6%A8%A1%E5%9E%8B/"/>
     
@@ -92,11 +92,11 @@
     
     <category term="对比学习" scheme="https://www.keychan.xyz/tags/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0/"/>
     
-    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
-    
     <category term="CLIP" scheme="https://www.keychan.xyz/tags/CLIP/"/>
     
     <category term="ALIGN" scheme="https://www.keychan.xyz/tags/ALIGN/"/>
+    
+    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
     
     <category term="RAG-Vision" scheme="https://www.keychan.xyz/tags/RAG-Vision/"/>
     
@@ -125,9 +125,9 @@
     <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
-    <category term="迁移学习" scheme="https://www.keychan.xyz/tags/%E8%BF%81%E7%A7%BB%E5%AD%A6%E4%B9%A0/"/>
-    
     <category term="计算机视觉" scheme="https://www.keychan.xyz/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
+    
+    <category term="迁移学习" scheme="https://www.keychan.xyz/tags/%E8%BF%81%E7%A7%BB%E5%AD%A6%E4%B9%A0/"/>
     
     <category term="Transformer" scheme="https://www.keychan.xyz/tags/Transformer/"/>
     
