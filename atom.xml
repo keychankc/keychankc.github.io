@@ -6,7 +6,7 @@
   <link href="https://www.keychan.xyz/atom.xml" rel="self"/>
   
   <link href="https://www.keychan.xyz/"/>
-  <updated>2026-02-24T05:18:27.921Z</updated>
+  <updated>2026-03-01T12:14:54.113Z</updated>
   <id>https://www.keychan.xyz/</id>
   
   <author>
@@ -15,6 +15,32 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>努力≠成长：科学健身的底层逻辑</title>
+    <link href="https://www.keychan.xyz/2026/03/01/059-scientific-fitness-training/"/>
+    <id>https://www.keychan.xyz/2026/03/01/059-scientific-fitness-training/</id>
+    <published>2026-03-01T12:10:12.000Z</published>
+    <updated>2026-03-01T12:14:54.113Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-不是不够努力，而是努力错了方向&quot;&gt;&lt;a href=&quot;#1-不是不够努力，而是努力错了方向&quot; class=&quot;headerlink&quot; title=&quot;1. 不是不够努力，而是努力错了方向&quot;&gt;&lt;/a&gt;1. 不是不够努力，而是努力错了方向&lt;/h2&gt;&lt;p&gt;长期坚持训练却没有感觉到明显进步，是力量与体能训练中最常见的困惑之一。理论上训练频率更高、时间更长、出汗更多，理应带来更快的成长。然而现实却并非如此。力量没增长、疲劳在累积甚至小伤还反复出现，往往还伴随着一种持续的心理压力：既然已经如此努力，为何依旧原地踏步？&lt;/p&gt;
+&lt;p&gt;要理解这一现象，首先要澄清一个关键点：&lt;strong&gt;成长并非简单的“努力叠加”，而是建立在生理适应规律之上的系统过程&lt;/strong&gt;。努力但缺乏结构与节奏，不仅无法促进适应，反而可能阻碍进步。本章将从典型情境入手，分析常见误区，进而指出问题的根源是在方向偏差，而非投入不足。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="健身" scheme="https://www.keychan.xyz/categories/%E5%81%A5%E8%BA%AB/"/>
+    
+    
+    <category term="力量训练" scheme="https://www.keychan.xyz/tags/%E5%8A%9B%E9%87%8F%E8%AE%AD%E7%BB%83/"/>
+    
+    <category term="负荷管理" scheme="https://www.keychan.xyz/tags/%E8%B4%9F%E8%8D%B7%E7%AE%A1%E7%90%86/"/>
+    
+    <category term="适应机制" scheme="https://www.keychan.xyz/tags/%E9%80%82%E5%BA%94%E6%9C%BA%E5%88%B6/"/>
+    
+    <category term="疲劳管理" scheme="https://www.keychan.xyz/tags/%E7%96%B2%E5%8A%B3%E7%AE%A1%E7%90%86/"/>
+    
+  </entry>
   
   <entry>
     <title>「无人机⑧」飞行调试与性能优化</title>
@@ -90,11 +116,11 @@
     <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
-    <category term="对比学习" scheme="https://www.keychan.xyz/tags/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0/"/>
-    
     <category term="CLIP" scheme="https://www.keychan.xyz/tags/CLIP/"/>
     
     <category term="ALIGN" scheme="https://www.keychan.xyz/tags/ALIGN/"/>
+    
+    <category term="对比学习" scheme="https://www.keychan.xyz/tags/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0/"/>
     
     <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
     
@@ -125,15 +151,15 @@
     <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
-    <category term="计算机视觉" scheme="https://www.keychan.xyz/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
-    
     <category term="迁移学习" scheme="https://www.keychan.xyz/tags/%E8%BF%81%E7%A7%BB%E5%AD%A6%E4%B9%A0/"/>
+    
+    <category term="计算机视觉" scheme="https://www.keychan.xyz/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/"/>
     
     <category term="Transformer" scheme="https://www.keychan.xyz/tags/Transformer/"/>
     
-    <category term="自监督学习" scheme="https://www.keychan.xyz/tags/%E8%87%AA%E7%9B%91%E7%9D%A3%E5%AD%A6%E4%B9%A0/"/>
-    
     <category term="对比学习" scheme="https://www.keychan.xyz/tags/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0/"/>
+    
+    <category term="自监督学习" scheme="https://www.keychan.xyz/tags/%E8%87%AA%E7%9B%91%E7%9D%A3%E5%AD%A6%E4%B9%A0/"/>
     
     <category term="MAE" scheme="https://www.keychan.xyz/tags/MAE/"/>
     
@@ -575,32 +601,6 @@
     <category term="数据增强" scheme="https://www.keychan.xyz/tags/%E6%95%B0%E6%8D%AE%E5%A2%9E%E5%BC%BA/"/>
     
     <category term="归纳偏置" scheme="https://www.keychan.xyz/tags/%E5%BD%92%E7%BA%B3%E5%81%8F%E7%BD%AE/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>深度学习的底层逻辑：从函数逼近到智能涌现</title>
-    <link href="https://www.keychan.xyz/2025/11/01/039-underlying-logic-of-deep-learning/"/>
-    <id>https://www.keychan.xyz/2025/11/01/039-underlying-logic-of-deep-learning/</id>
-    <published>2025-11-01T09:50:12.000Z</published>
-    <updated>2025-11-06T09:30:41.262Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-什么是深度学习？——从函数到映射的思想&quot;&gt;&lt;a href=&quot;#1-什么是深度学习？——从函数到映射的思想&quot; class=&quot;headerlink&quot; title=&quot;1. 什么是深度学习？——从函数到映射的思想&quot;&gt;&lt;/a&gt;1. 什么是深度学习？——从函数到映射的思想&lt;/h2&gt;&lt;p&gt;在讨论深度学习的“智能”之前，我们必须回答一个更基础的问题——&lt;strong&gt;深度学习到底在学什么？&lt;/strong&gt; 它究竟是神经元的堆叠，还是某种数据结构？为什么看似简单的线性代数运算，能孕育出近似人类思维的能力？&lt;/p&gt;
-&lt;p&gt;从本质上讲，深度学习不是魔法，而是一种&lt;strong&gt;函数逼近的科学&lt;/strong&gt;。所有的神经网络，无论是用于图像识别、语言理解还是游戏博弈，其根本目标都是——&lt;strong&gt;寻找一个能够将输入&lt;/strong&gt; $x$ &lt;strong&gt;映射到输出&lt;/strong&gt; $y$ &lt;strong&gt;的函数&lt;/strong&gt; $f_&#92;theta(x)$。这里的 $&#92;theta$ 表示函数中的可学习参数，也就是神经网络中的权重与偏置。 &lt;/p&gt;</summary>
-    
-    
-    
-    <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
-    
-    
-    <category term="梯度下降" scheme="https://www.keychan.xyz/tags/%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D/"/>
-    
-    <category term="函数逼近" scheme="https://www.keychan.xyz/tags/%E5%87%BD%E6%95%B0%E9%80%BC%E8%BF%91/"/>
-    
-    <category term="泛化能力" scheme="https://www.keychan.xyz/tags/%E6%B3%9B%E5%8C%96%E8%83%BD%E5%8A%9B/"/>
-    
-    <category term="智能涌现" scheme="https://www.keychan.xyz/tags/%E6%99%BA%E8%83%BD%E6%B6%8C%E7%8E%B0/"/>
     
   </entry>
   
