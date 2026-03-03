@@ -6,7 +6,7 @@
   <link href="https://www.keychan.xyz/atom.xml" rel="self"/>
   
   <link href="https://www.keychan.xyz/"/>
-  <updated>2026-03-01T12:14:54.113Z</updated>
+  <updated>2026-03-03T15:58:51.397Z</updated>
   <id>https://www.keychan.xyz/</id>
   
   <author>
@@ -15,6 +15,38 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>「无人机⑨」智能化与自主飞行</title>
+    <link href="https://www.keychan.xyz/2026/03/03/060-intelligentization-autonomous-flight/"/>
+    <id>https://www.keychan.xyz/2026/03/03/060-intelligentization-autonomous-flight/</id>
+    <published>2026-03-03T15:45:12.000Z</published>
+    <updated>2026-03-03T15:58:51.397Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-环境感知：无人机“看到”的到底是什么&quot;&gt;&lt;a href=&quot;#1-环境感知：无人机“看到”的到底是什么&quot; class=&quot;headerlink&quot; title=&quot;1. 环境感知：无人机“看到”的到底是什么&quot;&gt;&lt;/a&gt;1. 环境感知：无人机“看到”的到底是什么&lt;/h2&gt;&lt;p&gt;自主飞行系统的智能程度，首先受限于其对环境的感知能力。无论后续定位、规划或控制算法多么复杂，如果输入的信息本身不稳定、不完整或不可用，系统整体都将建立在不可靠的基础之上。因此，在讨论自主飞行之前，有必要首先厘清一个核心问题：&lt;strong&gt;无人机在工程意义上究竟“看到”了什么，又能在多大程度上信任这些信息。&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;与人类直觉中的“看见”不同，无人机的环境感知并非对现实世界的直接理解，而是通过一组传感器对物理量进行采样、处理与抽象后的结果。这种结果往往是不完整的、带噪声的，且强烈依赖具体应用场景。本章将从工程角度出发，系统性地分析自主飞行对感知信息的真实需求，不同传感器所提供的数据特征，以及在实际系统中感知模块的布置原则与失效风险。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="无人机" scheme="https://www.keychan.xyz/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/"/>
+    
+    
+    <category term="VIO" scheme="https://www.keychan.xyz/tags/VIO/"/>
+    
+    <category term="SLAM" scheme="https://www.keychan.xyz/tags/SLAM/"/>
+    
+    <category term="多传感器融合" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E4%BC%A0%E6%84%9F%E5%99%A8%E8%9E%8D%E5%90%88/"/>
+    
+    <category term="实时避障" scheme="https://www.keychan.xyz/tags/%E5%AE%9E%E6%97%B6%E9%81%BF%E9%9A%9C/"/>
+    
+    <category term="路径规划" scheme="https://www.keychan.xyz/tags/%E8%B7%AF%E5%BE%84%E8%A7%84%E5%88%92/"/>
+    
+    <category term="安全状态机" scheme="https://www.keychan.xyz/tags/%E5%AE%89%E5%85%A8%E7%8A%B6%E6%80%81%E6%9C%BA/"/>
+    
+    <category term="仿真验证" scheme="https://www.keychan.xyz/tags/%E4%BB%BF%E7%9C%9F%E9%AA%8C%E8%AF%81/"/>
+    
+  </entry>
   
   <entry>
     <title>努力≠成长：科学健身的底层逻辑</title>
@@ -84,13 +116,13 @@
     <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
-    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
-    
     <category term="大语言模型" scheme="https://www.keychan.xyz/tags/%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/"/>
     
     <category term="ScalingLaws" scheme="https://www.keychan.xyz/tags/ScalingLaws/"/>
     
     <category term="上下文窗口" scheme="https://www.keychan.xyz/tags/%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AA%97%E5%8F%A3/"/>
+    
+    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
     
     <category term="世界模型" scheme="https://www.keychan.xyz/tags/%E4%B8%96%E7%95%8C%E6%A8%A1%E5%9E%8B/"/>
     
@@ -116,13 +148,13 @@
     <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
-    <category term="CLIP" scheme="https://www.keychan.xyz/tags/CLIP/"/>
-    
-    <category term="ALIGN" scheme="https://www.keychan.xyz/tags/ALIGN/"/>
-    
     <category term="对比学习" scheme="https://www.keychan.xyz/tags/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0/"/>
     
     <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
+    
+    <category term="CLIP" scheme="https://www.keychan.xyz/tags/CLIP/"/>
+    
+    <category term="ALIGN" scheme="https://www.keychan.xyz/tags/ALIGN/"/>
     
     <category term="RAG-Vision" scheme="https://www.keychan.xyz/tags/RAG-Vision/"/>
     
@@ -157,9 +189,9 @@
     
     <category term="Transformer" scheme="https://www.keychan.xyz/tags/Transformer/"/>
     
-    <category term="对比学习" scheme="https://www.keychan.xyz/tags/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0/"/>
-    
     <category term="自监督学习" scheme="https://www.keychan.xyz/tags/%E8%87%AA%E7%9B%91%E7%9D%A3%E5%AD%A6%E4%B9%A0/"/>
+    
+    <category term="对比学习" scheme="https://www.keychan.xyz/tags/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0/"/>
     
     <category term="MAE" scheme="https://www.keychan.xyz/tags/MAE/"/>
     
@@ -572,35 +604,6 @@
     <category term="惯性测量单元IMU" scheme="https://www.keychan.xyz/tags/%E6%83%AF%E6%80%A7%E6%B5%8B%E9%87%8F%E5%8D%95%E5%85%83IMU/"/>
     
     <category term="姿态解算算法" scheme="https://www.keychan.xyz/tags/%E5%A7%BF%E6%80%81%E8%A7%A3%E7%AE%97%E7%AE%97%E6%B3%95/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>为什么卷积神经网络能看懂世界？——CNN 的思维方式</title>
-    <link href="https://www.keychan.xyz/2025/11/06/040-cnn-way-of-thinking/"/>
-    <id>https://www.keychan.xyz/2025/11/06/040-cnn-way-of-thinking/</id>
-    <published>2025-11-06T09:20:12.000Z</published>
-    <updated>2025-11-06T09:30:45.667Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-从滤波到认知：卷积的结构假设&quot;&gt;&lt;a href=&quot;#1-从滤波到认知：卷积的结构假设&quot; class=&quot;headerlink&quot; title=&quot;1. 从滤波到认知：卷积的结构假设&quot;&gt;&lt;/a&gt;1. 从滤波到认知：卷积的结构假设&lt;/h2&gt;&lt;p&gt;在计算机视觉领域，卷积（Convolution）不仅是一种数学运算，更是一种&lt;strong&gt;关于世界结构的假设&lt;/strong&gt;。这一假设的核心思想在于：&lt;strong&gt;图像的语义信息是局部相关的&lt;/strong&gt;。换言之，空间上相邻的像素往往属于同一个物体或纹理区域，它们的统计特征并非独立存在，而是具有强烈的局部依赖性。卷积神经网络（Convolutional Neural Network, CNN）正是基于这一假设构建的。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
-    
-    
-    <category term="PyTorch" scheme="https://www.keychan.xyz/tags/PyTorch/"/>
-    
-    <category term="卷积神经网络" scheme="https://www.keychan.xyz/tags/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
-    
-    <category term="特征提取" scheme="https://www.keychan.xyz/tags/%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96/"/>
-    
-    <category term="残差连接" scheme="https://www.keychan.xyz/tags/%E6%AE%8B%E5%B7%AE%E8%BF%9E%E6%8E%A5/"/>
-    
-    <category term="数据增强" scheme="https://www.keychan.xyz/tags/%E6%95%B0%E6%8D%AE%E5%A2%9E%E5%BC%BA/"/>
-    
-    <category term="归纳偏置" scheme="https://www.keychan.xyz/tags/%E5%BD%92%E7%BA%B3%E5%81%8F%E7%BD%AE/"/>
     
   </entry>
   
