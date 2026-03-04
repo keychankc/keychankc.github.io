@@ -6,7 +6,7 @@
   <link href="https://www.keychan.xyz/atom.xml" rel="self"/>
   
   <link href="https://www.keychan.xyz/"/>
-  <updated>2026-03-03T15:58:51.397Z</updated>
+  <updated>2026-03-04T05:55:14.299Z</updated>
   <id>https://www.keychan.xyz/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="https://www.keychan.xyz/2026/03/03/060-intelligentization-autonomous-flight/"/>
     <id>https://www.keychan.xyz/2026/03/03/060-intelligentization-autonomous-flight/</id>
     <published>2026-03-03T15:45:12.000Z</published>
-    <updated>2026-03-03T15:58:51.397Z</updated>
+    <updated>2026-03-04T05:55:14.299Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-环境感知：无人机“看到”的到底是什么&quot;&gt;&lt;a href=&quot;#1-环境感知：无人机“看到”的到底是什么&quot; class=&quot;headerlink&quot; title=&quot;1. 环境感知：无人机“看到”的到底是什么&quot;&gt;&lt;/a&gt;1. 环境感知：无人机“看到”的到底是什么&lt;/h2&gt;&lt;p&gt;自主飞行系统的智能程度，首先受限于其对环境的感知能力。无论后续定位、规划或控制算法多么复杂，如果输入的信息本身不稳定、不完整或不可用，系统整体都将建立在不可靠的基础之上。因此，在讨论自主飞行之前，有必要首先厘清一个核心问题：&lt;strong&gt;无人机在工程意义上究竟“看到”了什么，又能在多大程度上信任这些信息。&lt;/strong&gt;&lt;/p&gt;
