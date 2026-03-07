@@ -25,7 +25,7 @@
 <meta property="og:type" content="article">
 <meta property="og:title" content="视觉多模态：CLIP、ALIGN 与视觉语言对齐">
 <meta property="og:url" content="https://www.keychan.xyz/2026/02/10/056-visual-multimodal/index.html">
-<meta property="og:site_name" content="KeyChan&#39;s blog">
+<meta property="og:site_name" content="KeyChan&#39;s Notes">
 <meta property="og:description" content="1. 从早期跨模态学习到 CLIP：视觉和语言对齐是如何发展的在 CLIP 出现之前，让计算机同时“看懂图像、理解文字”，其实已经是一个被研究了很多年的问题。只要稍微想一想就能明白：如果模型既能处理图像，又能处理语言，那它就有可能完成图文搜索、图片描述、视觉问答等各种任务，这听起来非常有吸引力。 也正因为如此，计算机视觉和自然语言处理领域的研究者，早早就开始尝试“跨模态学习”，也就是把图像和文本放">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/IQ8kvH.png">
@@ -33,9 +33,9 @@
 <meta property="article:modified_time" content="2026-02-10T13:48:36.145Z">
 <meta property="article:author" content="KeyChan">
 <meta property="article:tag" content="对比学习">
-<meta property="article:tag" content="多模态">
 <meta property="article:tag" content="CLIP">
 <meta property="article:tag" content="ALIGN">
+<meta property="article:tag" content="多模态">
 <meta property="article:tag" content="RAG-Vision">
 <meta property="article:tag" content="系统级接口">
 <meta name="twitter:card" content="summary">
@@ -48,7 +48,7 @@
 <script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.keychan.xyz/2026/02/10/056-visual-multimodal/","path":"2026/02/10/056-visual-multimodal/","title":"视觉多模态：CLIP、ALIGN 与视觉语言对齐"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>视觉多模态：CLIP、ALIGN 与视觉语言对齐 | KeyChan's blog</title>
+<title>视觉多模态：CLIP、ALIGN 与视觉语言对齐 | KeyChan's Notes</title>
   
 
 
@@ -61,7 +61,7 @@
   <noscript>
     <link rel="stylesheet" href="/css/noscript.css">
   </noscript>
-<link rel="alternate" href="/atom.xml" title="KeyChan's blog" type="application/atom+xml">
+<link rel="alternate" href="/atom.xml" title="KeyChan's Notes" type="application/atom+xml">
 <style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
@@ -82,7 +82,7 @@
 
     <a href="/" class="brand" rel="start">
       <i class="logo-line"></i>
-      <p class="site-title">KeyChan's blog</p>
+      <p class="site-title">KeyChan's Notes</p>
       <i class="logo-line"></i>
     </a>
   </div>
@@ -163,18 +163,18 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">61</span>
+          <span class="site-state-item-count">60</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-count">9</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">156</span>
+        <span class="site-state-item-count">152</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -220,12 +220,12 @@
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="KeyChan's blog">
+      <meta itemprop="name" content="KeyChan's Notes">
       <meta itemprop="description" content="全干工程师">
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="视觉多模态：CLIP、ALIGN 与视觉语言对齐 | KeyChan's blog">
+      <meta itemprop="name" content="视觉多模态：CLIP、ALIGN 与视觉语言对齐 | KeyChan's Notes">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
@@ -894,9 +894,9 @@
 
           <div class="post-tags">
               <a href="/tags/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0/" rel="tag"># 对比学习</a>
-              <a href="/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/" rel="tag"># 多模态</a>
               <a href="/tags/CLIP/" rel="tag"># CLIP</a>
               <a href="/tags/ALIGN/" rel="tag"># ALIGN</a>
+              <a href="/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/" rel="tag"># 多模态</a>
               <a href="/tags/RAG-Vision/" rel="tag"># RAG-Vision</a>
               <a href="/tags/%E7%B3%BB%E7%BB%9F%E7%BA%A7%E6%8E%A5%E5%8F%A3/" rel="tag"># 系统级接口</a>
           </div>
@@ -945,7 +945,7 @@
       <i class="fa fa-chart-line"></i>
     </span>
       <span>站点总字数：</span>
-    <span title="站点总字数">559k</span>
+    <span title="站点总字数">549k</span>
   </span>
 </div>
 <div class="busuanzi-count">

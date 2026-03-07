@@ -25,7 +25,7 @@
 <meta property="og:type" content="article">
 <meta property="og:title" content="从 RNN 到 Transformer：时间建模的变革">
 <meta property="og:url" content="https://www.keychan.xyz/2025/11/25/043-rnn-to-transformer/index.html">
-<meta property="og:site_name" content="KeyChan&#39;s blog">
+<meta property="og:site_name" content="KeyChan&#39;s Notes">
 <meta property="og:description" content="1. 时间依赖与梯度消失：序列建模的困境在很多经典的图像任务中，我们通常假设不同样本之间是独立同分布的（i.i.d.）——也就是说，一张图片与另一张图片在统计上是相互独立的，模型只需要把一张图片看作一个整体输入来处理即可。卷积网络（CNN）则利用图像内部像素之间强烈的局部相关性，通过卷积核在空间上提取局部到全局的层级特征。 但在处理序列任务（sequence modeling）时情况就完全不同了：">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/GBf857.png">
@@ -64,7 +64,7 @@
 <script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.keychan.xyz/2025/11/25/043-rnn-to-transformer/","path":"2025/11/25/043-rnn-to-transformer/","title":"从 RNN 到 Transformer：时间建模的变革"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>从 RNN 到 Transformer：时间建模的变革 | KeyChan's blog</title>
+<title>从 RNN 到 Transformer：时间建模的变革 | KeyChan's Notes</title>
   
 
 
@@ -77,7 +77,7 @@
   <noscript>
     <link rel="stylesheet" href="/css/noscript.css">
   </noscript>
-<link rel="alternate" href="/atom.xml" title="KeyChan's blog" type="application/atom+xml">
+<link rel="alternate" href="/atom.xml" title="KeyChan's Notes" type="application/atom+xml">
 <style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
@@ -98,7 +98,7 @@
 
     <a href="/" class="brand" rel="start">
       <i class="logo-line"></i>
-      <p class="site-title">KeyChan's blog</p>
+      <p class="site-title">KeyChan's Notes</p>
       <i class="logo-line"></i>
     </a>
   </div>
@@ -179,18 +179,18 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">61</span>
+          <span class="site-state-item-count">60</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-count">9</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">156</span>
+        <span class="site-state-item-count">152</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -236,12 +236,12 @@
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="KeyChan's blog">
+      <meta itemprop="name" content="KeyChan's Notes">
       <meta itemprop="description" content="全干工程师">
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="从 RNN 到 Transformer：时间建模的变革 | KeyChan's blog">
+      <meta itemprop="name" content="从 RNN 到 Transformer：时间建模的变革 | KeyChan's Notes">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
@@ -763,7 +763,7 @@
       <i class="fa fa-chart-line"></i>
     </span>
       <span>站点总字数：</span>
-    <span title="站点总字数">559k</span>
+    <span title="站点总字数">549k</span>
   </span>
 </div>
 <div class="busuanzi-count">
