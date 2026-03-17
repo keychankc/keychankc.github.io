@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.keychan.xyz","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":272,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="1. 从模型能力到系统能力在过去几年中，大模型在自然语言理解、代码生成、知识问答等领域展现出惊人的能力。随着参数规模持续扩大，模型在零样本与少样本场景中的表现不断提升，许多任务甚至无需额外训练即可获得可用结果。然而，在真实的企业场景与复杂系统环境中，一个基础大模型往往并不足以支撑稳定、可靠、可控的智能应用。 问题并不在于模型“不聪明”，而在于模型的能力边界与实际需求之间存在结构性差距。大模型擅长语">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LLM增强系统设计：LoRA、RAG 与 Agent">
+<meta property="og:url" content="https://www.keychan.xyz/2026/03/17/061-lora-rag-agent/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s Notes">
+<meta property="og:description" content="1. 从模型能力到系统能力在过去几年中，大模型在自然语言理解、代码生成、知识问答等领域展现出惊人的能力。随着参数规模持续扩大，模型在零样本与少样本场景中的表现不断提升，许多任务甚至无需额外训练即可获得可用结果。然而，在真实的企业场景与复杂系统环境中，一个基础大模型往往并不足以支撑稳定、可靠、可控的智能应用。 问题并不在于模型“不聪明”，而在于模型的能力边界与实际需求之间存在结构性差距。大模型擅长语">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-03-17T12:40:12.000Z">
+<meta property="article:modified_time" content="2026-03-17T12:43:50.741Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="大语言模型">
+<meta property="article:tag" content="RAG">
+<meta property="article:tag" content="Agent">
+<meta property="article:tag" content="模型增强">
+<meta property="article:tag" content="多模型协作">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://www.keychan.xyz/2026/03/17/061-lora-rag-agent/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.keychan.xyz/2026/03/17/061-lora-rag-agent/","path":"2026/03/17/061-lora-rag-agent/","title":"LLM增强系统设计：LoRA、RAG 与 Agent"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>LLM增强系统设计：LoRA、RAG 与 Agent | KeyChan's Notes</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.keychan.xyz/">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's Notes" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's Notes</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E4%BB%8E%E6%A8%A1%E5%9E%8B%E8%83%BD%E5%8A%9B%E5%88%B0%E7%B3%BB%E7%BB%9F%E8%83%BD%E5%8A%9B"><span class="nav-text">1. 从模型能力到系统能力</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%9A%84%E4%B8%89%E7%A7%8D%E6%A0%B8%E5%BF%83%E8%83%BD%E5%8A%9B%E4%B8%8E%E4%B8%89%E7%B1%BB%E5%B1%80%E9%99%90"><span class="nav-text">1.1 大模型的三种核心能力与三类局限</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%A2%9E%E5%BC%BA%E7%9A%84%E4%BA%94%E5%B1%82%E6%9E%B6%E6%9E%84"><span class="nav-text">1.3 大模型增强的五层架构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-%E4%BB%8E%E6%A8%A1%E5%9E%8B%E4%BD%BF%E7%94%A8%E5%88%B0%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1"><span class="nav-text">1.4 从模型使用到系统设计</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E8%AE%A9%E6%A8%A1%E5%9E%8B%E6%9B%B4%E4%B8%93%E6%B3%A8%EF%BC%9ALoRA-%E4%B8%8E%E5%8F%82%E6%95%B0%E9%AB%98%E6%95%88%E5%BE%AE%E8%B0%83"><span class="nav-text">2. 让模型更专注：LoRA 与参数高效微调</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E5%85%A8%E9%87%8F%E5%BE%AE%E8%B0%83%E7%9A%84%E7%8E%B0%E5%AE%9E%E5%9B%B0%E5%A2%83"><span class="nav-text">2.1 全量微调的现实困境</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-LoRA-%E7%9A%84%E4%BD%8E%E7%A7%A9%E5%88%86%E8%A7%A3%E5%8E%9F%E7%90%86"><span class="nav-text">2.2 LoRA 的低秩分解原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-Rank-%E9%80%89%E6%8B%A9%E4%B8%8E%E8%A1%A8%E8%BE%BE%E8%83%BD%E5%8A%9B%E8%BE%B9%E7%95%8C"><span class="nav-text">2.3 Rank 选择与表达能力边界</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-QLoRA-%E4%B8%8E%E4%BD%8E%E6%AF%94%E7%89%B9%E9%87%8F%E5%8C%96%E6%9C%BA%E5%88%B6"><span class="nav-text">2.4 QLoRA 与低比特量化机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-LoRA-%E7%9A%84%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5%E7%AD%96%E7%95%A5"><span class="nav-text">2.5 LoRA 的工程实践策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-6-LoRA-%E7%9A%84%E9%80%82%E7%94%A8%E8%BE%B9%E7%95%8C%E4%B8%8E%E5%A4%B1%E6%95%88%E6%A8%A1%E5%BC%8F"><span class="nav-text">2.6 LoRA 的适用边界与失效模式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E8%AE%A9%E6%A8%A1%E5%9E%8B%E6%8B%A5%E6%9C%89%E2%80%9C%E8%AE%B0%E5%BF%86%E2%80%9D%EF%BC%9ARAG-%E7%9A%84%E7%BB%93%E6%9E%84%E5%8E%9F%E7%90%86%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5"><span class="nav-text">3. 让模型拥有“记忆”：RAG 的结构原理与工程实践</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-RAG-%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84%E4%B8%8E%E6%B5%81%E7%A8%8B"><span class="nav-text">3.1 RAG 的基本结构与流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E6%A3%80%E7%B4%A2%E6%9C%BA%E5%88%B6%E5%AF%B9%E6%AF%94%EF%BC%9A%E5%80%92%E6%8E%92%E7%B4%A2%E5%BC%95%E4%B8%8E%E5%90%91%E9%87%8F%E6%A3%80%E7%B4%A2"><span class="nav-text">3.2 检索机制对比：倒排索引与向量检索</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-Embedding-%E4%B8%8E%E6%96%87%E6%9C%AC%E5%88%87%E7%89%87%E7%AD%96%E7%95%A5"><span class="nav-text">3.3 Embedding 与文本切片策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-%E5%90%91%E9%87%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%B8%8E%E7%B4%A2%E5%BC%95%E7%BB%93%E6%9E%84"><span class="nav-text">3.4 向量数据库与索引结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-5-%E5%8F%AC%E5%9B%9E%E4%BC%98%E5%8C%96%E4%B8%8E%E4%BA%8C%E9%98%B6%E6%AE%B5%E6%8E%92%E5%BA%8F"><span class="nav-text">3.5 召回优化与二阶段排序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-6-%E5%BB%B6%E8%BF%9F%E4%B8%8E%E6%88%90%E6%9C%AC%E6%8B%86%E8%A7%A3"><span class="nav-text">3.6 延迟与成本拆解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-7-RAG-%E7%9A%84%E5%85%B8%E5%9E%8B%E5%A4%B1%E6%95%88%E6%A8%A1%E5%BC%8F"><span class="nav-text">3.7 RAG 的典型失效模式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-RAG-%E7%9A%84%E5%B1%80%E9%99%90%E4%B8%8E%E8%BF%9B%E5%8C%96%E8%B7%AF%E5%BE%84"><span class="nav-text">4. RAG 的局限与进化路径</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-RAG-%E7%9A%84%E5%85%B8%E5%9E%8B%E5%A4%B1%E6%95%88%E6%A8%A1%E5%BC%8F"><span class="nav-text">4.1 RAG 的典型失效模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E6%A3%80%E7%B4%A2%E9%94%99%E8%AF%AF%E5%A6%82%E4%BD%95%E4%BC%A0%E5%AF%BC%E8%87%B3%E7%94%9F%E6%88%90%E9%94%99%E8%AF%AF"><span class="nav-text">4.2 检索错误如何传导至生成错误</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-%E9%95%BF%E4%B8%8A%E4%B8%8B%E6%96%87%E6%98%AF%E5%90%A6%E5%8F%AF%E4%BB%A5%E6%9B%BF%E4%BB%A3-RAG"><span class="nav-text">4.3 长上下文是否可以替代 RAG</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-RAG-%E7%9A%84%E8%BF%9B%E5%8C%96%E6%96%B9%E5%90%91"><span class="nav-text">4.4 RAG 的进化方向</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-5-%E4%BD%95%E6%97%B6%E4%B8%8D%E5%BA%94%E4%BD%BF%E7%94%A8-RAG"><span class="nav-text">4.5 何时不应使用 RAG</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E8%AE%A9%E6%A8%A1%E5%9E%8B%E7%9C%9F%E6%AD%A3%E2%80%9C%E8%83%BD%E5%81%9A%E4%BA%8B%E2%80%9D%EF%BC%9AFunction-Calling-%E4%B8%8E%E5%B7%A5%E5%85%B7%E5%A2%9E%E5%BC%BA"><span class="nav-text">5. 让模型真正“能做事”：Function Calling 与工具增强</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-%E4%BB%8E%E6%96%87%E6%9C%AC%E7%94%9F%E6%88%90%E5%88%B0%E7%BB%93%E6%9E%84%E5%8C%96%E8%B0%83%E7%94%A8"><span class="nav-text">5.1 从文本生成到结构化调用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-Function-Calling-%E7%9A%84%E5%8D%8F%E8%AE%AE%E6%9C%BA%E5%88%B6"><span class="nav-text">5.2 Function Calling 的协议机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-%E5%B7%A5%E5%85%B7%E7%B1%BB%E5%9E%8B%E4%B8%8E%E8%83%BD%E5%8A%9B%E6%89%A9%E5%B1%95"><span class="nav-text">5.3 工具类型与能力扩展</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-Agent-%E7%9A%84%E6%89%A7%E8%A1%8C%E5%BE%AA%E7%8E%AF%E6%A8%A1%E5%9E%8B"><span class="nav-text">5.4 Agent 的执行循环模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-5-%E5%8D%95-Agent-%E4%B8%8E%E5%A4%9A-Agent-%E5%8D%8F%E4%BD%9C"><span class="nav-text">5.5 单 Agent 与多 Agent 协作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-6-%E5%B7%A5%E5%85%B7%E5%A2%9E%E5%BC%BA%E7%9A%84%E9%A3%8E%E9%99%A9%E4%B8%8E%E6%B2%BB%E7%90%86"><span class="nav-text">5.6 工具增强的风险与治理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC%E5%85%AD%E7%AB%A0-%E5%A4%9A%E6%A8%A1%E5%9E%8B%E5%8D%8F%E4%BD%9C%EF%BC%9A%E4%BB%8E%E5%8D%95%E4%B8%80%E6%99%BA%E8%83%BD%E4%BD%93%E5%88%B0%E6%A8%A1%E5%9E%8B%E8%B0%83%E5%BA%A6%E7%B3%BB%E7%BB%9F"><span class="nav-text">第六章 多模型协作：从单一智能体到模型调度系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%80%E4%B8%AA%E6%A8%A1%E5%9E%8B%E4%B8%8D%E5%A4%9F"><span class="nav-text">6.1 为什么一个模型不够</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-%E8%83%BD%E5%8A%9B%E5%88%86%E8%A7%A3%E4%B8%8E%E6%A8%A1%E5%9E%8B%E8%A7%92%E8%89%B2%E5%AE%9A%E4%B9%89"><span class="nav-text">6.2 能力分解与模型角色定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-%E8%A7%84%E5%88%92%E4%B8%8E%E6%89%A7%E8%A1%8C%E5%88%86%E7%A6%BB%E6%9E%B6%E6%9E%84"><span class="nav-text">6.3 规划与执行分离架构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-4-%E5%AE%A1%E6%9F%A5%E9%97%AD%E7%8E%AF%E4%B8%8E%E8%87%AA%E6%88%91%E4%BC%98%E5%8C%96%E6%9C%BA%E5%88%B6"><span class="nav-text">6.4 审查闭环与自我优化机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-5-%E6%A8%A1%E5%9E%8B%E8%B7%AF%E7%94%B1%E4%B8%8E%E6%88%90%E6%9C%AC%E6%8E%A7%E5%88%B6%E7%AD%96%E7%95%A5"><span class="nav-text">6.5 模型路由与成本控制策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-6-%E4%BB%8E%E5%A4%9A%E6%A8%A1%E5%9E%8B%E5%8D%8F%E4%BD%9C%E5%88%B0%E5%AE%8C%E6%95%B4%E5%A2%9E%E5%BC%BA%E7%B3%BB%E7%BB%9F"><span class="nav-text">6.6 从多模型协作到完整增强系统</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E4%BC%81%E4%B8%9A%E7%BA%A7%E6%99%BA%E8%83%BD%E7%B3%BB%E7%BB%9F%E7%9A%84%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84%E4%B8%8E%E5%B7%A5%E7%A8%8B%E6%B2%BB%E7%90%86"><span class="nav-text">7. 企业级智能系统的整体架构与工程治理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#7-1-%E4%BC%81%E4%B8%9A%E7%9F%A5%E8%AF%86%E5%BA%93-Agent-%E7%9A%84%E6%80%BB%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="nav-text">7.1 企业知识库 Agent 的总体架构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-2-%E4%BA%94%E5%B1%82%E5%A2%9E%E5%BC%BA%E4%BD%93%E7%B3%BB%E7%9A%84%E6%95%B4%E5%90%88%E9%80%BB%E8%BE%91"><span class="nav-text">7.2 五层增强体系的整合逻辑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-3-%E5%85%B3%E9%94%AE%E8%AF%84%E4%BB%B7%E6%8C%87%E6%A0%87%E4%BD%93%E7%B3%BB"><span class="nav-text">7.3 关键评价指标体系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-4-%E5%BB%B6%E8%BF%9F%E6%8B%86%E8%A7%A3%E4%B8%8E%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96"><span class="nav-text">7.4 延迟拆解与性能优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-5-%E6%88%90%E6%9C%AC%E6%B2%BB%E7%90%86%E4%B8%8E%E6%A8%A1%E5%9E%8B%E7%89%88%E6%9C%AC%E7%AE%A1%E7%90%86"><span class="nav-text">7.5 成本治理与模型版本管理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-6-%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E4%B8%AD%E7%9A%84%E9%A3%8E%E9%99%A9%E6%8E%A7%E5%88%B6"><span class="nav-text">7.6 生产环境中的风险控制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-7-%E4%BB%8E%E5%A2%9E%E5%BC%BA%E7%B3%BB%E7%BB%9F%E5%88%B0%E5%8F%AF%E6%8C%81%E7%BB%AD%E6%99%BA%E8%83%BD%E5%B9%B3%E5%8F%B0"><span class="nav-text">7.7 从增强系统到可持续智能平台</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E6%8A%80%E6%9C%AF%E8%BE%B9%E7%95%8C%E4%B8%8E%E6%9C%AA%E6%9D%A5%E6%96%B9%E5%90%91%EF%BC%9A%E4%BB%8E%E5%A2%9E%E5%BC%BA%E7%B3%BB%E7%BB%9F%E5%88%B0%E5%8F%AF%E8%BF%9B%E5%8C%96%E6%99%BA%E8%83%BD%E4%BD%93"><span class="nav-text">8. 技术边界与未来方向：从增强系统到可进化智能体</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#8-1-%E4%BD%95%E6%97%B6%E4%B8%8D%E5%BA%94%E4%BD%BF%E7%94%A8%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%A2%9E%E5%BC%BA%E7%B3%BB%E7%BB%9F"><span class="nav-text">8.1 何时不应使用大模型增强系统</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-2-%E5%B0%8F%E6%A8%A1%E5%9E%8B%E4%B8%8E%E8%A7%84%E5%88%99%E7%B3%BB%E7%BB%9F%E7%9A%84%E4%BB%B7%E5%80%BC"><span class="nav-text">8.2 小模型与规则系统的价值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-3-%E8%87%AA%E9%80%82%E5%BA%94%E4%B8%93%E5%AE%B6%E6%A8%A1%E5%9E%8B%E4%B8%8E%E5%8A%A8%E6%80%81%E5%BE%AE%E8%B0%83"><span class="nav-text">8.3 自适应专家模型与动态微调</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-4-%E8%87%AA%E5%8A%A8%E6%A8%A1%E5%9E%8B%E8%B7%AF%E7%94%B1%E4%B8%8E%E6%99%BA%E8%83%BD%E8%B0%83%E5%BA%A6"><span class="nav-text">8.4 自动模型路由与智能调度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-5-%E4%BB%8E%E5%A2%9E%E5%BC%BA%E7%B3%BB%E7%BB%9F%E5%88%B0%E5%8F%AF%E8%BF%9B%E5%8C%96%E6%99%BA%E8%83%BD%E4%BD%93"><span class="nav-text">8.5 从增强系统到可进化智能体</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-6-%E6%80%BB%E7%BB%93%EF%BC%9A%E4%BB%8E%E6%A8%A1%E5%9E%8B%E5%88%B0%E7%B3%BB%E7%BB%9F%E7%9A%84%E8%BD%AC%E5%8F%98"><span class="nav-text">8.6 总结：从模型到系统的转变</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">159</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2026/03/17/061-lora-rag-agent/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's Notes">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="LLM增强系统设计：LoRA、RAG 与 Agent | KeyChan's Notes">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          LLM增强系统设计：LoRA、RAG 与 Agent
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-03-17 20:40:12 / 修改时间：20:43:50" itemprop="dateCreated datePublished" datetime="2026-03-17T20:40:12+08:00">2026-03-17</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a>
+        </span>
+    </span>
+
+  
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2026/03/17/061-lora-rag-agent/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2026/03/17/061-lora-rag-agent/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>13k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>47 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="1-从模型能力到系统能力"><a href="#1-从模型能力到系统能力" class="headerlink" title="1. 从模型能力到系统能力"></a>1. 从模型能力到系统能力</h2><p>在过去几年中，大模型在自然语言理解、代码生成、知识问答等领域展现出惊人的能力。随着参数规模持续扩大，模型在零样本与少样本场景中的表现不断提升，许多任务甚至无需额外训练即可获得可用结果。然而，在真实的企业场景与复杂系统环境中，一个基础大模型往往并不足以支撑稳定、可靠、可控的智能应用。</p>
+<p>问题并不在于模型“不聪明”，而在于模型的能力边界与实际需求之间存在结构性差距。大模型擅长语言模式建模，却不天然具备长期记忆、稳定执行、多工具协同、成本可控等系统级能力。因此，真正的挑战不是构建一个更大的模型，而是设计一套完整的模型增强系统。</p>
+<span id="more"></span>
+<p>本章旨在明确大模型的能力边界，提出“模型增强系统”的整体框架，并为后续关于 LoRA、RAG、Agent 以及多模型协作的讨论建立统一的逻辑基础。</p>
+<h3 id="1-1-大模型的三种核心能力与三类局限"><a href="#1-1-大模型的三种核心能力与三类局限" class="headerlink" title="1.1 大模型的三种核心能力与三类局限"></a>1.1 大模型的三种核心能力与三类局限</h3><p>从能力结构上看，大模型主要依赖三种基础机制：</p>
+<ol>
+<li><strong>统计语言建模能力</strong>。模型通过海量语料学习语言模式与知识关联，可以在给定上下文下生成合理的后续内容。</li>
+<li><strong>上下文推理能力</strong>。借助注意力机制，模型能够在一定上下文窗口内进行推理、总结与改写。</li>
+<li><strong>泛化能力</strong>。通过大规模预训练，模型具备一定的跨领域迁移能力，在未见任务上仍可给出近似合理的输出。</li>
+</ol>
+<p>然而，这三种能力在工程实践中会暴露出三类典型局限。</p>
+<ul>
+<li><p>第一类局限是<strong>知识时效性与私有性问题</strong>。预训练数据存在时间滞后，且不包含企业内部资料。模型在面对最新信息或专有数据时，往往只能依赖概率性猜测。</p>
+</li>
+<li><p>第二类局限是<strong>幻觉问题</strong>。当上下文不足或推理路径不清晰时，模型可能生成语义流畅但事实错误的内容。</p>
+</li>
+<li><p>第三类局限是<strong>行动能力缺失</strong>。模型可以“回答如何操作数据库”，却无法真正执行数据库查询；可以“描述一个流程”，却不能管理复杂任务的执行状态。</p>
+</li>
+</ul>
+<p>这些局限说明，大模型本质上是一个强大的概率生成器，而不是一个完整的智能系统。  </p>
+<pre class="mermaid">flowchart LR
+
+subgraph A["单模型能力"]
+direction TB
+
+M["大模型<br/>概率生成系统"]
+
+C1["统计语言建模能力<br/>语言模式学习<br/>知识关联<br/>文本生成"]
+
+C2["上下文推理能力<br/>注意力机制<br/>上下文理解<br/>推理与总结"]
+
+C3["泛化能力<br/>跨领域迁移<br/>未见任务处理<br/>近似合理输出"]
+
+M --> C1
+M --> C2
+M --> C3
+end
+
+subgraph B["工程局限"]
+direction TB
+
+L1["知识时效与私有性问题<br/>数据时间滞后<br/>缺少企业数据<br/>概率性猜测"]
+
+L2["幻觉问题<br/>上下文不足<br/>推理路径不清<br/>事实错误"]
+
+L3["行动能力缺失<br/>无法执行数据库操作<br/>无法调用工具<br/>无法管理任务状态"]
+
+end
+
+subgraph C["系统级能力"]
+direction TB
+
+S1["知识更新机制<br/>实时数据接入<br/>文档检索<br/>知识补充"]
+
+S2["工具执行能力<br/>数据库查询<br/>代码执行<br/>外部接口调用"]
+
+S3["任务控制能力<br/>任务拆解<br/>流程管理<br/>执行状态跟踪"]
+
+S4["模型调度能力<br/>多模型协同<br/>能力分工<br/>任务路由"]
+
+end
+
+A --> B
+B --> C</pre>
+<center>图1-1 单模型能力与系统能力差异图</center>
+### 1.2 为什么仅靠 Prompt 无法解决系统问题
+在实际应用初期，常见做法是通过不断优化 Prompt 来弥补模型不足。例如加入更详细的指令、示例、角色设定或输出格式约束。然而，Prompt 优化存在明显上限。
+- 首先，Prompt 只能影响当前上下文，而无法改变模型的参数结构。当问题涉及专业领域知识或长期稳定风格时，仅靠提示词往往难以保证一致性。
+
+<ul>
+<li><p>其次，Prompt 无法为模型提供结构化长期记忆。当信息规模超过上下文窗口时，必须依赖外部机制进行检索与选择。</p>
+</li>
+<li><p>再次，Prompt 无法赋予模型执行外部操作的能力。工具调用需要明确的接口、参数校验与结果反馈机制，这属于系统层设计，而非文本层优化。</p>
+</li>
+</ul>
+<p>因此，Prompt 更像是一种交互优化技术，而不是系统增强方案。要构建稳定的智能应用，必须从更高层级进行架构设计。</p>
+<h3 id="1-3-大模型增强的五层架构"><a href="#1-3-大模型增强的五层架构" class="headerlink" title="1.3 大模型增强的五层架构"></a>1.3 大模型增强的五层架构</h3><p>在系统视角下，大模型增强可以抽象为五个层级，每一层解决一种核心能力缺口。</p>
+<ul>
+<li><p>第一层为<strong>模型层</strong>，关注参数能力的专注化。通过 LoRA 等参数高效微调技术，使模型在特定领域表现更稳定、更精准。</p>
+</li>
+<li><p>第二层为<strong>记忆层</strong>，关注知识的外部化与可更新性。通过 RAG 机制，将外部知识库接入生成过程，使模型获得动态记忆能力。</p>
+</li>
+<li><p>第三层为<strong>行动层</strong>，关注工具执行能力。通过 Function Calling 等机制，使模型能够调用数据库、搜索引擎或业务接口。</p>
+</li>
+<li><p>第四层为<strong>控制层</strong>，关注任务编排与状态管理。通过 Agent 机制，实现任务分解、循环执行与结果反馈。</p>
+</li>
+<li><p>第五层为<strong>调度层</strong>，关注模型能力分配与协同。在多模型环境下，通过路由策略实现不同模型之间的协作与优化。</p>
+</li>
+</ul>
+<p>这五层并非相互替代，而是逐层叠加。模型层解决“懂不懂”，记忆层解决“知不知道”，行动层解决“能不能做”，控制层解决“如何持续做”，调度层解决“谁来做”。</p>
+<pre class="mermaid">flowchart LR
+subgraph STACK[大模型增强五层架构]
+direction TB
+
+L1["模型层<br/>Model Layer<br/>参数能力专注化<br/>LoRA / PEFT / 微调"]
+L2["记忆层<br/>Memory Layer<br/>知识外部化与可更新<br/>RAG / 向量检索 / 知识库"]
+L3["行动层<br/>Action Layer<br/>工具执行能力<br/>Function Calling / API / 数据库"]
+L4["控制层<br/>Control Layer<br/>任务编排与状态管理<br/>Agent / Planning / Feedback Loop"]
+L5["调度层<br/>Orchestration Layer<br/>模型能力分配与协同<br/>Router / 多模型协作 / 策略路由"]
+
+L1 --> L2 --> L3 --> L4 --> L5
+end
+
+P1["解决问题：<br/>懂不懂"]
+P2["解决问题：<br/>知不知道"]
+P3["解决问题：<br/>能不能做"]
+P4["解决问题：<br/>如何持续做"]
+P5["解决问题：<br/>谁来做"]
+
+L1 --- P1
+L2 --- P2
+L3 --- P3
+L4 --- P4
+L5 --- P5</pre>
+<center>图1-2 大模型增强五层架构 </center>
+
+<h3 id="1-4-从模型使用到系统设计"><a href="#1-4-从模型使用到系统设计" class="headerlink" title="1.4 从模型使用到系统设计"></a>1.4 从模型使用到系统设计</h3><p>在简单问答场景中，直接调用大模型即可满足需求。但在企业级应用中，常见需求包括：</p>
+<ul>
+<li>需要接入内部知识库</li>
+<li>需要保证输出可追溯</li>
+<li>需要执行数据库查询</li>
+<li>需要控制成本与延迟</li>
+<li>需要管理多步骤任务</li>
+</ul>
+<p>这些需求已经超越了单模型调用范畴，进入系统设计层面。以企业知识库问答为例，如果仅使用基础模型，可能出现以下情况：</p>
+<ul>
+<li>模型回答流畅但未引用真实文档</li>
+<li>不同提问方式导致答案不一致</li>
+<li>无法判断答案来源</li>
+<li>无法保证长期稳定性</li>
+</ul>
+<p>当引入记忆层后，可以实现基于向量检索的知识增强；当引入行动层后，可以调用真实数据库进行查询；当引入控制层后，可以实现复杂任务的多步执行；当引入调度层后，可以根据问题类型选择不同模型进行处理。</p>
+<p>由此可见，大模型的真正价值不在于参数规模本身，而在于如何被纳入一套结构清晰、可维护、可扩展的增强系统。</p>
+<p>本章建立了一个核心观点：大模型只是系统的一部分。真正决定应用质量的，是增强架构的设计能力。后续章节将依次展开模型层、记忆层、行动层与调度层的具体实现机制，从理论原理到工程实践，逐层构建完整的大模型增强体系。</p>
+<h2 id="2-让模型更专注：LoRA-与参数高效微调"><a href="#2-让模型更专注：LoRA-与参数高效微调" class="headerlink" title="2. 让模型更专注：LoRA 与参数高效微调"></a>2. 让模型更专注：LoRA 与参数高效微调</h2><p>本章先回到最底层——模型参数本身。在许多实际场景中，大模型已经具备较强的通用能力，但在专业领域、特定语气风格或业务规范下，仍可能出现回答不稳定、术语使用不准确或逻辑偏差等问题。此时，仅依赖 Prompt 优化往往难以获得长期稳定的效果。</p>
+<p>参数高效微调技术，尤其是 LoRA 与 QLoRA，正是为了解决这一问题。其核心思想并非“重新训练一个模型”，而是在尽量不改变原始模型结构的前提下，注入少量可训练参数，使模型在特定领域更专注、更稳定。</p>
+<p>本章将从全量微调的现实困境出发，逐步解释 LoRA 的原理、工程实践方式以及适用边界。</p>
+<h3 id="2-1-全量微调的现实困境"><a href="#2-1-全量微调的现实困境" class="headerlink" title="2.1 全量微调的现实困境"></a>2.1 全量微调的现实困境</h3><p>传统的微调方式通常采用全参数更新策略，即对模型所有权重进行训练。这种方法在早期小模型时代是可行的，但在当前数十亿乃至数百亿参数规模下，问题逐渐显现。</p>
+<p>首先是计算资源消耗巨大。全量微调需要高显存 GPU 集群支持，成本极高。其次是存储成本增加。每个下游任务都会生成一套完整模型副本，难以进行版本管理。再次是过拟合风险。领域数据规模通常远小于预训练数据，全量微调可能破原有泛化能力。最后是部署复杂度上升。模型版本繁多，维护与回滚难度加大。</p>
+<p>在企业场景中，往往需要为多个业务模块分别进行适配。如果每个模块都进行全量微调，资源消耗将呈指数级增长。因此，一种更加轻量、可插拔的适配方式成为必然选择。</p>
+<h3 id="2-2-LoRA-的低秩分解原理"><a href="#2-2-LoRA-的低秩分解原理" class="headerlink" title="2.2 LoRA 的低秩分解原理"></a>2.2 LoRA 的低秩分解原理</h3><p>LoRA 的核心思想来自线性代数中的低秩分解。其基本假设是：在下游任务中，模型权重的更新方向往往位于一个低维子空间中，而非需要对整个高维权重矩阵进行完整调整。</p>
+<p>在 Transformer 中，权重矩阵通常规模巨大。例如注意力层中的投影矩阵维度可能为 d × d。当进行微调时，传统方法直接更新该矩阵；而 LoRA 则将权重更新表示为两个低秩矩阵的乘积。具体而言：原始权重保持冻结，仅引入两个小矩阵 A 与 B，使得权重更新近似表示为：<br>$$ΔW &#x3D; A × B$$<br>其中 $A$ 的维度为 $d × r$，$B$ 的维度为 $r × d$，$r$ 为低秩参数。只需训练 $A$ 与 $B$，即可完成适配。</p>
+<p>这种方法显著减少了可训练参数数量。当 r 远小于 d 时，训练成本与显存需求大幅下降。</p>
+<pre class="mermaid">flowchart LR
+X["输入向量<br/>x"]
+
+W["原始权重矩阵 W<br/>d × d<br/>Frozen 不参与训练"]
+
+A["低秩矩阵 A<br/>d × r<br/>可训练"]
+
+B["低秩矩阵 B<br/>r × d<br/>可训练"]
+
+DW["权重增量<br/>ΔW = A × B"]
+
+SUM["权重合成<br/>W + ΔW"]
+
+OUT["输出<br/>(W + ΔW) × x"]
+
+X --> W
+X --> A
+
+A --> B
+B --> DW
+
+W --> SUM
+DW --> SUM
+
+SUM --> OUT</pre>
+<center>图2-1 LoRA 权重注入结构图</center>
+
+<p>该图展示 LoRA 在 Transformer 权重上的注入方式。原始权重矩阵 <strong>W</strong> 保持冻结，不参与训练；同时在旁路引入两个低秩矩阵 <strong>A</strong> 与 <strong>B</strong>。输入向量 <strong>x</strong> 一方面经过原始权重计算 <strong>W × x</strong>，另一方面通过低秩路径 <strong>A → B</strong> 生成权重增量 <strong>ΔW &#x3D; A × B</strong>。最终 <strong>W + ΔW</strong> 共同参与后续计算，从而在不修改原始模型参数的情况下实现高效微调。</p>
+<h3 id="2-3-Rank-选择与表达能力边界"><a href="#2-3-Rank-选择与表达能力边界" class="headerlink" title="2.3 Rank 选择与表达能力边界"></a>2.3 Rank 选择与表达能力边界</h3><p>低秩参数 r 的选择直接影响模型的表达能力与训练效率。当 r 过小，模型更新能力有限，可能无法充分适应领域数据。当 r 过大，训练成本上升，同时可能引入过拟合风险。</p>
+<p>在实践中，常见的 r 取值在 4 至 64 之间。不同任务对表达能力的需求不同，例如法律文本与医疗文本可能需要更高秩参数以保留复杂语义结构。</p>
+<p>需要强调的是，LoRA 并不是在所有层都必须插入。通常优先在注意力层的投影矩阵中注入适配器，因为这些位置对语义表示影响最大。</p>
+<p>合理的层选择与秩参数设计，是参数高效微调的关键工程问题。</p>
+<h3 id="2-4-QLoRA-与低比特量化机制"><a href="#2-4-QLoRA-与低比特量化机制" class="headerlink" title="2.4 QLoRA 与低比特量化机制"></a>2.4 QLoRA 与低比特量化机制</h3><p>在 LoRA 基础上，QLoRA 进一步通过低比特量化降低显存占用。其核心思想包括两点：</p>
+<ol>
+<li>将基础模型权重量化为 4bit 表示，从而大幅减少存储与计算开销。</li>
+<li>仅对 LoRA 注入参数进行高精度训练。</li>
+</ol>
+<p>这种混合精度策略使得在单张消费级 GPU 上微调数十亿参数模型成为可能。QLoRA 的关键技术包括：</p>
+<ul>
+<li>使用 NF4 数据类型表示权重</li>
+<li>采用双重量化策略减少精度损失</li>
+</ul>
+<p>通过这些优化，微调成本进一步下降，同时保持与全精度训练接近的性能表现。</p>
+<h3 id="2-5-LoRA-的工程实践策略"><a href="#2-5-LoRA-的工程实践策略" class="headerlink" title="2.5 LoRA 的工程实践策略"></a>2.5 LoRA 的工程实践策略</h3><p>在实际部署中，LoRA 具有以下优势：</p>
+<ul>
+<li>模型权重可共享，仅保存小规模适配器参数</li>
+<li>可针对不同业务加载不同 LoRA 模块</li>
+<li>支持快速切换与版本回滚</li>
+</ul>
+<p>例如，在企业场景中，可以为客服场景加载“客服 LoRA”，为法律场景加载“法律 LoRA”，基础模型保持不变，仅切换适配模块即可。在推理阶段，可以选择将 LoRA 权重合并至主模型，或采用动态加载方式。</p>
+<p>此外，需要注意数据质量控制。领域数据规模虽不必过大，但必须结构清晰、标注一致，否则模型会学到不稳定模式。</p>
+<h3 id="2-6-LoRA-的适用边界与失效模式"><a href="#2-6-LoRA-的适用边界与失效模式" class="headerlink" title="2.6 LoRA 的适用边界与失效模式"></a>2.6 LoRA 的适用边界与失效模式</h3><p>尽管 LoRA 在许多场景中效果显著，但并非万能解决方案。</p>
+<ul>
+<li><p>第一，当问题属于知识更新而非能力专注时，应优先考虑 RAG，而不是微调。</p>
+</li>
+<li><p>第二，当任务频繁变化时，维护多个 LoRA 模块可能增加复杂度。</p>
+</li>
+<li><p>第三，当数据极少或质量较低时，微调效果有限。</p>
+</li>
+<li><p>第四，LoRA 无法解决模型固有推理能力不足的问题，只能在现有能力基础上进行偏移。</p>
+</li>
+</ul>
+<p>因此，参数增强层的目标是“让模型更稳定、更符合特定规范”，而非“让模型无所不能”。</p>
+<p>本章围绕模型层展开，阐明了参数高效微调的原理与工程实践方式。下一章将进入记忆层，讨论如何通过 RAG 机制为模型引入外部知识，从而解决时效性与私有知识问题。</p>
+<h2 id="3-让模型拥有“记忆”：RAG-的结构原理与工程实践"><a href="#3-让模型拥有“记忆”：RAG-的结构原理与工程实践" class="headerlink" title="3. 让模型拥有“记忆”：RAG 的结构原理与工程实践"></a>3. 让模型拥有“记忆”：RAG 的结构原理与工程实践</h2><p>如果参数高效微调解决的是“模型是否专注于某个领域”的问题，那么记忆增强机制解决的则是“模型是否掌握最新、完整且可追溯的知识”。</p>
+<p>预训练模型的知识来源于训练语料，具有时间滞后性与不可更新性。即使通过 LoRA 微调增强了领域表达能力，模型仍无法实时获取新增文档或企业内部资料。在这种情况下，仅依赖模型参数本身已无法满足系统需求。</p>
+<p>检索增强生成机制，即 RAG（Retrieval-Augmented Generation），成为连接模型与外部知识库的关键桥梁。本章将系统分析 RAG 的基本结构、工程实现细节、性能优化策略以及常见失效模式。</p>
+<h3 id="3-1-RAG-的基本结构与流程"><a href="#3-1-RAG-的基本结构与流程" class="headerlink" title="3.1 RAG 的基本结构与流程"></a>3.1 RAG 的基本结构与流程</h3><p>RAG 的核心思想是将“检索”与“生成”结合，使模型在回答问题前，先从外部知识库中获取相关信息，再基于检索结果进行生成。其基本流程可以概括为四个阶段：</p>
+<ul>
+<li><p>第一阶段，查询理解。用户问题被编码为向量表示。</p>
+</li>
+<li><p>第二阶段，向量检索。系统在向量数据库中寻找与问题最相似的若干文本片段。</p>
+</li>
+<li><p>第三阶段，构建提示。将检索结果与原始问题拼接成结构化提示词。</p>
+</li>
+<li><p>第四阶段，生成回答。大模型基于扩展后的上下文生成最终输出。</p>
+</li>
+</ul>
+<p>这种结构的关键在于，模型不再完全依赖内部参数知识，而是通过动态检索获得外部记忆支持。</p>
+<pre class="mermaid">flowchart LR
+
+U["用户问题<br/>User Query"]
+
+E["Embedding 模型<br/>问题向量化"]
+
+VDB["向量数据库<br/>Vector Database<br/>存储文档向量"]
+
+R["相似度检索<br/>Top-K 文本片段"]
+
+P["Prompt 构建<br/>问题 + 检索上下文"]
+
+LLM["大模型生成<br/>LLM Generation"]
+
+A["最终回答<br/>Answer"]
+
+U --> E
+E --> R
+VDB --> R
+R --> P
+U --> P
+P --> LLM
+LLM --> A</pre>
+<center>图3-1 RAG 标准流程图</center>
+
+<h3 id="3-2-检索机制对比：倒排索引与向量检索"><a href="#3-2-检索机制对比：倒排索引与向量检索" class="headerlink" title="3.2 检索机制对比：倒排索引与向量检索"></a>3.2 检索机制对比：倒排索引与向量检索</h3><p>在信息检索领域，传统方法主要基于倒排索引结构，通过关键词匹配实现文档召回。这种方法在精确匹配场景中效果良好，例如法律条款查询。</p>
+<p>然而，大模型应用更多涉及语义匹配。例如“如何优化系统延迟”与“降低响应时间的方法”在语义上相近，但关键词并不完全一致。此时，向量检索机制更具优势。</p>
+<p>向量检索通过将文本映射为高维向量，在向量空间中计算相似度。常见相似度度量方式包括：</p>
+<ul>
+<li>余弦相似度</li>
+<li>点积</li>
+<li>欧氏距离</li>
+</ul>
+<p>在实际工程中，往往采用混合检索策略，即同时使用关键词召回与语义召回，再进行融合排序，以提高召回质量。</p>
+<p>不同场景对检索方式的选择存在差异。例如合规审计类任务偏向精确匹配，而技术问答类任务更依赖语义匹配。</p>
+<h3 id="3-3-Embedding-与文本切片策略"><a href="#3-3-Embedding-与文本切片策略" class="headerlink" title="3.3 Embedding 与文本切片策略"></a>3.3 Embedding 与文本切片策略</h3><p>Embedding 模型的质量直接影响召回效果。如果嵌入模型无法准确表达语义关系，则检索阶段便难以找到真正相关内容。文本切片策略同样重要。切片过大可能引入无关信息，造成上下文干扰；切片过小则可能丢失完整语义。常见策略包括：</p>
+<ul>
+<li>固定长度切分</li>
+<li>基于段落或标题结构切分</li>
+<li>滑动窗口切分</li>
+</ul>
+<p>在企业知识库场景中，推荐结合文档结构进行语义切分，使每个片段保持相对独立且语义完整。此外，应避免简单堆叠过多检索结果。上下文窗口有限，过多无关信息会挤占有效空间，降低生成质量。</p>
+<h3 id="3-4-向量数据库与索引结构"><a href="#3-4-向量数据库与索引结构" class="headerlink" title="3.4 向量数据库与索引结构"></a>3.4 向量数据库与索引结构</h3><p>向量数据库的核心目标是在海量向量中实现高效近似最近邻搜索。常见索引结构包括：</p>
+<ul>
+<li>HNSW 图结构</li>
+<li>IVF 分桶结构</li>
+<li>PQ 量化压缩</li>
+</ul>
+<p>HNSW 基于分层小世界图结构，在查询时可以快速定位近似邻居，兼顾速度与精度。IVF 通过聚类将向量分桶，缩小搜索范围。PQ 通过向量量化压缩降低存储成本。</p>
+<p>不同数据库实现对延迟与召回率的权衡不同。工程实践中需要根据数据规模、查询频率与精度要求进行选择。</p>
+<h3 id="3-5-召回优化与二阶段排序"><a href="#3-5-召回优化与二阶段排序" class="headerlink" title="3.5 召回优化与二阶段排序"></a>3.5 召回优化与二阶段排序</h3><p>初始召回阶段通常返回 TopK 个候选片段，但这并不保证排序完全准确。为提升质量，可以引入二阶段排序机制：</p>
+<ul>
+<li>第一阶段：向量相似度召回</li>
+<li>第二阶段：使用交叉编码器或小模型对候选片段重新打分</li>
+</ul>
+<p>这种两阶段结构在提升精度的同时，会增加一定延迟成本，因此需要在质量与效率之间进行权衡。此外，可以通过 Query 改写、查询扩展或多路召回策略提升召回覆盖率。</p>
+<h3 id="3-6-延迟与成本拆解"><a href="#3-6-延迟与成本拆解" class="headerlink" title="3.6 延迟与成本拆解"></a>3.6 延迟与成本拆解</h3><p>RAG 系统的延迟通常由以下几部分组成：</p>
+<ul>
+<li>Embedding 时间</li>
+<li>向量检索时间</li>
+<li>大模型生成时间</li>
+</ul>
+<p>在多数场景中，大模型推理时间占主要比例，但当数据规模扩大时，检索时间也可能成为瓶颈。通过缓存机制，可以减少重复查询的计算开销。例如对常见问题缓存生成结果，或对常用文本缓存向量表示。</p>
+<h3 id="3-7-RAG-的典型失效模式"><a href="#3-7-RAG-的典型失效模式" class="headerlink" title="3.7 RAG 的典型失效模式"></a>3.7 RAG 的典型失效模式</h3><p>尽管 RAG 提供了外部记忆能力，但其效果并非绝对可靠。典型失效模式包括：</p>
+<ul>
+<li>检索结果本身错误或过时</li>
+<li>检索正确但模型未有效利用</li>
+<li>多跳问题无法通过单次检索解决</li>
+<li>检索结果之间存在冲突</li>
+</ul>
+<p>此外，检索错误会直接传导至生成阶段，放大错误影响。</p>
+<p>需要强调的是，RAG 并非替代长上下文机制的唯一方案。随着上下文窗口扩大，可以直接放入更多原始文本。但在大规模知识库场景中，RAG 仍具成本与效率优势。</p>
+<p>本章系统分析了记忆增强层的结构与工程细节。下一章将进一步探讨 RAG 的局限性与进化方向，从而为后续行动层与控制层设计奠定基础。</p>
+<h2 id="4-RAG-的局限与进化路径"><a href="#4-RAG-的局限与进化路径" class="headerlink" title="4. RAG 的局限与进化路径"></a>4. RAG 的局限与进化路径</h2><p>上一章系统分析了 RAG 的结构原理与工程实现方式。然而，在实际应用中，仅仅理解流程与技术组件并不足以构建稳定系统。任何架构都有其适用边界与失效模式。如果忽视这些问题，RAG 可能从增强机制转变为误导来源。</p>
+<p>本章将围绕三个核心问题展开：RAG 在什么情况下会失效？错误如何在系统中传导？未来的改进方向在哪里？通过对这些问题的分析，可以为后续的 Agent 与多模型协作设计提供更稳固的基础。</p>
+<h3 id="4-1-RAG-的典型失效模式"><a href="#4-1-RAG-的典型失效模式" class="headerlink" title="4.1 RAG 的典型失效模式"></a>4.1 RAG 的典型失效模式</h3><p>在工程实践中，RAG 失效通常表现为三类情况。</p>
+<ul>
+<li><p>第一类是<strong>检索错误</strong>。向量召回结果与问题语义相关度不足，或者召回的文档本身存在错误信息。在这种情况下，模型生成的内容可能逻辑自洽，却基于错误事实。</p>
+</li>
+<li><p>第二类是<strong>检索正确但未被有效利用</strong>。即检索到的文本是相关的，但模型在生成过程中未充分引用，甚至忽略了关键信息。这通常与 Prompt 构造方式或上下文竞争有关。</p>
+</li>
+<li><p>第三类是<strong>复杂推理失效</strong>。某些问题需要多段推理，即从多个文档中提取信息并进行组合。如果 RAG 仅执行一次检索，往往难以覆盖完整推理路径。</p>
+</li>
+</ul>
+<p>例如，在企业场景中，某一问题可能需要同时查询制度文件与历史记录。如果只检索到其中一类文档，生成结果将缺失关键依据。</p>
+<h3 id="4-2-检索错误如何传导至生成错误"><a href="#4-2-检索错误如何传导至生成错误" class="headerlink" title="4.2 检索错误如何传导至生成错误"></a>4.2 检索错误如何传导至生成错误</h3><p>RAG 结构中存在一个关键特点：生成阶段高度依赖检索阶段输出。</p>
+<p>如果检索结果中包含错误内容，大模型在生成过程中通常会默认其为“可信上下文”，并围绕其进行合理扩展。由于模型具备较强的语言流畅性，最终输出往往看似专业，却建立在错误信息之上。</p>
+<p>这种现象说明，RAG 并不能完全消除幻觉，而是将幻觉来源从“模型内部知识不足”转移为“外部检索不准确”。</p>
+<p>因此，在设计系统时，应增加检索结果的可追溯机制，例如：</p>
+<ul>
+<li>标注引用来源</li>
+<li>限制生成仅基于检索文本</li>
+<li>引入二阶段验证</li>
+</ul>
+<p>通过结构约束，可以降低错误放大的风险。</p>
+<h3 id="4-3-长上下文是否可以替代-RAG"><a href="#4-3-长上下文是否可以替代-RAG" class="headerlink" title="4.3 长上下文是否可以替代 RAG"></a>4.3 长上下文是否可以替代 RAG</h3><p>随着模型上下文窗口不断扩大，部分观点认为可以直接将大规模文档整体输入模型，而无需单独构建检索系统。从理论上看，长上下文确实能够容纳更多信息，但其局限同样明显。</p>
+<ul>
+<li><p>第一，成本问题。大规模上下文意味着更高的推理费用与延迟。</p>
+</li>
+<li><p>第二，注意力稀释问题。模型在极长上下文中可能难以聚焦关键信息。</p>
+</li>
+<li><p>第三，更新效率问题。若知识库频繁变化，每次都重新拼接完整文档，效率极低。</p>
+</li>
+</ul>
+<p>因此，在中大型知识库场景中，RAG 仍然具有明显优势。长上下文更适用于小规模、结构稳定的文本集合。</p>
+<h3 id="4-4-RAG-的进化方向"><a href="#4-4-RAG-的进化方向" class="headerlink" title="4.4 RAG 的进化方向"></a>4.4 RAG 的进化方向</h3><p>面对上述局限，RAG 技术正在不断演进。</p>
+<ul>
+<li><p>一种方向是引入图结构检索，即 Graph RAG。通过构建实体关系图，将文档之间的关联结构显式表示，从而支持多跳推理。</p>
+</li>
+<li><p>另一种方向是 Agent 驱动检索。模型不再仅执行一次固定检索，而是在生成过程中根据中间结果动态发起多轮查询。这种方式常被称为 Agentic RAG。</p>
+</li>
+<li><p>还有一种方向是将检索与微调结合。例如通过 Retrieval-Augmented Fine-tuning，使模型在训练阶段学习如何更好地利用检索结果。</p>
+</li>
+</ul>
+<p>这些演进方向的共同目标，是提升检索质量与推理深度，同时控制系统复杂度。</p>
+<h3 id="4-5-何时不应使用-RAG"><a href="#4-5-何时不应使用-RAG" class="headerlink" title="4.5 何时不应使用 RAG"></a>4.5 何时不应使用 RAG</h3><p>尽管 RAG 在知识增强方面具有明显优势，但并非所有场景都适合。当知识规模较小且更新频率低时，直接通过微调或长上下文方式可能更简单。当问题主要涉及逻辑推理而非外部知识时，构建检索系统反而增加复杂度。当对实时性要求极高且数据规模有限时，额外的检索延迟可能成为瓶颈。</p>
+<p>因此，在系统设计阶段，应评估知识规模、更新频率、成本预算与性能需求，再决定是否引入 RAG。</p>
+<p>本章从批判性角度分析了 RAG 的边界与进化路径。接下来将进入行动层与控制层，讨论如何使模型不仅“知道”，还能够“执行”与“管理任务”，从而构建真正可落地的智能系统。</p>
+<h2 id="5-让模型真正“能做事”：Function-Calling-与工具增强"><a href="#5-让模型真正“能做事”：Function-Calling-与工具增强" class="headerlink" title="5. 让模型真正“能做事”：Function Calling 与工具增强"></a>5. 让模型真正“能做事”：Function Calling 与工具增强</h2><p>如果说 LoRA 让模型更专注，RAG 让模型拥有记忆，那么工具增强机制则赋予模型“行动能力”。</p>
+<p>在没有工具接口的情况下，大模型本质上仍是一个文本生成器。它可以解释如何查询数据库，却无法真正执行查询；可以描述如何发送邮件，却无法触发实际发送行为。在企业级系统中，这种“只会说，不会做”的能力显然不足以支撑自动化流程。</p>
+<p>Function Calling 机制的引入，使模型能够通过结构化协议调用外部系统接口，从而实现真正的任务执行。本章将从协议原理、工程实现与风险控制三个层面展开讨论。</p>
+<h3 id="5-1-从文本生成到结构化调用"><a href="#5-1-从文本生成到结构化调用" class="headerlink" title="5.1 从文本生成到结构化调用"></a>5.1 从文本生成到结构化调用</h3><p>传统大模型交互基于自然语言输入与输出，其核心形式是“文本对文本”。而在实际业务系统中，操作通常以函数形式存在，例如：</p>
+<ul>
+<li>查询数据库</li>
+<li>调用搜索接口</li>
+<li>执行文件读写</li>
+<li>发送通知</li>
+</ul>
+<p>Function Calling 的关键思想在于：将模型输出限制为符合预定义 JSON Schema 的结构化格式，从而让系统能够解析并执行对应函数。基本流程包括：</p>
+<ul>
+<li><p>第一，系统向模型声明可用工具及其参数结构。</p>
+</li>
+<li><p>第二，模型在生成阶段判断是否需要调用工具。</p>
+</li>
+<li><p>第三，若需要调用，则输出结构化函数调用请求。</p>
+</li>
+<li><p>第四，系统执行函数并将结果反馈给模型。</p>
+</li>
+<li><p>第五，模型基于执行结果生成最终文本。</p>
+</li>
+</ul>
+<p>这一机制使模型从“解释行为”转向“触发行为”。</p>
+<h3 id="5-2-Function-Calling-的协议机制"><a href="#5-2-Function-Calling-的协议机制" class="headerlink" title="5.2 Function Calling 的协议机制"></a>5.2 Function Calling 的协议机制</h3><p>在工程层面，Function Calling 的核心在于接口设计与参数约束。每个工具需要定义：</p>
+<ul>
+<li>函数名称</li>
+<li>参数字段</li>
+<li>参数类型</li>
+<li>必填约束</li>
+</ul>
+<p>例如，一个数据库查询函数可能定义为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">name: query_database</span><br><span class="line">parameters:</span><br><span class="line">table_name: string</span><br><span class="line">condition: string</span><br></pre></td></tr></table></figure>
+<p>模型在输出调用请求时，必须严格符合该结构，否则系统无法解析。这种结构化约束有两个重要意义：</p>
+<ul>
+<li>第一，降低误调用风险。</li>
+<li>第二，提高可控性与可审计性。</li>
+</ul>
+<p>相比完全自由的文本生成，结构化输出可以显著增强系统稳定性。</p>
+<h3 id="5-3-工具类型与能力扩展"><a href="#5-3-工具类型与能力扩展" class="headerlink" title="5.3 工具类型与能力扩展"></a>5.3 工具类型与能力扩展</h3><p>在企业系统中，常见工具类型包括：</p>
+<ul>
+<li>数据库查询工具</li>
+<li>全文搜索工具</li>
+<li>文件系统操作工具</li>
+<li>第三方 API 调用工具</li>
+<li>任务调度工具</li>
+</ul>
+<p>工具数量与种类会直接影响系统复杂度。因此，在设计阶段应避免无节制增加工具接口。一个常见策略是建立工具注册中心，由控制层统一管理工具元数据，并限制模型可访问范围。</p>
+<p>此外，还可以通过能力分级策略限制高风险操作。例如，将写入类操作与查询类操作分离，并设置权限校验机制。</p>
+<h3 id="5-4-Agent-的执行循环模型"><a href="#5-4-Agent-的执行循环模型" class="headerlink" title="5.4 Agent 的执行循环模型"></a>5.4 Agent 的执行循环模型</h3><p>当模型能够调用工具后，任务执行通常不再是单步行为，而是多步循环过程。典型 Agent 执行流程可以抽象为四个阶段：</p>
+<ul>
+<li>计划阶段。模型根据目标拆解任务。</li>
+<li>行动阶段。调用工具执行具体操作。</li>
+<li>观察阶段。接收执行结果。</li>
+<li>反思阶段。根据结果决定是否继续。</li>
+</ul>
+<p>这一循环常被称为 Plan-Act-Observe-Reflect 结构。例如，在企业知识库场景中，某个复杂问题可能需要：</p>
+<ul>
+<li>首先检索相关制度文件</li>
+<li>然后查询数据库记录</li>
+<li>最后整合结果生成报告</li>
+</ul>
+<p>如果某一步骤失败，Agent 可以根据反馈重新规划路径。</p>
+<pre class="mermaid">flowchart LR
+    P["计划阶段<br/>Plan<br/>任务拆解<br/>确定下一步策略"]
+
+    A["行动阶段<br/>Act<br/>调用工具执行<br/>API / 搜索 / 数据库"]
+
+    O["观察阶段<br/>Observe<br/>接收执行结果<br/>更新环境状态"]
+
+    R["反思阶段<br/>Reflect<br/>评估结果<br/>判断是否继续"]
+
+    T["工具系统<br/>搜索引擎 / 数据库<br/>外部 API"]
+
+    G["任务目标<br/>用户问题<br/>最终报告"]
+
+    %% 主循环
+    P --> A
+    A --> O
+    O --> R
+    R -->|继续任务<br/>重新规划| P
+
+    %% 工具调用
+    A -->|调用工具| T
+    T -->|返回结果| O
+
+    %% 结束条件
+    R -->|任务完成<br/>生成结果| G</pre>
+<center>图5-1 Agent 执行循环结构图</center>
+
+<h3 id="5-5-单-Agent-与多-Agent-协作"><a href="#5-5-单-Agent-与多-Agent-协作" class="headerlink" title="5.5 单 Agent 与多 Agent 协作"></a>5.5 单 Agent 与多 Agent 协作</h3><p>在简单场景中，一个 Agent 即可完成任务。然而，当任务复杂度提升时，单一控制单元可能面临负载过高的问题。多 Agent 协作模式将任务拆解为不同角色，例如：</p>
+<ul>
+<li>规划 Agent</li>
+<li>检索 Agent</li>
+<li>执行 Agent</li>
+<li>审查 Agent</li>
+</ul>
+<p>这种分工方式可以提升模块清晰度，并降低单点失效风险。</p>
+<p>例如，在代码生成场景中，可以设置一个生成 Agent 负责初稿输出，另一个审查 Agent 负责错误检测与优化建议，从而形成闭环改进。</p>
+<h3 id="5-6-工具增强的风险与治理"><a href="#5-6-工具增强的风险与治理" class="headerlink" title="5.6 工具增强的风险与治理"></a>5.6 工具增强的风险与治理</h3><p>赋予模型行动能力，也意味着风险增加。主要风险包括：</p>
+<ul>
+<li>错误调用</li>
+<li>无限循环</li>
+<li>成本失控</li>
+<li>权限越界</li>
+</ul>
+<p>因此，需要在系统层增加以下机制：</p>
+<ul>
+<li>调用次数限制</li>
+<li>超时控制</li>
+<li>权限白名单</li>
+<li>日志审计</li>
+</ul>
+<p>此外，应防止提示词注入攻击。例如，当外部文本包含恶意指令时，系统应明确区分“用户输入”与“工具指令”，避免模型误执行。</p>
+<p>工具增强的目标不是无限扩展能力，而是在可控范围内提升系统自动化水平。</p>
+<p>本章完成了从文本生成到行动执行的过渡。下一章将进一步抽象控制层与调度层问题，探讨多模型协作与能力分配机制，从而构建更加复杂且稳定的增强系统。</p>
+<h2 id="第六章-多模型协作：从单一智能体到模型调度系统"><a href="#第六章-多模型协作：从单一智能体到模型调度系统" class="headerlink" title="第六章 多模型协作：从单一智能体到模型调度系统"></a>第六章 多模型协作：从单一智能体到模型调度系统</h2><p>随着模型规模不断扩大与能力日益分化，一个新的趋势逐渐显现：并非所有任务都适合由同一个模型完成。不同模型在推理深度、规划能力、代码生成、成本效率等方面存在显著差异。在复杂系统中，单一模型往往难以在性能、成本与稳定性之间取得最佳平衡。</p>
+<p>因此，在控制层之上，需要引入调度层，将多模型能力进行合理分配与协作。本章将从能力差异分析出发，探讨模型角色划分、协作模式设计以及成本控制策略，构建多模型增强系统的整体框架。</p>
+<h3 id="6-1-为什么一个模型不够"><a href="#6-1-为什么一个模型不够" class="headerlink" title="6.1 为什么一个模型不够"></a>6.1 为什么一个模型不够</h3><p>在实际工程场景中，可以观察到如下现象：</p>
+<ul>
+<li>某些模型在长文本规划方面表现稳定，但在复杂代码推理上存在细节错误。</li>
+<li>某些模型推理能力强，但调用成本较高。</li>
+<li>某些模型响应速度快，适合高并发场景，但逻辑深度有限。</li>
+</ul>
+<p>当系统目标涉及任务拆解、跨文档推理、工具调用与结果审查时，单模型往往难以同时满足所有需求。例如，在企业知识库自动报告生成场景中，系统可能需要：</p>
+<ul>
+<li>首先对需求进行规划与结构设计</li>
+<li>其次进行多轮检索与数据整合</li>
+<li>随后生成初稿</li>
+<li>最后进行格式校验与逻辑审查</li>
+</ul>
+<p>若由单一模型完成全部流程，不仅成本高昂，而且稳定性难以保证。</p>
+<p>多模型协作的核心动机在于：将不同能力优势进行组合，形成更高效的整体系统。</p>
+<h3 id="6-2-能力分解与模型角色定义"><a href="#6-2-能力分解与模型角色定义" class="headerlink" title="6.2 能力分解与模型角色定义"></a>6.2 能力分解与模型角色定义</h3><p>在设计多模型系统时，首先需要进行能力分解。常见角色包括：</p>
+<ul>
+<li>规划模型。负责目标拆解与流程设计。</li>
+<li>推理模型。负责复杂逻辑推理或代码生成。</li>
+<li>执行模型。负责高频简单任务或批量处理。</li>
+<li>审查模型。负责结果验证与纠错。</li>
+</ul>
+<p>例如，在代码生成场景中，可以采用如下分工：</p>
+<ul>
+<li>规划模型生成任务步骤</li>
+<li>推理模型生成核心代码</li>
+<li>审查模型进行静态检查</li>
+<li>执行模型处理格式化与简单重构</li>
+</ul>
+<p>这种角色划分并非固定，而是根据任务类型动态调整。</p>
+<h3 id="6-3-规划与执行分离架构"><a href="#6-3-规划与执行分离架构" class="headerlink" title="6.3 规划与执行分离架构"></a>6.3 规划与执行分离架构</h3><p>一种常见协作模式是规划与执行分离。在该模式下：</p>
+<ul>
+<li>第一模型负责制定执行计划，包括步骤顺序、工具选择与参数设计。</li>
+<li>第二模型根据计划完成具体推理或生成任务。</li>
+</ul>
+<p>这种结构的优势在于：</p>
+<ul>
+<li>可以将高层逻辑与底层细节解耦。</li>
+<li>可以使用成本较低的模型承担重复性任务。</li>
+<li>可以在执行阶段进行独立审查与回滚。</li>
+</ul>
+<p>例如，在复杂问答场景中，规划模型可以先判断问题类型，决定是否需要检索、是否需要工具调用，再将具体子任务分配给推理模型。</p>
+<p>规划模型类似系统调度器，而执行模型类似工作节点。</p>
+<h3 id="6-4-审查闭环与自我优化机制"><a href="#6-4-审查闭环与自我优化机制" class="headerlink" title="6.4 审查闭环与自我优化机制"></a>6.4 审查闭环与自我优化机制</h3><p>在多模型系统中，引入审查闭环可以显著提高输出质量。典型流程包括：</p>
+<ul>
+<li>生成阶段输出初稿</li>
+<li>审查阶段识别潜在问题</li>
+<li>修复阶段进行修改</li>
+</ul>
+<p>这一闭环结构可以减少错误传播风险，并增强系统鲁棒性。例如，在报告生成场景中，审查模型可以检查：</p>
+<ul>
+<li>是否引用真实来源</li>
+<li>是否存在逻辑矛盾</li>
+<li>是否符合格式规范</li>
+</ul>
+<p>若发现问题，可将反馈结果重新传递至生成阶段，形成迭代优化。这种结构类似传统软件工程中的代码评审机制，将质量控制嵌入流程本身。</p>
+<h3 id="6-5-模型路由与成本控制策略"><a href="#6-5-模型路由与成本控制策略" class="headerlink" title="6.5 模型路由与成本控制策略"></a>6.5 模型路由与成本控制策略</h3><p>多模型协作并不意味着每次都调用所有模型。合理的路由机制可以根据问题复杂度动态选择模型。常见策略包括：</p>
+<ul>
+<li>基于问题分类进行模型选择</li>
+<li>基于历史数据进行性能预测</li>
+<li>基于成本预算进行优先级控制</li>
+</ul>
+<p>例如，对于简单事实查询，可以直接使用轻量模型；对于复杂多步推理问题，则升级至高性能模型。此外，可以结合缓存机制与分级调用策略，避免重复计算。模型调度系统的核心目标在于平衡三项指标：</p>
+<ul>
+<li>质量</li>
+<li>延迟</li>
+<li>成本</li>
+</ul>
+<p>过度追求质量可能导致成本失控；过度追求效率可能降低准确率。因此，需要在设计阶段明确优先级。</p>
+<h3 id="6-6-从多模型协作到完整增强系统"><a href="#6-6-从多模型协作到完整增强系统" class="headerlink" title="6.6 从多模型协作到完整增强系统"></a>6.6 从多模型协作到完整增强系统</h3><p>至此，增强体系已包含：</p>
+<ul>
+<li>模型层的参数专注能力</li>
+<li>记忆层的知识检索能力</li>
+<li>行动层的工具调用能力</li>
+<li>控制层的任务编排能力</li>
+<li>调度层的模型协作能力</li>
+</ul>
+<p>这些层级共同构成一个完整的增强系统。在企业知识库场景中，整体流程可能如下：</p>
+<ul>
+<li>接收问题</li>
+<li>规划模型判断是否需要检索</li>
+<li>记忆层完成召回</li>
+<li>推理模型生成答案</li>
+<li>审查模型进行验证</li>
+<li>必要时调用工具</li>
+<li>最终输出结果</li>
+</ul>
+<p>这种分层结构将单一大模型转化为模块化智能系统，使其具备更强的稳定性与扩展性。</p>
+<p>本章完成了调度层与多模型协作机制的讨论。下一章将综合前述所有层级，构建一个完整的企业级智能系统架构，并从性能指标与工程治理角度进行总结与评估。</p>
+<h2 id="7-企业级智能系统的整体架构与工程治理"><a href="#7-企业级智能系统的整体架构与工程治理" class="headerlink" title="7. 企业级智能系统的整体架构与工程治理"></a>7. 企业级智能系统的整体架构与工程治理</h2><p>前文分别讨论了模型层、记忆层、行动层、控制层以及调度层。至此，各个能力模块已经相对清晰。然而，真正的挑战在于如何将这些模块整合为一个可运行、可监控、可优化的企业级系统。</p>
+<p>本章将围绕整体架构设计、关键评价指标、性能与成本优化策略以及生产环境治理问题展开，构建一个具备工程可落地性的完整智能系统框架。</p>
+<h3 id="7-1-企业知识库-Agent-的总体架构"><a href="#7-1-企业知识库-Agent-的总体架构" class="headerlink" title="7.1 企业知识库 Agent 的总体架构"></a>7.1 企业知识库 Agent 的总体架构</h3><p>以“企业知识库问答与自动报告生成系统”为例，其整体架构可以分为以下模块：</p>
+<ul>
+<li>数据接入模块。负责文档抓取、数据清洗与结构化处理。</li>
+<li>向量化模块。负责文本切片与 Embedding 生成。</li>
+<li>向量数据库。存储文本向量与元数据。</li>
+<li>检索层。执行语义召回与排序。</li>
+<li>控制层。负责任务规划与流程管理。</li>
+<li>推理模型层。执行复杂生成与逻辑推理。</li>
+<li>工具执行层。对接数据库、搜索系统与业务接口。</li>
+<li>审查与评估模块。对生成结果进行质量控制。</li>
+</ul>
+<p>各模块之间通过清晰接口进行解耦，形成分层结构。</p>
+<h3 id="7-2-五层增强体系的整合逻辑"><a href="#7-2-五层增强体系的整合逻辑" class="headerlink" title="7.2 五层增强体系的整合逻辑"></a>7.2 五层增强体系的整合逻辑</h3><p>在系统运行过程中，各层之间并非线性调用，而是存在动态协作关系。</p>
+<ul>
+<li>模型层提供基础语言能力与领域专注能力。</li>
+<li>记忆层根据查询结果补充知识上下文。</li>
+<li>行动层在需要时触发外部操作。</li>
+<li>控制层根据执行反馈进行流程调整。</li>
+<li>调度层决定调用哪个模型完成任务。</li>
+</ul>
+<p>例如，在一个复杂问题处理中，流程可能为：</p>
+<ul>
+<li>控制层判断问题类型</li>
+<li>调度层选择规划模型</li>
+<li>规划模型决定调用检索</li>
+<li>记忆层返回相关文档</li>
+<li>推理模型生成初稿</li>
+<li>审查模型验证输出</li>
+</ul>
+<p>若发现缺失，则再次检索或调用工具，这种多层协作机制，使系统具备自适应能力。</p>
+<h3 id="7-3-关键评价指标体系"><a href="#7-3-关键评价指标体系" class="headerlink" title="7.3 关键评价指标体系"></a>7.3 关键评价指标体系</h3><p>构建企业级系统，必须建立量化指标。常见评价维度包括：</p>
+<ul>
+<li>检索指标。召回率、精确率、平均逆排名</li>
+<li>生成质量指标。事实准确性、逻辑一致性、引用完整性</li>
+<li>系统性能指标。端到端延迟、平均响应时间、并发处理能力</li>
+<li>成本指标。单次调用 Token 成本、模型调用频率、向量存储开销</li>
+</ul>
+<p>在评估体系中，应避免单一指标驱动。例如，过度优化召回率可能导致上下文冗余，反而影响生成质量。</p>
+<h3 id="7-4-延迟拆解与性能优化"><a href="#7-4-延迟拆解与性能优化" class="headerlink" title="7.4 延迟拆解与性能优化"></a>7.4 延迟拆解与性能优化</h3><p>在实际运行中，延迟通常来自以下环节：</p>
+<ul>
+<li>Embedding 计算</li>
+<li>向量检索</li>
+<li>模型推理</li>
+<li>工具执行</li>
+</ul>
+<p>通过对延迟进行拆解，可以识别瓶颈位置。优化策略包括：</p>
+<ul>
+<li>对 Embedding 结果进行缓存</li>
+<li>控制 TopK 数量</li>
+<li>使用轻量模型完成简单任务</li>
+<li>并行执行独立工具调用</li>
+</ul>
+<p>此外，可以采用分级策略：对于简单问题直接使用轻量模型；对于复杂问题升级调用高性能模型。通过这种方式，在保证质量的同时控制成本。</p>
+<h3 id="7-5-成本治理与模型版本管理"><a href="#7-5-成本治理与模型版本管理" class="headerlink" title="7.5 成本治理与模型版本管理"></a>7.5 成本治理与模型版本管理</h3><p>企业系统必须考虑长期维护问题。模型版本更新可能带来输出风格变化，需要进行灰度测试与回滚机制设计。不同 LoRA 模块应建立版本编号与加载策略，避免冲突。</p>
+<p>对于向量数据库，应定期清理冗余数据，并维护索引结构健康状态。</p>
+<p>同时，需要建立日志审计系统，记录：</p>
+<ul>
+<li>检索内容</li>
+<li>模型调用路径</li>
+<li>工具执行记录</li>
+<li>生成输出</li>
+</ul>
+<p>这些数据不仅用于问题排查，也可用于持续优化。</p>
+<h3 id="7-6-生产环境中的风险控制"><a href="#7-6-生产环境中的风险控制" class="headerlink" title="7.6 生产环境中的风险控制"></a>7.6 生产环境中的风险控制</h3><p>当系统具备工具执行能力后，风险进一步提升。需要设置调用频率限制与预算控制机制，防止异常循环。</p>
+<p>对于高风险操作，应增加人工确认或双重验证机制。</p>
+<p>此外，应对提示词注入攻击进行防护，例如限制模型对外部文本中隐藏指令的执行权限。</p>
+<p>稳定的企业级系统不仅依赖模型能力，更依赖完善的治理机制。</p>
+<h3 id="7-7-从增强系统到可持续智能平台"><a href="#7-7-从增强系统到可持续智能平台" class="headerlink" title="7.7 从增强系统到可持续智能平台"></a>7.7 从增强系统到可持续智能平台</h3><p>当各层能力稳定运行后，系统不再是单一问答工具，而成为可持续迭代的平台。未来可以加入：</p>
+<ul>
+<li>自动数据更新流水线</li>
+<li>模型性能监控与自动回归测试</li>
+<li>动态模型路由策略优化</li>
+<li>自适应 LoRA 选择机制</li>
+</ul>
+<p>通过持续迭代与数据反馈，系统将不断优化，而不是停留在一次性部署阶段。</p>
+<p>本章完成了对企业级增强系统的整体架构与工程治理分析。至此，从参数专注、知识增强、工具执行到模型调度的完整体系已经建立。接下来将进入最后一章，对技术边界与未来方向进行总结与展望，进一步完善整体认知框架。</p>
+<h2 id="8-技术边界与未来方向：从增强系统到可进化智能体"><a href="#8-技术边界与未来方向：从增强系统到可进化智能体" class="headerlink" title="8. 技术边界与未来方向：从增强系统到可进化智能体"></a>8. 技术边界与未来方向：从增强系统到可进化智能体</h2><p>在完成模型层、记忆层、行动层、控制层与调度层的系统构建之后，有必要回到一个更根本的问题：这种增强体系是否适用于所有场景？其边界在哪里？未来又将如何演进？</p>
+<p>任何技术体系如果缺乏对自身局限的认知，往往会在复杂场景中暴露结构性问题。本章将在总结前述架构的基础上，从边界条件、替代路径与未来趋势三个维度展开分析，使整个体系具备更完整的战略视角。</p>
+<h3 id="8-1-何时不应使用大模型增强系统"><a href="#8-1-何时不应使用大模型增强系统" class="headerlink" title="8.1 何时不应使用大模型增强系统"></a>8.1 何时不应使用大模型增强系统</h3><p>增强系统并非默认最优解。在以下情形中，可能需要重新评估架构复杂度。</p>
+<ul>
+<li><p>问题规模较小且规则清晰。例如固定格式的数据转换或简单字段校验，使用规则引擎往往更加高效稳定。</p>
+</li>
+<li><p>知识规模有限且更新频率低。在这种情况下，直接微调或使用长上下文即可满足需求，无需额外构建向量数据库。</p>
+</li>
+<li><p>实时性要求极高。若系统必须在毫秒级响应，而模型推理与检索时间不可压缩，则应考虑采用更轻量化方案。</p>
+</li>
+<li><p>强一致性要求场景。例如金融交易系统，对输出正确性与确定性要求极高，此时大模型仅适合作为辅助分析工具，而非核心执行单元。</p>
+</li>
+</ul>
+<p>因此，在系统设计初期，应明确目标边界，避免过度工程化。</p>
+<h3 id="8-2-小模型与规则系统的价值"><a href="#8-2-小模型与规则系统的价值" class="headerlink" title="8.2 小模型与规则系统的价值"></a>8.2 小模型与规则系统的价值</h3><p>在大模型热潮下，小模型与传统规则系统的价值仍不可忽视。小模型具有如下优势：</p>
+<ul>
+<li>成本低</li>
+<li>响应快</li>
+<li>易部署</li>
+<li>行为可预测</li>
+</ul>
+<p>规则系统则在确定性场景中具有绝对稳定性。在实践中，可以采用混合架构。例如：</p>
+<ul>
+<li>规则系统处理高确定性流程</li>
+<li>小模型处理轻量文本任务</li>
+<li>大模型负责复杂推理与开放问题</li>
+</ul>
+<p>这种分层策略有助于控制成本并提高整体稳定性。增强系统并不是替代所有技术，而是与既有系统协同工作。  </p>
+<h3 id="8-3-自适应专家模型与动态微调"><a href="#8-3-自适应专家模型与动态微调" class="headerlink" title="8.3 自适应专家模型与动态微调"></a>8.3 自适应专家模型与动态微调</h3><p>随着参数高效微调技术成熟，可以构建多个领域专家模块，并在运行时根据问题类型动态加载。例如，在企业内部系统中，可构建：</p>
+<ul>
+<li>法律专家模块</li>
+<li>财务专家模块</li>
+<li>技术支持模块</li>
+</ul>
+<p>当调度层识别问题领域后，自动加载对应 LoRA 模块。这种自适应专家机制使系统具备“领域切换能力”，同时保持基础模型稳定。未来方向可能包括：</p>
+<ul>
+<li>基于问题向量自动匹配最佳 LoRA</li>
+<li>动态更新专家模块</li>
+<li>持续在线学习机制</li>
+</ul>
+<p>这些机制将使模型能力更加模块化与可扩展。</p>
+<h3 id="8-4-自动模型路由与智能调度"><a href="#8-4-自动模型路由与智能调度" class="headerlink" title="8.4 自动模型路由与智能调度"></a>8.4 自动模型路由与智能调度</h3><p>多模型协作的下一阶段，是建立更加智能的模型路由系统。当前模型调度多基于人工规则或简单分类逻辑。未来可以引入以下机制：</p>
+<ul>
+<li>基于历史性能数据进行预测</li>
+<li>基于问题复杂度自动评分</li>
+<li>结合成本预算动态选择模型</li>
+</ul>
+<p>例如，系统可以在低复杂度问题上默认使用轻量模型，当置信度不足时自动升级至高性能模型。这种分级调用策略不仅优化成本，也提升响应效率。</p>
+<p>在更高级阶段，调度层本身可以成为一个学习系统，通过持续反馈不断优化路由策略。</p>
+<h3 id="8-5-从增强系统到可进化智能体"><a href="#8-5-从增强系统到可进化智能体" class="headerlink" title="8.5 从增强系统到可进化智能体"></a>8.5 从增强系统到可进化智能体</h3><p>当模型层、记忆层、行动层、控制层与调度层形成闭环后，系统具备持续优化的基础。可进化智能体的特征包括：</p>
+<ul>
+<li>能够根据反馈自动调整策略</li>
+<li>能够监控自身性能指标</li>
+<li>能够更新知识库</li>
+<li>能够选择最优模型组合</li>
+</ul>
+<p>这种系统不再是静态部署的工具，而是具备动态适应能力的平台。在未来架构中，可以预见以下趋势：</p>
+<ul>
+<li>记忆与推理更加深度融合</li>
+<li>图结构与多跳检索成为常态</li>
+<li>模型之间的协作更加自动化</li>
+<li>系统级监控与自我修复机制更加成熟</li>
+</ul>
+<p>增强系统的目标并非构建一个“最强模型”，而是构建一个“可持续演进的智能系统”。</p>
+<h3 id="8-6-总结：从模型到系统的转变"><a href="#8-6-总结：从模型到系统的转变" class="headerlink" title="8.6 总结：从模型到系统的转变"></a>8.6 总结：从模型到系统的转变</h3><p>回顾全文，可以看到一条演进路径：</p>
+<ul>
+<li>从参数增强解决专注问题</li>
+<li>到记忆增强解决知识问题</li>
+<li>再到工具增强解决执行问题</li>
+<li>通过控制层实现任务编排</li>
+<li>最终通过调度层实现模型协作</li>
+</ul>
+<p>这一体系将大模型从单一生成器转化为结构化系统。</p>
+<p>真正的能力提升，不仅来自模型规模增长，更来自架构设计能力的提升。模型只是智能系统的核心组件，而不是全部。当增强体系与工程治理机制相结合，大模型才能在企业级场景中发挥长期稳定的价值。</p>
+<script type="module"> import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';	mermaid.initialize({startOnLoad: true, flowchart: {curve: 'linear'}}); </script>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://www.keychan.xyz/2026/03/17/061-lora-rag-agent/" title="LLM增强系统设计：LoRA、RAG 与 Agent">https://www.keychan.xyz/2026/03/17/061-lora-rag-agent/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/" rel="tag"># 大语言模型</a>
+              <a href="/tags/RAG/" rel="tag"># RAG</a>
+              <a href="/tags/Agent/" rel="tag"># Agent</a>
+              <a href="/tags/%E6%A8%A1%E5%9E%8B%E5%A2%9E%E5%BC%BA/" rel="tag"># 模型增强</a>
+              <a href="/tags/%E5%A4%9A%E6%A8%A1%E5%9E%8B%E5%8D%8F%E4%BD%9C/" rel="tag"># 多模型协作</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/03/10/060-large-language-models-understand-questions/" rel="prev" title="如何让大模型“真正理解”问题？">
+                  <i class="fa fa-angle-left"></i> 如何让大模型“真正理解”问题？
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">582k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.min.js","integrity":"sha256-G8ouPAnw4zzMbnAenHnVz6h9XpKbNdOkrqTh7AadyHs="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.keychan.xyz/","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2026/03/17/061-lora-rag-agent/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>
