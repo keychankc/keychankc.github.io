@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.keychan.xyz","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":272,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="本文作为 AI协作工程 系列的起点，想回答的不是“有哪些好的 AI 编码工具”，而是一个更基础的问题：当 Coding LLM 进入开发流程之后，软件开发到底是怎么被重新组织起来的。全文会围绕三个主题展开：先界定 Coding LLM 为什么不同于普通聊天模型，再解释为什么理解 LLM 的工作机制 是学习 prompt 的前提，最后通过 Ollama、本地模型和三个小案例 few-shot、cha">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AI协作工程(一)：从 Prompt 到 Agent 的形成逻辑">
+<meta property="og:url" content="https://www.keychan.xyz/2026/03/22/062-from-prompt-to-agent/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s Notes">
+<meta property="og:description" content="本文作为 AI协作工程 系列的起点，想回答的不是“有哪些好的 AI 编码工具”，而是一个更基础的问题：当 Coding LLM 进入开发流程之后，软件开发到底是怎么被重新组织起来的。全文会围绕三个主题展开：先界定 Coding LLM 为什么不同于普通聊天模型，再解释为什么理解 LLM 的工作机制 是学习 prompt 的前提，最后通过 Ollama、本地模型和三个小案例 few-shot、cha">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/dEgRQj.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/EKaGb2.png">
+<meta property="article:published_time" content="2026-03-22T03:20:12.000Z">
+<meta property="article:modified_time" content="2026-03-22T03:22:07.728Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="提示工程">
+<meta property="article:tag" content="思维链">
+<meta property="article:tag" content="Agent">
+<meta property="article:tag" content="CodingLLM">
+<meta property="article:tag" content="Ollama">
+<meta property="article:tag" content="Few-shot">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/dEgRQj.png">
+
+
+<link rel="canonical" href="https://www.keychan.xyz/2026/03/22/062-from-prompt-to-agent/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.keychan.xyz/2026/03/22/062-from-prompt-to-agent/","path":"2026/03/22/062-from-prompt-to-agent/","title":"AI协作工程(一)：从 Prompt 到 Agent 的形成逻辑"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>AI协作工程(一)：从 Prompt 到 Agent 的形成逻辑 | KeyChan's Notes</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.keychan.xyz/">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's Notes" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's Notes</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%95%E8%A8%80"><span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AF-Coding-LLM%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E5%AE%83%E6%94%B9%E5%8F%98%E4%BA%86%E5%BC%80%E5%8F%91%E6%96%B9%E5%BC%8F"><span class="nav-text">1. 什么是 Coding LLM，为什么它改变了开发方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-LLM-%E7%9A%84%E5%BA%95%E5%B1%82%E5%B7%A5%E4%BD%9C%E6%96%B9%E5%BC%8F%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E5%BD%B1%E5%93%8D-Prompt-%E8%B4%A8%E9%87%8F"><span class="nav-text">2. LLM 的底层工作方式，为什么会影响 Prompt 质量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-Prompt-%E4%B8%BA%E4%BB%80%E4%B9%88%E6%9C%89%E6%95%88%EF%BC%8C%E5%AE%83%E6%9C%AC%E8%B4%A8%E4%B8%8A%E5%9C%A8%E6%8E%A7%E5%88%B6%E4%BB%80%E4%B9%88"><span class="nav-text">3. Prompt 为什么有效，它本质上在控制什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E5%8A%A8%E6%89%8B%E5%89%8D%E7%9A%84%E5%87%86%E5%A4%87%EF%BC%9A%E7%94%A8-Ollama-%E6%90%AD%E5%BB%BA%E6%9C%80%E5%B0%8F%E5%AE%9E%E8%B7%B5%E7%8E%AF%E5%A2%83"><span class="nav-text">4. 动手前的准备：用 Ollama 搭建最小实践环境</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E5%AE%89%E8%A3%85%E4%B8%8E%E6%9C%8D%E5%8A%A1%E5%90%AF%E5%8A%A8"><span class="nav-text">4.1 安装与服务启动</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E6%A8%A1%E5%9E%8B%E4%B8%8B%E8%BD%BD%E4%B8%8E%E5%87%86%E5%A4%87"><span class="nav-text">4.2 模型下载与准备</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-%E6%A8%A1%E5%9E%8B%E9%AA%8C%E8%AF%81"><span class="nav-text">4.3 模型验证</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E4%B8%89%E4%B8%AA%E4%BB%A3%E8%A1%A8%E6%80%A7-Prompt-%E6%A1%88%E4%BE%8B%EF%BC%9A%E4%BB%8E%E8%BE%93%E5%85%A5%E8%AE%BE%E8%AE%A1%E5%88%B0%E4%BB%BB%E5%8A%A1%E7%BB%84%E7%BB%87"><span class="nav-text">5. 三个代表性 Prompt 案例：从输入设计到任务组织</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-Few-shot-Prompting%EF%BC%9A%E7%A4%BA%E4%BE%8B%E5%A6%82%E4%BD%95%E7%BA%A6%E6%9D%9F%E6%A8%A1%E5%9E%8B%E8%BE%93%E5%87%BA"><span class="nav-text">5.1 Few-shot Prompting：示例如何约束模型输出</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-Chain-of-Thought%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E6%8B%86%E8%A7%A3%E6%AD%A5%E9%AA%A4%E4%BC%9A%E6%94%B9%E5%96%84%E5%A4%8D%E6%9D%82%E4%BB%BB%E5%8A%A1"><span class="nav-text">5.2 Chain-of-Thought：为什么拆解步骤会改善复杂任务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-Tool-Calling%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E5%AE%83%E5%B7%B2%E7%BB%8F%E5%BC%80%E5%A7%8B%E6%8E%A5%E8%BF%91-Agent"><span class="nav-text">5.3 Tool Calling：为什么它已经开始接近 Agent</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-Agent-%E4%B8%8D%E6%98%AF%E5%87%AD%E7%A9%BA%E5%87%BA%E7%8E%B0%E7%9A%84%EF%BC%8C%E8%80%8C%E6%98%AF-Prompt-%E7%9A%84%E5%B7%A5%E7%A8%8B%E5%8C%96%E6%BC%94%E5%8C%96"><span class="nav-text">6. Agent 不是凭空出现的，而是 Prompt 的工程化演化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E6%80%BB%E7%BB%93"><span class="nav-text">7. 总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E5%A4%87%E6%B3%A8"><span class="nav-text">8.备注</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">162</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2026/03/22/062-from-prompt-to-agent/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's Notes">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="AI协作工程(一)：从 Prompt 到 Agent 的形成逻辑 | KeyChan's Notes">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          AI协作工程(一)：从 Prompt 到 Agent 的形成逻辑
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-03-22 11:20:12 / 修改时间：11:22:07" itemprop="dateCreated datePublished" datetime="2026-03-22T11:20:12+08:00">2026-03-22</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/AI%E5%8D%8F%E4%BD%9C%E5%B7%A5%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">AI协作工程</span></a>
+        </span>
+    </span>
+
+  
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2026/03/22/062-from-prompt-to-agent/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2026/03/22/062-from-prompt-to-agent/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>10k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>38 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>本文作为 AI协作工程 系列的起点，想回答的不是“有哪些好的 AI 编码工具”，而是一个更基础的问题：当 <strong>Coding LLM 进入开发流程之后，软件开发到底是怎么被重新组织起来的</strong>。全文会围绕三个主题展开：先界定 Coding LLM 为什么不同于普通聊天模型，再解释为什么理解 LLM 的工作机制 是学习 prompt 的前提，最后通过 Ollama、本地模型和三个小案例 few-shot、chain-of-thought、tool calling，说明 <strong>agent 更适合被理解为 prompt 工程进一步工程化之后的结果</strong>。</p>
+<span id="more"></span>
+<h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>过去很长一段时间里，软件开发的核心动作可以被概括为一条相对稳定的链路：理解需求，手工编写代码，运行测试，修复问题，然后继续迭代。工具在不断演进，语言也在变化，但 <strong>“人直接承担大部分实现细节”这一点其实一直没有变</strong>。</p>
+<p>大语言模型进入开发流程之后，这条链路开始发生变化。开发者不再只是直接编写实现细节，而是更多地在做任务定义、上下文组织、约束表达、结果检查与执行编排。模型开始参与代码解释、代码生成、修改建议、测试补全、文档整理，甚至接入命令行、编辑器和外部工具，拉长了整个协作链路。软件开发并没有变成“只要向模型提问就可以完成工作”，但它确实在从 <strong>“人直接实现”转向“人组织任务，模型参与执行”</strong>。</p>
+<p>这也是为什么 AI协作工程 这个主题值得单独拿出来说。很多人在接触 AI 编码时，最先学到的是一组 prompt 技巧，比如如何写更长的提示词、如何加角色设定、如何让模型分步思考。但如果一开始只盯着这些技巧，很容易把 AI development 理解成一套经验主义方法，好像只要掌握几个固定模板，就能稳定驱动模型完成各种工程任务。实际情况没有这么简单。<strong>Prompt 有时有效、有时失效</strong>，模型为什么对示例、顺序和格式这么敏感，为什么引入 tool calling 之后执行结构会明显变化，这些问题很难只靠技巧解释。</p>
+<p>因此，这篇作为 AI协作工程 系列开篇的文章，不打算从工具或平台角度对比，而是从三个更底层的问题切入。</p>
+<ul>
+<li>什么是 Coding LLM，它和普通聊天模型有什么差异。</li>
+<li>模型是如何工作的，这种工作方式为什么会直接影响 prompt 的设计效果。</li>
+<li>agent 并不是什么突然出现的新能力，而是 prompt 工程不断工程化之后的自然延伸。</li>
+</ul>
+<p>本文会沿着一条尽量稳定的主线展开：先界定 Coding LLM 这一对象，再回到 LLM 的基本工作方式，解释为什么 <strong>prompt 会成为 AI development 的基础能力</strong>，然后通过一个最小的本地实践环境说明这些原则如何真正落地，最后再顺着 few-shot、chain-of-thought 和 tool calling 三个案例，过渡到 agent 的形成逻辑。只有把这条主线先理清，后面再讨论 AI IDE、terminal agent、测试、安全和复杂工作流，整体理解才不会跑偏。</p>
+<pre class="mermaid">---
+title: 传统软件开发流程与 AI 协作开发流程对比图
+---
+flowchart TB
+    %% 描述: 对比开发流程的同时，突出“人”和“模型/工具”在 AI 协作中的职责拆分与重组。
+
+    subgraph A["传统软件开发"]
+        direction LR
+        A1["理解需求"] --> A2["人直接编写<br/>实现细节"]
+        A2 --> A3["运行测试"]
+        A3 --> A4["修复问题"]
+        A4 --> A5["持续迭代"]
+    end
+
+    subgraph B["AI 协作开发"]
+        direction LR
+        B1["人：需求定义<br/>上下文组织<br/>约束表达"]
+        B1 --> B2["模型：代码生成<br/>修改建议<br/>文档整理"]
+        B2 --> B3["工具：命令行<br/>编辑器<br/>外部系统"]
+        B3 --> B4["人：结果检查<br/>执行编排<br/>持续迭代"]
+    end
+
+    A -->|"开发范式迁移"| B</pre>
+
+<h2 id="1-什么是-Coding-LLM，为什么它改变了开发方式"><a href="#1-什么是-Coding-LLM，为什么它改变了开发方式" class="headerlink" title="1. 什么是 Coding LLM，为什么它改变了开发方式"></a>1. 什么是 Coding LLM，为什么它改变了开发方式</h2><p>要理解 AI development 为什么会改变开发方式，首先要界定本文讨论的核心对象。通常所说的 LLM，是指在大规模文本数据上训练出来、能够根据上下文生成后续内容的大语言模型。它擅长语言理解、续写、总结、改写和模式归纳，因此在问答、写作、搜索辅助和对话场景中表现出了很强的通用能力。</p>
+<p>但当这类模型进入软件开发场景之后，任务结构很快发生变化。开发任务并不只是“生成一段自然语言”，而是需要处理代码、文件结构、接口约束、运行错误、测试结果和工程上下文。也正因为如此，所谓 Coding LLM，更适合被理解为面向开发任务适配的模型形态。它需要在训练数据、指令微调方向、代码语料覆盖、工具接入方式和交互接口上都更靠近软件工程实践，因此能更稳定地完成解释代码、生成函数、修改已有实现、补充测试、分析报错、梳理调用链和配合外部工具执行任务等工作。</p>
+<p>这类模型与普通聊天模型最重要的差异，不在于它“更会写代码”这一点本身，而在于它面对的是一种完全不同的输入环境。普通聊天场景往往以单轮问题为中心，输入主要是自然语言意图；开发场景则常常需要附带代码片段、目录结构、报错信息、接口定义、运行结果和明确的输出格式要求。换句话说，Coding LLM 的有效性很大程度上依赖于上下文组织能力，而不是单纯依赖模型内部记忆了多少语法知识。</p>
+<p>从任务类型看，Coding LLM 至少覆盖几类高频工作。</p>
+<ul>
+<li>第一类是<strong>解释型任务</strong>，例如解释一段函数逻辑、分析一个模块的职责、说明某个报错为何出现。</li>
+<li>第二类是<strong>生成型任务</strong>，例如根据说明生成函数、测试、脚本或配置。</li>
+<li>第三类是<strong>修改型任务</strong>，例如在已有代码基础上修复问题、重构某一部分实现、补上遗漏的边界处理。</li>
+<li>第四类是<strong>验证与组织型任务</strong>，例如生成测试用例、梳理排查步骤、制定实现计划。</li>
+<li>再往前一步，当模型可以调用命令、查询文件、读取额外上下文时，它还会进入更接近 agent 的执行场景。</li>
+</ul>
+<p>因此，AI development 的变化并不能简单概括为“模型开始替人写代码”。更准确的说法是，<strong>开发流程正在被重新组织</strong>。以前很多细粒度实现细节必须由人手工完成，现在其中一部分可以交给模型处理；与此同时，人在流程中的职责也发生了转移，越来越多地转向问题定义、上下文整理、质量把关、工具编排和结果验证。了解这些也就知道了为什么我们要先回到模型的底层机制，而不是直接聊工具使用。</p>
+<pre class="mermaid">---
+title: Coding LLM 的任务能力地图
+---
+
+flowchart TB
+
+    C["Coding LLM"]
+
+    C --> A1["代码<br/>解释"]
+    C --> A2["代码<br/>生成"]
+    C --> A3["代码<br/>修改"]
+    C --> A4["测试<br/>补全"]
+    C --> A5["错误<br/>分析"]
+    C --> A6["工具<br/>调用"]
+    C --> A7["任务<br/>规划"]</pre>
+
+<h2 id="2-LLM-的底层工作方式，为什么会影响-Prompt-质量"><a href="#2-LLM-的底层工作方式，为什么会影响-Prompt-质量" class="headerlink" title="2. LLM 的底层工作方式，为什么会影响 Prompt 质量"></a>2. LLM 的底层工作方式，为什么会影响 Prompt 质量</h2><p>学习 prompt 的过程中，一个很常见的误区，是把 <strong>prompt engineering</strong> 理解成某种脱离模型机制的技巧集合。只要背下若干模板，套上角色设定、语气要求和格式约束，就能够稳定得到理想结果。这里有个问题：它忽略了 prompt 之所以有效，本质上是因为<strong>模型本身具有特定的输入处理和输出生成方式</strong>。</p>
+<p>从最基础的层面看，LLM 可以被概括为一种基于上下文预测下一个 token 的模型。这里的 token 可以理解为文本被切分后的基本单位，可能是单词、词片段、符号或其他编码形式。模型在训练过程中会接触海量文本，学习不同文本模式在不同上下文中的共同分布规律。到了推理阶段，模型并不是“查询数据库找到答案”，而是在给定上下文条件下，持续估计哪些后续 token 更有可能出现，并一步一步把输出扩展出来。</p>
+<p>这套机制带来一个很重要的结果：<strong>模型更像是概率驱动的模式建模器，而不是精确存储事实的规则系统</strong>。它擅长根据已有上下文进行补全、归纳和迁移，也擅长在见过的大量模式之间建立相似性联系，但它并不天然保证结果一定正确、稳定或可验证。也正因为如此，模型对输入上下文的组织方式异常敏感。示例放在前面还是后面，任务说明是否明确，格式要求是否具体，角色设定是否提供了额外约束，这些因素都会影响模型对“当前最可能的延续模式”的判断。</p>
+<p>这也解释了为什么示例、顺序、角色和格式会显著影响输出。一个结构化 prompt 往往不是因为用了某种神秘咒语才变得有效，而是因为它更清楚地告诉模型当前处于什么任务环境中，需要遵循什么模式，应该以怎样的结构继续生成。对于 Coding LLM 来说，这一点尤其明显。因为开发任务通常带有更强的结构性，模型需要同时理解需求描述、代码上下文、输出边界和工具接口。如果输入上下文模糊、缺少必要示例，或者把多个层次的要求混在一起，模型就更容易产生表面上看起来合理、实际上却不符合预期的结果。</p>
+<p>理解底层机制还有另一个现实作用，就是帮助判断问题到底出在哪里。很多时候，一个 prompt 结果不好，并不意味着“不会提问”，而更可能是以下几类问题中的一种。</p>
+<ul>
+<li>可能是<strong>上下文不足</strong>，模型没有看到关键代码或约束条件。</li>
+<li>可能是<strong>任务本身超出了模型当前能力边界</strong>，例如要求它对未知环境做精确判断。</li>
+<li>也可能是<strong>输出目标没有定义清楚</strong>，导致模型只能沿着最常见的语言模式继续生成。</li>
+<li>还有一些情况则更典型地属于<strong>工具层问题</strong>，本来应当通过外部检索、执行命令或读取运行结果来补足的信息，却被强行交给模型内部知识去猜测。</li>
+</ul>
+<p>因此，先理解底层，再学 prompt，并不是在强调理论优先于实践，而是在强调认知顺序。如果不理解模型是如何处理输入的，就很难知道 prompt 应该控制什么，也很难区分当前遇到的问题究竟属于表达方式、上下文组织、模型边界还是工具缺失。只有先把这些基本机制理清楚，后文关于 prompt、few-shot、chain-of-thought 和 tool calling 的讨论，才不会停留在技巧表面。</p>
+<pre class="mermaid">---
+title: LLM 输入到输出的简化机制图
+---
+flowchart LR
+    A["用户输入"] --> B["上下文窗口<br/>Context Window"]
+    B --> C["基于当前上下文进行<br/>Token 预测"]
+    C --> D["逐步生成输出<br/>Output Generation"]
+
+    E["Prompt 影响因素<br/>示例、顺序、格式、角色"] -. "影响上下文解释" .-> B</pre>
+
+<h2 id="3-Prompt-为什么有效，它本质上在控制什么"><a href="#3-Prompt-为什么有效，它本质上在控制什么" class="headerlink" title="3. Prompt 为什么有效，它本质上在控制什么"></a>3. Prompt 为什么有效，它本质上在控制什么</h2><p>如果说理解 LLM 的工作方式是在建立地基，那么理解 prompt 的本质，就是在明确人与模型之间究竟通过什么方式建立协作。Prompt 当然可以表现为一段文字，但它的作用远不止“提一个问题”这么简单。对于模型来说，prompt 实际上是在同时定义任务目标、上下文材料、边界条件、输出格式以及必要的参考模式。也正因为如此，prompt 的质量往往直接决定了模型对当前任务环境的判断精度。</p>
+<p>从这个角度看，prompt 更接近一种输入设计，而不是一句自然语言命令。一个好的 prompt，通常至少会清楚回答几个问题：</p>
+<ul>
+<li>当前任务究竟要完成什么；</li>
+<li>模型应该依据哪些上下文作答；</li>
+<li>输出需要遵循什么结构；</li>
+<li>哪些内容必须包含，哪些内容必须避免；</li>
+<li>如果任务较复杂，是否需要给出示例或中间步骤。</li>
+</ul>
+<p>Prompt 之所以能够显著影响输出，不是因为它在“操控LLM”，而是因为它在帮助模型更准确地定位 <strong>当前最合适的模式空间</strong>。</p>
+<p>这也是 prompt engineering 之所以带有 engineering 属性的原因。它并不是灵感式写作，也不是一次性沟通，而是一个可实验、可迭代、可评估的过程。不同 prompt 版本之间可以比较，不同上下文组织方式可以测试，输出结果可以根据任务完成度进行检查，较为稳定的写法还可以被沉淀为模板或系统组件。换句话说，prompt 工程和传统软件工程之间存在一种明显的结构相似性。二者都在处理接口设计、输入约束、反馈闭环和质量改进，只是一个面向程序行为，另一个面向模型行为。</p>
+<p>把 prompt 理解为任务接口，还有助于纠正另一个常见误区：prompt engineering 不等于技巧目录。zero-shot、few-shot、chain-of-thought 当然都很重要，但如果脱离任务目标和模型机制，它们很容易退化成套路化的拼装。真正有效的方式，是先明确当前任务需要模型做什么，再判断是否要补示例、是否要拆步骤、是否要加格式约束，或者是否已经进入需要调用外部工具的阶段。也就是说，<strong>技巧永远只是手段，而任务结构和上下文组织才是核心</strong>。</p>
+<p>对于 AI development 来说，这一点格外重要。开发任务的复杂性远高于普通对话，常常涉及跨文件关系、错误上下文、运行环境和输出验证。如果 prompt 只是含混地表达需求，而没有提供足够的约束和上下文，模型即使在语言层面看上去回答得流畅，也可能在工程层面完全不可用。因此，在真正进入实践前，有必要明确好 prompt 的定义：它不是神秘技巧，而是 <strong>人与模型之间的任务定义机制</strong>。</p>
+<pre class="mermaid">---
+title: Prompt 结构拆解图
+---
+
+flowchart TB
+    F["模型输出<br/>Model Output"]
+
+    A["任务目标<br/>What To Do"]
+    B["上下文<br/>Context"]
+    C["约束条件<br/>Constraints"]
+    D["示例<br/>Examples"]
+    E["输出格式<br/>Output Format"]
+
+    A --> F
+    B --> F
+    C --> F
+    D --> F
+    E --> F</pre>
+
+<h2 id="4-动手前的准备：用-Ollama-搭建最小实践环境"><a href="#4-动手前的准备：用-Ollama-搭建最小实践环境" class="headerlink" title="4. 动手前的准备：用 Ollama 搭建最小实践环境"></a>4. 动手前的准备：用 Ollama 搭建最小实践环境</h2><p>理解 prompt 和模型机制之后，下一步不是继续讨论技巧，而是<strong>搭一个可以反复验证的最小实验环境</strong>。</p>
+<p>原因很简单：很多问题只有在模型真正跑起来之后，才会变得具体。输入怎么组织会影响输出、哪些约束更容易被遵守、哪些写法会让结果变得不稳定——这些都很难靠抽象推断，只能通过实际运行来观察和比较。</p>
+<p>对于开篇来说，本地模型环境是一个合适的起点。它的价值不在于性能，而在于<strong>路径足够短</strong>。不需要先引入复杂平台，也不需要分心处理远程服务、配额或费用问题，就可以围绕同一个任务反复调整 prompt，直接观察输出变化。这里真正需要的不是一个“完整方案”，而是一个<strong>足够简单、可以持续复现的实验场</strong>。</p>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/dEgRQj.png" alt="dEgRQj"></p>
+<p>在这种语境下，Ollama 是一个很自然的选择。它提供了本地模型的管理与运行能力，并通过命令行统一交互方式。对于入门阶段，这已经足够支撑一条最关键的闭环：拉取模型、启动服务、发送 prompt、观察响应，再基于同一个问题不断调整输入。</p>
+<h3 id="4-1-安装与服务启动"><a href="#4-1-安装与服务启动" class="headerlink" title="4.1 安装与服务启动"></a>4.1 安装与服务启动</h3><p>在 macOS 系统中，可通过 Homebrew 安装和启动：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">brew install --cask ollama</span><br><span class="line">ollama serve</span><br></pre></td></tr></table></figure>
+<p>在 Linux 系统中，可通过官方脚本完成安装和启动：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl -fsSL https://ollama.com/install.sh | sh</span><br><span class="line">ollama serve</span><br></pre></td></tr></table></figure>
+<p>Windows 系统可通过官方网站下载安装程序并按提示完成安装。</p>
+<p>安装完成后，通过以下命令验证版本信息：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ollama -v</span><br></pre></td></tr></table></figure>
+<p>若终端返回版本号，则说明环境部署成功。</p>
+<h3 id="4-2-模型下载与准备"><a href="#4-2-模型下载与准备" class="headerlink" title="4.2 模型下载与准备"></a>4.2 模型下载与准备</h3><p>完成安装后，需要下载两个模型。</p>
+<ul>
+<li><strong>mistral-nemo:12b</strong>（<a target="_blank" rel="noopener" href="https://mistral.ai/">Mistral AI</a>）是120亿参数的模型，大概占用7.1G存储空间。综合能力更强，适合较复杂任务，但资源占用更高。</li>
+<li><strong>llama3.1:8b</strong>（<a target="_blank" rel="noopener" href="https://www.meta.com/">Meta Platforms</a>）是80亿参数模型，大概占用4.9G存储空间。更轻量、速度更快，适合日常对话和低资源环境。</li>
+</ul>
+<p>该步骤仅在首次使用时执行。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ollama run mistral-nemo:12b</span><br><span class="line">ollama run llama3.1:8b</span><br></pre></td></tr></table></figure>
+<p>模型下载完成后即可在本地运行，运行过程中主要消耗 CPU 与内存资源。</p>
+<p>这里选择 <code>mistral-nemo:12b</code> 和 <code>llama3.1:8b</code> 是因为它们足够支撑本文需要完成的观察：不同 prompt 组织方式会如何改变输出。模型本身不必一开始就追求“最强”，关键是环境要稳定，实验要容易重复。</p>
+<h3 id="4-3-模型验证"><a href="#4-3-模型验证" class="headerlink" title="4.3 模型验证"></a>4.3 模型验证</h3><p>为了先验证环境是否正常，可以在进入交互界面后输入一个非常简单的测试 prompt：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">请用三句话解释什么是 prompt engineering。</span><br><span class="line">要求：</span><br><span class="line">1. 输出中文</span><br><span class="line">2. 不要使用列表</span><br><span class="line">3. 语气正式</span><br></pre></td></tr></table></figure>
+
+<img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/EKaGb2.png" style="width:680px;">
+### 3.4 Python 调用示例
+在 Python 环境中安装相关依赖：
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install ollama python-dotenv</span><br></pre></td></tr></table></figure>
+最小可运行示例如下：
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> ollama <span class="keyword">import</span> chat  </span><br><span class="line"><span class="keyword">from</span> logprint <span class="keyword">import</span> P  </span><br><span class="line">  </span><br><span class="line">response = chat(  </span><br><span class="line">    model=<span class="string">&quot;llama3.1:8b&quot;</span>,  </span><br><span class="line">    messages=[  </span><br><span class="line">        &#123;<span class="string">&quot;role&quot;</span>: <span class="string">&quot;system&quot;</span>, <span class="string">&quot;content&quot;</span>: <span class="string">&quot;You are a concise assistant.&quot;</span>&#125;,  </span><br><span class="line">        &#123;<span class="string">&quot;role&quot;</span>: <span class="string">&quot;user&quot;</span>, <span class="string">&quot;content&quot;</span>: <span class="string">&quot;请用三句话解释什么是 prompt engineering。要求：输出中文，不要使用列表，语气正式。&quot;</span>&#125;,  </span><br><span class="line">    ],  </span><br><span class="line">    options=&#123;<span class="string">&quot;temperature&quot;</span>: <span class="number">0</span>&#125;  </span><br><span class="line">)  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:  </span><br><span class="line">    P.<span class="built_in">print</span>(response.message.content)  </span><br><span class="line">    <span class="comment"># Prompt engineering是一种人工智能技术，涉及设计和优化自然语言输入，以获得特定的输出结果或行为。它通过调整输入的措辞、结构和内容来影响模型的理解和响应。通过精心构造的提示，可以实现更准确、更有针对性的模型预测和决策。</span></span><br></pre></td></tr></table></figure>
+若成功输出结果，则说明本地模型部署、服务启动与接口调用均已完成。完成这一步之后，再进入 few-shot、chain-of-thought 和 tool calling 的案例时，就更容易判断问题究竟出在环境、模型，还是输入设计本身。
+
+<p>在这个最小示例里，还有一个非常关键但容易被忽略的点：<strong>输入其实是分层组织的</strong>。system 和 user 并不是随意划分的，而是分别承担了不同角色。</p>
+<p>system 更接近“规则”，用于定义模型应该如何回应，例如语气、风格和输出约束；user 则对应“任务”，提供当前需要处理的具体问题。这种区分的作用在于，让模型先对齐行为方式，再去处理输入内容。</p>
+<p>从工程角度看，这种结构的价值在于将“可复用的约束”和“每次变化的输入”拆开。规则可以保持稳定，任务可以不断替换，从而更容易观察输入变化如何影响输出结果。后续的 few-shot、chain-of-thought 和 tool calling，本质上都是在这一基础上进一步强化或扩展这两层之间的关系。</p>
+<p>进一步看，这种分层并不会止步于 system 和 user。随着任务复杂度提升，通常还会引入更多角色。例如，assistant 用来表示模型在过程中的中间输出，既可以作为 few-shot 示例，也可以承载推理过程；tool 则用于接收外部工具执行后的结果，将模型之外的信息重新引入上下文。</p>
+<p>当这些角色同时存在时，交互结构也随之发生变化。模型不再只是接收输入并返回结果，而是开始在“生成 → 调用工具 → 接收反馈 → 继续生成”的链路中循环推进。这里的变化并不在于单次输出能力，而在于执行过程被显式组织起来。</p>
+<p>换句话说，一旦开始区分“规则”“任务”“中间状态”和“外部反馈”，prompt 就不再只是一次简单的提问，而成为一种可以持续运转的执行结构。这也正是后续理解 agent 的基础。</p>
+<pre class="mermaid">---
+title: Ollama 本地运行链路
+---
+flowchart LR
+    A["本地终端<br/>Terminal"] --> B["Ollama 服务<br/>ollama serve"]
+    B --> C["本地模型<br/>mistral / llama"]
+    D["用户 Prompt"] --> C
+    C --> E["模型输出<br/>Response"]</pre>
+<h2 id="5-三个代表性-Prompt-案例：从输入设计到任务组织"><a href="#5-三个代表性-Prompt-案例：从输入设计到任务组织" class="headerlink" title="5. 三个代表性 Prompt 案例：从输入设计到任务组织"></a>5. 三个代表性 Prompt 案例：从输入设计到任务组织</h2><p>本文选择三个最有代表性的方向来观察 prompt 技术的演化。</p>
+<ul>
+<li>Few-shot 代表的是<strong>模式约束能力</strong>，它说明示例<strong>如何帮助模型理解期望的输入输出结构</strong>。</li>
+<li>Chain-of-thought 代表的是<strong>推理组织能力</strong>，它说明<strong>复杂任务为什么常常需要更清晰的中间步骤</strong>。</li>
+<li>Tool calling 代表的是<strong>外部能力接入</strong>，它把模型<strong>从单纯的文本生成推向了任务执行</strong>。</li>
+</ul>
+<p>把这三者放在一起观察，可以看到一条相对清晰的路径：模型先学会遵循模式，再学会组织过程，最后开始连接外部工具。</p>
+<p>这条路径之所以重要，是因为它直接对应了后文关于 <strong>agent</strong> 的讨论。很多时候，agent 被理解成一类突然出现的更高层系统，但如果回到实践层面观察，agent 的很多关键特征其实都能在 prompt 技术的逐步演化中找到前身。</p>
+<ul>
+<li>Few-shot 让输入输出更稳定；</li>
+<li>chain-of-thought 让任务过程更具结构；</li>
+<li>tool calling 则让模型有机会把内部推理与外部执行连接起来。</li>
+</ul>
+<p><strong>执行结构</strong> 就是这样一点点变长、变复杂、变可组合的。</p>
+<p>因此，接下来的三个小节并不是在展示互不相关的技巧，而是在展示一种连续的工程趋势。这种组织方式比单纯列出“有哪些 prompting techniques”更有价值，因为它能直接把 prompt、实践和 agent 之间的关系提前讲清楚。</p>
+<p>需要说明的是，agent 的组成当然不止这三个部分，记忆、状态管理、规划策略等能力同样关键。但从工程演化的角度看，few-shot、chain-of-thought 和 tool calling 已经构成了一条最基本、也最容易被观察到的演进路径。</p>
+<pre class="mermaid">---
+title: 三类 prompt 实践的渐进关系图
+---
+flowchart LR
+    A["Few-shot<br/>模式约束"] --> B["Chain-of-Thought<br/>过程组织"]
+    B --> C["Tool Calling<br/>外部能力接入"]
+    C --> D["Agent 雏形<br/>执行结构变长"]</pre>
+<h3 id="5-1-Few-shot-Prompting：示例如何约束模型输出"><a href="#5-1-Few-shot-Prompting：示例如何约束模型输出" class="headerlink" title="5.1 Few-shot Prompting：示例如何约束模型输出"></a>5.1 Few-shot Prompting：示例如何约束模型输出</h3><p>Few-shot prompting 是最容易上手、也最容易在实践中观察到效果变化的一类方法。它的关键不在于“多给几个例子”，而在于通过示例明确当前任务所遵循的输入输出模式。模型本身擅长从上下文中归纳结构，一旦示例足够清晰，就更容易沿着同一模式继续生成。</p>
+<p>这也是它在 coding 场景中格外有效的原因。许多任务并不缺描述，真正缺的是稳定的结构约束：例如按固定格式解释函数、按指定风格生成测试、将错误归类到统一字段，或根据示例把自然语言需求转化为特定形态的代码。在这些情况下，抽象要求往往不如示例直接，因为示例已经隐含了“结果应该长成什么样”。</p>
+<p>few-shot 的价值往往体现在稳定性上。没有示例时，模型可能理解了任务，但输出结构和侧重点容易波动；加入示例后，模型会把注意力集中到模式复现上，结果也更可控。</p>
+<p>为了更直观地观察这一点，可以看一个最小案例：将单词 httpstatus 反转，并且只输出结果 sutatsptth。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> ollama <span class="keyword">import</span> chat  </span><br><span class="line"><span class="keyword">from</span> logprint <span class="keyword">import</span> P  </span><br><span class="line">  </span><br><span class="line">SYSTEM_PROMPT = <span class="string">&quot;&quot;&quot;  </span></span><br><span class="line"><span class="string">你要完成字符反转任务。  </span></span><br><span class="line"><span class="string">示例1：  </span></span><br><span class="line"><span class="string">输入：apple  </span></span><br><span class="line"><span class="string">输出：elppa  </span></span><br><span class="line"><span class="string">示例2：  </span></span><br><span class="line"><span class="string">输入：drawer  </span></span><br><span class="line"><span class="string">输出：reward  </span></span><br><span class="line"><span class="string">只输出结果，不要解释。  </span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span>  </span><br><span class="line"></span><br><span class="line">USER_PROMPT = <span class="string">&quot;&quot;&quot;  </span></span><br><span class="line"><span class="string">将以下单词的字母顺序反转。  </span></span><br><span class="line"><span class="string">仅输出反转后的单词，不输出其他文本：  </span></span><br><span class="line"><span class="string">httpstatus  </span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span>  </span><br><span class="line">  </span><br><span class="line">response = chat(  </span><br><span class="line">    model=<span class="string">&quot;mistral-nemo:12b&quot;</span>,  </span><br><span class="line">    messages=[  </span><br><span class="line">        &#123;<span class="string">&quot;role&quot;</span>: <span class="string">&quot;system&quot;</span>, <span class="string">&quot;content&quot;</span>: SYSTEM_PROMPT&#125;,  </span><br><span class="line">        &#123;<span class="string">&quot;role&quot;</span>: <span class="string">&quot;user&quot;</span>, <span class="string">&quot;content&quot;</span>: USER_PROMPT&#125;,  </span><br><span class="line">    ],  </span><br><span class="line">    options=&#123;<span class="string">&quot;temperature&quot;</span>: <span class="number">0.5</span>&#125;,  <span class="comment"># temperature越高，输出越“随机”；越低，输出越“确定”</span></span><br><span class="line">)  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:  </span><br><span class="line">    output = response.message.content.strip()  </span><br><span class="line">    TARGET = <span class="string">&quot;sutatsptth&quot;</span>  </span><br><span class="line">    <span class="keyword">if</span> output == TARGET:  </span><br><span class="line">        P.<span class="built_in">print</span>(<span class="string">f&quot;✅ 正确：<span class="subst">&#123;output&#125;</span>&quot;</span>)  </span><br><span class="line">    <span class="keyword">else</span>:  </span><br><span class="line">        P.<span class="built_in">print</span>(<span class="string">f&quot;❌ 错误：<span class="subst">&#123;output&#125;</span>，期望：<span class="subst">&#123;TARGET&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+<p>在这个例子中，任务本身非常简单，但有个问题让模型能挣钱输出并不稳定。这并不是因为模型“不会反转字符串”，而是因为当前 prompt 对模式的约束还不够强：示例没有覆盖到当前输入，模型仍然需要做一定的泛化判断。</p>
+<p>如果在<code>SYSTEM_PROMPT</code>中进一步加入一条：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">示例3：  </span><br><span class="line">输入：httpstatus  </span><br><span class="line">输出：sutatsptth  </span><br></pre></td></tr></table></figure>
+<p>输出的正确性就会显著提高。原因并不复杂：<strong>当示例直接覆盖当前输入时，任务从“模式归纳”转变为“模式匹配”，模型几乎不再需要推断</strong>。</p>
+<p>这恰好说明了 few-shot 的一个关键边界：<strong>它本质上是在通过上下文约束模型的行为，而不是让模型真正“理解规则”</strong>。示例越接近目标输入，输出越稳定；但这也意味着，few-shot 的泛化能力是有限的。</p>
+<p>因此，few-shot 的核心不在示例数量，而在于示例是否准确承载了当前任务的模式信息。它的意义也不只是让结果更好，而是让人意识到：prompt 并不是简单的提问，而是在主动构造模型的输入分布。一旦这一点建立起来，后续理解更复杂的推理与执行机制就会顺畅得多。</p>
+<h3 id="5-2-Chain-of-Thought：为什么拆解步骤会改善复杂任务"><a href="#5-2-Chain-of-Thought：为什么拆解步骤会改善复杂任务" class="headerlink" title="5.2 Chain-of-Thought：为什么拆解步骤会改善复杂任务"></a>5.2 Chain-of-Thought：为什么拆解步骤会改善复杂任务</h3><p>如果说 few-shot 解决的是“模型应该遵循什么模式”，那么 chain-of-thought（思维链）关注的是另一件事：<strong>模型应该如何组织推理过程</strong>。</p>
+<p>对于简单任务，直接生成结果通常没有问题。但一旦任务涉及多步推导、条件拆解或中间状态转换，模型就很容易在“跳步”中出错：要么遗漏关键条件，要么在局部推断中产生偏差。此时，仅仅给出目标是不够的，问题出在<strong>过程没有被约束</strong>。</p>
+<p>chain-of-thought 的核心做法很直接：<strong>把原本隐含的推理过程显式化</strong>。通过在 prompt 中引导模型一步一步展开，中间状态被暴露出来，推理路径变得可检查，最终结果也更稳定。这并不是让模型“更聪明”，而是让任务结构更清晰，从而减少推理中的不确定性。</p>
+<p>这种方式在开发场景中非常常见。例如分析一个复杂报错时，如果只要求“给出原因和修复建议”，模型很容易直接输出一个看似合理但缺乏依据的结论；而如果要求它先识别错误类型，再分析可能原因，再列出验证路径，最后再给出修复方案，输出会明显更有层次，也更便于人工检查。</p>
+<p>一个更通俗的例子，计算：<code>3^12345 mod 100</code>，并要求最后一行严格输出：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Answer: 43</span><br></pre></td></tr></table></figure>
+<p>这个问题的特点是：<strong>答案依赖中间推导</strong>。如果只让模型直接给结果，它往往会猜测或在计算过程中失稳；但如果明确引导推理路径，结果会稳定很多。</p>
+<p>例如，可以这样设计 prompt：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">请先分析这个问题属于哪一种模运算规律，再一步一步写出推导过程。</span><br><span class="line">先确定幂在 mod 100 下的循环周期，再利用周期化简指数，最后得到结果。</span><br><span class="line">最后一行必须单独写成：</span><br><span class="line">Answer: &lt;数字&gt;</span><br></pre></td></tr></table></figure>
+<p>这里的关键不是“写更多内容”，而是把推理路径拆出来：<strong>先找规律 → 再化简 → 最后输出结果</strong>。</p>
+<p>下面是一段完整的最小代码示例，包含调用、约束和结果校验：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> ollama <span class="keyword">import</span> chat  </span><br><span class="line"><span class="keyword">from</span> logprint <span class="keyword">import</span> P  </span><br><span class="line">  </span><br><span class="line"><span class="comment"># system prompt：定义推理路径 + 输出格式约束  </span></span><br><span class="line">SYSTEM_PROMPT = <span class="string">&quot;&quot;&quot;  </span></span><br><span class="line"><span class="string">请先分析问题，再逐步写出推导过程。  </span></span><br><span class="line"><span class="string">先判断是否存在模运算周期，再利用周期化简指数。  </span></span><br><span class="line"><span class="string">最后一行必须严格写成：  </span></span><br><span class="line"><span class="string">Answer: &lt;数字&gt;  </span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span>  </span><br><span class="line"></span><br><span class="line"><span class="comment"># user prompt：提供具体问题  </span></span><br><span class="line">USER_PROMPT = <span class="string">&quot;&quot;&quot;  </span></span><br><span class="line"><span class="string">求解下这个问题，并在最后一行按如下格式给出最终答案：“Answer: ”。  </span></span><br><span class="line"><span class="string">求 3^&#123;12345&#125; \\mod 100 的结果是多少？  </span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span>  </span><br><span class="line">  </span><br><span class="line">TARGET = <span class="string">&quot;Answer: 43&quot;</span>  </span><br><span class="line">  </span><br><span class="line">response = chat(  </span><br><span class="line">    model=<span class="string">&quot;llama3.1:8b&quot;</span>,  </span><br><span class="line">    messages=[  </span><br><span class="line">        &#123;<span class="string">&quot;role&quot;</span>: <span class="string">&quot;system&quot;</span>, <span class="string">&quot;content&quot;</span>: SYSTEM_PROMPT&#125;,  <span class="comment"># 约束推理路径和输出格式  </span></span><br><span class="line">        &#123;<span class="string">&quot;role&quot;</span>: <span class="string">&quot;user&quot;</span>, <span class="string">&quot;content&quot;</span>: USER_PROMPT&#125;,      <span class="comment"># 提供具体问题  </span></span><br><span class="line">    ],  </span><br><span class="line">    options=&#123;  </span><br><span class="line">        <span class="string">&quot;temperature&quot;</span>: <span class="number">0.3</span>  <span class="comment"># 降低随机性，减少推理过程和结果的波动  </span></span><br><span class="line">    &#125;,  </span><br><span class="line">)  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:  </span><br><span class="line">    output = response.message.content.strip()  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 提取最后一行作为答案  </span></span><br><span class="line">    last_line = output.splitlines()[-<span class="number">1</span>].strip()  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">if</span> last_line == TARGET:  </span><br><span class="line">        P.<span class="built_in">print</span>(<span class="string">f&quot;✅ 正确：<span class="subst">&#123;last_line&#125;</span>&quot;</span>)  </span><br><span class="line">    <span class="keyword">else</span>:  </span><br><span class="line">        P.<span class="built_in">print</span>(<span class="string">f&quot;❌ 错误：<span class="subst">&#123;last_line&#125;</span>，期望：<span class="subst">&#123;TARGET&#125;</span>&quot;</span>)  </span><br><span class="line">        P.<span class="built_in">print</span>(<span class="string">&quot;完整输出：&quot;</span>)  </span><br><span class="line">        P.<span class="built_in">print</span>(output)</span><br></pre></td></tr></table></figure>
+<p>这段代码里，有两个核心设计：</p>
+<ul>
+<li>明确推理路径，而不是泛泛要求“认真思考”。先判断周期 → 再化简指数。这相当于把问题的“解题思路”提前写进 prompt，减少模型在推理时的自由度。</li>
+<li>固定输出格式，方便工程验证。<code>Answer: &lt;数字&gt;</code></li>
+</ul>
+<p>这样做的意义不只是规范输出，而是让模型结果可以被程序直接判断。这一步非常关键，因为它把 prompt 从“语言技巧”连接到了“工程可验证”。当然chain-of-thought 并不是通用方案。</p>
+<ul>
+<li>对简单任务：会增加冗余，降低效率</li>
+<li>对结构清晰任务：可能反而引入噪音</li>
+<li>对复杂推理任务：效果最明显</li>
+</ul>
+<p>它真正解决的问题是：<strong>当结果依赖多步推导时，如何让模型不跳步、不失真。</strong></p>
+<p>如果说 few-shot 让模型学会“遵循模式”，那么 chain-of-thought 则让模型开始“按照过程执行”。这一步很关键，因为从这里开始，prompt 不再只是控制输出结果，而是开始<strong>约束执行路径</strong>。一旦过程可以被组织，下一步让模型调用外部工具、参与真实任务执行，就会变得顺理成章。</p>
+<pre class="mermaid">---
+title: Chain-of-Thought 步骤展开
+---
+flowchart LR
+    A["问题输入<br/>Complex Task"] --> B["识别问题类型<br/>类型判断"]
+    B --> C["中间推导步骤<br/>Step-by-step Reasoning"]
+    C --> D["最终答案<br/>Answer"]</pre>
+
+
+<h3 id="5-3-Tool-Calling：为什么它已经开始接近-Agent"><a href="#5-3-Tool-Calling：为什么它已经开始接近-Agent" class="headerlink" title="5.3 Tool Calling：为什么它已经开始接近 Agent"></a>5.3 Tool Calling：为什么它已经开始接近 Agent</h3><p>tool calling 的关键不在于“接入外部函数”，而在于把模型的输出从“自然语言结果”变成“可执行动作”。一旦模型开始输出结构化调用，并交由外部执行器运行，整个任务结构就从一次性生成转变为“生成 → 执行 → 反馈”的链路，这也是它逐渐接近 agent 的原因。</p>
+<p>先看一个完整的实现。这里的目标不是让模型自己分析代码，而是让它学会在需要时调用工具，由外部系统给出真实结果。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> ast</span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> <span class="type">Any</span>, <span class="type">Dict</span>, <span class="type">List</span>, <span class="type">Optional</span>, <span class="type">Tuple</span>, <span class="type">Callable</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> ollama <span class="keyword">import</span> chat</span><br><span class="line"><span class="keyword">from</span> logprint <span class="keyword">import</span> P</span><br><span class="line"></span><br><span class="line">NUM_RUNS_TIMES = <span class="number">3</span>  <span class="comment"># 多次运行，观察在轻微随机性下是否仍然稳定</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 工具实现：真实能力，不依赖模型</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">_annotation_to_str</span>(<span class="params">annotation: <span class="type">Optional</span>[ast.AST]</span>) -&gt; <span class="built_in">str</span>:</span><br><span class="line">    <span class="comment"># 将函数返回值的 AST 注解转成字符串</span></span><br><span class="line">    <span class="keyword">if</span> annotation <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;None&quot;</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">return</span> ast.unparse(annotation)</span><br><span class="line">    <span class="keyword">except</span> Exception:</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">isinstance</span>(annotation, ast.Name):</span><br><span class="line">            <span class="keyword">return</span> annotation.<span class="built_in">id</span></span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">type</span>(annotation).__name__</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">_list_function_return_types</span>(<span class="params">file_path: <span class="built_in">str</span></span>) -&gt; <span class="type">List</span>[<span class="type">Tuple</span>[<span class="built_in">str</span>, <span class="built_in">str</span>]]:</span><br><span class="line">    <span class="comment"># 解析 Python 文件，提取“顶层函数”的返回类型</span></span><br><span class="line">    <span class="keyword">with</span> <span class="built_in">open</span>(file_path, <span class="string">&quot;r&quot;</span>, encoding=<span class="string">&quot;utf-8&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">        source = f.read()</span><br><span class="line"></span><br><span class="line">    tree = ast.parse(source)</span><br><span class="line">    results: <span class="type">List</span>[<span class="type">Tuple</span>[<span class="built_in">str</span>, <span class="built_in">str</span>]] = []</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> node <span class="keyword">in</span> tree.body:</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">isinstance</span>(node, ast.FunctionDef):</span><br><span class="line">            return_str = _annotation_to_str(node.returns)</span><br><span class="line">            results.append((node.name, return_str))</span><br><span class="line"></span><br><span class="line">    results.sort(key=<span class="keyword">lambda</span> x: x[<span class="number">0</span>])  <span class="comment"># 排序保证输出稳定</span></span><br><span class="line">    <span class="keyword">return</span> results</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">output_every_func_return_type</span>(<span class="params">file_path: <span class="built_in">str</span> = <span class="literal">None</span></span>) -&gt; <span class="built_in">str</span>:</span><br><span class="line">    <span class="comment"># 工具函数：输出每个函数的返回类型</span></span><br><span class="line">    path = file_path <span class="keyword">or</span> __file__</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> os.path.isabs(path):</span><br><span class="line">        candidate = os.path.join(os.path.dirname(__file__), path)</span><br><span class="line">        <span class="keyword">if</span> os.path.exists(candidate):</span><br><span class="line">            path = candidate</span><br><span class="line"></span><br><span class="line">    pairs = _list_function_return_types(path)</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;\n&quot;</span>.join(<span class="string">f&quot;<span class="subst">&#123;name&#125;</span>: <span class="subst">&#123;ret&#125;</span>&quot;</span> <span class="keyword">for</span> name, ret <span class="keyword">in</span> pairs)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 示例函数（用于观察能否被工具解析）</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">add</span>(<span class="params">a: <span class="built_in">int</span>, b: <span class="built_in">int</span></span>) -&gt; <span class="built_in">int</span>:</span><br><span class="line">    <span class="keyword">return</span> a + b</span><br><span class="line">    </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">greet</span>(<span class="params">name: <span class="built_in">str</span></span>) -&gt; <span class="built_in">str</span>:</span><br><span class="line">    <span class="keyword">return</span> <span class="string">f&quot;Hello, <span class="subst">&#123;name&#125;</span>!&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 工具注册：限制模型可调用范围</span></span><br><span class="line">TOOL_REGISTRY: <span class="type">Dict</span>[<span class="built_in">str</span>, <span class="type">Callable</span>[..., <span class="built_in">str</span>]] = &#123;</span><br><span class="line">    <span class="string">&quot;output_every_func_return_type&quot;</span>: output_every_func_return_type,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># Prompt 协议：约束模型输出结构</span></span><br><span class="line">SYSTEM_PROMPT = <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">你必须使用 JSON 格式返回工具调用结果。</span></span><br><span class="line"><span class="string">只能返回一个 JSON 对象，包含以下字段：</span></span><br><span class="line"><span class="string">- tool：必须是 [&quot;output_every_func_return_type&quot;] 之一</span></span><br><span class="line"><span class="string">- args：一个对象，可包含可选字段 &quot;file_path&quot;（字符串）。使用 &quot;&quot; 表示当前文件。</span></span><br><span class="line"><span class="string">不要包含任何额外文本或其他内容。</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="comment"># 模型被强制输出 JSON，而不是自然语言答案</span></span><br><span class="line"><span class="comment"># 输出空间被压缩为：&#123;tool, args&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 工具调用解析</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">extract_tool_call</span>(<span class="params">text: <span class="built_in">str</span></span>) -&gt; <span class="type">Dict</span>[<span class="built_in">str</span>, <span class="type">Any</span>]:</span><br><span class="line">    <span class="comment"># 将模型输出解析为 JSON</span></span><br><span class="line">    text = text.strip()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> text.startswith(<span class="string">&quot;```&quot;</span>) <span class="keyword">and</span> text.endswith(<span class="string">&quot;```&quot;</span>):</span><br><span class="line">        text = text.strip(<span class="string">&quot;`&quot;</span>)</span><br><span class="line">        <span class="keyword">if</span> text.lower().startswith(<span class="string">&quot;json\n&quot;</span>):</span><br><span class="line">            text = text[<span class="number">5</span>:]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> json.loads(text)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 模型调用</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">run_model_for_tool_call</span>(<span class="params">system_prompt: <span class="built_in">str</span></span>) -&gt; <span class="type">Dict</span>[<span class="built_in">str</span>, <span class="type">Any</span>]:</span><br><span class="line">    response = chat(</span><br><span class="line">        model=<span class="string">&quot;llama3.1:8b&quot;</span>,</span><br><span class="line">        messages=[</span><br><span class="line">            &#123;<span class="string">&quot;role&quot;</span>: <span class="string">&quot;system&quot;</span>, <span class="string">&quot;content&quot;</span>: system_prompt&#125;,</span><br><span class="line">            &#123;<span class="string">&quot;role&quot;</span>: <span class="string">&quot;user&quot;</span>, <span class="string">&quot;content&quot;</span>: <span class="string">&quot;现在调用该工具。&quot;</span>&#125;,</span><br><span class="line">        ],</span><br><span class="line">        options=&#123;<span class="string">&quot;temperature&quot;</span>: <span class="number">0.3</span>&#125;,  <span class="comment"># 保留轻微随机性，观察稳定性</span></span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    content = response.message.content</span><br><span class="line">    P.<span class="built_in">print</span>(<span class="string">f&quot;工具调用： <span class="subst">&#123;content&#125;</span>&quot;</span>)</span><br><span class="line">    <span class="keyword">return</span> extract_tool_call(content)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 工具执行器：把“JSON”变成“真实执行”</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">resolve_path</span>(<span class="params">p: <span class="built_in">str</span></span>) -&gt; <span class="built_in">str</span>:</span><br><span class="line">    <span class="keyword">if</span> os.path.isabs(p):</span><br><span class="line">        <span class="keyword">return</span> p</span><br><span class="line">    here = os.path.dirname(__file__)</span><br><span class="line">    c1 = os.path.join(here, p)</span><br><span class="line">    <span class="keyword">if</span> os.path.exists(c1):</span><br><span class="line">        <span class="keyword">return</span> c1</span><br><span class="line">    <span class="keyword">return</span> p</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">execute_tool_call</span>(<span class="params">call: <span class="type">Dict</span>[<span class="built_in">str</span>, <span class="type">Any</span>]</span>) -&gt; <span class="built_in">str</span>:</span><br><span class="line">    <span class="comment"># 1. 找工具</span></span><br><span class="line">    name = call.get(<span class="string">&quot;tool&quot;</span>)</span><br><span class="line">    func = TOOL_REGISTRY.get(name)</span><br><span class="line">    <span class="keyword">if</span> func <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">f&quot;未知工具: <span class="subst">&#123;name&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 2. 处理参数</span></span><br><span class="line">    args = call.get(<span class="string">&quot;args&quot;</span>, &#123;&#125;)</span><br><span class="line">    <span class="keyword">if</span> <span class="string">&quot;file_path&quot;</span> <span class="keyword">in</span> args <span class="keyword">and</span> <span class="built_in">isinstance</span>(args[<span class="string">&quot;file_path&quot;</span>], <span class="built_in">str</span>):</span><br><span class="line">        args[<span class="string">&quot;file_path&quot;</span>] = (</span><br><span class="line">            resolve_path(args[<span class="string">&quot;file_path&quot;</span>])</span><br><span class="line">            <span class="keyword">if</span> args[<span class="string">&quot;file_path&quot;</span>] != <span class="string">&quot;&quot;</span></span><br><span class="line">            <span class="keyword">else</span> __file__</span><br><span class="line">        )</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        args[<span class="string">&quot;file_path&quot;</span>] = __file__</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 3. 执行</span></span><br><span class="line">    <span class="keyword">return</span> func(**args)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Ground truth：真实答案（不经过模型）</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">compute_expected_output</span>() -&gt; <span class="built_in">str</span>:</span><br><span class="line">    <span class="keyword">return</span> output_every_func_return_type(__file__)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 测试</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">run_prompt</span>(<span class="params">system_prompt: <span class="built_in">str</span></span>) -&gt; <span class="built_in">bool</span>:</span><br><span class="line">    expected = compute_expected_output()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(NUM_RUNS_TIMES):</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 模型生成“工具调用”</span></span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            call = run_model_for_tool_call(system_prompt)</span><br><span class="line">        <span class="keyword">except</span> Exception <span class="keyword">as</span> exc:</span><br><span class="line">            P.<span class="built_in">print</span>(<span class="string">f&quot;解析失败： <span class="subst">&#123;exc&#125;</span>&quot;</span>)</span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 执行工具</span></span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            actual = execute_tool_call(call)</span><br><span class="line">            P.<span class="built_in">print</span>(<span class="string">&quot;工具输出：\n&quot;</span> + actual)</span><br><span class="line">        <span class="keyword">except</span> Exception <span class="keyword">as</span> exc:</span><br><span class="line">            P.<span class="built_in">print</span>(<span class="string">f&quot;执行失败： <span class="subst">&#123;exc&#125;</span>&quot;</span>)</span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 校验</span></span><br><span class="line">        <span class="keyword">if</span> actual.strip() == expected.strip():</span><br><span class="line">            P.<span class="built_in">print</span>(<span class="string">&quot;成功&quot;</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            P.<span class="built_in">print</span>(<span class="string">&quot;期望输出：\n&quot;</span> + expected)</span><br><span class="line">            P.<span class="built_in">print</span>(<span class="string">&quot;实际输出：\n&quot;</span> + actual)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    run_prompt(SYSTEM_PROMPT)</span><br></pre></td></tr></table></figure>
+<p>日志输出：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">工具输出：</span><br><span class="line">_annotation_to_str: str</span><br><span class="line">_list_function_return_types: List[Tuple[str, str]]</span><br><span class="line">add: int</span><br><span class="line">compute_expected_output: str</span><br><span class="line">execute_tool_call: str</span><br><span class="line">extract_tool_call: Dict[str, Any]</span><br><span class="line">greet: str</span><br><span class="line">output_every_func_return_type: str</span><br><span class="line">resolve_path: str</span><br><span class="line">run_model_for_tool_call: Dict[str, Any]</span><br><span class="line">run_prompt: bool</span><br><span class="line"></span><br><span class="line">成功</span><br></pre></td></tr></table></figure>
+<p>在这个实现中，最关键的变化有三点：</p>
+<ul>
+<li>模型被要求输出 JSON，而不是自然语言；</li>
+<li>JSON 被解析为结构化调用；调用被外部执行器真正运行。</li>
+<li>模型的输出不再是终点，而只是执行链路中的一个中间节点。</li>
+</ul>
+<p>一旦引入这种结构，任务就不再是单次生成，而是由“判断是否调用工具、构造调用参数、接收执行结果、继续推进”组成的过程。模型开始参与决策，但不再直接承担所有计算或查询工作。</p>
+<p>因此，tool calling 的意义不在于“增强模型能力”，而在于改变系统边界。模型负责决策与组织，工具负责执行与验证。两者结合之后，让原本封闭在上下文中的生成过程，被扩展为一个可以与外部世界交互的执行系统，这正是 agent 的基本形态。</p>
+<pre class="mermaid">---
+title: Tool Calling 执行闭环
+---
+flowchart LR
+    A["模型判断<br/>Need Tool?"] --> B["工具调用<br/>Structured Call"]
+    B --> C["外部执行<br/>Executor"]
+    C --> D["返回结果<br/>Tool Result"]
+    D --> E["模型继续生成<br/>Next Step"]
+    E --> A</pre>
+
+<h2 id="6-Agent-不是凭空出现的，而是-Prompt-的工程化演化"><a href="#6-Agent-不是凭空出现的，而是-Prompt-的工程化演化" class="headerlink" title="6. Agent 不是凭空出现的，而是 Prompt 的工程化演化"></a>6. Agent 不是凭空出现的，而是 Prompt 的工程化演化</h2><p>到这里再看 agent，它已经不再是一个需要单独解释的新概念，而更像是一条连续演化路径上的自然结果。</p>
+<p>模型最初通过 prompt 接收任务；在 few-shot 和 chain-of-thought 的帮助下，逐渐获得更稳定的模式约束和过程组织能力；随后通过 tool calling 与外部能力建立连接，开始处理超出纯文本生成范围的问题。当这些能力继续叠加，并引入任务拆解、状态记录、结果校验和循环执行之后，agent 便逐渐形成。</p>
+<p>因此，agent 的核心并不在于“更强的模型”，而在于<strong>执行结构的变化</strong>。系统之所以被称为 agent，是因为它能够在一条更长的任务链路中持续运转：接收目标，拆分任务，决定是否调用工具，根据返回结果调整策略，并在必要时反复执行。这种能力的本质，是对执行过程的组织，而不是对单次生成能力的提升。</p>
+<p>从这个角度看，prompt、prompt chaining、tool calling 与 agent 之间并不存在清晰的分界线，而是一种逐级展开的关系。单轮 prompt 关注的是一次性表达；prompt chaining 开始组织多步过程；tool calling 建立与外部世界的接口；而 agent 则在此基础上形成持续运行的执行闭环。变化的不是技术类别，而是系统复杂度。</p>
+<p>这一点对于理解后续内容很关键。如果把 agent 当成一个与 prompt 无关的独立概念，就容易把注意力放在工具形态或界面差异上，而忽略其底层结构。相反，只要把它看作 prompt 工程的延伸，就会更容易理解为什么上下文管理、工具边界、状态维护和结果校验会在各种 agent 系统中反复出现。</p>
+<p>换句话说，agent 并不是在提示词之外额外叠加的一层能力，而是当任务开始需要持续执行、依赖外部信息并形成反馈闭环时，一种自然出现的组织方式。</p>
+<pre class="mermaid">---
+title: 从 Prompt 到 Agent 的演化
+---
+flowchart LR
+    A["Prompt<br/>任务表达"] --> B["Prompt Chaining<br/>步骤串联"]
+    B --> C["Tool Calling<br/>工具接入"]
+    C --> D["Agent<br/>状态保存 + 循环执行"]</pre>
+
+<h2 id="7-总结"><a href="#7-总结" class="headerlink" title="7. 总结"></a>7. 总结</h2><p>回到开头，<strong>Coding LLM 改变的不是某一个环节，而是软件开发的整体组织方式</strong>。原本由人串联的理解、实现、验证与修复，正在被重新拆分为任务定义、上下文组织、模型生成、工具执行和结果检查这一整条协作链路。</p>
+<p>在这个变化之下，prompt 的角色也随之发生转变。它不再只是输入的一种写法，而成为人与模型之间的任务接口。只有先理解模型如何处理输入，以及为什么会对示例、顺序和格式产生敏感性，few-shot、chain-of-thought 和 tool calling 才会从“技巧”转变为可解释、可复用的工程手段。顺着这条路径继续往前，agent 也就不再是一个突兀的概念，而更像是 prompt 工程持续工程化之后的结果。</p>
+<p>从系列的角度看，这篇文章试图建立一种更稳定的理解顺序：先理解模型，再理解 prompt；先理解 prompt，再理解 agent；先看清执行结构，再讨论具体工具。只有在这个顺序之下，后续关于 AI IDE、terminal agent、测试、安全以及复杂工作流的讨论，才不会停留在表面差异，而能够回到它们的结构逻辑。</p>
+<h2 id="8-备注"><a href="#8-备注" class="headerlink" title="8.备注"></a>8.备注</h2><p>本文部分观点基于公开资料整理与个人实践总结，如有引用不准确之处欢迎指正。</p>
+<p>参考材料：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://themodernsoftware.dev/">CS146S: The Modern Software Developer</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=7xTGNNLPyMI">Deep Dive into LLMs</a></li>
+<li><a target="_blank" rel="noopener" href="https://cloud.google.com/discover/what-is-prompt-engineering">Prompt Engineering Overview</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.promptingguide.ai/techniques">Prompt Engineering Guide</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=T9aRN5JkmL8">AI Prompt Engineering: A Deep Dive</a></li>
+<li><a target="_blank" rel="noopener" href="https://cdn.openai.com/pdf/6a2631dc-783e-479b-b1a4-af0cfbd38630/how-openai-uses-codex.pdf">How OpenAI Uses Codex</a></li>
+</ul>
+<script type="module"> import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';	mermaid.initialize({startOnLoad: true, flowchart: {curve: 'linear'}}); </script>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://www.keychan.xyz/2026/03/22/062-from-prompt-to-agent/" title="AI协作工程(一)：从 Prompt 到 Agent 的形成逻辑">https://www.keychan.xyz/2026/03/22/062-from-prompt-to-agent/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/" rel="tag"># 提示工程</a>
+              <a href="/tags/%E6%80%9D%E7%BB%B4%E9%93%BE/" rel="tag"># 思维链</a>
+              <a href="/tags/Agent/" rel="tag"># Agent</a>
+              <a href="/tags/CodingLLM/" rel="tag"># CodingLLM</a>
+              <a href="/tags/Ollama/" rel="tag"># Ollama</a>
+              <a href="/tags/Few-shot/" rel="tag"># Few-shot</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/03/17/061-lora-rag-agent/" rel="prev" title="LLM增强系统设计：LoRA、RAG 与 Agent">
+                  <i class="fa fa-angle-left"></i> LLM增强系统设计：LoRA、RAG 与 Agent
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">592k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.min.js","integrity":"sha256-G8ouPAnw4zzMbnAenHnVz6h9XpKbNdOkrqTh7AadyHs="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.keychan.xyz/","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2026/03/22/062-from-prompt-to-agent/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>
