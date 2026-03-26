@@ -152,7 +152,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-count">64</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -163,7 +163,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">162</span>
+        <span class="site-state-item-count">163</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -191,6 +191,111 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2026/03/26/063-constitutes-the-coding-agent/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's Notes">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | KeyChan's Notes">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2026/03/26/063-constitutes-the-coding-agent/" class="post-title-link" itemprop="url">AI协作工程（二）：从最小执行循环到 MCP 工具设计</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-03-26 21:50:12 / 修改时间：21:52:55" itemprop="dateCreated datePublished" datetime="2026-03-26T21:50:12+08:00">2026-03-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/AI%E5%8D%8F%E4%BD%9C%E5%B7%A5%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">AI协作工程</span></a>
+        </span>
+    </span>
+
+  
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>11k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>39 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>本文承接上一篇关于 Prompt → Agent 的讨论，关注点从“prompt 为什么有效”转向一个更贴近工程的问题：当模型开始具备读取文件、遍历目录、修改内容乃至连接外部服务的能力时，一个 <strong>coding agent</strong> 本质上是由哪些部分构成的。</p>
+<p>本文将从最小可用结构入手，逐步拆解 agent 的组成；再结合两个案例，说明工具接入如何从“本地函数注册”演进为“协议化服务”；最后补充认证机制、registry 与 tool design 等关键要素——这些才是真正决定系统能否走向工程化的核心因素。</p>
+<p>如果用一句话概括本文的中心思想，可以这样表达：<strong>Coding Agent 不是“会写代码的 LLM”，而是一个能够感知环境、调用工具、维护状态，并在循环中持续执行任务的系统。</strong></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2026/03/26/063-constitutes-the-coding-agent/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -1145,110 +1250,6 @@
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2026/01/20/053-drone-system-integration/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/key_avatar.png">
-      <meta itemprop="name" content="KeyChan">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="KeyChan's Notes">
-      <meta itemprop="description" content="全干工程师">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | KeyChan's Notes">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2026/01/20/053-drone-system-integration/" class="post-title-link" itemprop="url">「无人机⑦」系统集成：从物理约束建立可解释系统</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-      
-
-      <time title="创建时间：2026-01-20 20:20:12 / 修改时间：20:25:35" itemprop="dateCreated datePublished" datetime="2026-01-20T20:20:12+08:00">2026-01-20</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/" itemprop="url" rel="index"><span itemprop="name">无人机</span></a>
-        </span>
-    </span>
-
-  
-  
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>14k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>53 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="1-布局与布线设计：系统稳定性的第一道约束"><a href="#1-布局与布线设计：系统稳定性的第一道约束" class="headerlink" title="1. 布局与布线设计：系统稳定性的第一道约束"></a>1. 布局与布线设计：系统稳定性的第一道约束</h2><p><strong>系统集成并不是从接线或上电开始，而是从空间与结构层面的约束开始。</strong> 对于无人机而言，布局与布线并非单纯的机械装配问题，而是<strong>决定系统稳定性、电磁环境可控性以及后续调试难度的基础工程环节</strong>。本章从系统工程视角出发，讨论布局与布线在无人机系统集成中的核心作用，并阐明其对飞控算法、传感器可靠性以及通信稳定性的深远影响。</p>
-<p>在系统生命周期中，<strong>布局一旦确定，后续可调整的空间将急剧收缩</strong>。因此，合理的布局与布线设计，本质上是在系统早期为稳定性与可维护性<strong>预留自由度</strong>。更进一步，布局与布线决定了系统中<strong>干扰源如何产生、如何传播以及如何被感知</strong>，从而决定后续软件配置与参数调节的难度上限。为了使讨论具有工程可复用性，本章在原则陈述之外，将若干关键点表达为<strong>可复核的空间与走线约束</strong>，使其能够在装配阶段被直接检查与确认。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2026/01/20/053-drone-system-integration/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
   <nav class="pagination">
     <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/2/"><i class="fa fa-angle-right"></i></a>
   </nav>
@@ -1273,7 +1274,7 @@
       <i class="fa fa-chart-line"></i>
     </span>
       <span>站点总字数：</span>
-    <span title="站点总字数">592k</span>
+    <span title="站点总字数">603k</span>
   </span>
 </div>
 <div class="busuanzi-count">

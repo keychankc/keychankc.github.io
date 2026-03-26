@@ -6,7 +6,7 @@
   <link href="https://www.keychan.xyz/atom.xml" rel="self"/>
   
   <link href="https://www.keychan.xyz/"/>
-  <updated>2026-03-24T01:57:30.874Z</updated>
+  <updated>2026-03-26T13:52:55.914Z</updated>
   <id>https://www.keychan.xyz/</id>
   
   <author>
@@ -15,6 +15,33 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>AI协作工程（二）：从最小执行循环到 MCP 工具设计</title>
+    <link href="https://www.keychan.xyz/2026/03/26/063-constitutes-the-coding-agent/"/>
+    <id>https://www.keychan.xyz/2026/03/26/063-constitutes-the-coding-agent/</id>
+    <published>2026-03-26T13:50:12.000Z</published>
+    <updated>2026-03-26T13:52:55.914Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;本文承接上一篇关于 Prompt → Agent 的讨论，关注点从“prompt 为什么有效”转向一个更贴近工程的问题：当模型开始具备读取文件、遍历目录、修改内容乃至连接外部服务的能力时，一个 &lt;strong&gt;coding agent&lt;/strong&gt; 本质上是由哪些部分构成的。&lt;/p&gt;
+&lt;p&gt;本文将从最小可用结构入手，逐步拆解 agent 的组成；再结合两个案例，说明工具接入如何从“本地函数注册”演进为“协议化服务”；最后补充认证机制、registry 与 tool design 等关键要素——这些才是真正决定系统能否走向工程化的核心因素。&lt;/p&gt;
+&lt;p&gt;如果用一句话概括本文的中心思想，可以这样表达：&lt;strong&gt;Coding Agent 不是“会写代码的 LLM”，而是一个能够感知环境、调用工具、维护状态，并在循环中持续执行任务的系统。&lt;/strong&gt;&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="AI协作工程" scheme="https://www.keychan.xyz/categories/AI%E5%8D%8F%E4%BD%9C%E5%B7%A5%E7%A8%8B/"/>
+    
+    
+    <category term="提示工程" scheme="https://www.keychan.xyz/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/"/>
+    
+    <category term="Agent" scheme="https://www.keychan.xyz/tags/Agent/"/>
+    
+    <category term="CodingLLM" scheme="https://www.keychan.xyz/tags/CodingLLM/"/>
+    
+    <category term="MCP" scheme="https://www.keychan.xyz/tags/MCP/"/>
+    
+  </entry>
   
   <entry>
     <title>AI协作工程(一)：从 Prompt 到 Agent 的形成逻辑</title>
@@ -31,17 +58,17 @@
     <category term="AI协作工程" scheme="https://www.keychan.xyz/categories/AI%E5%8D%8F%E4%BD%9C%E5%B7%A5%E7%A8%8B/"/>
     
     
+    <category term="提示工程" scheme="https://www.keychan.xyz/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/"/>
+    
+    <category term="思维链" scheme="https://www.keychan.xyz/tags/%E6%80%9D%E7%BB%B4%E9%93%BE/"/>
+    
     <category term="Agent" scheme="https://www.keychan.xyz/tags/Agent/"/>
     
     <category term="CodingLLM" scheme="https://www.keychan.xyz/tags/CodingLLM/"/>
     
     <category term="Ollama" scheme="https://www.keychan.xyz/tags/Ollama/"/>
     
-    <category term="思维链" scheme="https://www.keychan.xyz/tags/%E6%80%9D%E7%BB%B4%E9%93%BE/"/>
-    
     <category term="Few-shot" scheme="https://www.keychan.xyz/tags/Few-shot/"/>
-    
-    <category term="提示工程" scheme="https://www.keychan.xyz/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/"/>
     
   </entry>
   
@@ -91,15 +118,15 @@
     
     <category term="大语言模型" scheme="https://www.keychan.xyz/tags/%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/"/>
     
-    <category term="RAG" scheme="https://www.keychan.xyz/tags/RAG/"/>
-    
-    <category term="Agent" scheme="https://www.keychan.xyz/tags/Agent/"/>
+    <category term="提示工程" scheme="https://www.keychan.xyz/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/"/>
     
     <category term="思维链" scheme="https://www.keychan.xyz/tags/%E6%80%9D%E7%BB%B4%E9%93%BE/"/>
     
-    <category term="提示工程" scheme="https://www.keychan.xyz/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/"/>
-    
     <category term="上下文管理" scheme="https://www.keychan.xyz/tags/%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AE%A1%E7%90%86/"/>
+    
+    <category term="RAG" scheme="https://www.keychan.xyz/tags/RAG/"/>
+    
+    <category term="Agent" scheme="https://www.keychan.xyz/tags/Agent/"/>
     
   </entry>
   
@@ -177,13 +204,13 @@
     <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
+    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
+    
     <category term="大语言模型" scheme="https://www.keychan.xyz/tags/%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/"/>
     
     <category term="ScalingLaws" scheme="https://www.keychan.xyz/tags/ScalingLaws/"/>
     
     <category term="上下文窗口" scheme="https://www.keychan.xyz/tags/%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AA%97%E5%8F%A3/"/>
-    
-    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
     
     <category term="世界模型" scheme="https://www.keychan.xyz/tags/%E4%B8%96%E7%95%8C%E6%A8%A1%E5%9E%8B/"/>
     
@@ -211,11 +238,11 @@
     
     <category term="对比学习" scheme="https://www.keychan.xyz/tags/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0/"/>
     
-    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
-    
     <category term="CLIP" scheme="https://www.keychan.xyz/tags/CLIP/"/>
     
     <category term="ALIGN" scheme="https://www.keychan.xyz/tags/ALIGN/"/>
+    
+    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
     
     <category term="RAG-Vision" scheme="https://www.keychan.xyz/tags/RAG-Vision/"/>
     
@@ -573,40 +600,6 @@
     <category term="梯度调试" scheme="https://www.keychan.xyz/tags/%E6%A2%AF%E5%BA%A6%E8%B0%83%E8%AF%95/"/>
     
     <category term="训练工程化" scheme="https://www.keychan.xyz/tags/%E8%AE%AD%E7%BB%83%E5%B7%A5%E7%A8%8B%E5%8C%96/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>从 RNN 到 Transformer：时间建模的变革</title>
-    <link href="https://www.keychan.xyz/2025/11/25/043-rnn-to-transformer/"/>
-    <id>https://www.keychan.xyz/2025/11/25/043-rnn-to-transformer/</id>
-    <published>2025-11-25T09:50:12.000Z</published>
-    <updated>2025-11-25T13:19:30.364Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-时间依赖与梯度消失：序列建模的困境&quot;&gt;&lt;a href=&quot;#1-时间依赖与梯度消失：序列建模的困境&quot; class=&quot;headerlink&quot; title=&quot;1. 时间依赖与梯度消失：序列建模的困境&quot;&gt;&lt;/a&gt;1. 时间依赖与梯度消失：序列建模的困境&lt;/h2&gt;&lt;p&gt;在很多经典的图像任务中，我们通常假设&lt;strong&gt;不同样本之间是独立同分布的（i.i.d.）&lt;/strong&gt;——也就是说，一张图片与另一张图片在统计上是相互独立的，模型只需要把一张图片看作一个整体输入来处理即可。卷积网络（CNN）则利用图像内部像素之间强烈的局部相关性，通过卷积核在空间上提取局部到全局的层级特征。&lt;/p&gt;
-&lt;p&gt;但在处理&lt;strong&gt;序列任务（sequence modeling）时情况就完全不同了：语言、语音、时间序列信号都具有明显的时间依赖&lt;/strong&gt;，同一个序列内部，不同时间步之间往往高度相关。要正确预测下一个值、下一个词或下一个声音，模型必须&lt;strong&gt;记住同一条序列中之前发生过什么&lt;/strong&gt;。这一点正是循环神经网络（Recurrent Neural Network, RNN）诞生的核心动机。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
-    
-    
-    <category term="Python" scheme="https://www.keychan.xyz/tags/Python/"/>
-    
-    <category term="PyTorch" scheme="https://www.keychan.xyz/tags/PyTorch/"/>
-    
-    <category term="循环神经网络" scheme="https://www.keychan.xyz/tags/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"/>
-    
-    <category term="LSTM" scheme="https://www.keychan.xyz/tags/LSTM/"/>
-    
-    <category term="Transformer" scheme="https://www.keychan.xyz/tags/Transformer/"/>
-    
-    <category term="位置编码" scheme="https://www.keychan.xyz/tags/%E4%BD%8D%E7%BD%AE%E7%BC%96%E7%A0%81/"/>
-    
-    <category term="注意力机制" scheme="https://www.keychan.xyz/tags/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/"/>
-    
-    <category term="序列建模" scheme="https://www.keychan.xyz/tags/%E5%BA%8F%E5%88%97%E5%BB%BA%E6%A8%A1/"/>
     
   </entry>
   
