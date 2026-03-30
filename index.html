@@ -153,7 +153,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">64</span>
+          <span class="site-state-item-count">65</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -164,7 +164,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">163</span>
+        <span class="site-state-item-count">166</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -192,6 +192,110 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2026/03/30/064-context-spec-wrrkflow/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's Notes">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | KeyChan's Notes">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2026/03/30/064-context-spec-wrrkflow/" class="post-title-link" itemprop="url">AI协作工程（三）：上下文治理、Spec 与工作流重组</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-03-30 21:50:12 / 修改时间：22:00:51" itemprop="dateCreated datePublished" datetime="2026-03-30T21:50:12+08:00">2026-03-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/AI%E5%8D%8F%E4%BD%9C%E5%B7%A5%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">AI协作工程</span></a>
+        </span>
+    </span>
+
+  
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>10k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>38 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>本文会从前面两篇的“模型与提示词”转向“如何重新组织开发工作流”。要回答的问题也随之变化：不再讨论 prompt 为什么有效，也不再停留在 agent 的结构拆解，而是更进一步——当 agent 进入复杂项目之后，真正决定效果的，为什么不再是“模型能不能生成代码”，而变成了 <strong>上下文如何构建、规则如何定义、执行流程如何被组织</strong>。</p>
+<p>从这个视角看，IDE 也在发生变化。它不再只是一个 editor，而正在演变为一个复合系统：LLM + repo context + code search + prompt system + tools。问题的核心，也从“如何写代码”转向“系统如何理解整个代码仓库”。围绕这个变化，本文会依次展开几个关键问题：界定 AI 原生 IDE 的系统边界；并且说明它如何围绕任务构建 repo context；讨论为什么“长上下文”并不是万能解法，以及为什么复杂任务必须依赖 intentional compaction 与 spec-driven workflow；最后在工程实现层面，分析 prompt layer、插件系统与 IDE agent 在整体工作流中的位置。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2026/03/30/064-context-spec-wrrkflow/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -1146,111 +1250,6 @@
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2026/01/27/054-from-code-to-product/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/key_avatar.png">
-      <meta itemprop="name" content="KeyChan">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="KeyChan's Notes">
-      <meta itemprop="description" content="全干工程师">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | KeyChan's Notes">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2026/01/27/054-from-code-to-product/" class="post-title-link" itemprop="url">「产品实践①」从代码到产品：工程思维的切换</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-      
-
-      <time title="创建时间：2026-01-27 21:20:12 / 修改时间：22:04:55" itemprop="dateCreated datePublished" datetime="2026-01-27T21:20:12+08:00">2026-01-27</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E4%BA%A7%E5%93%81%E5%AE%9E%E8%B7%B5/" itemprop="url" rel="index"><span itemprop="name">产品实践</span></a>
-        </span>
-    </span>
-
-  
-  
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>11k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>41 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="1-为什么代码越写越多，反而离能赚钱的产品越远？"><a href="#1-为什么代码越写越多，反而离能赚钱的产品越远？" class="headerlink" title="1. 为什么代码越写越多，反而离能赚钱的产品越远？"></a>1. 为什么代码越写越多，反而离能赚钱的产品越远？</h2><p>在工程环境里，评价一段工作的标准通常很清晰：逻辑是否严密、功能是否完整、结构是否合理、系统是否稳定。只要这些条件成立，就可以认为“做得不错”。</p>
-<p>但当同样的标准被带入个人产品或创业项目时，结果往往令人困惑：投入了大量时间，写了很多代码，技术上几乎没有明显短板，产品上线后却几乎没人用，更谈不上付费。</p>
-<p>这并不是因为技术不够好，而是因为<strong>工程问题和产品问题本质上并不是同一类问题</strong>。用解决工程问题的方式去做产品，往往会在一开始就偏离方向。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2026/01/27/054-from-code-to-product/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
   <nav class="pagination">
     <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/2/"><i class="fa fa-angle-right"></i></a>
   </nav>
@@ -1275,7 +1274,7 @@
       <i class="fa fa-chart-line"></i>
     </span>
       <span>站点总字数：</span>
-    <span title="站点总字数">603k</span>
+    <span title="站点总字数">613k</span>
   </span>
 </div>
 <div class="busuanzi-count">

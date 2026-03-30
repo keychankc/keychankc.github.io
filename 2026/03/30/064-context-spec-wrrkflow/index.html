@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.keychan.xyz","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":272,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="本文会从前面两篇的“模型与提示词”转向“如何重新组织开发工作流”。要回答的问题也随之变化：不再讨论 prompt 为什么有效，也不再停留在 agent 的结构拆解，而是更进一步——当 agent 进入复杂项目之后，真正决定效果的，为什么不再是“模型能不能生成代码”，而变成了 上下文如何构建、规则如何定义、执行流程如何被组织。 从这个视角看，IDE 也在发生变化。它不再只是一个 editor，而正在">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AI协作工程（三）：上下文治理、Spec 与工作流重组">
+<meta property="og:url" content="https://www.keychan.xyz/2026/03/30/064-context-spec-wrrkflow/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s Notes">
+<meta property="og:description" content="本文会从前面两篇的“模型与提示词”转向“如何重新组织开发工作流”。要回答的问题也随之变化：不再讨论 prompt 为什么有效，也不再停留在 agent 的结构拆解，而是更进一步——当 agent 进入复杂项目之后，真正决定效果的，为什么不再是“模型能不能生成代码”，而变成了 上下文如何构建、规则如何定义、执行流程如何被组织。 从这个视角看，IDE 也在发生变化。它不再只是一个 editor，而正在">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-03-30T13:50:12.000Z">
+<meta property="article:modified_time" content="2026-03-30T14:00:51.141Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="提示工程">
+<meta property="article:tag" content="Agent">
+<meta property="article:tag" content="CodingLLM">
+<meta property="article:tag" content="MCP">
+<meta property="article:tag" content="工作流设计">
+<meta property="article:tag" content="上下文工程">
+<meta property="article:tag" content="Spec-Driven开发">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://www.keychan.xyz/2026/03/30/064-context-spec-wrrkflow/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.keychan.xyz/2026/03/30/064-context-spec-wrrkflow/","path":"2026/03/30/064-context-spec-wrrkflow/","title":"AI协作工程（三）：上下文治理、Spec 与工作流重组"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>AI协作工程（三）：上下文治理、Spec 与工作流重组 | KeyChan's Notes</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.keychan.xyz/">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's Notes" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's Notes</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一个不断生长的上下文</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%95%E8%A8%80"><span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-AI-%E5%8E%9F%E7%94%9F-IDE%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88-IDE-%E6%AD%A3%E5%9C%A8%E5%8F%98%E6%88%90%E4%B8%80%E4%B8%AA-AI-%E7%B3%BB%E7%BB%9F"><span class="nav-text">1. AI 原生 IDE：为什么 IDE 正在变成一个 AI 系统</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-AI-IDE-%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3%E6%95%B4%E4%B8%AA-repo"><span class="nav-text">2. AI IDE 如何理解整个 repo</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%95%BF%E4%B8%8A%E4%B8%8B%E6%96%87%E4%B8%8D%E6%98%AF%E4%B8%87%E8%83%BD%E7%9A%84"><span class="nav-text">3. 为什么长上下文不是万能的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-Context-Failure%EF%BC%9A%E5%9B%9B%E7%A7%8D%E5%85%B8%E5%9E%8B%E7%9A%84%E5%A4%B1%E6%8E%A7%E6%96%B9%E5%BC%8F"><span class="nav-text">4. Context Failure：四种典型的失控方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-Intentional-Compaction%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E5%A4%8D%E6%9D%82%E4%BB%BB%E5%8A%A1%E5%BF%85%E9%A1%BB%E5%85%88%E5%8E%8B%E7%BC%A9%E5%86%8D%E6%8E%A8%E8%BF%9B"><span class="nav-text">5. Intentional Compaction：为什么复杂任务必须先压缩再推进</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E4%B8%BA%E4%BB%80%E4%B9%88Specs%E4%BC%9A%E6%88%90%E4%B8%BANew-Source-Code"><span class="nav-text">6. 为什么Specs会成为New Source Code</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E4%B8%80%E4%B8%AA%E9%80%82%E5%90%88-Agent-%E7%9A%84-PRD-Design-md-%E5%BA%94%E8%AF%A5%E5%86%99%E4%BB%80%E4%B9%88"><span class="nav-text">7. 一个适合 Agent 的 PRD &#x2F; Design md 应该写什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-Prompt-Layer-%E4%B8%8E%E6%8F%92%E4%BB%B6%E7%B3%BB%E7%BB%9F%EF%BC%9AAI-IDE-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E5%8F%AA%E6%98%AF%E4%B8%80%E4%B8%AA%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%85%A5%E5%8F%A3"><span class="nav-text">8. Prompt Layer 与插件系统：AI IDE 为什么不只是一个大模型入口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-%E4%BB%8E-GitHub-Issue-%E5%88%B0%E6%9C%AC%E5%9C%B0%E4%BF%AE%E6%94%B9%EF%BC%9AAI-IDE-%E5%A6%82%E4%BD%95%E6%8A%8A%E5%B7%A5%E5%85%B7%E6%8E%A5%E8%BF%9B%E5%B7%A5%E4%BD%9C%E6%B5%81"><span class="nav-text">9. 从 GitHub Issue 到本地修改：AI IDE 如何把工具接进工作流</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-IDE-Agent-%E7%9C%9F%E6%AD%A3%E6%94%B9%E5%8F%98%E7%9A%84%E6%98%AF%E5%B7%A5%E4%BD%9C%E6%B5%81%EF%BC%8C%E8%80%8C%E4%B8%8D%E5%8F%AA%E6%98%AF%E7%BC%96%E8%BE%91%E4%BD%93%E9%AA%8C"><span class="nav-text">10. IDE Agent 真正改变的是工作流，而不只是编辑体验</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E6%80%BB%E7%BB%93%EF%BC%9A%E4%BB%8E-Prompt%E3%80%81Tool-%E5%88%B0-Workflow"><span class="nav-text">11. 总结：从 Prompt、Tool 到 Workflow</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-%E5%A4%87%E6%B3%A8"><span class="nav-text">12.备注</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">65</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">166</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2026/03/30/064-context-spec-wrrkflow/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's Notes">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="AI协作工程（三）：上下文治理、Spec 与工作流重组 | KeyChan's Notes">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          AI协作工程（三）：上下文治理、Spec 与工作流重组
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-03-30 21:50:12 / 修改时间：22:00:51" itemprop="dateCreated datePublished" datetime="2026-03-30T21:50:12+08:00">2026-03-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/AI%E5%8D%8F%E4%BD%9C%E5%B7%A5%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">AI协作工程</span></a>
+        </span>
+    </span>
+
+  
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2026/03/30/064-context-spec-wrrkflow/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2026/03/30/064-context-spec-wrrkflow/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>10k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>38 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>本文会从前面两篇的“模型与提示词”转向“如何重新组织开发工作流”。要回答的问题也随之变化：不再讨论 prompt 为什么有效，也不再停留在 agent 的结构拆解，而是更进一步——当 agent 进入复杂项目之后，真正决定效果的，为什么不再是“模型能不能生成代码”，而变成了 <strong>上下文如何构建、规则如何定义、执行流程如何被组织</strong>。</p>
+<p>从这个视角看，IDE 也在发生变化。它不再只是一个 editor，而正在演变为一个复合系统：LLM + repo context + code search + prompt system + tools。问题的核心，也从“如何写代码”转向“系统如何理解整个代码仓库”。围绕这个变化，本文会依次展开几个关键问题：界定 AI 原生 IDE 的系统边界；并且说明它如何围绕任务构建 repo context；讨论为什么“长上下文”并不是万能解法，以及为什么复杂任务必须依赖 intentional compaction 与 spec-driven workflow；最后在工程实现层面，分析 prompt layer、插件系统与 IDE agent 在整体工作流中的位置。</p>
+<span id="more"></span>
+<h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>前两篇文章分别回答了两个基础问题：模型为什么会受 prompt 影响，以及 agent 为什么不是一次回答而是一套执行闭环，那么本文会把问题继续往前推一层。</p>
+<p>即使已经有了 prompt、tool calling、MCP 这些组件，系统在真实代码库中的表现，依然可能非常不稳定。它可以补函数、修小 bug，但一旦任务变成“理解整个仓库、确认改动边界、按目标完成一组修改，并整理成可 review 的结果”，问题就会集中出现。</p>
+<p>这类问题很多时候已经不是“模型会不会写代码”。更常见的是：读错上下文、带着错误假设推进、被无关信息干扰，或者在一个模糊目标下做了大量方向错误的工作。也就是说，当 agent 进入复杂项目之后，决定成败的变量已经发生变化——生成能力仍然重要，但不再是唯一瓶颈，很多时候甚至也不是主要瓶颈。真正关键的问题，开始集中在三个方面。</p>
+<ul>
+<li><strong>上下文如何组织</strong>。系统到底让模型看到什么，什么时候压缩、什么时候丢弃，如何避免错误信息持续影响后续步骤。</li>
+<li><strong>目标如何表达</strong>。如果需求、约束、边界、文件范围以及 trade-off 没有被写成清晰的 spec，agent 很难在执行过程中保持方向稳定。</li>
+<li><strong>工作流如何衔接</strong>。agent 是先做 research 再修改，还是直接进入实现；是先生成 draft PR 再由人类收敛，还是尝试一步到位；这些差异，本质上不是工具问题，而是工作流设计的问题。</li>
+</ul>
+<p>因此，本文不停留在“上下文很重要”这样的抽象结论。而是把系统拆开来看：AI 原生 IDE 的边界是什么，它如何理解整个 repo，为什么长上下文并不可靠，为什么复杂任务需要 <strong>intentional compaction</strong>，以及为什么 <strong>spec</strong> 会重新成为 AI 协作开发中的核心文件。</p>
+<p>只有把这些问题串起来，前两篇里讨论的 prompt、tool 和 loop，才真正落到实际项目中。</p>
+<pre class="mermaid">---
+title: 从 Prompt 到 Workflow 的主题迁移
+---
+flowchart LR
+    A["Prompt<br/>任务表达"] --> D["复杂项目<br/>真实工作流<br/>多步任务"]
+    B["Tool<br/>外部能力"] --> D
+    C["Loop<br/>执行闭环"] --> D
+    D --> E["Context<br/>工作记忆治理"]
+    D --> F["Spec<br/>上游定义"]
+    D --> G["Workflow<br/>阶段衔接"]</pre>
+
+<h2 id="1-AI-原生-IDE：为什么-IDE-正在变成一个-AI-系统"><a href="#1-AI-原生-IDE：为什么-IDE-正在变成一个-AI-系统" class="headerlink" title="1. AI 原生 IDE：为什么 IDE 正在变成一个 AI 系统"></a>1. AI 原生 IDE：为什么 IDE 正在变成一个 AI 系统</h2><p>如果只看表面，很多 AI IDE 只是“编辑器里多了一个聊天框”。但<strong>真正的变化不在界面，而是在 IDE 内部多出了一整套新的系统</strong>。在这套系统里：</p>
+<ul>
+<li>模型负责生成与决策，</li>
+<li>代码搜索负责缩小问题范围，</li>
+<li>repo context 负责组织局部工作记忆，</li>
+<li>prompt system 负责约束行为与任务边界，</li>
+<li>tools 则把决策转化为可执行动作。</li>
+</ul>
+<p>也就是说，传统 IDE 更像是 editor + language tools，而 AI IDE 正在变成 <strong>LLM + repo context + code search + prompt system + tools 的组合</strong>。</p>
+<p>这件事的关键，不在于“写代码更快了”，而在于<strong>开发流程本身被大改了</strong>。过去，IDE 主要解决的是编辑、跳转、分析和调试；“这个需求应该从哪里入手”“需要改哪些文件”“现在是先查还是先写”，这些判断基本发生在工程师脑中。现在，这部分能力正在被系统化，并逐步转移到 IDE 内部。</p>
+<p>换句话说，AI IDE 不是在帮你补代码，而是在尝试<strong>接手一整条工作链路</strong>：从理解目标开始，经过代码搜索、上下文组织、计划生成，再到代码修改和结果交付。<strong>这条链路一旦成立，IDE 的角色就从“工具”变成了“参与执行的系统”。</strong></p>
+<p>从这个角度看，Cursor &#x2F; Claude Code 等的差异，表面上是交互形态不同，本质上是在<strong>不同位置组织同一套能力栈</strong>。有的更强调 IDE 内的多文件编辑，有的更偏向 editor-native 的即时辅助，有的更接近 terminal agent 和 repo 操作，但它们都在回答同一个问题：<strong>如何让模型从“代码生成器”，变成“开发过程中的执行参与者”。</strong></p>
+<p>因此，理解 AI IDE，关键不在于熟悉具体产品，而在于<strong>看清这套系统结构</strong>。一旦这个结构被看明白，后面关于 repo understanding、context engineering、spec-driven workflow，才会真正连起来。</p>
+<h2 id="2-AI-IDE-如何理解整个-repo"><a href="#2-AI-IDE-如何理解整个-repo" class="headerlink" title="2. AI IDE 如何理解整个 repo"></a>2. AI IDE 如何理解整个 repo</h2><p>“AI IDE 如何理解整个代码仓库”这个问题，很容易被讲得过于抽象。常见的两种直觉，其实都不准确：一种认为它“读完了整个 repo”，另一种认为它“只是基于当前打开的文件在瞎猜”。<strong>真实情况介于两者之间。</strong></p>
+<p>更合理的理解是：<strong>AI IDE 并不会一次性读完整个 repo，而是围绕当前任务，动态构建一个“足够可执行的局部视图”。</strong> 这个视图通常由三类信息共同构成。</p>
+<ul>
+<li><p>第一类是<strong>结构信息</strong>：文件树、目录分布、symbol 索引、定义与引用关系等，这些信息帮助系统建立代码的整体轮廓。</p>
+</li>
+<li><p>第二类是<strong>任务信号</strong>：当前打开的文件、选中的代码、报错信息、测试失败、终端输出、diagnostics 以及当前 diff，这些信息决定“现在到底在解决什么问题”。</p>
+</li>
+<li><p>第三类是<strong>主动搜索能力</strong>：关键词搜索、语义检索、按 symbol 跳转、跨文件引用查找等，用来不断缩小范围，定位相关代码。</p>
+</li>
+</ul>
+<p>总的来说<strong>并不是“模型记住了整个仓库”，而是系统先根据任务缩小范围，再把相关片段组织成当前这一轮可用的上下文。</strong></p>
+<p>从这个角度看，“理解整个 repo”并不是一次性的全量读取，而是一种<strong>持续的信息筛选与重组过程</strong>。例如，当任务来自一份 PRD 时，系统会先抽取核心概念与功能边界，再据此去搜索入口模块、关键数据流、相关测试和潜在受影响的文件。随后，它不会保留所有中间结果，而是<strong>只保留最相关的一小部分，作为当前的工作记忆</strong>。</p>
+<p>随着任务推进到实现或 review 阶段，这份上下文也会不断被替换和压缩，而不是无限累积。也就是说上下文是流动的。</p>
+<p>这也是为什么，“是否读完整个 repo”并不重要。真正关键的能力在于：<strong>能否快速定位相关区域、明确边界、构建可执行视图，并在任务推进过程中持续重构这份视图。</strong></p>
+<p>也正因为如此，下面还需要澄清一个误区：<strong>问题的关键不在于上下文够不够长。</strong></p>
+<h2 id="3-为什么长上下文不是万能的"><a href="#3-为什么长上下文不是万能的" class="headerlink" title="3. 为什么长上下文不是万能的"></a>3. 为什么长上下文不是万能的</h2><p>在讨论 agent 进入复杂项目时，一个非常容易产生的直觉是：既然模型经常因为“看得不全”而出错，那么只要不断扩大上下文窗口，把更多代码、日志、文档和工具定义一股脑塞进去，问题自然就会缓解。这个判断表面上是成立的，因为很多复杂任务确实依赖更丰富的输入材料，长上下文也确实提升了模型处理大规模文本的能力。但问题在于，<strong>“能装得下”并不等于“能处理好”</strong>。</p>
+<p>长上下文真正擅长的，其实是偏静态的任务，比如检索、汇总和事实提取。也就是说，它适合在大量材料中定位某一段信息，或者对已有内容做压缩和归纳。然而一旦进入多步执行场景，问题的性质就发生了变化。agent 面对的，不再只是“读懂材料”，而是要基于这些材料持续做决策：下一步该做什么、是否需要调用工具、当前路径是否需要修正、何时结束执行。在这个过程中，上下文不再只是信息来源，而是直接变成了系统的“工作记忆”。</p>
+<p>一旦上下文承担的是工作记忆的角色，问题就不再是容量，而是质量。<strong>当这份记忆中混入无关信息、错误判断或彼此冲突的内容时，模型不会自动忽略它们，而是倾向于一并纳入考虑</strong>。这意味着，每一步决策都在一个被污染的上下文中进行。信息越多，反而越容易导致推理路径漂移、决策失真，甚至在多轮执行中不断放大最初的偏差。</p>
+<p>因此，在复杂任务中，真正危险的并不是“信息不足”，而是 <strong>“信息过量且结构失控”</strong>。例如，将大量未筛选的日志、冗余的代码片段或过度展开的工具定义长期保留在上下文中，会持续占用模型的注意力资源。模型并没有一个强制的“遗忘机制”去丢弃这些内容，它更可能在每一步都试图协调所有可见信息，这恰恰会降低整体判断的稳定性。</p>
+<p>从这个角度看，长上下文更像是一块容易被噪音拖垮的工作记忆，而不是一个可以无限堆放信息的保险箱。窗口变长，确实扩大了系统的表达空间，但并不会自动提升决策质量。<strong>agent 的可靠性，最终取决的不是“装进去多少”，而是“留下来的是否足够正确、相关、紧凑且彼此一致”</strong>。</p>
+<p>也正因为如此，扩展上下文本身并不是解法，它只是前提。真正起作用的，是围绕上下文进行的一系列管理能力：对信息进行筛选与裁剪，在必要时做压缩与重组，并在执行过程中不断更新这份“工作记忆”的内容结构。如果缺少这些机制，单纯扩大上下文，只会让问题从“看不见”演变成“看得太多却无法判断”。</p>
+<h2 id="4-Context-Failure：四种典型的失控方式"><a href="#4-Context-Failure：四种典型的失控方式" class="headerlink" title="4. Context Failure：四种典型的失控方式"></a>4. Context Failure：四种典型的失控方式</h2><p>当问题从“上下文是否足够长”转向“上下文是否被正确治理”之后，一个更有效的切入方式，是不再抽象讨论“上下文会乱”，而是具体拆解它是如何失控的。在复杂任务中，agent 的失真并非随机，而是反复落入几种典型模式。</p>
+<ul>
+<li><p>一种常见情况是，<strong>错误信息一旦进入上下文，就会被后续步骤不断继承和放大</strong>。比如最开始对某个模块职责的误判，或者对某个配置含义的误读，如果没有被及时纠正，就会成为后续搜索、规划、编辑甚至总结的前提。系统看起来是在持续推进任务，但实际上是在沿着一个一开始就偏离的方向越走越远。问题并不在于信息不够，而在于<strong>错误信息被“稳定地保留”了下来</strong>。</p>
+</li>
+<li><p>另一种失控方式来自注意力对历史轨迹的过度依赖。<strong>当上下文不断变长，模型更容易被已经发生过的行为所牵引，倾向重复已有路径，而不是重新组织更合适的方案</strong>。于是会出现反复搜索类似文件、重复解释同一问题，或者在已经验证无效的路径上继续尝试的情况。这种现象并不是能力丧失，而是<strong>决策开始被历史惯性主导</strong>，上下文越长，这种惯性会越强。</p>
+</li>
+<li><p>还有一种更隐蔽但更普遍的问题，是上下文中混入了大量对当前任务并不真正必要的信息。<strong>模型缺乏稳定机制去区分“必须关注”和“可以忽略”的内容</strong>，于是只能尝试同时协调所有可见信息。结果往往是决策质量下降，甚至调用了本不应该使用的工具，看起来像是“变笨了”，本质却是<strong>被无关信息拖慢并稀释了判断能力</strong>。</p>
+</li>
+<li><p>更严重的情况，是上下文内部已经出现了真正的冲突信息。比如较早的结论指向修改 A 文件，而后续分析却表明问题出在 B 文件；或者产品约束与技术约束之间存在冲突，但没有被明确处理。<strong>当冲突信息同时存在且未被裁决时，模型就失去了稳定的决策依据</strong>，只能在不同信息之间来回摇摆，最终表现为表面合理、但整体方向不一致的行为。</p>
+</li>
+</ul>
+<p>把这些失控方式放在一起看，可以得到一个更清晰的结论：在复杂任务中，关键能力从来不是“尽可能多地保留信息”，而是持续地对信息进行判断和更新——哪些仍然有效，哪些需要压缩，哪些必须被替换或丢弃。也就是说，<strong>上下文本质上不是长期记忆，而是工作记忆</strong>。而工作记忆的价值，不取决于容量，而取决于它是否<strong>干净、稳定，并始终对齐当前任务</strong>。</p>
+<pre class="mermaid">---
+title: 四种 context failure 的对照表
+---
+flowchart LR
+    %% 描述：四种 context failure 横向并列，每组为“问题 → 影响”，便于快速对照
+
+    A["Poisoning<br/>错误前提持续保留<br/>后续步骤一路继承"] --> E["方向持续偏移"]
+
+    B["Distraction<br/>历史轨迹过长<br/>重复旧动作"] --> F["行动惯性上升"]
+
+    C["Confusion<br/>无关信息过多<br/>核心信号被淹没"] --> G["决策质量下降"]
+
+    D["Clash<br/>上下文内部冲突<br/>优先级失稳"] --> H["行为表面合理<br/>方向并不一致"]</pre>
+
+<h2 id="5-Intentional-Compaction：为什么复杂任务必须先压缩再推进"><a href="#5-Intentional-Compaction：为什么复杂任务必须先压缩再推进" class="headerlink" title="5. Intentional Compaction：为什么复杂任务必须先压缩再推进"></a>5. Intentional Compaction：为什么复杂任务必须先压缩再推进</h2><p>Intentional compaction 指的是<strong>在明确任务目标的前提下，主动筛选、重组、抽象上下文，使其成为“可执行的高信号输入”</strong>。一旦接受“上下文是工作记忆而不是长期记忆”这个前提，治理方式就会自然发生变化。复杂任务不再适合依赖一条不断变长的历史对话去“硬撑”到结束，而是需要持续把原始材料转化为更高信号的中间工件。Intentional compaction 的核心，不是写总结，而是主动重构上下文：<strong>明确哪些信息可以丢弃，哪些判断需要被重写，哪些结论应该沉淀为后续步骤可直接使用的结构化输入</strong>。</p>
+<p>在真实项目环境中，context 的增长是不可避免的。每一次代码搜索、文件打开、日志查看、错误分析、方案比较或尝试修改，都会产生新的上下文片段。人类工程师可以在脑中自动过滤掉大部分中间噪音，但模型并不具备这种天然的筛选能力。<strong>如果这些痕迹被无差别地保留下来，上下文最终呈现的就不再是一个清晰的问题，而是一堆混杂且彼此干扰的信息</strong>，这正是大多数 agent 在复杂任务中逐渐失控的根源。</p>
+<p>因此，更稳定的方式不是减少信息，而是改变信息的形态。<strong>关键不在于“看过多少”，而在于“留下来的是什么”</strong>。实践中，一个可靠的方式是：<strong>先集中理解问题，再压缩；再明确执行路径，再压缩；最后执行修改，并再次压缩当前状态</strong>。换句话说，任务不是线性展开的，而是通过一系列“生成 → 压缩 → 再生成”的循环逐步收敛。</p>
+<p>这也意味着，agent 的过程不应该是“边聊边试、上下文越堆越长”，而应该是 <strong>“研究一段，压缩；规划一段，压缩；实现一段，再压缩”</strong>。通过这种方式，系统不再依赖一条不断膨胀的历史，而是依赖一组不断被更新和替换的中间件。这些中间件本身就承担了工作记忆的角色，使得后续步骤始终在一个相对干净、稳定且对齐目标的上下文上运行。</p>
+<p>从这个角度看，<strong>Intentional compaction 本质上并不是一个提示技巧，而是一种工作流设计原则</strong>。它要求在每一个阶段结束时，都对当前信息状态进行一次主动重构，把“过程”转化为“结果”，再用这些结果驱动下一步执行。也正因为如此，复杂任务往往自然会收敛到另一种更稳定的上游形式——也就是以 spec 和 design md为代表的结构化定义。</p>
+<p>可以把这一过程理解为一条不断收敛的链路：<strong>搜索代码 → 记录发现 → 压缩为研究摘要 → 明确执行计划 → 实施修改 → 再压缩当前状态</strong>。这条路径看起来比“直接开始修改”更慢，但实际上它通过减少错误路径的反复尝试，显著提升了整体执行的稳定性，也降低了后续 review 时重新构建上下文的成本。</p>
+<pre class="mermaid">---
+title: research -> plan -> implement 三段式流程图
+---
+flowchart LR
+    A["搜索代码<br/>读文件<br/>查日志"] --> B["研究摘要<br/>Research Summary"]
+    B --> C["执行计划<br/>Plan"]
+    C --> D["实施修改<br/>Implement"]
+    D --> E["状态摘要<br/>Status Summary"]
+    A -.压缩.-> B
+    B -.压缩.-> C
+    D -.再压缩.-> E</pre>
+
+<h2 id="6-为什么Specs会成为New-Source-Code"><a href="#6-为什么Specs会成为New-Source-Code" class="headerlink" title="6. 为什么Specs会成为New Source Code"></a>6. 为什么Specs会成为New Source Code</h2><p>当复杂任务已经不能只靠一条对话历史推进时，一个更基础的问题就会出现：那什么才应该成为整个执行过程的上游锚点？答案是 <code>spec</code>。这并不是说代码不重要了，而是说在 AI 参与代码实现之后，代码越来越像一份规格的下游实现结果。真正决定边界、方向和取舍的，不是某一轮临时对话，而是那份把问题、目标、约束和 trade-off 说清楚的说明文档。</p>
+<p>在传统开发流程里，很多团队并不总是对 spec 抱有很高期待。一部分原因是文档容易过时，另一部分原因是很多实现细节本来就依赖工程师在编码过程中逐步判断，所以文档经常只起到启动说明的作用。但当执行主体从“全靠工程师自己在脑中组织”变成“工程师、人类 reviewer 和 agent 共同参与”时，情况会明显变化。模型没有隐含经验，也不会自动继承团队默契。凡是没写出来的约束、没显式说明的边界、没提前讲清楚的不做项，都更容易在执行中变成偏差来源。</p>
+<p>这也是“Specs are the New Source Code”这类判断更值得记住的地方。它并不是在说以后不用关注代码，而是在说 <strong>代码不再是唯一的中间件</strong>。对于 AI 协作开发来说，一份好的 spec 既是需求定义，也是执行约束，还是 review 时的参照物。工程师可以用它判断 agent 是否走偏，产品可以用它确认需求有没有被错误实现，agent 也可以把它当成研究和计划阶段的稳定输入。</p>
+<p>所以 spec 在这里的价值，不在于写得更长，而在于它能不能真正成为<strong>统一且明确的事实基准</strong>。如果一项任务只有一个模糊的 ticket（原始任务输入），agent 往往需要自己补全大量隐含前提，这种补全有时看起来很聪明，但也很容易在关键假设上直接走偏。相反，如果有一份清楚说明目标、范围、取舍和验证标准的 spec，agent 的搜索空间会被显著收紧，后续每一步也更容易保持一致。</p>
+<p>换句话说，<strong>spec 在 AI 协作开发里不是变轻了，而是变重了</strong>。它不再只是启动前的说明材料，而是贯穿整个执行过程、用于持续对齐决策的上游约束。</p>
+<h2 id="7-一个适合-Agent-的-PRD-Design-md-应该写什么"><a href="#7-一个适合-Agent-的-PRD-Design-md-应该写什么" class="headerlink" title="7. 一个适合 Agent 的 PRD &#x2F; Design md 应该写什么"></a>7. 一个适合 Agent 的 PRD &#x2F; Design md 应该写什么</h2><p>如果说 spec 重新成为源文件，那么紧接着就会遇到一个很实际的问题：到底什么样的文档结构，才足够让 agent 用起来稳定。这里更值得参考的并不是某个团队内部模板，而是围绕执行需求组织起来的 design 结构。换句话说，好文档不是为了显得完整，而是为了让 <code>research、plan、implement 和 review</code> 都能拿它当作稳定输入。</p>
+<ul>
+<li><p>第一类必须明确的信息，是 <code>Current Context</code>，<strong>系统现状是什么，关键组件怎么连接，当前痛点在哪里</strong>，这些内容的作用不是铺背景，而是给 agent 一个现实起点。如果没有这部分，模型往往会把任务理解成一个抽象功能请求，而不是对现有系统的一次受约束修改。</p>
+</li>
+<li><p>第二类是 <code>Requirements</code>，包括<strong>功能和非功能要求。功能要求决定做什么，非功能要求决定做到什么程度，尤其是性能、可观测性、安全、扩展性这些约束</strong>，如果没有被写出来，agent 很可能默认忽略。</p>
+</li>
+<li><p>第三类是 <code>Design Decisions</code>。这部分的价值很高，因为它<strong>把“为什么这样做，而不是那样做”显式写出来</strong>。很多实现偏航并不是因为模型不会写，而是因为它无法知道哪些 trade-off 是已经做过决策的，哪些方案其实已经被排除。</p>
+</li>
+<li><p>第四类是 <code>Technical Design</code>，包括<strong>核心组件、数据模型、集成点，以及最关键的一项：会修改哪些文件</strong>。对人类工程师来说，文件边界有时可以在开发中边看边定；但对 agent 来说，明确写出预计影响文件，是缩小搜索空间、控制改动范围的关键手段。</p>
+</li>
+<li><p>第五类是 <code>Implementation Plan</code>。这里不是为了排 gantt 图，而是为了<strong>把任务拆成阶段，让系统知道先做什么、后做什么、每一步完成的标志是什么</strong>。</p>
+</li>
+<li><p>第六类是 <code>Testing Strategy</code>、<code>Observability</code> 和 <code>Rollout Strategy</code>。它们分别回答三个问题：<strong>如何验证功能是否正确、系统运行时如何被观测，以及功能如何被安全地引入生产环境</strong>。在传统文档中，这些内容往往被放在附录甚至被弱化处理；但在 AI 协作开发中，它们反而变得更加关键。agent 很容易只围绕“功能完成”展开，而忽略“如何验证”“如何观测”“如何上线”。将这些要求提前写入 spec，本质上是在把 quality gate 前置，使系统在执行阶段就受到约束，而不是在事后补救。</p>
+</li>
+</ul>
+<p>所以一个适合 agent 的 PRD &#x2F; design md，不应该只描述业务目标，还要显式描述 <strong>边界、验证方式和落地路径</strong>。这样可以把工程判断提前固化到可以被共享、被检查、被执行的结构里。下面是一个供参考的spec:</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br></pre></td><td class="code"><pre><span class="line"><span class="section"># Spec / Design</span></span><br><span class="line"></span><br><span class="line"><span class="section">## 1. Overview</span></span><br><span class="line"><span class="bullet">-</span> 背景：</span><br><span class="line"><span class="bullet">-</span> 目标（要解决什么问题）：</span><br><span class="line"><span class="bullet">-</span> 范围（本次包含 / 不包含）：</span><br><span class="line"></span><br><span class="line">---</span><br><span class="line"></span><br><span class="line"><span class="section">## 2. Current Context（当前系统现状）</span></span><br><span class="line"><span class="bullet">-</span> 系统整体结构（关键组件 + 关系）：</span><br><span class="line"><span class="bullet">-</span> 关键数据流 / 调用链：</span><br><span class="line"><span class="bullet">-</span> 当前实现方式：</span><br><span class="line"><span class="bullet">-</span> 已知问题 / 痛点：</span><br><span class="line"><span class="bullet">-</span> 限制条件（技术 / 业务 / 历史包袱）：</span><br><span class="line"></span><br><span class="line"><span class="quote">&gt; 目的：让 agent 从“现实系统”出发，而不是抽象理解需求</span></span><br><span class="line"></span><br><span class="line">---</span><br><span class="line"></span><br><span class="line"><span class="section">## 3. Requirements（需求定义）</span></span><br><span class="line"></span><br><span class="line"><span class="section">### 3.1 Functional Requirements（功能要求）</span></span><br><span class="line"><span class="bullet">-</span> [ ] 功能点1：</span><br><span class="line"><span class="bullet">-</span> [ ] 功能点2：</span><br><span class="line"></span><br><span class="line"><span class="section">### 3.2 Non-Functional Requirements（非功能要求）</span></span><br><span class="line"><span class="bullet">-</span> 性能：</span><br><span class="line"><span class="bullet">-</span> 可观测性（日志 / metrics / tracing）：</span><br><span class="line"><span class="bullet">-</span> 安全性：</span><br><span class="line"><span class="bullet">-</span> 扩展性：</span><br><span class="line"><span class="bullet">-</span> 兼容性：</span><br><span class="line"></span><br><span class="line"><span class="quote">&gt; 目的：明确“做到什么程度”，避免 agent 默认忽略</span></span><br><span class="line"></span><br><span class="line">---</span><br><span class="line"></span><br><span class="line"><span class="section">## 4. Design Decisions（关键设计决策）</span></span><br><span class="line"><span class="bullet">-</span> 决策1：</span><br><span class="line"><span class="bullet">  -</span> 选择方案：</span><br><span class="line"><span class="bullet">  -</span> 为什么这样选：</span><br><span class="line"><span class="bullet">  -</span> 放弃了什么方案：</span><br><span class="line"></span><br><span class="line"><span class="bullet">-</span> 决策2：</span><br><span class="line"><span class="bullet">  -</span> ...</span><br><span class="line"></span><br><span class="line"><span class="quote">&gt; 目的：把 trade-off 显式化，避免 agent 重新走已经排除的路径</span></span><br><span class="line"></span><br><span class="line">---</span><br><span class="line"></span><br><span class="line"><span class="section">## 5. Technical Design（技术设计）</span></span><br><span class="line"></span><br><span class="line"><span class="section">### 5.1 Architecture（架构）</span></span><br><span class="line"><span class="bullet">-</span> 核心组件：</span><br><span class="line"><span class="bullet">-</span> 组件关系：</span><br><span class="line"></span><br><span class="line"><span class="section">### 5.2 Data Model（数据结构 / Schema）</span></span><br><span class="line"><span class="bullet">-</span> 数据结构定义：</span><br><span class="line"><span class="bullet">-</span> 字段说明：</span><br><span class="line"></span><br><span class="line"><span class="section">### 5.3 Integration（集成点）</span></span><br><span class="line"><span class="bullet">-</span> 外部系统 / API：</span><br><span class="line"><span class="bullet">-</span> 依赖模块：</span><br><span class="line"></span><br><span class="line"><span class="section">### 5.4 Affected Files（影响范围）</span></span><br><span class="line"><span class="bullet">-</span> 会修改的文件：</span><br><span class="line"><span class="bullet">  -</span> file<span class="emphasis">_path_</span>1：</span><br><span class="line"><span class="bullet">  -</span> file<span class="emphasis">_path_</span>2：</span><br><span class="line"><span class="bullet">-</span> 新增文件：</span><br><span class="line"><span class="bullet">-</span> 不应修改的文件（约束）：</span><br><span class="line"></span><br><span class="line"><span class="quote">&gt; 目的：明确改动边界，限制 agent 搜索空间</span></span><br><span class="line"></span><br><span class="line">---</span><br><span class="line"></span><br><span class="line"><span class="section">## 6. Implementation Plan（实现计划）</span></span><br><span class="line"><span class="bullet">-</span> Step 1：</span><br><span class="line"><span class="bullet">  -</span> 内容：</span><br><span class="line"><span class="bullet">  -</span> 完成标志：</span><br><span class="line"></span><br><span class="line"><span class="bullet">-</span> Step 2：</span><br><span class="line"><span class="bullet">  -</span> 内容：</span><br><span class="line"><span class="bullet">  -</span> 完成标志：</span><br><span class="line"></span><br><span class="line"><span class="bullet">-</span> Step 3：</span><br><span class="line"><span class="bullet">  -</span> 内容：</span><br><span class="line"><span class="bullet">  -</span> 完成标志：</span><br><span class="line"></span><br><span class="line"><span class="quote">&gt; 目的：让 agent 知道执行顺序和阶段性目标</span></span><br><span class="line"></span><br><span class="line">---</span><br><span class="line"></span><br><span class="line"><span class="section">## 7. Testing Strategy（测试策略）</span></span><br><span class="line"><span class="bullet">-</span> 单元测试：</span><br><span class="line"><span class="bullet">-</span> 集成测试：</span><br><span class="line"><span class="bullet">-</span> 边界 / 异常情况：</span><br><span class="line"><span class="bullet">-</span> 验证标准（通过条件）：</span><br><span class="line"></span><br><span class="line"><span class="quote">&gt; 目的：防止 agent 只实现功能，不验证质量</span></span><br><span class="line"></span><br><span class="line">---</span><br><span class="line"></span><br><span class="line"><span class="section">## 8. Observability（可观测性）</span></span><br><span class="line"><span class="bullet">-</span> 日志：</span><br><span class="line"><span class="bullet">-</span> Metrics：</span><br><span class="line"><span class="bullet">-</span> Tracing：</span><br><span class="line"><span class="bullet">-</span> 报警策略：</span><br><span class="line"></span><br><span class="line"><span class="quote">&gt; 目的：确保上线后“能看见问题”</span></span><br><span class="line"></span><br><span class="line">---</span><br><span class="line"></span><br><span class="line"><span class="section">## 9. Rollout Strategy（发布策略）</span></span><br><span class="line"><span class="bullet">-</span> 发布方式（灰度 / 全量）：</span><br><span class="line"><span class="bullet">-</span> 回滚方案：</span><br><span class="line"><span class="bullet">-</span> 风险点：</span><br><span class="line"><span class="bullet">-</span> 兼容策略：</span><br><span class="line"></span><br><span class="line"><span class="quote">&gt; 目的：控制上线风险</span></span><br><span class="line"></span><br><span class="line">---</span><br><span class="line"></span><br><span class="line"><span class="section">## 10. Open Questions（待确认问题）</span></span><br><span class="line"><span class="bullet">-</span> 问题1：</span><br><span class="line"><span class="bullet">-</span> 问题2：</span><br><span class="line"></span><br><span class="line"><span class="quote">&gt; 目的：明确不确定性，避免 agent 自行假设</span></span><br><span class="line"></span><br><span class="line">---</span><br><span class="line"></span><br><span class="line"><span class="section">## 11. Acceptance Criteria（验收标准）</span></span><br><span class="line"><span class="bullet">-</span> [ ] 条件1：</span><br><span class="line"><span class="bullet">-</span> [ ] 条件2：</span><br><span class="line"></span><br><span class="line"><span class="quote">&gt; 目的：作为最终 review 的判断依据</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<pre class="mermaid">---
+title: Agent 可用的 Design md 结构与执行阶段映射
+---
+flowchart TB
+    %% 描述：顶部为 research / plan / implement / review 四个阶段，底部为 design doc 九个模块，展示每个模块服务于哪个执行阶段
+
+    subgraph STAGE["Execution Stages"]
+        direction LR
+        R["Research"]
+        P["Plan"]
+        IM["Implement"]
+        RV["Review"]
+    end
+
+    subgraph DOC["Design Doc Modules"]
+        direction LR
+        A["Current Context<br/>系统现状"]
+        B["Requirements<br/>功能 / 非功能"]
+        C["Design Decisions<br/>关键取舍"]
+        D["Technical Design<br/>架构 / 数据"]
+        E["File Changes<br/>修改范围"]
+        F["Implementation Plan<br/>步骤"]
+        G["Testing<br/>验证方式"]
+        H["Observability<br/>日志 / 指标"]
+        I["Rollout<br/>发布 / 回滚"]
+    end
+
+    R --> A
+    R --> B
+
+    P --> B
+    P --> C
+    P --> F
+
+    IM --> D
+    IM --> E
+    IM --> F
+
+    RV --> G
+    RV --> H
+    RV --> I</pre>
+
+<h2 id="8-Prompt-Layer-与插件系统：AI-IDE-为什么不只是一个大模型入口"><a href="#8-Prompt-Layer-与插件系统：AI-IDE-为什么不只是一个大模型入口" class="headerlink" title="8. Prompt Layer 与插件系统：AI IDE 为什么不只是一个大模型入口"></a>8. Prompt Layer 与插件系统：AI IDE 为什么不只是一个大模型入口</h2><p>当我们说 AI IDE 是一个系统，而不是一个简单的聊天入口时，真正补齐这层差异的，是 <strong>prompt layer 与插件系统的存在</strong>。如果仍然把 prompt 理解成“对模型说的一句话”，就很难解释 IDE 场景里的行为稳定性。实际情况是，<strong>prompt 在这里早已变成一组分层结构，而不是单点输入</strong>：包括定义整体行为边界的 system prompt，约束代码风格与协作方式的 repo rules &#x2F; workspace instructions，描述当前任务的 task prompt，作用于局部修改的 inline edit prompt，以及在 review 阶段使用的审查与解释提示。这些共同作用，<strong>一起限定模型如何理解任务、如何输出，以及必须遵守哪些约束</strong>。</p>
+<p>这也是为什么前面讲的 prompt 方法在进入 IDE 场景后并没有失效，而是位置发生了变化。<strong>prompt 不再只是“让模型更会说话”的技巧，而是直接参与定义任务边界、行为规范、输出格式以及工具使用方式</strong>。如果一个系统缺少 repo rules、缺少清晰的约束说明、缺少验收标准，那么即使接入再强的模型，在复杂项目中依然很容易失控。相反，<strong>当 system prompt、团队约束和任务说明被结构化组织之后，模型的行为空间会被显著收紧，稳定性也随之提升</strong>。</p>
+<p>插件系统在这个结构中的作用同样关键。它提供的并不是表层的功能增强，而是 <strong>agent 接触真实开发环境的能力接口</strong>。文件树、diagnostics、当前光标位置、选区、终端、测试结果、diff、code action、预览环境，这些都不是“附加信息”，而是 agent 在构建上下文和执行动作时必须依赖的环境状态。<strong>没有这些能力，模型只能停留在“基于文本给建议”；有了这些能力，它才真正进入“读代码—找位置—执行命令—验证结果—再调整”的执行闭环</strong>。</p>
+<p>从这个角度看，MCP &#x2F; tools &#x2F; 插件 本质上共同决定了：<strong>agent 能看到什么、agent 能做什么、agent 在哪里被限制</strong>。也正因为如此，AI IDE 的能力边界从来不取决于模型本身，而取决于 <strong>prompt layer、plugin layer 和 tool layer 是否被正确设计并协同工作</strong>。</p>
+<h2 id="9-从-GitHub-Issue-到本地修改：AI-IDE-如何把工具接进工作流"><a href="#9-从-GitHub-Issue-到本地修改：AI-IDE-如何把工具接进工作流" class="headerlink" title="9. 从 GitHub Issue 到本地修改：AI IDE 如何把工具接进工作流"></a>9. 从 GitHub Issue 到本地修改：AI IDE 如何把工具接进工作流</h2><p>在进入分析之前，先介绍一下这个案例，可以有两种完全不同的“读取 GitHub”的方式：</p>
+<ul>
+<li>比如打开 GitHub 上的某个文件，本质上只是把 GitHub 当作网页来读，拿到的是页面内容；</li>
+<li>而 GitHub MCP Server 做的事情完全不同，它不是在“读页面”，而是在把 GitHub 作为一个<strong>可调用的平台能力层</strong>接入 agent。</li>
+</ul>
+<p>前者是浏览，后者是调用。后者接入之后，模型可以在权限范围内直接读取仓库、查询代码、查看和管理 issue、处理 PR、检查 Actions workflow，甚至访问部分安全信息。换句话说，它做的不是“看 GitHub”，而是把 GitHub 变成 agent 可以直接操作的一组工具。</p>
+<p>它的接入方式也不复杂。支持 MCP 的客户端或 IDE（例如 Claude、Codex）都可以作为 host，把这个 server 接进来作为外部能力源。一旦接入，模型在对话中就可以直接调用 GitHub 相关工具：先查某个 repo 的 issue，再看相关 PR 或 CI 失败记录，最后回到本地代码继续分析和修改。GitHub 官方同时提供远程和本地两种接入方式，并允许通过 <code>toolsets</code> 控制暴露给模型的能力范围。</p>
+<p>回到本文，<strong>AI IDE 不是一个更会补全的编辑器，而是一个把上下文、规格、工具和工作流接起来的系统。</strong> GitHub MCP Server 的意义，不在于多了一组 API，而在于它把这几条原本分散的线真正连到了一起。它不是一个“读代码更快”的插件，而是一层把外部平台能力接入 agent 的工具接口。</p>
+<p>再看一个问题：AI IDE 如何理解整个 repo？GitHub MCP Server 给出的答案并不是“把所有文件塞进上下文”，而是提供一种<strong>按任务取上下文的能力</strong>。模型不会因为接入了这个 server 就“理解整个仓库”；真正发生的是，agent 会沿着任务线索逐步去找相关的仓库、文件、issue、PR 和 CI 信息，然后把这些片段拼成当前这一步所需的工作记忆。<strong>理解 repo，不是一次性读完，而是不断缩小范围、建立边界、重构局部视图。</strong></p>
+<p>再看 context failure，这个问题同样很典型。GitHub MCP Server 支持通过 <code>toolsets</code> 控制工具暴露范围，默认并不会把所有能力一次性开放，而是建议根据任务启用必要的工具。这背后对应的正是 <strong>Context Confusion</strong>：如果一开始就给模型几十种能力、多个对象类型和复杂参数，它不会更强，只会更容易在错误接口之间摇摆。<strong>工具层本身也需要做 context engineering——不是工具越多越好，而是越贴近任务越好。</strong></p>
+<p>接着，为什么 <strong>spec &#x2F; PRD 在 AI 协作开发中会重新变重?</strong>。如果任务只是“帮我修一个 bug”，即使接入了 GitHub MCP Server，agent 仍然可能在错误仓库找 issue、误读 PR，甚至对错误的 CI 失败做分析。相反，如果上游有明确的 spec，例如“修复仓库 A 的 issue #128 ，不修改公开 API，以现有测试为验收标准”，那么工具能力才有清晰的方向。<strong>tool layer 解决“能做什么”，而 spec 决定“为什么做、做到哪里停”。没有 spec，工具只会放大不确定性；有了 spec，工具才成为可控执行链的一部分。</strong></p>
+<p>从结构上看，这个案例对应了三层分工：<strong>prompt layer + plugin layer + tool layer</strong>。</p>
+<ul>
+<li>prompt layer 负责定义目标、约束和输出形式；</li>
+<li>plugin layer 提供 IDE 内部状态，例如文件树、diagnostics、终端、diff 和选区；</li>
+<li>tool layer（如 GitHub MCP Server）则把外部平台能力接进来，包括 issue、PR、Actions 和安全信息。</li>
+</ul>
+<p>如果把它放进一个具体任务流里，这条链路会更清晰。用户先让 agent 查看某个仓库的 bug issue，再读取相关 PR 和最近一次失败的 GitHub Actions workflow，然后回到本地 repo 搜索对应模块和测试文件，整理出一份 research summary，最后才进入 plan 和代码修改。在这个过程中，GitHub MCP Server 提供的是 issue、PR、CI 这些外部上下文，本地 IDE 提供文件结构、代码搜索和修改能力，而 spec 则约束“改什么、不改什么、怎样算完成”。<strong>AI IDE 的稳定性不来自某一个更强的模型，而来自 context、tools 和 workflow 被组织成一条连续、可控的执行链。</strong></p>
+<pre class="mermaid">---
+title: AI IDE 中从 Issue 到代码修改的完整工作流链路
+---
+flowchart LR
+    U["用户任务<br/>修复仓库中的某个 bug"] --> S["Spec / PRD<br/>约束目标、边界与验收标准"]
+
+    U --> G["GitHub MCP Server<br/>外部平台工具层"]
+    G --> I1["Issue<br/>问题描述"]
+    G --> I2["PR<br/>相关改动线索"]
+    G --> I3["Actions / CI<br/>失败记录与日志"]
+
+    I1 --> C["当前任务所需的局部上下文"]
+    I2 --> C
+    I3 --> C
+    S --> C
+
+    C --> L["本地 IDE / Agent 工作区"]
+    L --> P1["文件树 / 代码搜索"]
+    L --> P2["Diagnostics / Terminal"]
+    L --> P3["Diff / 本地修改"]
+
+    P1 --> R["Research Summary / Plan"]
+    P2 --> R
+    S --> R
+
+    R --> M["代码修改与验证"]
+    M --> O["受控完成当前任务"]</pre>
+
+<h2 id="10-IDE-Agent-真正改变的是工作流，而不只是编辑体验"><a href="#10-IDE-Agent-真正改变的是工作流，而不只是编辑体验" class="headerlink" title="10. IDE Agent 真正改变的是工作流，而不只是编辑体验"></a>10. IDE Agent 真正改变的是工作流，而不只是编辑体验</h2><p>在讨论 AI IDE 时，很容易把注意力放在一些表层体验上，比如补全是否更快、侧边栏是否更顺手、能不能一键修改文件。但一旦把视角放到复杂任务，就会发现这些都不是本质变化。<strong>IDE agent 真正改变的，并不是单次编辑体验，而是整条任务执行链路的组织方式</strong>。它可以先完成研究，再形成计划，再产出实现初稿，最后进入 review 与修正阶段。这样一来，IDE 不再只是写代码的地方，而是 <strong>同时承载 agent 执行与人类Review的界面</strong></p>
+<p>从实践角度看，agent 的 <strong>高 ROI 并不集中在最小粒度的任务上</strong>。修一两行代码当然也能提速，但更大的价值往往出现在中等到较大规模的 ticket 上，因为这些任务天然包含大量重复劳动：读文件、定位代码、比较方案、搭建初稿、补充文档、串联多处修改。<strong>让 agent 先完成第一轮 research 或 draft，再由人类工程师接手关键决策，往往比“端到端全自动”更稳定，也更符合真实团队的质量要求</strong>。</p>
+<p>这会自然形成一条更合理的协作方式。任务从 ticket 或 spec 出发，由 agent 先阅读代码库、整理研究结论、收敛修改范围，再将计划结构化表达出来，并给出一版 draft implementation 或 draft PR。工程师接手时，不再从零开始，而是把精力集中在 review、纠偏、trade-off 判断以及最终质量控制上。换句话说，<strong>IDE agent 的价值并不是替代工程师，而是把那些高耗时但不一定需要最高层判断的工作前移</strong>。</p>
+<p>当用这种方式理解 IDE agent 时，许多看似分散的能力就会自然串联起来。代码搜索、文档更新、preview deployment、PR review、错误修复建议，这些都不是孤立功能，而是 <strong>同一条工作流上的不同节点</strong>。它们共同说明的一点是：<strong>AI 协作开发已经不只是“编辑器里多了一个聊天框”，而是在尝试把需求、上下文、实现和 review 连成一条连续的执行链路</strong>。因此，像 Cursor &#x2F; Claude Code 等这样的产品，更适合被理解为 <strong>不同的工作流入口</strong>，而不是简单的功能对比。真正值得比较的，是它们如何组织 research、plan、edit、tool use 与 review。</p>
+<p>可以把这条链路概括为：<strong>ticket&#x2F;spec -&gt; agent research -&gt; draft plan -&gt; draft PR -&gt; human review -&gt; merge</strong>。在这条路径中，被重新组织的从来不是某一个编辑动作，而是<strong>整条任务流本身</strong>。</p>
+<pre class="mermaid">---
+title: 人类工程师与 IDE Agent 协作流程
+---
+flowchart LR
+    A["Ticket / Spec<br/>人类 / AI"] --> B["Agent Research<br/>读代码 + 找文件<br/>AI"]
+    B --> C["Draft Plan<br/>修改范围 + 风险点<br/>AI"]
+    C --> D["Draft Implementation<br/>实现初稿<br/>AI"]
+    D --> E["Draft PR<br/>AI"]
+    E --> F["Human Review<br/>架构判断 + 质量把关<br/>人类"]
+    F --> G["Merge<br/>人类"]</pre>
+<h2 id="11-总结：从-Prompt、Tool-到-Workflow"><a href="#11-总结：从-Prompt、Tool-到-Workflow" class="headerlink" title="11. 总结：从 Prompt、Tool 到 Workflow"></a>11. 总结：从 Prompt、Tool 到 Workflow</h2><p>如果把前三篇连起来看</p>
+<ul>
+<li>第一篇讨论的是输入设计，也就是 prompt 如何影响模型行为，以及为什么理解模型机制是 AI 协作工程的起点；</li>
+<li>第二篇讨论的是执行结构，模型如何通过 tool calling、结果回注和循环，从单轮问答进入 agent 形态；</li>
+<li>到了本文，问题更进一步：<strong>当这些能力真正进入复杂项目时，系统如何保持稳定而不失控</strong>。</li>
+</ul>
+<p>从这个视角上看，本文是把前两篇的能力落到了工程环境中。<strong>prompt 解决的是“如何表达任务”，tool 与 loop 解决的是“如何执行任务”，而 context、spec 与 workflow 解决的是“如何在复杂环境中持续把任务做对”</strong>。AI IDE 之所以值得单独拿出来讨论，也正是因为它把这些层整合在了同一个界面里：没有 prompt，系统无法接收清晰输入；没有 tool 和 loop，任务无法转化为可执行动作；而如果缺少 context engineering、spec-driven workflow 和 repo-aware 的 IDE 支撑，这些能力在复杂环境中很难稳定运行。</p>
+<p>这也意味着，<strong>AI 协作工程的上限，正在从“技巧问题”转变为“工作流问题”</strong>。再强的模型，如果面对的是被污染的上下文、模糊的需求定义以及失控的执行路径，也只会更快地产生错误和噪音。相反，<strong>当任务边界清晰、spec 足够可执行、上下文可以持续被压缩与更新、prompt layer 与插件系统被合理组织、IDE workflow 被稳定串联时，agent 才可能成为工程系统中的可靠组成部分</strong>。</p>
+<p>因此，对人类工程师而言，真正需要提升的能力，已经不只是“更会写 prompt”或“更会选模型”，而是<strong>如何设计一条让人类与 agent 可以协同工作的完整链路</strong>。这条链路至少包含：清晰目标、稳定 spec、受控上下文、阶段化计划、执行反馈以及最终 review。AI IDE 的意义也在这里——它并不是简单地在编辑器中加入一个聊天框，而是<strong>把模型能力、仓库理解、prompt 系统、工具调用与 review 流程组合成一个新的开发环境</strong>。顺着这条路径继续往下，自然会延伸到测试、安全、权限、terminal agent、code review 以及协作质量控制等问题，因为这些本来就是工作流设计在更深层次上的延展。</p>
+<h2 id="12-备注"><a href="#12-备注" class="headerlink" title="12.备注"></a>12.备注</h2><p>本文部分观点基于公开资料整理与个人实践总结，如有引用不准确之处欢迎指正。</p>
+<p>参考材料：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://themodernsoftware.dev/">CS146S: The Modern Software Developer</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.ravi-mehta.com/p/specs-are-the-new-source-code">Specs Are the New Source Code</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.dbreunig.com/2025/06/22/how-contexts-fail-and-how-to-fix-them.html">How Long Contexts Fail</a></li>
+<li><a target="_blank" rel="noopener" href="https://devin.ai/agents101#introduction">Devin: Coding Agents 101</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/humanlayer/advanced-context-engineering-for-coding-agents/blob/main/ace-fca.md">Getting AI to Work In Complex Codebases</a></li>
+<li><a target="_blank" rel="noopener" href="https://x.com/rohanpaul_ai/status/1959414096589422619">How FAANG Vibe Codes</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.anthropic.com/engineering/writing-tools-for-agents">Writing Effective Tools for Agents</a></li>
+</ul>
+<script type="module"> import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';	mermaid.initialize({startOnLoad: true, flowchart: {curve: 'linear'}}); </script>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://www.keychan.xyz/2026/03/30/064-context-spec-wrrkflow/" title="AI协作工程（三）：上下文治理、Spec 与工作流重组">https://www.keychan.xyz/2026/03/30/064-context-spec-wrrkflow/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/" rel="tag"># 提示工程</a>
+              <a href="/tags/Agent/" rel="tag"># Agent</a>
+              <a href="/tags/CodingLLM/" rel="tag"># CodingLLM</a>
+              <a href="/tags/MCP/" rel="tag"># MCP</a>
+              <a href="/tags/%E5%B7%A5%E4%BD%9C%E6%B5%81%E8%AE%BE%E8%AE%A1/" rel="tag"># 工作流设计</a>
+              <a href="/tags/%E4%B8%8A%E4%B8%8B%E6%96%87%E5%B7%A5%E7%A8%8B/" rel="tag"># 上下文工程</a>
+              <a href="/tags/Spec-Driven%E5%BC%80%E5%8F%91/" rel="tag"># Spec-Driven开发</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/03/26/063-constitutes-the-coding-agent/" rel="prev" title="AI协作工程（二）：从最小执行循环到 MCP 工具设计">
+                  <i class="fa fa-angle-left"></i> AI协作工程（二）：从最小执行循环到 MCP 工具设计
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">613k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.min.js","integrity":"sha256-G8ouPAnw4zzMbnAenHnVz6h9XpKbNdOkrqTh7AadyHs="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.keychan.xyz/","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2026/03/30/064-context-spec-wrrkflow/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>
