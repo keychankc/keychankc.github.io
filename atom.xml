@@ -6,7 +6,7 @@
   <link href="https://www.keychan.xyz/atom.xml" rel="self"/>
   
   <link href="https://www.keychan.xyz/"/>
-  <updated>2026-03-30T14:00:51.141Z</updated>
+  <updated>2026-04-06T11:19:42.449Z</updated>
   <id>https://www.keychan.xyz/</id>
   
   <author>
@@ -15,6 +15,34 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>AI 协作工程（四）：从执行链到治理链</title>
+    <link href="https://www.keychan.xyz/2026/04/06/065-execution-chain-to-governance-chain/"/>
+    <id>https://www.keychan.xyz/2026/04/06/065-execution-chain-to-governance-chain/</id>
+    <published>2026-04-06T11:19:12.000Z</published>
+    <updated>2026-04-06T11:19:42.449Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;本文承接前面对 Prompt、Coding Agent Anatomy 与 Context Engineering 的讨论，但将视角从执行机制进一步上移到&lt;strong&gt;协作治理层&lt;/strong&gt;。前面分别解决了三个问题：模型行为如何被 prompt 影响、agent 如何通过 tools 与 loop 完成执行闭环，以及在复杂任务中，spec、context 与 workflow 为什么不可或缺。&lt;/p&gt;
+&lt;p&gt;在此基础上，一个更现实的问题开始出现：当 agent 已具备较强执行能力时，开发者应赋予它&lt;strong&gt;多少自主权&lt;/strong&gt;？又该如何在&lt;strong&gt;放权与控制之间建立边界&lt;/strong&gt;？因此，本文不再讨论“如何让 agent 做事”，而是讨论：&lt;strong&gt;如何让 agent 在可控范围内做事&lt;/strong&gt;。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="AI协作工程" scheme="https://www.keychan.xyz/categories/AI%E5%8D%8F%E4%BD%9C%E5%B7%A5%E7%A8%8B/"/>
+    
+    
+    <category term="Agent" scheme="https://www.keychan.xyz/tags/Agent/"/>
+    
+    <category term="提示工程" scheme="https://www.keychan.xyz/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/"/>
+    
+    <category term="工作流设计" scheme="https://www.keychan.xyz/tags/%E5%B7%A5%E4%BD%9C%E6%B5%81%E8%AE%BE%E8%AE%A1/"/>
+    
+    <category term="上下文工程" scheme="https://www.keychan.xyz/tags/%E4%B8%8A%E4%B8%8B%E6%96%87%E5%B7%A5%E7%A8%8B/"/>
+    
+    <category term="Agent治理" scheme="https://www.keychan.xyz/tags/Agent%E6%B2%BB%E7%90%86/"/>
+    
+  </entry>
   
   <entry>
     <title>AI协作工程（三）：上下文治理、Spec 与工作流重组</title>
@@ -32,13 +60,13 @@
     <category term="AI协作工程" scheme="https://www.keychan.xyz/categories/AI%E5%8D%8F%E4%BD%9C%E5%B7%A5%E7%A8%8B/"/>
     
     
-    <category term="提示工程" scheme="https://www.keychan.xyz/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/"/>
-    
     <category term="Agent" scheme="https://www.keychan.xyz/tags/Agent/"/>
     
     <category term="CodingLLM" scheme="https://www.keychan.xyz/tags/CodingLLM/"/>
     
     <category term="MCP" scheme="https://www.keychan.xyz/tags/MCP/"/>
+    
+    <category term="提示工程" scheme="https://www.keychan.xyz/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/"/>
     
     <category term="工作流设计" scheme="https://www.keychan.xyz/tags/%E5%B7%A5%E4%BD%9C%E6%B5%81%E8%AE%BE%E8%AE%A1/"/>
     
@@ -65,13 +93,13 @@
     <category term="AI协作工程" scheme="https://www.keychan.xyz/categories/AI%E5%8D%8F%E4%BD%9C%E5%B7%A5%E7%A8%8B/"/>
     
     
-    <category term="提示工程" scheme="https://www.keychan.xyz/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/"/>
-    
     <category term="Agent" scheme="https://www.keychan.xyz/tags/Agent/"/>
     
     <category term="CodingLLM" scheme="https://www.keychan.xyz/tags/CodingLLM/"/>
     
     <category term="MCP" scheme="https://www.keychan.xyz/tags/MCP/"/>
+    
+    <category term="提示工程" scheme="https://www.keychan.xyz/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/"/>
     
   </entry>
   
@@ -90,15 +118,15 @@
     <category term="AI协作工程" scheme="https://www.keychan.xyz/categories/AI%E5%8D%8F%E4%BD%9C%E5%B7%A5%E7%A8%8B/"/>
     
     
-    <category term="提示工程" scheme="https://www.keychan.xyz/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/"/>
-    
-    <category term="思维链" scheme="https://www.keychan.xyz/tags/%E6%80%9D%E7%BB%B4%E9%93%BE/"/>
-    
     <category term="Agent" scheme="https://www.keychan.xyz/tags/Agent/"/>
     
     <category term="CodingLLM" scheme="https://www.keychan.xyz/tags/CodingLLM/"/>
     
+    <category term="提示工程" scheme="https://www.keychan.xyz/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/"/>
+    
     <category term="Ollama" scheme="https://www.keychan.xyz/tags/Ollama/"/>
+    
+    <category term="思维链" scheme="https://www.keychan.xyz/tags/%E6%80%9D%E7%BB%B4%E9%93%BE/"/>
     
     <category term="Few-shot" scheme="https://www.keychan.xyz/tags/Few-shot/"/>
     
@@ -150,15 +178,15 @@
     
     <category term="大语言模型" scheme="https://www.keychan.xyz/tags/%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/"/>
     
+    <category term="RAG" scheme="https://www.keychan.xyz/tags/RAG/"/>
+    
+    <category term="Agent" scheme="https://www.keychan.xyz/tags/Agent/"/>
+    
     <category term="提示工程" scheme="https://www.keychan.xyz/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/"/>
     
     <category term="思维链" scheme="https://www.keychan.xyz/tags/%E6%80%9D%E7%BB%B4%E9%93%BE/"/>
     
     <category term="上下文管理" scheme="https://www.keychan.xyz/tags/%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AE%A1%E7%90%86/"/>
-    
-    <category term="RAG" scheme="https://www.keychan.xyz/tags/RAG/"/>
-    
-    <category term="Agent" scheme="https://www.keychan.xyz/tags/Agent/"/>
     
   </entry>
   
@@ -268,13 +296,13 @@
     <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
-    <category term="对比学习" scheme="https://www.keychan.xyz/tags/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0/"/>
-    
     <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
     
     <category term="CLIP" scheme="https://www.keychan.xyz/tags/CLIP/"/>
     
     <category term="ALIGN" scheme="https://www.keychan.xyz/tags/ALIGN/"/>
+    
+    <category term="对比学习" scheme="https://www.keychan.xyz/tags/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0/"/>
     
     <category term="RAG-Vision" scheme="https://www.keychan.xyz/tags/RAG-Vision/"/>
     
@@ -309,9 +337,9 @@
     
     <category term="Transformer" scheme="https://www.keychan.xyz/tags/Transformer/"/>
     
-    <category term="自监督学习" scheme="https://www.keychan.xyz/tags/%E8%87%AA%E7%9B%91%E7%9D%A3%E5%AD%A6%E4%B9%A0/"/>
-    
     <category term="对比学习" scheme="https://www.keychan.xyz/tags/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0/"/>
+    
+    <category term="自监督学习" scheme="https://www.keychan.xyz/tags/%E8%87%AA%E7%9B%91%E7%9D%A3%E5%AD%A6%E4%B9%A0/"/>
     
     <category term="MAE" scheme="https://www.keychan.xyz/tags/MAE/"/>
     
@@ -568,34 +596,6 @@
     <category term="AsyncSequence" scheme="https://www.keychan.xyz/tags/AsyncSequence/"/>
     
     <category term="协程" scheme="https://www.keychan.xyz/tags/%E5%8D%8F%E7%A8%8B/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>UIKit 项目异步改造：Combine、async/await、@Published</title>
-    <link href="https://www.keychan.xyz/2025/12/05/045-asynchronous-transformation-of-uikit-project/"/>
-    <id>https://www.keychan.xyz/2025/12/05/045-asynchronous-transformation-of-uikit-project/</id>
-    <published>2025-12-05T05:28:12.000Z</published>
-    <updated>2025-12-05T05:28:30.429Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-为什么-UIKit-项目也需要现代异步能力？&quot;&gt;&lt;a href=&quot;#1-为什么-UIKit-项目也需要现代异步能力？&quot; class=&quot;headerlink&quot; title=&quot;1. 为什么 UIKit 项目也需要现代异步能力？&quot;&gt;&lt;/a&gt;1. 为什么 UIKit 项目也需要现代异步能力？&lt;/h2&gt;&lt;p&gt;现在的应用，无论是前端、Flutter 还是移动端原生，都有一个共同趋势：异步操作越来越多、界面状态变化也越来越频繁。Web 有 async&amp;#x2F;await + Promise 统一异步流程，用事件流和状态管理驱动 UI；Flutter 用 sync&amp;#x2F;await + Future&amp;#x2F;Stream 处理异步，用 BLoC、Provider、Riverpod 聚合状态并更新界面。这些体系之所以能稳定，是因为都遵循了同一种现代异步模型：异步逻辑线性化、事件流可组合、UI 完全由状态驱动。&lt;/p&gt;
-&lt;p&gt;UIKit 项目同样也面临这些问题，随着 Swift Concurrency、Combine 和 @Published 逐渐成熟，UIKit 也具备了和 Web、Flutter 类似的现代异步能力：async&amp;#x2F;await 负责逻辑，Combine 管事件流，状态集中在 ViewModel，由 UI 自动响应变化。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="iOS 开发" scheme="https://www.keychan.xyz/categories/iOS-%E5%BC%80%E5%8F%91/"/>
-    
-    
-    <category term="状态管理" scheme="https://www.keychan.xyz/tags/%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86/"/>
-    
-    <category term="Swift" scheme="https://www.keychan.xyz/tags/Swift/"/>
-    
-    <category term="MVVM" scheme="https://www.keychan.xyz/tags/MVVM/"/>
-    
-    <category term="异步编程" scheme="https://www.keychan.xyz/tags/%E5%BC%82%E6%AD%A5%E7%BC%96%E7%A8%8B/"/>
-    
-    <category term="响应式编程" scheme="https://www.keychan.xyz/tags/%E5%93%8D%E5%BA%94%E5%BC%8F%E7%BC%96%E7%A8%8B/"/>
     
   </entry>
   
