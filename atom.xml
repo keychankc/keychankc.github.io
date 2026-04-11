@@ -6,7 +6,7 @@
   <link href="https://www.keychan.xyz/atom.xml" rel="self"/>
   
   <link href="https://www.keychan.xyz/"/>
-  <updated>2026-04-06T11:19:42.449Z</updated>
+  <updated>2026-04-11T02:14:07.067Z</updated>
   <id>https://www.keychan.xyz/</id>
   
   <author>
@@ -15,6 +15,34 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>AI 协作工程（五）：从生成到执行链</title>
+    <link href="https://www.keychan.xyz/2026/04/11/066.from-generation-to-execution/"/>
+    <id>https://www.keychan.xyz/2026/04/11/066.from-generation-to-execution/</id>
+    <published>2026-04-11T01:30:12.000Z</published>
+    <updated>2026-04-11T02:14:07.067Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;本文承接前四篇关于 Prompt、Coding Agent Anatomy、Context Engineering 和 Agent Governance 的讨论，但关注点继续前移，不再停留在系统如何设计，而是落到一个更实际的问题：&lt;strong&gt;当 agent 真正开始执行任务时，动作到底发生在哪里&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;前面几篇解决的是“怎么让系统动起来”，而这一篇关心的是：一旦开始跑命令、查环境、串脚本、推进多步流程，&lt;strong&gt;这些动作由哪个界面承接&lt;/strong&gt;。答案其实很直接——是 terminal。构建、测试、部署、日志、脚本，本来就发生在终端里，&lt;strong&gt;只要进入执行阶段，terminal 就会成为最接近现场的位置&lt;/strong&gt;。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="AI协作工程" scheme="https://www.keychan.xyz/categories/AI%E5%8D%8F%E4%BD%9C%E5%B7%A5%E7%A8%8B/"/>
+    
+    
+    <category term="Agent" scheme="https://www.keychan.xyz/tags/Agent/"/>
+    
+    <category term="工作流设计" scheme="https://www.keychan.xyz/tags/%E5%B7%A5%E4%BD%9C%E6%B5%81%E8%AE%BE%E8%AE%A1/"/>
+    
+    <category term="上下文工程" scheme="https://www.keychan.xyz/tags/%E4%B8%8A%E4%B8%8B%E6%96%87%E5%B7%A5%E7%A8%8B/"/>
+    
+    <category term="Terminal" scheme="https://www.keychan.xyz/tags/Terminal/"/>
+    
+    <category term="自动化" scheme="https://www.keychan.xyz/tags/%E8%87%AA%E5%8A%A8%E5%8C%96/"/>
+    
+  </entry>
   
   <entry>
     <title>AI 协作工程（四）：从执行链到治理链</title>
@@ -124,9 +152,9 @@
     
     <category term="提示工程" scheme="https://www.keychan.xyz/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/"/>
     
-    <category term="Ollama" scheme="https://www.keychan.xyz/tags/Ollama/"/>
-    
     <category term="思维链" scheme="https://www.keychan.xyz/tags/%E6%80%9D%E7%BB%B4%E9%93%BE/"/>
+    
+    <category term="Ollama" scheme="https://www.keychan.xyz/tags/Ollama/"/>
     
     <category term="Few-shot" scheme="https://www.keychan.xyz/tags/Few-shot/"/>
     
@@ -264,13 +292,13 @@
     <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
+    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
+    
     <category term="大语言模型" scheme="https://www.keychan.xyz/tags/%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/"/>
     
     <category term="ScalingLaws" scheme="https://www.keychan.xyz/tags/ScalingLaws/"/>
     
     <category term="上下文窗口" scheme="https://www.keychan.xyz/tags/%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AA%97%E5%8F%A3/"/>
-    
-    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
     
     <category term="世界模型" scheme="https://www.keychan.xyz/tags/%E4%B8%96%E7%95%8C%E6%A8%A1%E5%9E%8B/"/>
     
@@ -296,13 +324,13 @@
     <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
-    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
+    <category term="对比学习" scheme="https://www.keychan.xyz/tags/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0/"/>
     
     <category term="CLIP" scheme="https://www.keychan.xyz/tags/CLIP/"/>
     
     <category term="ALIGN" scheme="https://www.keychan.xyz/tags/ALIGN/"/>
     
-    <category term="对比学习" scheme="https://www.keychan.xyz/tags/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0/"/>
+    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
     
     <category term="RAG-Vision" scheme="https://www.keychan.xyz/tags/RAG-Vision/"/>
     
@@ -337,9 +365,9 @@
     
     <category term="Transformer" scheme="https://www.keychan.xyz/tags/Transformer/"/>
     
-    <category term="对比学习" scheme="https://www.keychan.xyz/tags/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0/"/>
-    
     <category term="自监督学习" scheme="https://www.keychan.xyz/tags/%E8%87%AA%E7%9B%91%E7%9D%A3%E5%AD%A6%E4%B9%A0/"/>
+    
+    <category term="对比学习" scheme="https://www.keychan.xyz/tags/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0/"/>
     
     <category term="MAE" scheme="https://www.keychan.xyz/tags/MAE/"/>
     
@@ -568,34 +596,6 @@
     <category term="实时系统设计" scheme="https://www.keychan.xyz/tags/%E5%AE%9E%E6%97%B6%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/"/>
     
     <category term="姿态估计" scheme="https://www.keychan.xyz/tags/%E5%A7%BF%E6%80%81%E4%BC%B0%E8%AE%A1/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>Swift 隔离式并发实践：actor、Global Actor 与 Sendable</title>
-    <link href="https://www.keychan.xyz/2025/12/09/046-swift-concurrency/"/>
-    <id>https://www.keychan.xyz/2025/12/09/046-swift-concurrency/</id>
-    <published>2025-12-09T12:35:12.000Z</published>
-    <updated>2025-12-09T13:10:28.450Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-为什么-async-await-不能解决并发问题&quot;&gt;&lt;a href=&quot;#1-为什么-async-await-不能解决并发问题&quot; class=&quot;headerlink&quot; title=&quot;1. 为什么 async&amp;#x2F;await 不能解决并发问题&quot;&gt;&lt;/a&gt;1. 为什么 async&amp;#x2F;await 不能解决并发问题&lt;/h2&gt;&lt;p&gt;Swift Concurrency 带来的第一个直观变化，是 async&amp;#x2F;await 让异步调用读起来像同步代码。之前一长串回调嵌套，现在可以按顺序写清楚：先请求网络，再解析，再更新状态。但在真实项目里，异步“写起来舒服”只是表面，很多时候真正的痛点不在于“怎么写异步逻辑”，而在于“多个任务同时访问同一份状态时发生的问题”。线程变多、任务变多、入口变多之后，只要可变状态没有明确的限制，就可能带来问题。&lt;/p&gt;
-&lt;p&gt;&lt;a href=&quot;https://gist.github.com/keychankc/be207faff229cc2b97da168aaf9aadb7&quot;&gt;获取服务端配置&lt;/a&gt;就是一个非常典型的并发场景：有本地缓存，有后台刷新，有多处调用，有UI依赖结果，还有可能叠加服务端推送。表面上只是“拉一份配置下来”，但内部状态在多个任务之间来回穿插，如果不做隔离，async&amp;#x2F;await 并不能有效处理这些逻辑。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="iOS 开发" scheme="https://www.keychan.xyz/categories/iOS-%E5%BC%80%E5%8F%91/"/>
-    
-    
-    <category term="Swift" scheme="https://www.keychan.xyz/tags/Swift/"/>
-    
-    <category term="Swift并发" scheme="https://www.keychan.xyz/tags/Swift%E5%B9%B6%E5%8F%91/"/>
-    
-    <category term="actor" scheme="https://www.keychan.xyz/tags/actor/"/>
-    
-    <category term="AsyncSequence" scheme="https://www.keychan.xyz/tags/AsyncSequence/"/>
-    
-    <category term="协程" scheme="https://www.keychan.xyz/tags/%E5%8D%8F%E7%A8%8B/"/>
     
   </entry>
   
