@@ -92,13 +92,13 @@
     
     <category term="提示工程" scheme="https://www.keychan.xyz/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/"/>
     
-    <category term="CodingLLM" scheme="https://www.keychan.xyz/tags/CodingLLM/"/>
-    
-    <category term="MCP" scheme="https://www.keychan.xyz/tags/MCP/"/>
-    
     <category term="工作流设计" scheme="https://www.keychan.xyz/tags/%E5%B7%A5%E4%BD%9C%E6%B5%81%E8%AE%BE%E8%AE%A1/"/>
     
     <category term="上下文工程" scheme="https://www.keychan.xyz/tags/%E4%B8%8A%E4%B8%8B%E6%96%87%E5%B7%A5%E7%A8%8B/"/>
+    
+    <category term="CodingLLM" scheme="https://www.keychan.xyz/tags/CodingLLM/"/>
+    
+    <category term="MCP" scheme="https://www.keychan.xyz/tags/MCP/"/>
     
     <category term="Spec-Driven开发" scheme="https://www.keychan.xyz/tags/Spec-Driven%E5%BC%80%E5%8F%91/"/>
     
