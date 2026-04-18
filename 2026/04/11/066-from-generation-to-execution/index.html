@@ -24,7 +24,7 @@
     <meta name="description" content="本文承接前四篇关于 Prompt、Coding Agent Anatomy、Context Engineering 和 Agent Governance 的讨论，但关注点继续前移，不再停留在系统如何设计，而是落到一个更实际的问题：当 agent 真正开始执行任务时，动作到底发生在哪里。 前面几篇解决的是“怎么让系统动起来”，而这一篇关心的是：一旦开始跑命令、查环境、串脚本、推进多步流程，这些动作由">
 <meta property="og:type" content="article">
 <meta property="og:title" content="AI 协作工程（五）：从生成到执行链">
-<meta property="og:url" content="https://www.keychan.xyz/2026/04/11/066.from-generation-to-execution/index.html">
+<meta property="og:url" content="https://www.keychan.xyz/2026/04/11/066-from-generation-to-execution/index.html">
 <meta property="og:site_name" content="KeyChan&#39;s Notes">
 <meta property="og:description" content="本文承接前四篇关于 Prompt、Coding Agent Anatomy、Context Engineering 和 Agent Governance 的讨论，但关注点继续前移，不再停留在系统如何设计，而是落到一个更实际的问题：当 agent 真正开始执行任务时，动作到底发生在哪里。 前面几篇解决的是“怎么让系统动起来”，而这一篇关心的是：一旦开始跑命令、查环境、串脚本、推进多步流程，这些动作由">
 <meta property="og:locale" content="zh_CN">
@@ -39,10 +39,10 @@
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="https://www.keychan.xyz/2026/04/11/066.from-generation-to-execution/">
+<link rel="canonical" href="https://www.keychan.xyz/2026/04/11/066-from-generation-to-execution/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.keychan.xyz/2026/04/11/066.from-generation-to-execution/","path":"2026/04/11/066.from-generation-to-execution/","title":"AI 协作工程（五）：从生成到执行链"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.keychan.xyz/2026/04/11/066-from-generation-to-execution/","path":"2026/04/11/066-from-generation-to-execution/","title":"AI 协作工程（五）：从生成到执行链"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title>AI 协作工程（五）：从生成到执行链 | KeyChan's Notes</title>
@@ -161,7 +161,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">67</span>
+          <span class="site-state-item-count">68</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -172,7 +172,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">169</span>
+        <span class="site-state-item-count">172</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -210,7 +210,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2026/04/11/066.from-generation-to-execution/">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2026/04/11/066-from-generation-to-execution/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/key_avatar.png">
@@ -261,8 +261,8 @@
     </span>
     <span class="post-meta-item-text">Waline：</span>
   
-    <a title="waline" href="/2026/04/11/066.from-generation-to-execution/#waline" itemprop="discussionUrl">
-      <span class="post-comments-count waline-comment-count" data-path="/2026/04/11/066.from-generation-to-execution/" itemprop="commentCount"></span>
+    <a title="waline" href="/2026/04/11/066-from-generation-to-execution/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2026/04/11/066-from-generation-to-execution/" itemprop="commentCount"></span>
     </a>
   </span>
   
@@ -412,7 +412,7 @@ flowchart LR
   </li>
   <li class="post-copyright-link">
       <strong>本文链接：</strong>
-      <a href="https://www.keychan.xyz/2026/04/11/066.from-generation-to-execution/" title="AI 协作工程（五）：从生成到执行链">https://www.keychan.xyz/2026/04/11/066.from-generation-to-execution/</a>
+      <a href="https://www.keychan.xyz/2026/04/11/066-from-generation-to-execution/" title="AI 协作工程（五）：从生成到执行链">https://www.keychan.xyz/2026/04/11/066-from-generation-to-execution/</a>
   </li>
   <li class="post-copyright-license">
       <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -454,6 +454,9 @@ flowchart LR
                 </a>
             </div>
             <div class="post-nav-item">
+                <a href="/2026/04/18/068-from-generation-to-verification/" rel="next" title="AI 协作工程（六）：从生成到验证">
+                  AI 协作工程（六）：从生成到验证 <i class="fa fa-angle-right"></i>
+                </a>
             </div>
           </div>
     </footer>
@@ -486,7 +489,7 @@ flowchart LR
       <i class="fa fa-chart-line"></i>
     </span>
       <span>站点总字数：</span>
-    <span title="站点总字数">628k</span>
+    <span title="站点总字数">633k</span>
   </span>
 </div>
 <div class="busuanzi-count">
@@ -559,7 +562,7 @@ flowchart LR
 <script src="/js/third-party/math/mathjax.js"></script>
 
 
-<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.keychan.xyz/","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2026/04/11/066.from-generation-to-execution/"}</script>
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.keychan.xyz/","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2026/04/11/066-from-generation-to-execution/"}</script>
 <link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
 <script>
 document.addEventListener('page:loaded', () => {
