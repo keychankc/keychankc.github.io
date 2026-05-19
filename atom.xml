@@ -6,7 +6,7 @@
   <link href="https://www.keychan.xyz/atom.xml" rel="self"/>
   
   <link href="https://www.keychan.xyz/"/>
-  <updated>2026-05-13T00:51:14.262Z</updated>
+  <updated>2026-05-19T15:50:19.894Z</updated>
   <id>https://www.keychan.xyz/</id>
   
   <author>
@@ -15,6 +15,36 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>AI 协作工程（十）：记忆与上下文系统</title>
+    <link href="https://www.keychan.xyz/2026/05/19/072-memory-and-context-system/"/>
+    <id>https://www.keychan.xyz/2026/05/19/072-memory-and-context-system/</id>
+    <published>2026-05-19T15:50:12.000Z</published>
+    <updated>2026-05-19T15:50:19.894Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;本文以 Manthan Gupta 的两篇逆向分析为线索，对比 ChatGPT 与 Claude 的记忆机制。核心问题不是谁“记得更多”，而是：&lt;strong&gt;面对同一个跨会话连续性问题，两者为何选择不同的系统路径&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;文中将记忆问题还原为&lt;strong&gt;上下文工程问题&lt;/strong&gt;，并指出两种典型方案：ChatGPT 的&lt;strong&gt;预注入式连续性&lt;/strong&gt;，以及 Claude 的&lt;strong&gt;按需检索式连续性&lt;/strong&gt;。两者差异本质在于：&lt;strong&gt;过去信息是在一开始就引入，还是在需要时再引入&lt;/strong&gt;。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="AI协作工程" scheme="https://www.keychan.xyz/categories/AI%E5%8D%8F%E4%BD%9C%E5%B7%A5%E7%A8%8B/"/>
+    
+    
+    <category term="提示工程" scheme="https://www.keychan.xyz/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/"/>
+    
+    <category term="工作流设计" scheme="https://www.keychan.xyz/tags/%E5%B7%A5%E4%BD%9C%E6%B5%81%E8%AE%BE%E8%AE%A1/"/>
+    
+    <category term="上下文工程" scheme="https://www.keychan.xyz/tags/%E4%B8%8A%E4%B8%8B%E6%96%87%E5%B7%A5%E7%A8%8B/"/>
+    
+    <category term="Agent治理" scheme="https://www.keychan.xyz/tags/Agent%E6%B2%BB%E7%90%86/"/>
+    
+    <category term="ChatGPT" scheme="https://www.keychan.xyz/tags/ChatGPT/"/>
+    
+    <category term="Claude" scheme="https://www.keychan.xyz/tags/Claude/"/>
+    
+  </entry>
   
   <entry>
     <title>AI 协作工程（九）：从产品上线到生产运行</title>
@@ -208,9 +238,9 @@
     <category term="AI协作工程" scheme="https://www.keychan.xyz/categories/AI%E5%8D%8F%E4%BD%9C%E5%B7%A5%E7%A8%8B/"/>
     
     
-    <category term="Agent" scheme="https://www.keychan.xyz/tags/Agent/"/>
-    
     <category term="CodingLLM" scheme="https://www.keychan.xyz/tags/CodingLLM/"/>
+    
+    <category term="Agent" scheme="https://www.keychan.xyz/tags/Agent/"/>
     
     <category term="提示工程" scheme="https://www.keychan.xyz/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/"/>
     
@@ -218,9 +248,9 @@
     
     <category term="上下文工程" scheme="https://www.keychan.xyz/tags/%E4%B8%8A%E4%B8%8B%E6%96%87%E5%B7%A5%E7%A8%8B/"/>
     
-    <category term="Spec-Driven开发" scheme="https://www.keychan.xyz/tags/Spec-Driven%E5%BC%80%E5%8F%91/"/>
-    
     <category term="MCP" scheme="https://www.keychan.xyz/tags/MCP/"/>
+    
+    <category term="Spec-Driven开发" scheme="https://www.keychan.xyz/tags/Spec-Driven%E5%BC%80%E5%8F%91/"/>
     
   </entry>
   
@@ -241,9 +271,9 @@
     <category term="AI协作工程" scheme="https://www.keychan.xyz/categories/AI%E5%8D%8F%E4%BD%9C%E5%B7%A5%E7%A8%8B/"/>
     
     
-    <category term="Agent" scheme="https://www.keychan.xyz/tags/Agent/"/>
-    
     <category term="CodingLLM" scheme="https://www.keychan.xyz/tags/CodingLLM/"/>
+    
+    <category term="Agent" scheme="https://www.keychan.xyz/tags/Agent/"/>
     
     <category term="提示工程" scheme="https://www.keychan.xyz/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/"/>
     
@@ -266,9 +296,9 @@
     <category term="AI协作工程" scheme="https://www.keychan.xyz/categories/AI%E5%8D%8F%E4%BD%9C%E5%B7%A5%E7%A8%8B/"/>
     
     
-    <category term="Agent" scheme="https://www.keychan.xyz/tags/Agent/"/>
-    
     <category term="CodingLLM" scheme="https://www.keychan.xyz/tags/CodingLLM/"/>
+    
+    <category term="Agent" scheme="https://www.keychan.xyz/tags/Agent/"/>
     
     <category term="Ollama" scheme="https://www.keychan.xyz/tags/Ollama/"/>
     
@@ -298,9 +328,9 @@
     
     <category term="大语言模型" scheme="https://www.keychan.xyz/tags/%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/"/>
     
-    <category term="RAG" scheme="https://www.keychan.xyz/tags/RAG/"/>
-    
     <category term="Agent" scheme="https://www.keychan.xyz/tags/Agent/"/>
+    
+    <category term="RAG" scheme="https://www.keychan.xyz/tags/RAG/"/>
     
     <category term="模型增强" scheme="https://www.keychan.xyz/tags/%E6%A8%A1%E5%9E%8B%E5%A2%9E%E5%BC%BA/"/>
     
@@ -326,8 +356,6 @@
     
     <category term="大语言模型" scheme="https://www.keychan.xyz/tags/%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/"/>
     
-    <category term="RAG" scheme="https://www.keychan.xyz/tags/RAG/"/>
-    
     <category term="Agent" scheme="https://www.keychan.xyz/tags/Agent/"/>
     
     <category term="思维链" scheme="https://www.keychan.xyz/tags/%E6%80%9D%E7%BB%B4%E9%93%BE/"/>
@@ -335,6 +363,8 @@
     <category term="提示工程" scheme="https://www.keychan.xyz/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/"/>
     
     <category term="上下文管理" scheme="https://www.keychan.xyz/tags/%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AE%A1%E7%90%86/"/>
+    
+    <category term="RAG" scheme="https://www.keychan.xyz/tags/RAG/"/>
     
   </entry>
   
@@ -412,13 +442,13 @@
     <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
-    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
-    
     <category term="大语言模型" scheme="https://www.keychan.xyz/tags/%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/"/>
     
     <category term="ScalingLaws" scheme="https://www.keychan.xyz/tags/ScalingLaws/"/>
     
     <category term="上下文窗口" scheme="https://www.keychan.xyz/tags/%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AA%97%E5%8F%A3/"/>
+    
+    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
     
     <category term="世界模型" scheme="https://www.keychan.xyz/tags/%E4%B8%96%E7%95%8C%E6%A8%A1%E5%9E%8B/"/>
     
@@ -444,13 +474,13 @@
     <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
+    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
+    
     <category term="对比学习" scheme="https://www.keychan.xyz/tags/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0/"/>
     
     <category term="CLIP" scheme="https://www.keychan.xyz/tags/CLIP/"/>
     
     <category term="ALIGN" scheme="https://www.keychan.xyz/tags/ALIGN/"/>
-    
-    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
     
     <category term="RAG-Vision" scheme="https://www.keychan.xyz/tags/RAG-Vision/"/>
     
@@ -573,36 +603,6 @@
     <category term="深度阅读" scheme="https://www.keychan.xyz/tags/%E6%B7%B1%E5%BA%A6%E9%98%85%E8%AF%BB/"/>
     
     <category term="知识管理" scheme="https://www.keychan.xyz/tags/%E7%9F%A5%E8%AF%86%E7%AE%A1%E7%90%86/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>从像素预测到可提示分割：UNet、DeepLab、Mask2Former 到 Segment Anything</title>
-    <link href="https://www.keychan.xyz/2026/01/07/051-unet-deeplab-mask2former-segment-anything/"/>
-    <id>https://www.keychan.xyz/2026/01/07/051-unet-deeplab-mask2former-segment-anything/</id>
-    <published>2026-01-07T10:21:12.000Z</published>
-    <updated>2026-01-07T10:21:11.188Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-视觉分割任务回顾：从像素预测到结构理解&quot;&gt;&lt;a href=&quot;#1-视觉分割任务回顾：从像素预测到结构理解&quot; class=&quot;headerlink&quot; title=&quot;1. 视觉分割任务回顾：从像素预测到结构理解&quot;&gt;&lt;/a&gt;1. 视觉分割任务回顾：从像素预测到结构理解&lt;/h2&gt;&lt;p&gt;视觉分割是计算机视觉体系中一类&lt;strong&gt;基础而关键&lt;/strong&gt;的任务。与图像分类主要回答“图像中包含哪些语义概念”不同，分割进一步要求回答“这些对象在图像中的&lt;strong&gt;具体位置、形状与边界&lt;/strong&gt;是什么”。这意味着分割并非以整幅图像或候选框为单位进行判断，而是&lt;strong&gt;直接作用于像素层面&lt;/strong&gt;，需要对图像中&lt;strong&gt;每一个像素&lt;/strong&gt;给出明确的归属结果。&lt;/p&gt;
-&lt;p&gt;正因为输出粒度从“区域”细化到“像素”，视觉分割不仅考验模型的语义理解能力，更对其&lt;strong&gt;空间表达能力、上下文建模能力以及结构化预测能力&lt;/strong&gt;提出了更高要求。在进入可提示分割与通用分割模型的讨论之前，有必要首先对分割任务本身的定义、输出形式以及任务类型进行系统回顾，从而为后续模型结构与问题设定的演进奠定清晰而统一的概念基础。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
-    
-    
-    <category term="目标分割" scheme="https://www.keychan.xyz/tags/%E7%9B%AE%E6%A0%87%E5%88%86%E5%89%B2/"/>
-    
-    <category term="DeepLab" scheme="https://www.keychan.xyz/tags/DeepLab/"/>
-    
-    <category term="UNet" scheme="https://www.keychan.xyz/tags/UNet/"/>
-    
-    <category term="Mask2Former" scheme="https://www.keychan.xyz/tags/Mask2Former/"/>
-    
-    <category term="SegmentAnything" scheme="https://www.keychan.xyz/tags/SegmentAnything/"/>
-    
-    <category term="图形分割" scheme="https://www.keychan.xyz/tags/%E5%9B%BE%E5%BD%A2%E5%88%86%E5%89%B2/"/>
     
   </entry>
   

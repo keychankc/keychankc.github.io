@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.keychan.xyz","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":272,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="本文以 Manthan Gupta 的两篇逆向分析为线索，对比 ChatGPT 与 Claude 的记忆机制。核心问题不是谁“记得更多”，而是：面对同一个跨会话连续性问题，两者为何选择不同的系统路径。 文中将记忆问题还原为上下文工程问题，并指出两种典型方案：ChatGPT 的预注入式连续性，以及 Claude 的按需检索式连续性。两者差异本质在于：过去信息是在一开始就引入，还是在需要时再引入。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AI 协作工程（十）：记忆与上下文系统">
+<meta property="og:url" content="https://www.keychan.xyz/2026/05/19/072-memory-and-context-system/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s Notes">
+<meta property="og:description" content="本文以 Manthan Gupta 的两篇逆向分析为线索，对比 ChatGPT 与 Claude 的记忆机制。核心问题不是谁“记得更多”，而是：面对同一个跨会话连续性问题，两者为何选择不同的系统路径。 文中将记忆问题还原为上下文工程问题，并指出两种典型方案：ChatGPT 的预注入式连续性，以及 Claude 的按需检索式连续性。两者差异本质在于：过去信息是在一开始就引入，还是在需要时再引入。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-05-19T15:50:12.000Z">
+<meta property="article:modified_time" content="2026-05-19T15:50:19.894Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="提示工程">
+<meta property="article:tag" content="工作流设计">
+<meta property="article:tag" content="上下文工程">
+<meta property="article:tag" content="Agent治理">
+<meta property="article:tag" content="ChatGPT">
+<meta property="article:tag" content="Claude">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://www.keychan.xyz/2026/05/19/072-memory-and-context-system/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.keychan.xyz/2026/05/19/072-memory-and-context-system/","path":"2026/05/19/072-memory-and-context-system/","title":"AI 协作工程（十）：记忆与上下文系统"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>AI 协作工程（十）：记忆与上下文系统 | KeyChan's Notes</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.keychan.xyz/">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's Notes" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's Notes</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一个不断生长的上下文</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%95%E8%A8%80"><span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%AE%B0%E5%BF%86%E9%97%AE%E9%A2%98%E6%9C%AC%E8%B4%A8%E4%B8%8A%E6%98%AF%E4%B8%8A%E4%B8%8B%E6%96%87%E5%B7%A5%E7%A8%8B%E9%97%AE%E9%A2%98"><span class="nav-text">1. 为什么记忆问题本质上是上下文工程问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-ChatGPT%EF%BC%9A%E6%8A%8A%E8%BF%9E%E7%BB%AD%E6%80%A7%E9%A2%84%E5%85%88%E6%95%B4%E7%90%86%E5%90%8E%E6%B3%A8%E5%85%A5"><span class="nav-text">2. ChatGPT：把连续性预先整理后注入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-Claude%EF%BC%9A%E6%8A%8A%E5%8E%86%E5%8F%B2%E5%BD%93%E4%BD%9C%E9%9C%80%E8%A6%81%E6%97%B6%E6%89%8D%E8%B0%83%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7"><span class="nav-text">3. Claude：把历史当作需要时才调用的工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E7%9C%9F%E6%AD%A3%E7%9A%84%E5%B7%AE%E5%88%AB%E4%B8%8D%E5%9C%A8%E8%AE%B0%E5%BF%86%E6%9C%89%E6%97%A0%EF%BC%8C%E8%80%8C%E5%9C%A8%E9%BB%98%E8%AE%A4%E7%AD%96%E7%95%A5"><span class="nav-text">4. 真正的差别不在记忆有无，而在默认策略</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E4%B8%A4%E7%A7%8D%E8%AE%B0%E5%BF%86%E8%AE%BE%E8%AE%A1%E8%83%8C%E5%90%8E%E7%9A%84%E4%BA%A7%E5%93%81%E5%8F%96%E5%90%91"><span class="nav-text">5. 两种记忆设计背后的产品取向</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E6%80%BB%E7%BB%93"><span class="nav-text">6. 总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-text">7. 参考资料</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">183</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2026/05/19/072-memory-and-context-system/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's Notes">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="AI 协作工程（十）：记忆与上下文系统 | KeyChan's Notes">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          AI 协作工程（十）：记忆与上下文系统
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-05-19 23:50:12 / 修改时间：23:50:19" itemprop="dateCreated datePublished" datetime="2026-05-19T23:50:12+08:00">2026-05-19</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/AI%E5%8D%8F%E4%BD%9C%E5%B7%A5%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">AI协作工程</span></a>
+        </span>
+    </span>
+
+  
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2026/05/19/072-memory-and-context-system/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2026/05/19/072-memory-and-context-system/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>4.4k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>16 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>本文以 Manthan Gupta 的两篇逆向分析为线索，对比 ChatGPT 与 Claude 的记忆机制。核心问题不是谁“记得更多”，而是：<strong>面对同一个跨会话连续性问题，两者为何选择不同的系统路径</strong>。</p>
+<p>文中将记忆问题还原为<strong>上下文工程问题</strong>，并指出两种典型方案：ChatGPT 的<strong>预注入式连续性</strong>，以及 Claude 的<strong>按需检索式连续性</strong>。两者差异本质在于：<strong>过去信息是在一开始就引入，还是在需要时再引入</strong>。</p>
+<span id="more"></span>
+<p>最终，这两种设计分别服务于不同目标：前者偏向<strong>对话连续性与流畅体验</strong>，后者偏向<strong>上下文可控性与边界清晰</strong>。同时说明，相关结论均来自推断，<strong>不代表官方实现</strong>。</p>
+<h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>很多关于 AI 产品“记忆”的讨论，表面上是在比较哪个助手更懂用户、哪个更容易接上前文，但如果放回工程视角，这并不是一个 feature 的差异，而是一个 <strong>context system 的差异</strong>。所谓 memory，本质上是在回答三件事：<strong>哪些历史信息会进入当前 prompt、以什么形式进入，以及是在默认注入，还是按需检索</strong>。</p>
+<p>最近看到 Manthan Gupta 的两篇逆向分析，一篇针对 ChatGPT，一篇针对 Claude。它们都不是官方说明，而是基于对话实验、提示探测和行为观察做出的推断，虽然不适合被当作“内部机制揭秘”，但它们的价值在于：<strong>提供了一个对照两种上下文工程路线的切入点</strong>。同时也需要注意，<strong>两篇材料的证据强度并不对等</strong>——作者自己提到，Claude 在实验中更容易被 probe 和追问，因此相关推断相对更容易展开，这一点本身就是阅读时的前提。</p>
+<p>把两篇文章放在一起看，会出现一个清晰的差别：</p>
+<ul>
+<li>ChatGPT 更像是<strong>把跨会话信息提前整理为轻量摘要，并在后续对话中默认注入</strong>；</li>
+<li>Claude 则更像是<strong>把历史上下文放在工具层，在需要时再通过检索引入</strong>。</li>
+</ul>
+<p>两者都在解决“记忆”，但优先级不同：<strong>一个让连续性默认注入，一个让历史按需加载</strong>。</p>
+<p>因此，本文不把它们当作功能差异，而是理解为两种系统取舍：<strong>一种偏向预处理与持续注入，另一种偏向运行时检索与选择性回收</strong>。沿着这条线索，不仅可以解释两者带来的不同连续体验，也能反过来理解 <strong>context engineering、AI IDE 以及 agent workflow</strong> 到底在设计什么。</p>
+<p>最后需要补充一个点。这类文章属于 reverse engineering，真正有价值的不只是结论本身，还包括推导过程。因此后面会同时关注两层内容：<strong>一是“系统可能如何工作”，二是“这些判断是如何从行为中推出来的”</strong>。</p>
+<pre class="mermaid">---
+title: Memory 是 Context System 的一部分
+---
+flowchart LR
+    A["Long-term Memory<br/>长期稳定事实"] --> E["Current Prompt"]
+    B["Recent History Summary<br/>轻量历史摘要"] --> E
+    C["On-demand Retrieval<br/>按需检索历史"] -.需要时调用.-> E
+    D["Current Session<br/>当前会话窗口"] --> E</pre>
+
+<h2 id="1-为什么记忆问题本质上是上下文工程问题"><a href="#1-为什么记忆问题本质上是上下文工程问题" class="headerlink" title="1. 为什么记忆问题本质上是上下文工程问题"></a>1. 为什么记忆问题本质上是上下文工程问题</h2><p>很多文章会把 memory 当作一个独立功能来描述，但从系统角度看，它更接近一组 <strong>上下文进入规则</strong>。当前窗口保留什么，长期事实如何沉淀，最近历史是被压缩成摘要直接注入，还是停留在外部等待检索——这些并不是同一层的设计。所谓“记不记得”，本质对应的是：<strong>系统如何为当前这一次回答准备上下文</strong>。</p>
+<p>之所以重要，是因为这里同时在平衡几件天然冲突的事：<strong>连续性</strong>（对话不应每次都像第一次开始）、<strong>细节保留</strong>（关键历史不能被压缩丢失）、<strong>成本与延迟</strong>（上下文不可能无限扩展）、以及 <strong>稳定性</strong>（如果由模型自行决定取舍，判断本身就会影响结果质量）。memory 并不是简单的“存与不存”，而是这些约束下的一种取舍结果。</p>
+<p>因此，讨论 memory，如果还停留在“有没有这个功能”，其实已经不够。更有价值的比较，是看 <strong>哪些信息被默认带入 prompt，哪些信息被延后到运行时再决定引入，以及系统优先保护的是哪一种体验</strong>。顺着这个视角再看 ChatGPT 和 Claude，就会发现它们之间的差异是<strong>默认策略的不同</strong>。</p>
+<p>这也是为什么原文里的实验方法本身值得关注。Manthan Gupta 并没有依赖官方文档，而是通过 <strong>让系统自述、观察上下文形态、验证跨会话表现，以及检查删除和更新后的行为变化</strong>，一步步反推出可能的结构。面对这类材料，更稳的读法不是抓住某个结论，而是看 <strong>多个观察是否在同一方向上相互印证</strong>，从而形成整体判断。</p>
+<h2 id="2-ChatGPT：把连续性预先整理后注入"><a href="#2-ChatGPT：把连续性预先整理后注入" class="headerlink" title="2. ChatGPT：把连续性预先整理后注入"></a>2. ChatGPT：把连续性预先整理后注入</h2><p>根据 Manthan Gupta 的观察，ChatGPT 的记忆结构可以理解为多层上下文共同作用：session metadata、user memory、recent conversations summary，以及当前会话窗口。其中真正关键的，不是“有没有长期记忆”，而是 <strong>recent conversations summary 这一层的存在</strong>——它把跨会话连续性从“要么依赖长期画像，要么依赖当前窗口”，变成了 <strong>中间多一层对近期历史的轻量整理</strong>。</p>
+<p>这层结构承担的角色很清晰：长期记忆用于稳定事实（身份、偏好、长期兴趣），当前窗口维持单次对话的推理连贯，而 <strong>recent summary 用来告诉模型“最近一段时间在关注什么”</strong>。它不是完整历史，也不是精确检索，更像一张被压缩过的导航图。实验中可以看到，这些信息通常以 <strong>数量有限的结构化条目</strong>存在，而不是把整段历史原文直接塞回 prompt。更重要的是，summary 更偏向 <strong>总结用户关注的主题</strong>，而不是复述 assistant 说过的具体内容，因此它更接近“用户状态”，而不是“会话全文”。</p>
+<p>正因为这一点，这套机制更接近 <strong>“预先整理 + 默认注入”</strong>，而不是传统的 RAG。在典型 retrieval 体系里，系统需要先判断是否检索，再按需取回片段；而这里的观察更像是：<strong>系统持续维护一层近期摘要，并在对话开始时直接带入上下文</strong>。这样做的结果是，连续性不需要额外触发就能成立，同时 token 成本也比回灌原始历史更可控。</p>
+<p>这个判断来自多方面的验证：一是上下文中能稳定看到相对固定的 memory 与 summary 结构，而不是每次临时拼接；二是 summary 的粒度明显比原始对话更粗，呈现出 <strong>事先整理过的主题条目</strong>；三是没有明显观察到“先检索再拼接”的行为模式。正是这些观察叠在一起，才指向 <strong>summary injection</strong> 这一解释路径。</p>
+<p>从产品体验看，这条路线的优势在于 <strong>顺滑的默认连续性</strong>。很多时候，用户并不需要精确找回某一次对话的细节，而只是希望系统能沿着最近的主题继续展开。在这种场景下，轻量摘要刚好提供足够的方向感，而不引入额外的调用成本。</p>
+<p>同时还有一个值得注意的点是 session metadata。实验显示，一些环境信息（设备、时区、订阅状态、使用模式等）可能在会话开始时一并进入上下文。即使这仍属于推断，它也提示了一个方向：<strong>ChatGPT 的个性化不仅依赖长期记忆，也依赖当下环境上下文</strong>。再加上长期记忆中既包含显式保存的信息，也可能包含系统对稳定偏好的隐式提取，这几层共同构成了其连续体验的基础。</p>
+<p>但这条路线的问题也很明确：<strong>摘要提供的是方向，而不是细节</strong>。它更擅长维持“最近在聊什么”，不擅长恢复“当时具体怎么说”。本质上，这是在用 <strong>浅但稳定的连续性</strong>，换取 <strong>更低的使用摩擦和更一致的默认体验</strong>。</p>
+<h2 id="3-Claude：把历史当作需要时才调用的工具"><a href="#3-Claude：把历史当作需要时才调用的工具" class="headerlink" title="3. Claude：把历史当作需要时才调用的工具"></a>3. Claude：把历史当作需要时才调用的工具</h2><p>相比之下，根据 Manthan Gupta 对 Claude 的观察，呈现出另一条明显不同的路径。Claude 同样具备长期记忆与当前会话窗口，但在跨会话这一层，它并不会把一份近历史摘要默认带入每次 prompt，而是通过类似 conversation_search、recent_chats 的机制，在需要时再把历史拉回当前上下文。需要注意的是，这些观察建立在开启 memory 的付费版本之上，本身属于实验性推断的边界之内。</p>
+<p>这使得 Claude 的记忆结构更像一个 <strong>agent 化的系统</strong>：历史不再是默认背景，而是一个 <strong>外部可调用资源</strong>。模型需要先判断当前问题是否相关，再决定是否调用工具、如何调用，并将取回的内容纳入推理过程。也就是说，它的默认状态不是“带着历史工作”，而是 <strong>“先不带，需要时再查”</strong>。</p>
+<p>更细看这一层，还能发现它并不是单一入口。conversation_search 更偏向 <strong>按主题或关键词检索历史</strong>，而 recent_chats 更像 <strong>按时间回看最近对话</strong>。这种拆分意味着，Claude 并不是简单做“有没有历史”，而是把历史访问进一步细化成不同路径，从一开始就带有 <strong>工具化和结构化调用的特征</strong>。</p>
+<p>这种设计的优势在于 <strong>潜在的细节深度更高</strong>。一旦触发检索，系统可以取回比摘要更具体的历史片段，而且这些片段既可能包含用户输入，也可能包含模型过去的回复，更适合处理那些 <strong>必须依赖具体历史细节才能完成的任务</strong>。同时，历史只在相关时才被引入，也意味着不会为每一次普通对话承担额外的上下文成本。本质上，这是 <strong>“当前窗口 + 外部检索” 的组合</strong>，而不是始终携带一层固定的近历史摘要。</p>
+<p>这种方式也非常接近工程中的 agent workflow。在复杂系统里，历史通常不会被无条件注入，而是先判断“是否需要”，再通过工具拉回上下文。Claude 的记忆机制之所以值得关注，正是因为它把一个消费级聊天产品里的 memory 问题，处理成了 <strong>接近 agent 执行链的结构</strong>。与此同时，作者还观察到长期记忆存在 <strong>隐式更新（implicit updates）</strong>：系统会根据长期互动逐步调整记忆，而删除相关会话后，这些记忆也可能随时间衰退。这种 <strong>持续演化的记忆状态</strong>，明显不同于静态存档的理解方式。</p>
+<p>从证据链看，Claude 这一侧的推断也更完整：不仅有 memory 条目的观察，还有 <strong>工具调用行为、不同检索入口的分工、返回结果的结构，以及删除后记忆变化的现象</strong>。这些信号相互支撑，使得整体判断不仅停留在“看到什么”，而是延伸到“如何运作”。</p>
+<p>但代价同样清晰：<strong>连续性不再是默认存在的，而依赖模型是否判断出“此刻需要历史”</strong>。一旦判断失误，相关上下文就可能缺失。因此，这条路线的特点不是始终顺滑，而是 <strong>在判断正确时，可以把历史作为工具更深入地调回当前任务中</strong>。</p>
+<h2 id="4-真正的差别不在记忆有无，而在默认策略"><a href="#4-真正的差别不在记忆有无，而在默认策略" class="headerlink" title="4. 真正的差别不在记忆有无，而在默认策略"></a>4. 真正的差别不在记忆有无，而在默认策略</h2><p>把两篇分析放在一起，可以清晰的看出它们背后的 <strong>默认策略差异</strong>。两者都清楚，长上下文不是解法，也都没有走“把所有历史原文回灌”的路径。真正的分叉在于：<strong>系统默认如何处理历史信息</strong>。</p>
+<p>ChatGPT 的选择，是让 <strong>连续性先成立</strong>。即使没有完整细节，系统也会优先把近期主题、长期偏好以及 session 环境整理后带入上下文，让模型一开始就处在“带背景”的状态。这更接近消费级产品逻辑，核心是 <strong>减少断裂感，让对话自然延续</strong>。</p>
+<p>Claude 的选择，则是让 <strong>历史默认退出当前 prompt</strong>。只有当模型判断“这次确实需要过去信息”时，才通过工具把历史取回。这更接近工程系统的取舍：<strong>历史是一种资源，而不是默认负担</strong>，是否使用由当前任务决定。</p>
+<p>如果用更抽象的语言概括，这对应两条不同的 <strong>context engineering 路线</strong>：</p>
+<ul>
+<li>一条是 <strong>summary injection（先压缩，再持续注入）</strong>，</li>
+<li>一条是 <strong>on-demand retrieval（默认不带，运行时决定是否取回）</strong>。</li>
+</ul>
+<p>前者提供的是 <strong>稳定但较浅的连续性</strong>，后者提供的是 <strong>按需触发但更深的细节回收能力</strong>。同时，前者尽量减少对模型判断的依赖，而后者则把一部分成败交给模型：<strong>是否知道该不该调历史</strong>。</p>
+<p>换个角度看，两者其实在回答不同的问题。ChatGPT 更像在解决 <strong>“用户最近在做什么”应该成为默认背景</strong>；Claude 更像在解决 <strong>“过去具体发生过什么”应该作为可检索证据保留</strong>。这不是能力差异，而是优先级的不同。</p>
+<p>这种差异甚至体现在可观察证据上。Manthan Gupta 对 ChatGPT 的推断，更多来自 <strong>上下文结构与行为结果</strong>，指向一层“预先整理的摘要”；而对 Claude 的分析，则依赖 <strong>工具入口、返回内容、记忆更新与删除后的变化</strong>，拼出一套“按需检索 + 动态更新”的机制。也就是说，两者不仅设计不同，连对外暴露的行为形态也不同，这本身就反映了 <strong>两条系统路线的差异</strong>。</p>
+<pre class="mermaid">---
+title: ChatGPT 与 Claude 的记忆路线对照
+---
+
+flowchart LR
+    subgraph B["Claude"]
+        B1["User Memory"]
+        B2["Current Session"]
+        B3["conversation_search<br/>recent_chats"]
+        B4["Current Prompt"]
+        B1 --> B4
+        B2 --> B4
+        B3 -.按需调用.-> B4
+    end
+
+    subgraph A["ChatGPT"]
+        A1["Session Metadata"]
+        A2["User Memory"]
+        A3["Recent Summary"]
+        A4["Current Session"]
+        A5["Current Prompt"]
+        A1 --> A5
+        A2 --> A5
+        A3 --> A5
+        A4 --> A5
+    end</pre>
+
+<h2 id="5-两种记忆设计背后的产品取向"><a href="#5-两种记忆设计背后的产品取向" class="headerlink" title="5. 两种记忆设计背后的产品取向"></a>5. 两种记忆设计背后的产品取向</h2><p>把记忆设计放回产品语境，会发现这不是实现细节的差异，而是 <strong>产品目标的差异</strong>。ChatGPT 更像在构建一种 <strong>连续性默认成立的体验</strong>：不一定每次都还原最细的历史，但尽量让对话不断裂，让系统始终像在“接着上一次继续”。在日常问答、轻任务衔接、长期陪伴这类场景里，这种设计更自然，也更低摩擦。</p>
+<p>Claude 则更像在把历史当作 <strong>可调度的工作资源</strong>。它不会把最近发生的一切默认带入，而是把历史留在可检索层，<strong>只有在任务真正需要时才调取</strong>。这种思路更贴近复杂任务、工具调用和 agent workflow，也更符合工程系统里常见的 <strong>按需引入上下文</strong> 的方式。</p>
+<p>需要强调的是，这是一种 <strong>设计倾向，不是绝对分类</strong>。但从这些观察出发，可以看到一条清晰的分界：<strong>前者优先保证“默认接得上”，后者优先保证“需要时查得深”</strong>。</p>
+<h2 id="6-总结"><a href="#6-总结" class="headerlink" title="6. 总结"></a>6. 总结</h2><p>如果只把记忆理解成“模型有没有记住个人信息”，很容易把问题看窄。更稳的理解方式是：<strong>AI 产品里的 memory，本质是在设计一套跨时间的上下文进入规则</strong>。什么需要长期保留，什么只在当前 session 生效，什么要先被压缩成摘要，什么要等到需要时再检索，这些选择共同决定了系统的连续性体验。</p>
+<p>从这个视角看，ChatGPT 与 Claude 的差异就变得清晰：前者更像 <strong>把近期历史预先整理并默认注入</strong>，让系统始终保持一层弱连续性；后者更像 <strong>把历史留在工具层，等模型判断相关时再按需调回</strong>。两条路线都成立，也不存在简单的优劣，它们只是服务于不同的产品目标。</p>
+<p>这组对照真正有价值的地方，在于它能反过来解释更大的工程问题：<strong>AI IDE 为什么越来越依赖 summary、spec 与 workflow，agent 为什么要把历史当作工具化资源管理，以及 context engineering 为什么本质是在做信息分层与进入控制</strong>。这些并不是独立问题，memory 只是它们在产品层的一个缩影。</p>
+<h2 id="7-参考资料"><a href="#7-参考资料" class="headerlink" title="7. 参考资料"></a>7. 参考资料</h2><ol>
+<li>Manthan Gupta, <a target="_blank" rel="noopener" href="https://manthanguptaa.in/posts/chatgpt_memory/">I Reverse Engineered ChatGPT’s Memory System, and Here’s What I Found!</a></li>
+<li>Manthan Gupta, <a target="_blank" rel="noopener" href="https://manthanguptaa.in/posts/claude_memory/">I Reverse Engineered Claude’s Memory System, and Here’s What I Found!</a></li>
+</ol>
+<script type="module"> import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';	mermaid.initialize({startOnLoad: true, flowchart: {curve: 'linear'}}); </script>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://www.keychan.xyz/2026/05/19/072-memory-and-context-system/" title="AI 协作工程（十）：记忆与上下文系统">https://www.keychan.xyz/2026/05/19/072-memory-and-context-system/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/" rel="tag"># 提示工程</a>
+              <a href="/tags/%E5%B7%A5%E4%BD%9C%E6%B5%81%E8%AE%BE%E8%AE%A1/" rel="tag"># 工作流设计</a>
+              <a href="/tags/%E4%B8%8A%E4%B8%8B%E6%96%87%E5%B7%A5%E7%A8%8B/" rel="tag"># 上下文工程</a>
+              <a href="/tags/Agent%E6%B2%BB%E7%90%86/" rel="tag"># Agent治理</a>
+              <a href="/tags/ChatGPT/" rel="tag"># ChatGPT</a>
+              <a href="/tags/Claude/" rel="tag"># Claude</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/05/13/071-from-product-launch-to-production-operation/" rel="prev" title="AI 协作工程（九）：从产品上线到生产运行">
+                  <i class="fa fa-angle-left"></i> AI 协作工程（九）：从产品上线到生产运行
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">648k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.min.js","integrity":"sha256-G8ouPAnw4zzMbnAenHnVz6h9XpKbNdOkrqTh7AadyHs="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.keychan.xyz/","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2026/05/19/072-memory-and-context-system/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>
