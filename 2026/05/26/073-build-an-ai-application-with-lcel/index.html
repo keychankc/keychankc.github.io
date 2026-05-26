@@ -31,7 +31,7 @@
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/202605201347.png">
 <meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/202605201459.png">
 <meta property="article:published_time" content="2026-05-26T14:03:12.000Z">
-<meta property="article:modified_time" content="2026-05-26T14:09:02.972Z">
+<meta property="article:modified_time" content="2026-05-26T14:19:08.575Z">
 <meta property="article:author" content="KeyChan">
 <meta property="article:tag" content="Agent">
 <meta property="article:tag" content="LangChain">
@@ -244,7 +244,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2026-05-26 22:03:12 / 修改时间：22:09:02" itemprop="dateCreated datePublished" datetime="2026-05-26T22:03:12+08:00">2026-05-26</time>
+      <time title="创建时间：2026-05-26 22:03:12 / 修改时间：22:19:08" itemprop="dateCreated datePublished" datetime="2026-05-26T22:03:12+08:00">2026-05-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -455,61 +455,8 @@
 </tr>
 </tbody></table>
 <p>为了让代码结构与流程结构一致，可以采用如下项目目录：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">web-research-lcel/</span><br><span class="line">├── llm_models.py</span><br><span class="line">├── web_searching.py</span><br><span class="line">├── web_scraping.py</span><br><span class="line">├── utilities.py</span><br><span class="line">├── prompts.py</span><br><span class="line">├── chains/</span><br><span class="line">│   ├── assistant_chain.py</span><br><span class="line">│   ├── search_query_chain.py</span><br><span class="line">│   ├── search_url_chain.py</span><br><span class="line">│   ├── summarize_url_chain.py</span><br><span class="line">│   └── research_chain.py</span><br><span class="line">└── main.py</span><br></pre></td></tr></table></figure>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">web-research-lcel/</span><br><span class="line">├── llm_models.py               # 统一初始化 LLM</span><br><span class="line">├── web_searching.py            # 封装网页搜索函数</span><br><span class="line">├── web_scraping.py             # 封装网页抓取函数</span><br><span class="line">├── utilities.py                # 存放 JSON 解析等工具函数</span><br><span class="line">├── prompts.py                  # 集中管理提示词模板</span><br><span class="line">├── lcel_manual_tests.py        # 集中管理测试方法</span><br><span class="line">├── chains/</span><br><span class="line">│   ├── assistant_chain.py      # 构建角色选择链</span><br><span class="line">│   ├── search_query_chain.py   # 构建搜索词生成链</span><br><span class="line">│   ├── search_url_chain.py     # 构建 URL 搜索链</span><br><span class="line">│   ├── summarize_url_chain.py  # 构建网页总结链</span><br><span class="line">│   └── research_chain.py       # 组装最终研究报告链</span><br><span class="line">└── main.py                     # 执行完整案例</span><br></pre></td></tr></table></figure>
 
-<p>各文件职责如下：</p>
-<table>
-<thead>
-<tr>
-<th><strong>文件</strong></th>
-<th><strong>作用</strong></th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>llm_models.py</code></td>
-<td>统一初始化 LLM</td>
-</tr>
-<tr>
-<td><code>web_searching.py</code></td>
-<td>封装网页搜索函数</td>
-</tr>
-<tr>
-<td><code>web_scraping.py</code></td>
-<td>封装网页抓取函数</td>
-</tr>
-<tr>
-<td><code>utilities.py</code></td>
-<td>存放 JSON 解析等工具函数</td>
-</tr>
-<tr>
-<td><code>prompts.py</code></td>
-<td>集中管理提示词模板</td>
-</tr>
-<tr>
-<td><code>assistant_chain.py</code></td>
-<td>构建角色选择链</td>
-</tr>
-<tr>
-<td><code>search_query_chain.py</code></td>
-<td>构建搜索词生成链</td>
-</tr>
-<tr>
-<td><code>search_url_chain.py</code></td>
-<td>构建 URL 搜索链</td>
-</tr>
-<tr>
-<td><code>summarize_url_chain.py</code></td>
-<td>构建网页总结链</td>
-</tr>
-<tr>
-<td><code>research_chain.py</code></td>
-<td>组装最终研究报告链</td>
-</tr>
-<tr>
-<td><code>main.py</code></td>
-<td>执行完整案例</td>
-</tr>
-</tbody></table>
 <p>最终调用时，主程序可以保持简洁：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> chains.research_chain <span class="keyword">import</span> web_research_chain</span><br><span class="line"></span><br><span class="line">question = <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">report = web_research_chain.invoke(question)</span><br><span class="line"><span class="built_in">print</span>(report)</span><br></pre></td></tr></table></figure>
 
