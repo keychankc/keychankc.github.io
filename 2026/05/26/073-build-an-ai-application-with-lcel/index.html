@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.keychan.xyz","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":272,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="1. 为什么需要 LCEL：从单次问答到 AI 工作流早期的LLM是一个简单的问答器，输入一个问题，拼接一段提示词，调用模型，然后返回结果。这种方式可以完成翻译、摘要、改写、问答等单步任务，但当从“回答一句话”变成“完成一个流程”时，单次调用就很难满足需求。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从 Prompt 到工作流：用 LCEL 构建一个 AI 应用（上）">
+<meta property="og:url" content="https://www.keychan.xyz/2026/05/26/073-build-an-ai-application-with-lcel/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s Notes">
+<meta property="og:description" content="1. 为什么需要 LCEL：从单次问答到 AI 工作流早期的LLM是一个简单的问答器，输入一个问题，拼接一段提示词，调用模型，然后返回结果。这种方式可以完成翻译、摘要、改写、问答等单步任务，但当从“回答一句话”变成“完成一个流程”时，单次调用就很难满足需求。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/202605201347.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/202605201459.png">
+<meta property="article:published_time" content="2026-05-26T14:03:12.000Z">
+<meta property="article:modified_time" content="2026-05-26T14:09:02.972Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="Agent">
+<meta property="article:tag" content="LangChain">
+<meta property="article:tag" content="Workflow">
+<meta property="article:tag" content="AI应用开发">
+<meta property="article:tag" content="WebResearch">
+<meta property="article:tag" content="LCEL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/202605201347.png">
+
+
+<link rel="canonical" href="https://www.keychan.xyz/2026/05/26/073-build-an-ai-application-with-lcel/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.keychan.xyz/2026/05/26/073-build-an-ai-application-with-lcel/","path":"2026/05/26/073-build-an-ai-application-with-lcel/","title":"从 Prompt 到工作流：用 LCEL 构建一个 AI 应用（上）"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>从 Prompt 到工作流：用 LCEL 构建一个 AI 应用（上） | KeyChan's Notes</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.keychan.xyz/">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's Notes" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's Notes</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一个不断生长的上下文</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-LCEL%EF%BC%9A%E4%BB%8E%E5%8D%95%E6%AC%A1%E9%97%AE%E7%AD%94%E5%88%B0-AI-%E5%B7%A5%E4%BD%9C%E6%B5%81"><span class="nav-text">1. 为什么需要 LCEL：从单次问答到 AI 工作流</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E5%8D%95%E6%AC%A1%E9%97%AE%E7%AD%94%E7%9A%84%E8%83%BD%E5%8A%9B%E8%BE%B9%E7%95%8C"><span class="nav-text">1.1 单次问答的能力边界</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-%E6%99%AE%E9%80%9A%E5%87%BD%E6%95%B0%E5%BC%8F%E5%86%99%E6%B3%95%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text">1.2 普通函数式写法的问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-LCEL-%E8%A7%A3%E5%86%B3%E7%9A%84%E6%A0%B8%E5%BF%83%E9%97%AE%E9%A2%98"><span class="nav-text">1.3 LCEL 解决的核心问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-LCEL-%E4%B8%8E%E5%85%B6%E4%BB%96%E6%B5%81%E7%A8%8B%E7%BC%96%E6%8E%92%E6%A1%86%E6%9E%B6"><span class="nav-text">1.4 LCEL 与其他流程编排框架</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-5-%E4%BB%8E%E2%80%9C%E6%A8%A1%E5%9E%8B%E8%B0%83%E7%94%A8%E2%80%9D%E5%88%B0%E2%80%9C%E6%B5%81%E7%A8%8B%E7%BC%96%E6%8E%92%E2%80%9D"><span class="nav-text">1.5 从“模型调用”到“流程编排”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-6-%E6%9C%AC%E6%96%87%E6%A1%88%E4%BE%8B%E7%9A%84%E7%9B%AE%E6%A0%87"><span class="nav-text">1.6 本文案例的目标</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E6%A1%88%E4%BE%8B%E6%8B%86%E5%88%86%EF%BC%9A%E8%87%AA%E5%8A%A8%E7%94%9F%E6%88%90%E7%BD%91%E9%A1%B5%E7%A0%94%E7%A9%B6%E6%8A%A5%E5%91%8A"><span class="nav-text">2. 案例拆分：自动生成网页研究报告</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E4%BB%BB%E5%8A%A1%E7%9B%AE%E6%A0%87%E4%B8%8E%E8%BE%93%E5%87%BA%E5%BD%A2%E5%BC%8F"><span class="nav-text">2.1 任务目标与输出形式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-%E7%B3%BB%E7%BB%9F%E9%93%BE%E8%B7%AF%E8%AE%BE%E8%AE%A1"><span class="nav-text">2.2 系统链路设计</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-1-%E8%A7%92%E8%89%B2%E9%80%89%E6%8B%A9%E9%93%BE"><span class="nav-text">2.2.1 角色选择链</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-2-%E6%90%9C%E7%B4%A2%E8%AF%8D%E7%94%9F%E6%88%90%E9%93%BE"><span class="nav-text">2.2.2 搜索词生成链</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-3-%E7%BD%91%E9%A1%B5%E6%90%9C%E7%B4%A2%E4%B8%8E%E6%8A%93%E5%8F%96%E9%93%BE"><span class="nav-text">2.2.3 网页搜索与抓取链</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-4-%E7%BD%91%E9%A1%B5%E6%91%98%E8%A6%81%E9%93%BE"><span class="nav-text">2.2.4 网页摘要链</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-5-%E6%8A%A5%E5%91%8A%E7%94%9F%E6%88%90%E9%93%BE"><span class="nav-text">2.2.5 报告生成链</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E9%A1%B9%E7%9B%AE%E7%BB%84%E7%BB%87"><span class="nav-text">2.3 数据结构与项目组织</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E5%9F%BA%E7%A1%80%E8%83%BD%E5%8A%9B%EF%BC%9ALLM-%E5%88%9D%E5%A7%8B%E5%8C%96%E3%80%81%E7%BD%91%E9%A1%B5%E6%90%9C%E7%B4%A2%E4%B8%8E%E7%BD%91%E9%A1%B5%E6%8A%93%E5%8F%96"><span class="nav-text">3. 基础能力：LLM 初始化、网页搜索与网页抓取</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E5%88%9D%E5%A7%8B%E5%8C%96-LLM"><span class="nav-text">3.1 初始化 LLM</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E5%B0%81%E8%A3%85%E7%BD%91%E9%A1%B5%E6%90%9C%E7%B4%A2%E5%87%BD%E6%95%B0"><span class="nav-text">3.2 封装网页搜索函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-%E5%B0%81%E8%A3%85%E7%BD%91%E9%A1%B5%E6%8A%93%E5%8F%96%E5%87%BD%E6%95%B0"><span class="nav-text">3.3 封装网页抓取函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-%E5%87%86%E5%A4%87%E5%B7%A5%E5%85%B7%E5%87%BD%E6%95%B0%E4%B8%8E%E9%85%8D%E7%BD%AE%E9%A1%B9"><span class="nav-text">3.4 准备工具函数与配置项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-5-%E5%9F%BA%E7%A1%80%E6%A8%A1%E5%9D%97%E4%B9%8B%E9%97%B4%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-text">3.5 基础模块之间的关系</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E8%A7%92%E8%89%B2%E9%80%89%E6%8B%A9%E9%93%BE%EF%BC%9A%E8%AE%A9%E7%B3%BB%E7%BB%9F%E5%85%88%E7%90%86%E8%A7%A3%E4%BB%BB%E5%8A%A1%E7%B1%BB%E5%9E%8B"><span class="nav-text">4. 角色选择链：让系统先理解任务类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E8%A7%92%E8%89%B2%E9%80%89%E6%8B%A9%E9%93%BE"><span class="nav-text">4.1 为什么需要角色选择链</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E8%AE%BE%E8%AE%A1%E8%A7%92%E8%89%B2%E9%80%89%E6%8B%A9%E6%8F%90%E7%A4%BA%E8%AF%8D"><span class="nav-text">4.2 设计角色选择提示词</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-%E7%94%A8-LCEL-%E5%AE%9E%E7%8E%B0%E8%A7%92%E8%89%B2%E9%80%89%E6%8B%A9%E9%93%BE"><span class="nav-text">4.3 用 LCEL 实现角色选择链</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-%E8%A7%92%E8%89%B2%E9%80%89%E6%8B%A9%E9%93%BE%E7%9A%84%E8%BE%93%E5%87%BA%E6%A3%80%E6%9F%A5"><span class="nav-text">4.4 角色选择链的输出检查</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E6%90%9C%E7%B4%A2%E8%AF%8D%E7%94%9F%E6%88%90%E9%93%BE%EF%BC%9A%E6%8A%8A%E7%94%A8%E6%88%B7%E9%97%AE%E9%A2%98%E6%8B%86%E6%88%90%E5%A4%9A%E4%B8%AA%E6%90%9C%E7%B4%A2%E6%9F%A5%E8%AF%A2"><span class="nav-text">5. 搜索词生成链：把用户问题拆成多个搜索查询</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%94%9F%E6%88%90%E5%A4%9A%E4%B8%AA%E6%90%9C%E7%B4%A2%E8%AF%8D"><span class="nav-text">5.1 为什么要生成多个搜索词</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-%E8%AE%BE%E8%AE%A1%E6%90%9C%E7%B4%A2%E8%AF%8D%E7%94%9F%E6%88%90%E6%8F%90%E7%A4%BA%E8%AF%8D"><span class="nav-text">5.2 设计搜索词生成提示词</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-%E7%94%A8-LCEL-%E5%AE%9E%E7%8E%B0%E6%90%9C%E7%B4%A2%E8%AF%8D%E7%94%9F%E6%88%90%E9%93%BE"><span class="nav-text">5.3 用 LCEL 实现搜索词生成链</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-%E8%BE%93%E5%87%BA%E8%B4%A8%E9%87%8F%E4%B8%8E%E7%A8%B3%E5%AE%9A%E6%80%A7"><span class="nav-text">5.4 输出质量与稳定性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E6%80%BB%E7%BB%93%EF%BC%9A%E4%BB%8E-Prompt-%E5%88%B0%E5%8F%AF%E7%BB%84%E5%90%88%E9%93%BE%E8%B7%AF"><span class="nav-text">6. 总结：从 Prompt 到可组合链路</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E5%A4%87%E6%B3%A8"><span class="nav-text">7.备注</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">73</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">188</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2026/05/26/073-build-an-ai-application-with-lcel/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's Notes">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="从 Prompt 到工作流：用 LCEL 构建一个 AI 应用（上） | KeyChan's Notes">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          从 Prompt 到工作流：用 LCEL 构建一个 AI 应用（上）
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-05-26 22:03:12 / 修改时间：22:09:02" itemprop="dateCreated datePublished" datetime="2026-05-26T22:03:12+08:00">2026-05-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/AI%E5%8D%8F%E4%BD%9C%E5%B7%A5%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">AI协作工程</span></a>
+        </span>
+    </span>
+
+  
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2026/05/26/073-build-an-ai-application-with-lcel/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2026/05/26/073-build-an-ai-application-with-lcel/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>13k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>48 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="1-为什么需要-LCEL：从单次问答到-AI-工作流"><a href="#1-为什么需要-LCEL：从单次问答到-AI-工作流" class="headerlink" title="1. 为什么需要 LCEL：从单次问答到 AI 工作流"></a><strong>1. 为什么需要 LCEL：从单次问答到 AI 工作流</strong></h2><p>早期的LLM是一个简单的问答器，输入一个问题，拼接一段提示词，调用模型，然后返回结果。这种方式可以完成翻译、摘要、改写、问答等单步任务，但当从“回答一句话”变成“完成一个流程”时，单次调用就很难满足需求。</p>
+<span id="more"></span>
+<p>以“自动化网页研究总结”为例，目标不是简单回答一个问题，而是根据一个开放式问题，需要自动完成搜索、抓取、总结、整合和报告生成。比如输入：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">question = <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>这个问题表面上是问“杭州有哪些值得游览的景点和可以体验的地方？”，但要给出一份质量较高的研究报告，至少需要完成几类动作，比如说先理解问题所属领域，再生成多个搜索查询，然后获取搜索结果 URL，继续抓取网页正文，对每个网页进行摘要，最后把多个来源的信息合并成一个结构清晰的 Markdown 报告。</p>
+<p>这类任务已经不再是单次模型调用，而是一个很典型的 <strong>AI 工作流</strong>。</p>
+<h3 id="1-1-单次问答的能力边界"><a href="#1-1-单次问答的能力边界" class="headerlink" title="1.1 单次问答的能力边界"></a><strong>1.1 单次问答的能力边界</strong></h3><p>单次问答的基本结构很简单，<code>用户输入 → Prompt → LLM → 输出</code>。</p>
+<p>这种方式的优势是直接、轻量，适合处理输入明确、上下文较短、步骤单一的任务。例如，解释一个概念、改写一段文字、生成一段代码片段，都可以通过一次模型调用完成。</p>
+<p>但<strong>网页研究总结案例</strong>是另一类问题。系统不能只依赖模型已有知识，因为网页内容可能变化，搜索结果也可能因时间、地区和来源不同而变化。更重要的是，用户期望得到的不是一段泛泛而谈的回答，而是基于多个网页来源整理出来的结构化内容。这意味着系统需要具备几个额外能力。</p>
+<ul>
+<li><p><strong>需要把宽泛问题拆解成多个可搜索的问题</strong>。例如，研究 <strong>杭州</strong> 时，直接搜索“杭州有哪些值得一去的地方”虽然可行，但结果往往会集中在热门景点榜单上，容易遗漏历史文化、自然景观、本地美食、交通路线和旅行建议等不同角度。更好的方式是让模型生成多个有针对性的搜索词，例如“杭州必去景点”“杭州历史文化景点”“杭州西湖游玩路线”“杭州本地美食推荐”“杭州两日游攻略”等。</p>
+</li>
+<li><p><strong>需要接入外部工具</strong>。模型本身不会自动访问搜索引擎，也不会主动抓取网页内容。搜索网页、请求页面、解析 HTML、提取正文，这些都属于外部能力，需要由代码完成。</p>
+</li>
+<li><p><strong>需要对多个中间结果进行处理和合并</strong>。一个搜索词可能返回多个 URL，多个搜索词又会产生更多网页。每个网页都需要单独抓取和总结，最后再把多个摘要合并成最终报告。</p>
+</li>
+<li><p><strong>需要保留上下文和来源信息</strong>。网页摘要不能孤立存在。每条摘要最好附带来源 URL，并且在最终报告阶段保留与原始问题之间的关系。否则，系统很容易生成一篇看似完整但来源不清的内容。</p>
+</li>
+</ul>
+<p>因此，单次问答的“输入到输出”模式不足以满足这类任务。更合理的方式是把整个过程拆成多个清晰步骤，并让这些步骤按照稳定的数据流组合起来。</p>
+<h3 id="1-2-普通函数式写法的问题"><a href="#1-2-普通函数式写法的问题" class="headerlink" title="1.2 普通函数式写法的问题"></a><strong>1.2 普通函数式写法的问题</strong></h3><p>一种直观做法是用普通 Python 函数串起整个流程：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">assistant = select_assistant(question)</span><br><span class="line">queries = generate_search_queries(question, assistant)</span><br><span class="line">urls = search_web(queries)</span><br><span class="line">texts = scrape_pages(urls)</span><br><span class="line">summaries = summarize_pages(texts)</span><br><span class="line">report = generate_report(question, summaries)</span><br></pre></td></tr></table></figure>
+
+<p>这种写法看起来清晰，也符合传统工程习惯。对于小脚本，它可用。但随着流程变复杂，也会有一些问题。</p>
+<ul>
+<li><p><strong>每一步的输入输出结构并不一致</strong>。角色选择链可能输出一个字典，搜索词生成链可能输出一个列表，网页搜索函数可能输出 URL 列表，网页总结链又需要同时接收网页正文、搜索词、URL 和原始问题。只要某一步字段命名不统一，后续流程就可能出错。</p>
+</li>
+<li><p><strong>有些步骤需要调用模型，有些步骤只是普通函数</strong>。例如，生成搜索词和总结网页需要 LLM，而网页搜索和网页抓取主要依赖 Python 函数。如果全部写在一起，模型调用、数据转换、异常处理和业务逻辑会混在一起，代码很快变得难以维护。</p>
+</li>
+<li><p><strong>批量处理和并行执行会变复杂</strong>。网页研究总结案例天然涉及多个搜索词、多个 URL、多个网页摘要。如果顺序执行，耗时会明显增加。假设生成 10 个搜索词，每个搜索词返回 10 个结果，系统就要处理 100 个网页。如果每个网页都串行抓取和总结，整体响应时间会非常长。</p>
+</li>
+<li><p><strong>后续扩展成本较高</strong>。当系统需要加入流式输出、批处理、失败重试、日志追踪、异步执行或中间结果监控时，普通函数式写法需要手动补充大量控制逻辑。代码可以继续扩展，但结构会越来越重。</p>
+</li>
+</ul>
+<p>这并不是说普通函数不可用，而是说明，当 LLM 应用从“调用模型”升级为“编排流程”时，需要一种更适合表达工作流的数据组织方式。</p>
+<h3 id="1-3-LCEL-解决的核心问题"><a href="#1-3-LCEL-解决的核心问题" class="headerlink" title="1.3 LCEL 解决的核心问题"></a><strong>1.3 LCEL 解决的核心问题</strong></h3><p>LCEL，全称是 <strong>LangChain Expression Language</strong>，可以理解为 LangChain 中用于编排 LLM 应用流程的一套表达方式。它的核心不是让代码看起来更简洁，而是让复杂流程中的 <strong>数据流、执行顺序和组件边界更加清晰</strong>。LCEL 最典型的写法是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chain = prompt | llm | parser</span><br></pre></td></tr></table></figure>
+
+<p>这里的 <code>|</code> 表示前一个组件的输出，会自动作为后一个组件的输入。也就是说，提示词模板生成消息，消息传给模型，模型输出再交给解析器处理。整个过程可以被看作一条链。在简单场景下，这条链可能只有三段，<code>Prompt → LLM → OutputParser</code></p>
+<p>但在复杂场景下，链可以继续扩展，组合普通函数、模型调用、并行分支和批量处理。例如，网页研究总结可以拆成几条小链，角色选择链，搜索词生成链，URL 获取链，网页抓取与总结链，摘要合并链，报告生成链。</p>
+<p>这些小链再组合成一条完整的研究报告生成链。这样做的好处是，每个步骤都有明确职责，每条链都可以单独测试，也可以整体组装。</p>
+<p>LCEL 还提供了几个重要能力。</p>
+<ul>
+<li><strong>RunnableLambda</strong> 可以把普通 Python 函数接入链中，用来做字段转换、数据清洗和结构重组。</li>
+<li><strong>RunnableParallel</strong> 可以让同一份输入同时进入多个处理分支。例如，一边把网页正文交给模型总结，一边保留原始 URL 和用户问题。</li>
+<li><strong>.map()</strong> 可以对列表中的每个元素执行同一条链，它非常适合处理多个搜索词、多个 URL 或多个网页片段。</li>
+</ul>
+<p>这些能力恰好对应网页研究总结的核心需求：既要调用模型，又要调用外部函数；既要处理单个对象，又要批量处理列表；既要生成新内容，又要保留原始上下文。</p>
+<h3 id="1-4-LCEL-与其他流程编排框架"><a href="#1-4-LCEL-与其他流程编排框架" class="headerlink" title="1.4 LCEL 与其他流程编排框架"></a><strong>1.4 LCEL 与其他流程编排框架</strong></h3><p>除了 LCEL，LLM 应用里还有一些类似的流程编排方式。它们解决的问题相近，但抽象层级不同。</p>
+<p>如果流程是线性的，例如 <code>Prompt → LLM → Parser → Function</code>，LCEL 会比较自然。它的优势是轻量、直接，适合把多个组件串成一条数据流。</p>
+<p>如果流程开始出现分支、循环、状态和条件跳转，就更适合使用 <strong>LangGraph</strong>。LangGraph 可以把应用建模成图，每个节点负责一个步骤，边表示执行流向。相比 LCEL，LangGraph 更适合多轮 Agent、人工审批、失败重试、状态保存等复杂场景。</p>
+<p>如果需求是快速搭建问答、检索增强生成或数据查询应用，也可以使用 <strong>LlamaIndex Workflows</strong>。它更偏向数据和索引场景，适合围绕文档、知识库、检索器和查询流程构建应用。</p>
+<p>还有一些更偏工程工作流的框架，例如 <strong>Haystack Pipeline</strong>、<strong>Semantic Kernel</strong> 和 <strong>Dify Workflow</strong>。它们同样可以把模型、工具、函数和外部服务组合起来，但侧重点不同。Haystack 更偏搜索和 RAG 管道，Semantic Kernel 更偏插件和企业应用集成，Dify 更偏可视化工作流和应用快速搭建。</p>
+<p>因此，LCEL 不是唯一的编排方式。它更像是 LangChain 体系里最轻量的一层：适合表达清晰、边界明确的数据流。当流程变得越来越像一个有状态系统时，就应该考虑从 LCEL 过渡到 LangGraph；当重点是文档索引和检索时，可以考虑 LlamaIndex；当需要低代码界面和团队协作时，可以考虑 Dify 这类可视化工作流工具。</p>
+<p>本文案例采用 LCEL，是因为网页研究总结流程虽然包含多个步骤，但整体仍然可以拆成一组清晰的数据流：生成搜索词、获取 URL、抓取网页、总结网页、合并摘要、生成报告。这个阶段使用 LCEL 足够直观，也方便读者理解 LangChain 中“组件如何连接”的核心思想。</p>
+<h3 id="1-5-从“模型调用”到“流程编排”"><a href="#1-5-从“模型调用”到“流程编排”" class="headerlink" title="1.5 从“模型调用”到“流程编排”"></a><strong>1.5 从“模型调用”到“流程编排”</strong></h3><p>构建 LLM 应用时，一个常见误区是把重点全部放在模型本身，但在真实应用中，效果往往不只取决于模型能力，还取决于流程设计。网页研究总结案例就是一个很好的例子。模型负责理解问题、生成搜索词、总结网页和撰写报告，但系统真正的价值来自完整流程：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">输入研究问题</span><br><span class="line">  ↓</span><br><span class="line">选择合适的研究助手角色</span><br><span class="line">  ↓</span><br><span class="line">生成多个搜索查询</span><br><span class="line">  ↓</span><br><span class="line">搜索网页并获取 URL</span><br><span class="line">  ↓</span><br><span class="line">抓取网页正文</span><br><span class="line">  ↓</span><br><span class="line">总结每个网页</span><br><span class="line">  ↓</span><br><span class="line">合并多个摘要</span><br><span class="line">  ↓</span><br><span class="line">生成最终 Markdown 报告</span><br></pre></td></tr></table></figure>
+
+<p>其中每一步都不复杂，但组合在一起后，就从一个简单问答系统变成了一个自动化研究工具。LCEL 的作用，正是把这些步骤组织成可维护、可扩展、可并行执行的链式结构。</p>
+<p>这也是从 Prompt 工程走向 AI 应用工程的关键，<strong>Prompt 只是单点能力，链式编排才是应用能力</strong>。</p>
+<h3 id="1-6-本文案例的目标"><a href="#1-6-本文案例的目标" class="headerlink" title="1.6 本文案例的目标"></a><strong>1.6 本文案例的目标</strong></h3><p>后续内容将围绕一个完整案例展开，使用 LCEL 构建一个自动化网页研究总结。系统接收一个研究问题，自动生成多个搜索查询，搜索相关网页，抓取网页内容，总结每个来源，并最终输出一篇 Markdown 格式的研究。这个案例的重点是为了说明 LCEL 如何组织 LLM 应用中的多个关键环节。具体来说，案例会覆盖以下能力：</p>
+<ul>
+<li><strong>使用 LCEL 串联 Prompt、模型和输出解析器</strong>，形成最基本的链式结构。</li>
+<li><strong>使用 RunnableLambda 处理链中的数据转换</strong>，解决不同步骤之间字段不一致的问题。</li>
+<li><strong>使用 RunnableParallel 同时执行多个分支</strong>，在总结网页的同时保留 URL 和原始问题。</li>
+<li><strong>使用 .map() 批量处理多个搜索结果</strong>，让多个网页可以进入同一条总结链。</li>
+<li><strong>将多个小链组合成完整工作流</strong>，最终生成结构化研究报告。</li>
+</ul>
+<p>通过这个案例，可以看到 LCEL 为 LLM 应用提供一种更清晰的流程表达方式。普通函数仍然负责搜索、抓取和数据处理，LLM 负责理解、总结和生成，LCEL 则负责把这些能力连接起来。</p>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/202605201347.png" alt="202605201347"></p>
+<p><strong>小结</strong></p>
+<p>单次问答适合处理简单任务，但网页研究总结器需要完成一组连续动作，理解问题、拆解搜索、获取网页、抓取正文、总结内容、合并信息并生成报告。这个过程涉及模型调用、外部工具、数据转换、批量处理和结果整合，已经属于完整的 AI 工作流。</p>
+<p><strong>LCEL 的价值在于把这些步骤组织成清晰、可组合、可扩展的链式结构</strong>。它为复杂 LLM 应用提供稳定的数据流表达方式。后续章节将在这个基础上，逐步拆解 LCEL 的核心组件，并完成一个自动化网页研究总结案例。</p>
+<h2 id="2-案例拆分：自动生成网页研究报告"><a href="#2-案例拆分：自动生成网页研究报告" class="headerlink" title="2. 案例拆分：自动生成网页研究报告"></a><strong>2. 案例拆分：自动生成网页研究报告</strong></h2><p>前文介绍了 LCEL 的核心组件与链式组合方式。本章开始构建一个 <strong>自动化网页研究总结器</strong>。它接收一个研究问题，自动生成搜索词、搜索网页、抓取内容、总结信息，并最终输出一篇结构化的 Markdown 报告。</p>
+<p>这个案例通过一个完整流程说明：<strong>LCEL 如何把模型能力、普通函数和数据转换组合成可维护的 AI 应用</strong>。</p>
+<h3 id="2-1-任务目标与输出形式"><a href="#2-1-任务目标与输出形式" class="headerlink" title="2.1 任务目标与输出形式"></a><strong>2.1 任务目标与输出形式</strong></h3><p>输入的问题还是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">question = <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>这个问题看似简单，但如果要生成一份有参考价值的研究报告，系统不能只让模型直接回答。更合理的做法是围绕这个问题主动收集网页信息，再基于多个来源进行整理。最终输出可以是一篇 Markdown 报告。从工程角度看，这个系统的输入和输出很明确：</p>
+<table>
+<thead>
+<tr>
+<th><strong>项目</strong></th>
+<th><strong>内容</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>输入</td>
+<td>一个研究问题</td>
+</tr>
+<tr>
+<td>输出</td>
+<td>一篇 Markdown 格式的研究报告</td>
+</tr>
+<tr>
+<td>中间过程</td>
+<td>搜索、抓取、摘要、合并、生成报告</td>
+</tr>
+</tbody></table>
+<p>这里的关键在于，最终报告不是一次模型调用直接生成，而是由多个中间步骤逐步构建出来。在这个流程中，模型负责语义理解和文本生成，普通函数负责搜索、抓取和数据处理，LCEL 则负责把这些步骤连接起来。</p>
+<h3 id="2-2-系统链路设计"><a href="#2-2-系统链路设计" class="headerlink" title="2.2 系统链路设计"></a><strong>2.2 系统链路设计</strong></h3><p>为了让流程清晰可维护，可以将自动化网页研究总结器拆成几条相对独立的链。每条链只负责一个明确任务，最后再组合成完整工作流。</p>
+<h4 id="2-2-1-角色选择链"><a href="#2-2-1-角色选择链" class="headerlink" title="2.2.1 角色选择链"></a>2.2.1 <strong>角色选择链</strong></h4><p>它根据用户问题判断当前任务更适合哪类助手。例如，旅行类问题可以选择“旅行研究助手”，技术类问题可以选择“技术分析助手”。在本案例中，角色选择链可以输出类似结果：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;assistant_role&quot;</span><span class="punctuation">:</span> <span class="string">&quot;旅行研究助手&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;assistant_instructions&quot;</span><span class="punctuation">:</span> <span class="string">&quot;关注景点、历史背景、当地体验、交通方式和实用旅行建议。&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>这一步的作用不是形式化地添加角色，而是为后续搜索词生成和报告写作提供更明确的方向。</p>
+<h4 id="2-2-2-搜索词生成链"><a href="#2-2-2-搜索词生成链" class="headerlink" title="2.2.2 搜索词生成链"></a>2.2.2 <strong>搜索词生成链</strong></h4><p>它把原始问题拆解为多个适合搜索引擎使用的查询。例如：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">[</span></span><br><span class="line">  <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;search_query&quot;</span><span class="punctuation">:</span> <span class="string">&quot;杭州 必去景点 西湖 灵隐寺 西溪湿地&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;user_question&quot;</span><span class="punctuation">:</span> <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;search_query&quot;</span><span class="punctuation">:</span> <span class="string">&quot;杭州 历史文化 景点 博物馆 古街 运河&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;user_question&quot;</span><span class="punctuation">:</span> <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;search_query&quot;</span><span class="punctuation">:</span> <span class="string">&quot;杭州 旅行攻略 美食 茶文化 城市漫步&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;user_question&quot;</span><span class="punctuation">:</span> <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
+
+<p>这样做的好处是覆盖面更完整。一个宽泛问题被拆成多个角度后，搜索结果更可能包含景点、历史、文化、体验和实用信息。</p>
+<h4 id="2-2-3-网页搜索与抓取链"><a href="#2-2-3-网页搜索与抓取链" class="headerlink" title="2.2.3 网页搜索与抓取链"></a>2.2.3 <strong>网页搜索与抓取链</strong></h4><p>它根据搜索词获取网页 URL，再抓取网页正文。这一阶段主要由普通 Python 函数完成，不需要模型参与。模型不擅长直接访问网页，搜索和抓取应该交给工具完成。</p>
+<h4 id="2-2-4-网页摘要链"><a href="#2-2-4-网页摘要链" class="headerlink" title="2.2.4 网页摘要链"></a>2.2.4 <strong>网页摘要链</strong></h4><p>它针对每个网页生成摘要，并保留来源 URL。摘要结果可以整理为：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;summary&quot;</span>: <span class="string">&quot;来源 URL: https://example.com/hangzhou\n摘要: 该网页介绍了杭州的西湖、灵隐寺、西溪湿地、京杭大运河、南宋御街和龙井茶文化等值得参观和体验的内容...&quot;</span>,</span><br><span class="line">  <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>保留来源 URL 很重要。它可以让后续报告有信息来源，也便于排查某条内容来自哪个网页。</p>
+<h4 id="2-2-5-报告生成链"><a href="#2-2-5-报告生成链" class="headerlink" title="2.2.5 报告生成链"></a>2.2.5 <strong>报告生成链</strong></h4><p>它把多个网页摘要合并起来，生成一篇结构化报告。此时模型输入的不再是杂乱网页正文，而是经过整理的摘要集合，因此最终输出更容易保持清晰。</p>
+<p>整体链路可以表示为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">question</span><br><span class="line">↓</span><br><span class="line">assistant_instructions_chain</span><br><span class="line">↓</span><br><span class="line">web_searches_chain</span><br><span class="line">↓</span><br><span class="line">search_result_urls_chain</span><br><span class="line">↓</span><br><span class="line">search_result_text_and_summary_chain</span><br><span class="line">↓</span><br><span class="line">summary_merge</span><br><span class="line">↓</span><br><span class="line">research_report_chain</span><br><span class="line">↓</span><br><span class="line">markdown_report</span><br></pre></td></tr></table></figure>
+
+<p>这个结构体现了 LCEL 的设计方式：<strong>先把复杂任务拆成小链，再把小链组合成完整应用</strong>。</p>
+<h3 id="2-3-数据结构与项目组织"><a href="#2-3-数据结构与项目组织" class="headerlink" title="2.3 数据结构与项目组织"></a><strong>2.3 数据结构与项目组织</strong></h3><p>链式应用最容易出错的地方，通常不是模型调用，而是字段衔接。上一条链输出什么，下一条链需要什么，必须提前设计清楚，本案例中会反复使用几个核心字段。</p>
+<table>
+<thead>
+<tr>
+<th><strong>字段</strong></th>
+<th><strong>含义</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>user_question</code></td>
+<td>原始中文问题</td>
+</tr>
+<tr>
+<td><code>assistant_role</code></td>
+<td>助手角色</td>
+</tr>
+<tr>
+<td><code>assistant_instructions</code></td>
+<td>助手执行说明</td>
+</tr>
+<tr>
+<td><code>search_query</code></td>
+<td>中文搜索词</td>
+</tr>
+<tr>
+<td><code>result_url</code></td>
+<td>搜索结果 URL</td>
+</tr>
+<tr>
+<td><code>search_result_text</code></td>
+<td>抓取到的网页正文</td>
+</tr>
+<tr>
+<td><code>summary</code></td>
+<td>网页摘要</td>
+</tr>
+<tr>
+<td><code>research_summary</code></td>
+<td>多个摘要合并后的研究材料</td>
+</tr>
+</tbody></table>
+<p>为了让代码结构与流程结构一致，可以采用如下项目目录：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">web-research-lcel/</span><br><span class="line">├── llm_models.py</span><br><span class="line">├── web_searching.py</span><br><span class="line">├── web_scraping.py</span><br><span class="line">├── utilities.py</span><br><span class="line">├── prompts.py</span><br><span class="line">├── chains/</span><br><span class="line">│   ├── assistant_chain.py</span><br><span class="line">│   ├── search_query_chain.py</span><br><span class="line">│   ├── search_url_chain.py</span><br><span class="line">│   ├── summarize_url_chain.py</span><br><span class="line">│   └── research_chain.py</span><br><span class="line">└── main.py</span><br></pre></td></tr></table></figure>
+
+<p>各文件职责如下：</p>
+<table>
+<thead>
+<tr>
+<th><strong>文件</strong></th>
+<th><strong>作用</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>llm_models.py</code></td>
+<td>统一初始化 LLM</td>
+</tr>
+<tr>
+<td><code>web_searching.py</code></td>
+<td>封装网页搜索函数</td>
+</tr>
+<tr>
+<td><code>web_scraping.py</code></td>
+<td>封装网页抓取函数</td>
+</tr>
+<tr>
+<td><code>utilities.py</code></td>
+<td>存放 JSON 解析等工具函数</td>
+</tr>
+<tr>
+<td><code>prompts.py</code></td>
+<td>集中管理提示词模板</td>
+</tr>
+<tr>
+<td><code>assistant_chain.py</code></td>
+<td>构建角色选择链</td>
+</tr>
+<tr>
+<td><code>search_query_chain.py</code></td>
+<td>构建搜索词生成链</td>
+</tr>
+<tr>
+<td><code>search_url_chain.py</code></td>
+<td>构建 URL 搜索链</td>
+</tr>
+<tr>
+<td><code>summarize_url_chain.py</code></td>
+<td>构建网页总结链</td>
+</tr>
+<tr>
+<td><code>research_chain.py</code></td>
+<td>组装最终研究报告链</td>
+</tr>
+<tr>
+<td><code>main.py</code></td>
+<td>执行完整案例</td>
+</tr>
+</tbody></table>
+<p>最终调用时，主程序可以保持简洁：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> chains.research_chain <span class="keyword">import</span> web_research_chain</span><br><span class="line"></span><br><span class="line">question = <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">report = web_research_chain.invoke(question)</span><br><span class="line"><span class="built_in">print</span>(report)</span><br></pre></td></tr></table></figure>
+
+<p>这段代码只暴露了最终链，复杂逻辑被封装在不同模块中。外部看起来像调用一个普通函数，内部实际上完成了搜索、抓取、摘要和报告生成。</p>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/202605201459.png" alt="202605201459"></p>
+<p><strong>小结</strong></p>
+<p>系统输入一个研究问题，经过搜索词生成、网页搜索、正文抓取、网页摘要和报告整合，最终输出一篇 Markdown 格式的研究报告。</p>
+<p>本案例的核心并不是让模型直接“凭空写报告”，而是把研究过程拆成多个清晰步骤。模型负责理解、生成和总结，普通函数负责搜索、抓取和数据处理，LCEL 负责把这些能力连接成稳定的数据流。</p>
+<p><strong>从下一章开始，将进入基础能力准备阶段：统一初始化 LLM，封装网页搜索函数，封装网页抓取函数，并为后续链式组合打好工程基础。</strong></p>
+<h2 id="3-基础能力：LLM-初始化、网页搜索与网页抓取"><a href="#3-基础能力：LLM-初始化、网页搜索与网页抓取" class="headerlink" title="3. 基础能力：LLM 初始化、网页搜索与网页抓取"></a><strong>3. 基础能力：LLM 初始化、网页搜索与网页抓取</strong></h2><p>接下来需要准备三个基础能力：<strong>模型调用、网页搜索、网页抓取</strong>。这三部分并不直接构成完整应用，但它们是后续 LCEL 链能够运行的底层支撑。</p>
+<p>自动化网页研究总结器的核心流程可以理解为，模型负责理解和生成，工具负责获取外部信息，LCEL 负责把二者连接起来。因此，在真正编写角色选择链、搜索词生成链和网页总结链之前，需要先把模型、搜索函数和抓取函数封装好。</p>
+<p>本章重点不是追求复杂封装，而是建立一个清晰、稳定、可复用的基础层。</p>
+<h3 id="3-1-初始化-LLM"><a href="#3-1-初始化-LLM" class="headerlink" title="3.1 初始化 LLM"></a><strong>3.1 初始化 LLM</strong></h3><p>在 LCEL 链中，模型会被多次调用，例如生成搜索词、总结网页内容、生成最终报告。如果每条链都单独写一遍模型配置，代码会变得重复，也不利于后续替换模型。</p>
+<p>更好的做法是把模型初始化封装到一个独立函数中，例如放在 <code>llm_models.py</code> 文件里：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">from</span> langchain_openai <span class="keyword">import</span> ChatOpenAI</span><br><span class="line"></span><br><span class="line">CHAT_COMPLETIONS_API_KEY = os.getenv(<span class="string">&quot;CHAT_COMPLETIONS_API_KEY&quot;</span>)</span><br><span class="line">DASHSCOPE_BASE_URL = <span class="string">&quot;https://dashscope.aliyuncs.com/compatible-mode/v1&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_llm</span>():</span><br><span class="line">    <span class="string">&quot;&quot;&quot;统一创建 LLM，方便后续替换模型。&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">return</span> ChatOpenAI(</span><br><span class="line">        api_key=CHAT_COMPLETIONS_API_KEY,</span><br><span class="line">        base_url=DASHSCOPE_BASE_URL,</span><br><span class="line">        model=<span class="string">&quot;deepseek-v4-pro&quot;</span>,</span><br><span class="line">        temperature=<span class="number">0</span>,</span><br><span class="line">    )</span><br></pre></td></tr></table></figure>
+
+<p>这段代码有几个关键点，首先，API Key 从环境变量中读取：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CHAT_COMPLETIONS_API_KEY = os.getenv(<span class="string">&quot;CHAT_COMPLETIONS_API_KEY&quot;</span>)</span><br></pre></td></tr></table></figure>
+<p>然后在程序启动时加载环境变量。这样做更安全，也方便在不同运行环境中切换配置。其次，<code>base_url</code> 指向兼容 OpenAI 接口的模型服务：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DASHSCOPE_BASE_URL = <span class="string">&quot;https://dashscope.aliyuncs.com/compatible-mode/v1&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>虽然这里使用的是 <code>ChatOpenAI</code> 类，但并不意味着只能调用 OpenAI 官方模型。只要模型服务兼容 OpenAI Chat Completions 接口，就可以通过 <code>base_url</code> 接入。最后，<code>temperature</code> 设置为 <code>0</code>，研究总结类任务更重视稳定性与一致性。搜索词生成、网页摘要和最终报告都应该尽量减少随机发挥，因此低温度更合适。</p>
+<p>封装完成后，后续链中只需要调用：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> llm_models <span class="keyword">import</span> get_llm</span><br><span class="line"></span><br><span class="line">llm = get_llm()</span><br></pre></td></tr></table></figure>
+
+<p>或者直接写入 LCEL 链：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chain = prompt | get_llm() | parser</span><br></pre></td></tr></table></figure>
+
+<p>这样，模型配置被集中管理，链的主体结构也更干净。</p>
+<h3 id="3-2-封装网页搜索函数"><a href="#3-2-封装网页搜索函数" class="headerlink" title="3.2 封装网页搜索函数"></a><strong>3.2 封装网页搜索函数</strong></h3><p>网页研究总结器不能只依赖模型已有知识，它需要从外部网页中获取信息。搜索函数的职责是，根据搜索词返回一组网页 URL。可以使用 DuckDuckGo 搜索包装器实现一个简单版本，例如<code>web_searching.py</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> <span class="type">List</span></span><br><span class="line"><span class="keyword">from</span> langchain_community.utilities <span class="keyword">import</span> DuckDuckGoSearchAPIWrapper</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">web_search</span>(<span class="params">web_query: <span class="built_in">str</span>, num_results: <span class="built_in">int</span></span>) -&gt; <span class="type">List</span>[<span class="built_in">str</span>]:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;根据搜索词返回网页 URL 列表。&quot;&quot;&quot;</span></span><br><span class="line">    results = DuckDuckGoSearchAPIWrapper().results(</span><br><span class="line">        web_query,</span><br><span class="line">        num_results</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> [result[<span class="string">&quot;link&quot;</span>] <span class="keyword">for</span> result <span class="keyword">in</span> results]</span><br></pre></td></tr></table></figure>
+
+<p>这个函数接收两个参数：</p>
+<table>
+<thead>
+<tr>
+<th><strong>参数</strong></th>
+<th><strong>含义</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>web_query</code></td>
+<td>搜索词</td>
+</tr>
+<tr>
+<td><code>num_results</code></td>
+<td>返回结果数量</td>
+</tr>
+</tbody></table>
+<p>输出是 URL 列表：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">    <span class="string">&quot;https://example.com/page-1&quot;</span>,</span><br><span class="line">    <span class="string">&quot;https://example.com/page-2&quot;</span>,</span><br><span class="line">    <span class="string">&quot;https://example.com/page-3&quot;</span></span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>需要注意，搜索函数只负责获取 URL，不负责理解网页内容，也不负责判断结果是否足够可靠。它在系统中的位置很明确，<code>搜索词 → 搜索函数 → URL 列表</code>。例如，输入搜索词：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">urls = web_search(</span><br><span class="line">    web_query=<span class="string">&quot;杭州 必去景点 西湖 灵隐寺 西溪湿地&quot;</span>,</span><br><span class="line">    num_results=<span class="number">3</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(urls)</span><br></pre></td></tr></table></figure>
+
+<p>可能得到多个相关网页链接。后续网页抓取函数会根据这些链接获取正文，再交给模型总结。</p>
+<p>这里有一个容易忽略点，搜索函数最好保持简单，不要在里面混入摘要逻辑。搜索、抓取、总结是三个不同职责。如果全部写进一个函数，后续很难单独替换搜索工具，也很难定位失败原因。</p>
+<h3 id="3-3-封装网页抓取函数"><a href="#3-3-封装网页抓取函数" class="headerlink" title="3.3 封装网页抓取函数"></a><strong>3.3 封装网页抓取函数</strong></h3><p>搜索函数返回 URL 后，系统还需要访问网页并提取正文。这个过程由网页抓取函数完成。</p>
+<p>可以使用 <code>requests</code> 获取网页 HTML，再用 <code>BeautifulSoup</code> 提取文本，例如<code>web_scraping.py</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">from</span> bs4 <span class="keyword">import</span> BeautifulSoup</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">web_scrape</span>(<span class="params">url: <span class="built_in">str</span></span>) -&gt; <span class="built_in">str</span>:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;抓取网页正文文本。&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        headers = &#123;</span><br><span class="line">            <span class="string">&quot;User-Agent&quot;</span>: (</span><br><span class="line">                <span class="string">&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) &quot;</span></span><br><span class="line">                <span class="string">&quot;AppleWebKit/537.36 (KHTML, like Gecko) &quot;</span></span><br><span class="line">                <span class="string">&quot;Chrome/124.0.0.0 Safari/537.36&quot;</span></span><br><span class="line">            ),</span><br><span class="line">            <span class="string">&quot;Accept-Language&quot;</span>: <span class="string">&quot;zh-CN,zh;q=0.9,en;q=0.8&quot;</span>,</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        response = requests.get(</span><br><span class="line">            url,</span><br><span class="line">            headers=headers,</span><br><span class="line">            timeout=<span class="number">15</span></span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> response.status_code != <span class="number">200</span>:</span><br><span class="line">            <span class="keyword">return</span> <span class="string">f&quot;无法获取网页内容，状态码：<span class="subst">&#123;response.status_code&#125;</span>&quot;</span></span><br><span class="line"></span><br><span class="line">        soup = BeautifulSoup(response.text, <span class="string">&quot;html.parser&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> soup.get_text(separator=<span class="string">&quot; &quot;</span>, strip=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">f&quot;无法获取网页内容：<span class="subst">&#123;e&#125;</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>这段代码做了几件事。</p>
+<ol>
+<li>设置请求头：</li>
+</ol>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">headers = &#123;</span><br><span class="line">    <span class="string">&quot;User-Agent&quot;</span>: <span class="string">&quot;...&quot;</span>,</span><br><span class="line">    <span class="string">&quot;Accept-Language&quot;</span>: <span class="string">&quot;zh-CN,zh;q=0.9,en;q=0.8&quot;</span>,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>很多网站会根据请求头判断访问来源。如果不设置 <code>User-Agent</code>，请求可能被拒绝。<code>Accept-Language</code> 则表示优先接受中文内容，其次接受英文内容。</p>
+<ol start="2">
+<li>设置超时时间：</li>
+</ol>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">timeout=<span class="number">15</span></span><br></pre></td></tr></table></figure>
+
+<p>网页请求不能无限等待。如果某个网站响应缓慢，系统应及时返回错误信息，避免整个链路卡住。</p>
+<ol start="3">
+<li>提取网页文本：</li>
+</ol>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">soup = BeautifulSoup(response.text, <span class="string">&quot;html.parser&quot;</span>)</span><br><span class="line"><span class="keyword">return</span> soup.get_text(separator=<span class="string">&quot; &quot;</span>, strip=<span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
+
+<p>这一步会把 HTML 中的文本提取出来，并用空格分隔不同文本片段。</p>
+<p>不过，这种方式只是基础抓取。网页正文中可能仍然包含导航栏、页脚、广告、版权说明等噪声。因此，后续摘要 Prompt 需要明确要求模型围绕用户问题提取有效信息，而不是机械总结整页文本。</p>
+<p>还需要考虑上下文长度问题。网页正文可能非常长，直接传给模型可能超过上下文限制。因此，在进入摘要链之前，需要对正文进行截断：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">RESULT_TEXT_MAX_CHARACTERS = <span class="number">20000</span></span><br><span class="line"></span><br><span class="line">text = web_scrape(url)[:RESULT_TEXT_MAX_CHARACTERS]</span><br></pre></td></tr></table></figure>
+
+<p>这是一种简单但实用的处理方式。它不能保证保留网页中所有重要内容，但可以避免输入过长导致模型调用失败。后续如果需要更高质量，可以改成分块摘要或正文提取算法。</p>
+<h3 id="3-4-准备工具函数与配置项"><a href="#3-4-准备工具函数与配置项" class="headerlink" title="3.4 准备工具函数与配置项"></a><strong>3.4 准备工具函数与配置项</strong></h3><p>除了模型、搜索和抓取，还需要准备少量工具函数和常量配置。</p>
+<p>搜索词生成链通常会要求模型输出 JSON 字符串，后续程序需要把它转换成 Python 对象。可以在 <code>utilities.py</code> 中放置一个简单函数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">to_obj</span>(<span class="params">text: <span class="built_in">str</span></span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;将 JSON 字符串转换为 Python 对象。&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">return</span> json.loads(text)</span><br></pre></td></tr></table></figure>
+
+<p>后续可以直接接入 LCEL 链：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chain = prompt | get_llm() | StrOutputParser() | to_obj</span><br></pre></td></tr></table></figure>
+
+<p>同时，可以集中定义一些常量：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">NUM_SEARCH_QUERIES = <span class="number">3</span></span><br><span class="line">NUM_SEARCH_RESULTS = <span class="number">3</span></span><br><span class="line">RESULT_TEXT_MAX_CHARACTERS = <span class="number">20000</span></span><br></pre></td></tr></table></figure>
+
+<p>这些参数分别表示：</p>
+<table>
+<thead>
+<tr>
+<th><strong>配置项</strong></th>
+<th><strong>含义</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>NUM_SEARCH_QUERIES</code></td>
+<td>生成多少个搜索词</td>
+</tr>
+<tr>
+<td><code>NUM_SEARCH_RESULTS</code></td>
+<td>每个搜索词返回多少个网页</td>
+</tr>
+<tr>
+<td><code>RESULT_TEXT_MAX_CHARACTERS</code></td>
+<td>每个网页最多传入多少字符</td>
+</tr>
+</tbody></table>
+<p>例如，当 <code>NUM_SEARCH_QUERIES = 3</code> 且 <code>NUM_SEARCH_RESULTS = 3</code> 时，系统最多会处理 9 个网页。这个规模适合作为案例演示，既能体现多来源研究，又不会让执行时间过长。</p>
+<p>这里有个注意点，搜索词数量和搜索结果数量相乘后，会直接影响模型调用次数。如果每个网页都需要一次摘要调用，那么网页数量越多，整体耗时和成本都会上升。因此，这些配置不应随意调大。</p>
+<h3 id="3-5-基础模块之间的关系"><a href="#3-5-基础模块之间的关系" class="headerlink" title="3.5 基础模块之间的关系"></a><strong>3.5 基础模块之间的关系</strong></h3><p>准备好基础能力后，系统的底层模块关系可以概括为：</p>
+<ul>
+<li><code>llm_models.py</code>，提供 get_llm()</li>
+<li><code>web_searching.py</code>，提供 web_search()</li>
+<li><code>web_scraping.py</code>，提供 web_scrape()</li>
+<li><code>utilities.py</code>，提供 to_obj()</li>
+</ul>
+<p>它们不会单独完成最终任务，但会被后续各条链调用。例如，搜索词生成链会用到：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">get_llm()</span><br><span class="line">to_obj()</span><br></pre></td></tr></table></figure>
+
+<p>URL 搜索链会用到：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">web_search()</span><br></pre></td></tr></table></figure>
+
+<p>网页总结链会用到：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">web_scrape()</span><br><span class="line">get_llm()</span><br></pre></td></tr></table></figure>
+
+<p>最终报告链会用到：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">get_llm()</span><br></pre></td></tr></table></figure>
+
+<p>这种模块划分能够保持职责清晰。模型初始化、搜索、抓取、解析分别独立，后续如果某一部分需要替换，不会影响整个项目。</p>
+<p>例如，搜索工具从 DuckDuckGo 换成 Tavily 或 SerpAPI，只需要改 <code>web_searching.py</code>；网页抓取从 <code>requests + BeautifulSoup</code> 换成更专业的正文提取工具，只需要改 <code>web_scraping.py</code>；模型从 <code>deepseek-v4-pro</code> 换成其他兼容接口模型，只需要改 <code>llm_models.py</code>。</p>
+<p><strong>基础能力封装的目标不是复杂，而是稳定、清晰、可替换。</strong></p>
+<p><strong>小结</strong></p>
+<p>本章完成了自动化网页研究总结器的基础能力准备。<code>get_llm()</code> 负责统一初始化模型，<code>web_search()</code> 负责根据中文搜索词获取网页 URL，<code>web_scrape()</code> 负责抓取网页正文，<code>to_obj()</code> 负责将模型输出的 JSON 字符串转换为 Python 对象。</p>
+<p>这些基础函数本身并不复杂，但它们决定了后续链路是否清晰可维护。模型、搜索、抓取和解析被拆成独立模块后，LCEL 链可以专注于流程编排，而不是把所有细节堆在一起。</p>
+<p><strong>从下一章开始，将基于这些基础能力构建第一条实际链路：角色选择链，让系统先根据中文问题判断任务类型，并生成适合后续研究流程的助手设定。</strong></p>
+<h2 id="4-角色选择链：让系统先理解任务类型"><a href="#4-角色选择链：让系统先理解任务类型" class="headerlink" title="4. 角色选择链：让系统先理解任务类型"></a><strong>4. 角色选择链：让系统先理解任务类型</strong></h2><p>基础能力准备完成后，可以开始构建第一条 LCEL 链：<strong>角色选择链</strong>。</p>
+<p>在自动化网页研究总结器中，角色选择链位于整个流程的起点。它接收用户问题，判断当前任务更适合哪种研究助手，并生成一段用于后续流程的助手说明。这个步骤不会直接搜索网页，也不会生成最终报告，但它会影响后续搜索词生成、网页摘要和报告写作的方向。</p>
+<p>例如，当前问题是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">question = <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>系统应识别出这是一个旅行研究问题，而不是技术分析、商业调研或体育评论。对应的助手设定应该偏向旅行规划、景点介绍、文化背景、本地体验和实用建议。</p>
+<h3 id="4-1-为什么需要角色选择链"><a href="#4-1-为什么需要角色选择链" class="headerlink" title="4.1 为什么需要角色选择链"></a><strong>4.1 为什么需要角色选择链</strong></h3><p>如果直接把用户问题交给搜索词生成链，系统也可以生成一些搜索词。但这样做会缺少任务视角。同样是“杭州有哪些值得一去的地方？”，不同研究目标会导致完全不同的搜索方向。</p>
+<p>如果目标是旅行研究，搜索词应关注：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">杭州 必去景点</span><br><span class="line">杭州 西湖 灵隐寺 西溪湿地</span><br><span class="line">杭州 美食 茶文化 旅行攻略</span><br></pre></td></tr></table></figure>
+
+<p>如果目标是历史文化研究，搜索词可能更偏向：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">杭州 南宋历史文化</span><br><span class="line">杭州 京杭大运河 历史街区</span><br><span class="line">杭州 博物馆 古街 文化遗产</span><br></pre></td></tr></table></figure>
+
+<p>如果目标是城市体验研究，搜索词又会偏向：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">杭州 城市漫步 路线</span><br><span class="line">杭州 咖啡馆 书店 文艺街区</span><br><span class="line">杭州 夜游 运河 湖滨 体验</span><br></pre></td></tr></table></figure>
+
+<p>因此，角色选择链的价值在于：<strong>先判断问题的研究视角，再让后续链围绕这个视角展开</strong>。</p>
+<p>这一步并不是为了让系统显得更“智能”，而是为了减少后续搜索和摘要的发散。对于开放式问题，研究视角越明确，搜索词越容易聚焦，最终报告也越容易形成清晰结构。</p>
+<h3 id="4-2-设计角色选择提示词"><a href="#4-2-设计角色选择提示词" class="headerlink" title="4.2 设计角色选择提示词"></a><strong>4.2 设计角色选择提示词</strong></h3><p>角色选择提示词的目标，是让模型根据用户问题输出一个结构化结果。这个结果至少包含三类信息：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">assistant_role</span><br><span class="line">assistant_instructions</span><br><span class="line">user_question</span><br></pre></td></tr></table></figure>
+
+<p>其中，<code>assistant_role</code> 表示当前任务适合哪类研究助手；<code>assistant_instructions</code> 表示后续搜索、摘要和报告生成时应该重点关注什么；<code>user_question</code> 用来保留原始问题，方便后续链继续使用。</p>
+<p>可以在 <code>prompts.py</code> 中定义如下提示词：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> langchain_core.prompts <span class="keyword">import</span> ChatPromptTemplate</span><br><span class="line"></span><br><span class="line">ASSISTANT_SELECTION_PROMPT_TEMPLATE = ChatPromptTemplate.from_template(</span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">你是一个研究任务分配器，负责根据用户问题选择最合适的研究助手类型。</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">你的任务：</span></span><br><span class="line"><span class="string">根据用户问题判断研究方向，并选择一个最适合的 assistant_role。</span></span><br><span class="line"><span class="string">同时生成 assistant_instructions，用于指导后续的搜索词生成、网页摘要和最终报告生成。</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">可选助手类型：</span></span><br><span class="line"><span class="string">1. &quot;旅行研究助手&quot;</span></span><br><span class="line"><span class="string">   适用于城市、国家、景点、旅行攻略、文化体验、美食、路线规划等问题。</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">2. &quot;财经研究助手&quot;</span></span><br><span class="line"><span class="string">   适用于股票、公司财务、投资、市场趋势、行业分析、商业模式等问题。</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">3. &quot;体育研究助手&quot;</span></span><br><span class="line"><span class="string">   适用于运动员、球队、比赛、体育事件、竞技表现、数据分析等问题。</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">4. &quot;技术研究助手&quot;</span></span><br><span class="line"><span class="string">   适用于编程、AI、软件工程、框架、工具、技术方案等问题。</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">5. &quot;通用研究助手&quot;</span></span><br><span class="line"><span class="string">   适用于无法明确归类的问题。</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">选择规则：</span></span><br><span class="line"><span class="string">- 优先根据用户问题的真实研究目标选择助手，而不是只看关键词。</span></span><br><span class="line"><span class="string">- 如果问题涉及旅行地点、城市体验、景点、美食、文化，选择 &quot;旅行研究助手&quot;。</span></span><br><span class="line"><span class="string">- 如果问题涉及投资、股票、公司、财务或市场，选择 &quot;财经研究助手&quot;。</span></span><br><span class="line"><span class="string">- 如果问题涉及运动员、球队、比赛或体育表现，选择 &quot;体育研究助手&quot;。</span></span><br><span class="line"><span class="string">- 如果问题涉及代码、框架、AI 工具、工程实现，选择 &quot;技术研究助手&quot;。</span></span><br><span class="line"><span class="string">- 如果不确定，选择 &quot;通用研究助手&quot;。</span></span><br><span class="line"><span class="string">- assistant_instructions 要具体说明后续研究应关注哪些方面。</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">输出要求：</span></span><br><span class="line"><span class="string">- 只输出 JSON。</span></span><br><span class="line"><span class="string">- 不要输出 Markdown。</span></span><br><span class="line"><span class="string">- 不要输出代码块。</span></span><br><span class="line"><span class="string">- 不要输出额外解释。</span></span><br><span class="line"><span class="string">- JSON 字段必须包含 assistant_role、assistant_instructions。</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">输出格式：</span></span><br><span class="line"><span class="string">&#123;&#123;</span></span><br><span class="line"><span class="string">  &quot;assistant_role&quot;: &quot;助手角色名称&quot;,</span></span><br><span class="line"><span class="string">  &quot;assistant_instructions&quot;: &quot;后续搜索、摘要和报告生成时应关注的研究方向&quot;</span></span><br><span class="line"><span class="string">&#125;&#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">示例：</span></span><br><span class="line"><span class="string">用户问题：杭州有哪些值得一去的地方？</span></span><br><span class="line"><span class="string">输出：</span></span><br><span class="line"><span class="string">&#123;&#123;</span></span><br><span class="line"><span class="string">  &quot;assistant_role&quot;: &quot;旅行研究助手&quot;,</span></span><br><span class="line"><span class="string">  &quot;assistant_instructions&quot;: &quot;请围绕杭州的自然景观、历史文化、代表性景点、城市体验、美食茶文化和实用旅行信息展开研究，重点关注适合游客参观和体验的内容。&quot;</span></span><br><span class="line"><span class="string">&#125;&#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">现在请根据下面的用户问题选择研究助手。</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">用户问题：</span></span><br><span class="line"><span class="string">&#123;user_question&#125;</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>这里有几个设计细节。</p>
+<ul>
+<li><p>提示词要求模型只输出 JSON，这是为了方便后续解析。如果模型在 JSON 前后添加说明文字，<code>json.loads()</code> 可能会解析失败。</p>
+</li>
+<li><p>提示词中明确给出了可选助手类型。这样做可以减少模型自由发挥，避免一会儿输出“旅行助手”，一会儿输出“旅游规划专家”，一会儿又输出“城市探索助手”。字段越稳定，后续链越容易处理。</p>
+</li>
+<li><p>输出中保留了 <code>user_question</code>。这是因为整个系统后面还需要继续使用原始问题。如果角色选择链只输出角色和指令，后续搜索词生成链就可能失去最初的任务目标。</p>
+</li>
+</ul>
+<h3 id="4-3-用-LCEL-实现角色选择链"><a href="#4-3-用-LCEL-实现角色选择链" class="headerlink" title="4.3 用 LCEL 实现角色选择链"></a><strong>4.3 用 LCEL 实现角色选择链</strong></h3><p>有了提示词后，可以先定义一条 <strong>角色选择子链</strong>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> langchain_core.output_parsers <span class="keyword">import</span> StrOutputParser</span><br><span class="line"><span class="keyword">from</span> langchain_core.runnables <span class="keyword">import</span> RunnableLambda</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> llm_models <span class="keyword">import</span> get_llm</span><br><span class="line"><span class="keyword">from</span> prompts <span class="keyword">import</span> ASSISTANT_SELECTION_PROMPT_TEMPLATE</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">to_obj</span>(<span class="params">text: <span class="built_in">str</span></span>):</span><br><span class="line">    <span class="keyword">return</span> json.loads(text)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 角色选择子链：</span></span><br><span class="line"><span class="comment"># 根据用户问题，让模型判断应该使用什么助手角色，并输出结构化 JSON。</span></span><br><span class="line">assistant_selection_chain = (</span><br><span class="line">    ASSISTANT_SELECTION_PROMPT_TEMPLATE</span><br><span class="line">    | get_llm()</span><br><span class="line">    | StrOutputParser()</span><br><span class="line">    | to_obj</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>这条子链的结构是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Prompt → LLM → 字符串解析 → JSON 转 Python 对象</span><br></pre></td></tr></table></figure>
+
+<p>执行后，它会得到一个 Python 字典，例如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;assistant_role&quot;</span>: <span class="string">&quot;旅行研究助手&quot;</span>,</span><br><span class="line">    <span class="string">&quot;assistant_instructions&quot;</span>: <span class="string">&quot;请围绕杭州的自然景观、历史文化、代表性景点、城市体验、美食茶文化和实用旅行信息展开研究，重点关注适合游客参观和体验的内容。&quot;</span>,</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>不过，在完整流程里，我们通常不会只调用这个子链。为了让后续链拿到统一格式的数据，可以在<code>utilities.py</code>中定义一条 <strong>角色指令链</strong>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 角色指令链，输入 user_question，先调用角色选择子链，再把结果整理成后续链需要的字段。</span></span><br><span class="line">assistant_instructions_chain = (</span><br><span class="line">    <span class="comment"># 1. 保留原始问题，并调用 assistant_selection_chain 生成角色选择结果。</span></span><br><span class="line">    RunnableLambda(<span class="keyword">lambda</span> x: &#123;</span><br><span class="line">        <span class="string">&quot;user_question&quot;</span>: x[<span class="string">&quot;user_question&quot;</span>],</span><br><span class="line">        <span class="string">&quot;assistant_result&quot;</span>: assistant_selection_chain.invoke(&#123;</span><br><span class="line">            <span class="string">&quot;user_question&quot;</span>: x[<span class="string">&quot;user_question&quot;</span>]</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 2. 把 assistant_result 中的字段展开，方便后续链直接使用。</span></span><br><span class="line">    | RunnableLambda(<span class="keyword">lambda</span> x: &#123;</span><br><span class="line">        <span class="string">&quot;user_question&quot;</span>: x[<span class="string">&quot;user_question&quot;</span>],</span><br><span class="line">        <span class="string">&quot;assistant_role&quot;</span>: x[<span class="string">&quot;assistant_result&quot;</span>][<span class="string">&quot;assistant_role&quot;</span>],</span><br><span class="line">        <span class="string">&quot;assistant_instructions&quot;</span>: x[<span class="string">&quot;assistant_result&quot;</span>][<span class="string">&quot;assistant_instructions&quot;</span>],</span><br><span class="line">    &#125;)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>这段代码分成两步。</p>
+<p>第一步，输入是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>第一个 <code>RunnableLambda</code> 会保留原始问题，并调用 <code>assistant_selection_chain</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">RunnableLambda(<span class="keyword">lambda</span> x: &#123;</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: x[<span class="string">&quot;user_question&quot;</span>],</span><br><span class="line">    <span class="string">&quot;assistant_result&quot;</span>: assistant_selection_chain.invoke(&#123;</span><br><span class="line">        <span class="string">&quot;user_question&quot;</span>: x[<span class="string">&quot;user_question&quot;</span>]</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>执行后，中间结果大致是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span>,</span><br><span class="line">    <span class="string">&quot;assistant_result&quot;</span>: &#123;</span><br><span class="line">        <span class="string">&quot;assistant_role&quot;</span>: <span class="string">&quot;旅行研究助手&quot;</span>,</span><br><span class="line">        <span class="string">&quot;assistant_instructions&quot;</span>: <span class="string">&quot;请围绕杭州的自然景观、历史文化、代表性景点、城市体验、美食茶文化和实用旅行信息展开研究，重点关注适合游客参观和体验的内容。&quot;</span>,</span><br><span class="line">        <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>第二步，展开 <code>assistant_result</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">RunnableLambda(<span class="keyword">lambda</span> x: &#123;</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: x[<span class="string">&quot;user_question&quot;</span>],</span><br><span class="line">    <span class="string">&quot;assistant_role&quot;</span>: x[<span class="string">&quot;assistant_result&quot;</span>][<span class="string">&quot;assistant_role&quot;</span>],</span><br><span class="line">    <span class="string">&quot;assistant_instructions&quot;</span>: x[<span class="string">&quot;assistant_result&quot;</span>][<span class="string">&quot;assistant_instructions&quot;</span>],</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>最终输出会变成一个扁平结构：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span>,</span><br><span class="line">    <span class="string">&quot;assistant_role&quot;</span>: <span class="string">&quot;旅行研究助手&quot;</span>,</span><br><span class="line">    <span class="string">&quot;assistant_instructions&quot;</span>: <span class="string">&quot;请围绕杭州的自然景观、历史文化、代表性景点、城市体验、美食茶文化和实用旅行信息展开研究，重点关注适合游客参观和体验的内容。&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样后续链就可以直接读取：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">x[<span class="string">&quot;user_question&quot;</span>]</span><br><span class="line">x[<span class="string">&quot;assistant_role&quot;</span>]</span><br><span class="line">x[<span class="string">&quot;assistant_instructions&quot;</span>]</span><br></pre></td></tr></table></figure>
+
+<p>而不需要写成：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">x[<span class="string">&quot;assistant_result&quot;</span>][<span class="string">&quot;assistant_instructions&quot;</span>]</span><br></pre></td></tr></table></figure>
+
+<p>调用方式如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">result = assistant_instructions_chain.invoke(&#123;</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(json.dumps(result, ensure_ascii=<span class="literal">False</span>, indent=<span class="number">2</span>))</span><br></pre></td></tr></table></figure>
+
+<p>可能输出：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;user_question&quot;</span><span class="punctuation">:</span> <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;assistant_role&quot;</span><span class="punctuation">:</span> <span class="string">&quot;旅行研究助手&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;assistant_instructions&quot;</span><span class="punctuation">:</span> <span class="string">&quot;请围绕杭州的自然景观、历史文化、代表性景点、城市体验、美食茶文化和实用旅行信息展开研究，重点关注适合游客参观和体验的内容。&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-4-角色选择链的输出检查"><a href="#4-4-角色选择链的输出检查" class="headerlink" title="4.4 角色选择链的输出检查"></a><strong>4.4 角色选择链的输出检查</strong></h3><p>角色选择链虽然简单，但它是后续流程的入口，因此需要关注输出稳定性。理想输出应满足几个条件。</p>
+<p>第一，必须是合法 JSON。否则后续 <code>to_obj()</code> 会解析失败。</p>
+<p>第二，必须包含固定字段：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">assistant_role</span><br><span class="line">assistant_instructions</span><br><span class="line">user_question</span><br></pre></td></tr></table></figure>
+
+<p>第三，<code>assistant_role</code> 最好来自提示词中定义好的候选类型，而不是模型临时编造的角色名称。否则后续如果要根据角色做条件分支，会比较麻烦。</p>
+<p>第四，<code>assistant_instructions</code> 要对后续任务有实际帮助。例如下面这种输出价值较低：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;assistant_role&quot;</span><span class="punctuation">:</span> <span class="string">&quot;智能助手&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;assistant_instructions&quot;</span><span class="punctuation">:</span> <span class="string">&quot;帮助用户完成任务。&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;user_question&quot;</span><span class="punctuation">:</span> <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>它过于泛化，无法指导搜索词生成。更合适的输出是：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;assistant_role&quot;</span><span class="punctuation">:</span> <span class="string">&quot;旅行研究助手&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;assistant_instructions&quot;</span><span class="punctuation">:</span> <span class="string">&quot;重点关注杭州的热门景点、自然风光、人文古迹、美食街区及小众体验，兼顾不同旅行偏好，如亲子、情侣、文化爱好者，并提供最佳游览时间、交通建议和本地体验等实用信息。&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;user_question&quot;</span><span class="punctuation">:</span> <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>这样的说明会直接影响下一步搜索词。因此，角色选择链虽然位于流程开头，却会影响整个研究方向。</p>
+<p>不过也要注意，角色选择链不是越复杂越好。如果系统只处理单一类型任务，比如只做旅行攻略，那么角色选择链可以省略，直接把系统固定为“旅行研究助手”。只有当系统需要支持多类问题时，角色选择链才有明显价值。</p>
+<p>前面的杭州案例会被分配给旅行研究助手。但角色选择链的意义并不只体现在旅行问题上。当前提示词中还配置了多种助手类型，例如 <code>财经研究助手</code>、<code>体育研究助手</code>、<code>技术研究助手</code> 和 <code>通用研究助手</code>等。当用户问题发生变化时，模型会根据任务类型选择不同角色。</p>
+<p>例如，当问题变成投资分析：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">result = assistant_instructions_chain.invoke(&#123;</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;当前是否适合买英伟达的股票？&quot;</span></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(json.dumps(result, ensure_ascii=<span class="literal">False</span>, indent=<span class="number">2</span>))</span><br></pre></td></tr></table></figure>
+
+<p>可能输出：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;user_question&quot;</span><span class="punctuation">:</span> <span class="string">&quot;当前是否适合买英伟达的股票？&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;assistant_role&quot;</span><span class="punctuation">:</span> <span class="string">&quot;财经研究助手&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;assistant_instructions&quot;</span><span class="punctuation">:</span> <span class="string">&quot;请围绕英伟达的财务表现、业务结构、市场竞争、估值水平、风险因素和近期趋势展开研究，生成客观、审慎、结构化的投资分析。&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>可以看到，同一条角色选择链并没有绑定在“旅行”这一类任务上。它会先判断问题属于哪种研究场景，再把后续流程引导到对应的信息关注重点上。对于投资问题，后续搜索词生成就不应该围绕景点、美食或路线，而应该围绕公司财报、估值、业务增长、行业竞争和风险因素展开。</p>
+<p>这也说明了角色选择链的核心价值：<strong>它不是为了给回答套一个角色名称，而是为了提前确定后续搜索和总结的研究视角。</strong></p>
+<p><strong>小结</strong></p>
+<p>本章构建了自动化网页研究总结器的第一条链：角色选择链。它接收问题，判断任务类型，并生成适合后续搜索和报告写作的助手设定。这条链的结构是<code>用户问题 → 角色选择 Prompt → LLM → JSON 解析 → 助手设定</code>。</p>
+<p>在实际代码中，为了保留原始问题并给后续链提供统一字段，本章采用了两层结构：</p>
+<ul>
+<li><strong>assistant_selection_chain</strong>：负责调用模型，生成角色选择结果。</li>
+<li><strong>assistant_instructions_chain</strong>：负责保留 user_question，并整理输出字段。</li>
+</ul>
+<p><strong>角色选择链的关键不是输出一个好看的角色名称，而是为后续搜索词生成和报告整合提供明确方向。</strong> 当研究视角被提前确定，后续链路就能围绕同一目标展开，避免搜索和摘要过度发散。</p>
+<p>下一章将继续构建搜索词生成链，把原始问题和助手设定转换成多个可用于网页搜索的查询。</p>
+<h2 id="5-搜索词生成链：把用户问题拆成多个搜索查询"><a href="#5-搜索词生成链：把用户问题拆成多个搜索查询" class="headerlink" title="5. 搜索词生成链：把用户问题拆成多个搜索查询"></a><strong>5. 搜索词生成链：把用户问题拆成多个搜索查询</strong></h2><p>角色选择链解决了“系统应该从什么角度理解任务”的问题，但它还没有真正开始获取外部信息。要让网页研究总结器进入资料收集阶段，下一步需要把用户问题转换成多个适合搜索引擎使用的查询词。</p>
+<p>这一章构建 <strong>搜索词生成链</strong>。它接收用户问题和助手设定，输出一组搜索查询。后续 URL 搜索链会根据这些查询获取网页链接。</p>
+<h3 id="5-1-为什么要生成多个搜索词"><a href="#5-1-为什么要生成多个搜索词" class="headerlink" title="5.1 为什么要生成多个搜索词"></a><strong>5.1 为什么要生成多个搜索词</strong></h3><p>开放式问题往往包含多个信息维度。以本案例问题为例：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">question = <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>如果只使用原始问题搜索，结果可能偏向综合旅游攻略，但未必覆盖所有重要角度。杭州这样的目的地，至少可以从以下几个方向检索：</p>
+<table>
+<thead>
+<tr>
+<th><strong>方向</strong></th>
+<th><strong>可能搜索词</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>景点概览</td>
+<td><code>杭州 必去景点</code></td>
+</tr>
+<tr>
+<td>自然风光</td>
+<td><code>杭州 西湖 西溪湿地 自然景观</code></td>
+</tr>
+<tr>
+<td>历史文化</td>
+<td><code>杭州 灵隐寺 京杭大运河 南宋御街 历史文化</code></td>
+</tr>
+<tr>
+<td>城市体验</td>
+<td><code>杭州 城市漫步 湖滨 运河 夜游</code></td>
+</tr>
+<tr>
+<td>美食茶文化</td>
+<td><code>杭州 美食 龙井茶 河坊街 旅行攻略</code></td>
+</tr>
+</tbody></table>
+<p>这些查询并不是简单改写，而是把一个宽泛问题拆成多个搜索切面。这样可以减少信息遗漏，让后续摘要和报告更完整。角色选择链的输出也会参与搜索词生成。例如，上一章得到的助手说明可能是：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;user_question&quot;</span><span class="punctuation">:</span> <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;assistant_role&quot;</span><span class="punctuation">:</span> <span class="string">&quot;旅行研究助手&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;assistant_instructions&quot;</span><span class="punctuation">:</span> <span class="string">&quot;请围绕杭州的自然景观、历史文化、代表性景点、城市体验、美食茶文化和实用旅行信息展开研究，重点关注适合游客参观和体验的内容。&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>搜索词生成链就可以据此生成更贴近旅行研究目标的查询，而不是只围绕“杭州”这个地名做泛泛搜索。比如它会同时覆盖西湖、灵隐寺、西溪湿地、京杭大运河、龙井茶文化、城市漫步和美食体验等方向。这样后续抓取到的网页内容更容易形成结构化报告，而不是只得到一组重复度很高的景点榜单。</p>
+<h3 id="5-2-设计搜索词生成提示词"><a href="#5-2-设计搜索词生成提示词" class="headerlink" title="5.2 设计搜索词生成提示词"></a><strong>5.2 设计搜索词生成提示词</strong></h3><p>搜索词生成提示词需要完成两个目标：一是生成多个中文搜索查询，二是输出可被程序解析的结构化结果。可以在 <code>prompts.py</code> 中定义如下模板：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">WEB_SEARCH_PROMPT_TEMPLATE = ChatPromptTemplate.from_template(  </span><br><span class="line"><span class="string">&quot;&quot;&quot;  </span></span><br><span class="line"><span class="string">    你是一个搜索查询生成器，负责根据用户问题和助手说明，生成适合搜索引擎使用的中文搜索查询。  </span></span><br><span class="line"><span class="string">  </span></span><br><span class="line"><span class="string">    用户问题：  </span></span><br><span class="line"><span class="string">        &#123;user_question&#125;  </span></span><br><span class="line"><span class="string">    助手说明：  </span></span><br><span class="line"><span class="string">        &#123;assistant_instructions&#125;  </span></span><br><span class="line"><span class="string">    任务要求：  </span></span><br><span class="line"><span class="string">    - 请生成 &#123;num_search_queries&#125; 个搜索查询。  </span></span><br><span class="line"><span class="string">    - 搜索查询必须围绕用户问题展开，并参考助手说明中的研究重点。  </span></span><br><span class="line"><span class="string">    - 每个搜索查询应覆盖一个不同角度，避免重复。  </span></span><br><span class="line"><span class="string">    - 搜索查询应简洁、具体，适合直接提交给搜索引擎。  </span></span><br><span class="line"><span class="string">    - 优先生成能够找到高质量网页资料的查询，而不是生成口语化问题。  </span></span><br><span class="line"><span class="string">    - user_question 字段必须原样保留用户问题，不要改写、翻译或总结。  </span></span><br><span class="line"><span class="string">  </span></span><br><span class="line"><span class="string">    输出要求：  </span></span><br><span class="line"><span class="string">    - 只输出 JSON 数组。  </span></span><br><span class="line"><span class="string">    - 不要输出 Markdown。  </span></span><br><span class="line"><span class="string">    - 不要输出代码块。  </span></span><br><span class="line"><span class="string">    - 不要输出任何额外解释。  </span></span><br><span class="line"><span class="string">    - JSON 数组长度必须等于 &#123;num_search_queries&#125;。  </span></span><br><span class="line"><span class="string">    - 每个数组元素必须包含 &quot;search_query&quot; 和 &quot;user_question&quot; 两个字段。  </span></span><br><span class="line"><span class="string">  </span></span><br><span class="line"><span class="string">    输出格式示例：  </span></span><br><span class="line"><span class="string">    [        </span></span><br><span class="line"><span class="string">	    &#123;&#123;            </span></span><br><span class="line"><span class="string">		    &quot;search_query&quot;: &quot;杭州 必去景点 西湖 灵隐寺 西溪湿地&quot;,  </span></span><br><span class="line"><span class="string">            &quot;user_question&quot;: &quot;杭州有哪些值得一去的地方？&quot;  </span></span><br><span class="line"><span class="string">        &#125;&#125;, </span></span><br><span class="line"><span class="string">        &#123;&#123;         </span></span><br><span class="line"><span class="string">	        &quot;search_query&quot;: &quot;杭州 历史文化 京杭大运河 南宋御街 博物馆&quot;,  </span></span><br><span class="line"><span class="string">            &quot;user_question&quot;: &quot;杭州有哪些值得一去的地方？&quot;  </span></span><br><span class="line"><span class="string">        &#125;&#125;, </span></span><br><span class="line"><span class="string">	    &#123;&#123;        </span></span><br><span class="line"><span class="string">	        &quot;search_query&quot;: &quot;杭州 美食 龙井茶 城市漫步 旅行攻略&quot;,  </span></span><br><span class="line"><span class="string">            &quot;user_question&quot;: &quot;杭州有哪些值得一去的地方？&quot;  </span></span><br><span class="line"><span class="string">        &#125;&#125;    </span></span><br><span class="line"><span class="string">    ]</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span>  </span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>这个提示词的重点是让输出稳定。因为后续链需要直接读取 <code>search_query</code> 字段，所以输出必须是 JSON 数组。这里的字段设计延续了前面的数据结构：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">search_query：用于搜索引擎</span><br><span class="line">user_question：保留原始任务目标</span><br></pre></td></tr></table></figure>
+
+<p>保留 <code>user_question</code> 很关键。搜索词进入后续流程后，如果只剩下 <code>search_query</code>，网页摘要链就只能围绕搜索词总结，而无法明确最终要回答的问题。通过保留原始问题，后续模型在摘要网页时仍然知道任务目标。</p>
+<h3 id="5-3-用-LCEL-实现搜索词生成链"><a href="#5-3-用-LCEL-实现搜索词生成链" class="headerlink" title="5.3 用 LCEL 实现搜索词生成链"></a><strong>5.3 用 LCEL 实现搜索词生成链</strong></h3><p>搜索词生成链的输入来自角色选择链的三个字段：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">user_question</span><br><span class="line">assistant_instructions</span><br><span class="line">num_search_queries</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>num_search_queries</code> 是配置项，不一定来自上面条链。因此，需要使用 <code>RunnableLambda</code> 补充字段，再进入 Prompt。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">NUM_SEARCH_QUERIES = <span class="number">3</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 搜索词生成链：把“用户问题 + 助手说明”转换成多个可直接用于搜索引擎的查询词</span></span><br><span class="line">web_searches_chain = (</span><br><span class="line">    RunnableLambda(<span class="keyword">lambda</span> x: &#123;</span><br><span class="line">        <span class="string">&quot;assistant_instructions&quot;</span>: x[<span class="string">&quot;assistant_instructions&quot;</span>],</span><br><span class="line">        <span class="string">&quot;num_search_queries&quot;</span>: NUM_SEARCH_QUERIES,</span><br><span class="line">        <span class="string">&quot;user_question&quot;</span>: x[<span class="string">&quot;user_question&quot;</span>],</span><br><span class="line">    &#125;)</span><br><span class="line">    | WEB_SEARCH_PROMPT_TEMPLATE</span><br><span class="line">    | get_llm()</span><br><span class="line">    | StrOutputParser()</span><br><span class="line">    | to_obj</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>这条链可以分为四步，<code>整理输入字段 -&gt; 生成搜索词 Prompt -&gt; 调用 LLM -&gt; 解析 JSON 字符串</code>。其中，<code>RunnableLambda</code> 的作用是明确输入结构：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">RunnableLambda(<span class="keyword">lambda</span> x: &#123;</span><br><span class="line">    <span class="string">&quot;assistant_instructions&quot;</span>: x[<span class="string">&quot;assistant_instructions&quot;</span>],</span><br><span class="line">    <span class="string">&quot;num_search_queries&quot;</span>: NUM_SEARCH_QUERIES,</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: x[<span class="string">&quot;user_question&quot;</span>],</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>它把上一条链传来的数据整理成 Prompt 需要的格式。这里不直接把整个 <code>x</code> 传给 Prompt，是为了避免字段混乱，让链的输入规则更清晰。调用方式如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">input_data = &#123;</span><br><span class="line">  <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span>,</span><br><span class="line">  <span class="string">&quot;assistant_role&quot;</span>: <span class="string">&quot;旅行研究助手&quot;</span>,</span><br><span class="line">  <span class="string">&quot;assistant_instructions&quot;</span>: <span class="string">&quot;请围绕杭州的自然景观、历史文化、代表性景点、城市体验、美食茶文化和实用旅行信息展开研究，重点关注适合游客参观和体验的内容。&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">search_queries = web_searches_chain.invoke(input_data)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(search_queries)</span><br></pre></td></tr></table></figure>
+
+<p>可能得到：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">[</span></span><br><span class="line">	<span class="punctuation">&#123;</span></span><br><span class="line">		&#x27;search_query&#x27;<span class="punctuation">:</span> &#x27;杭州 必去景点 西湖 灵隐寺 西溪湿地 推荐&#x27;<span class="punctuation">,</span> </span><br><span class="line">		&#x27;user_question&#x27;<span class="punctuation">:</span> &#x27;杭州有哪些值得一去的地方？&#x27;</span><br><span class="line">	<span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">	<span class="punctuation">&#123;</span></span><br><span class="line">		&#x27;search_query&#x27;<span class="punctuation">:</span> &#x27;杭州 历史文化街区 南宋御街 京杭大运河 博物馆 游玩攻略&#x27;<span class="punctuation">,</span></span><br><span class="line">		&#x27;user_question&#x27;<span class="punctuation">:</span> &#x27;杭州有哪些值得一去的地方？&#x27;</span><br><span class="line">	<span class="punctuation">&#125;</span><span class="punctuation">,</span> </span><br><span class="line">	<span class="punctuation">&#123;</span></span><br><span class="line">		&#x27;search_query&#x27;<span class="punctuation">:</span> &#x27;杭州 龙井茶 美食 茶馆 城市漫步 行程建议&#x27;<span class="punctuation">,</span> </span><br><span class="line">		&#x27;user_question&#x27;<span class="punctuation">:</span> &#x27;杭州有哪些值得一去的地方？&#x27;</span><br><span class="line">	<span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
+
+<p>此时输出的 Python 数组可以直接交给下一条 URL 搜索链处理。</p>
+<h3 id="5-4-输出质量与稳定性"><a href="#5-4-输出质量与稳定性" class="headerlink" title="5.4 输出质量与稳定性"></a><strong>5.4 输出质量与稳定性</strong></h3><p>搜索词生成链的质量会直接影响后续搜索结果。如果搜索词过宽，网页结果可能泛泛而谈；如果搜索词过窄，又可能遗漏重要信息。因此，这条链需要关注三个方面。</p>
+<p>第一，<strong>搜索词要覆盖不同角度</strong>。对于杭州旅行类问题，至少应覆盖自然景观、历史文化、代表性景点、城市体验、美食茶文化和实用攻略。如果所有搜索词都只是“杭州旅游”或“杭州景点”，搜索结果会高度重复，后续报告也容易变成普通景点清单。</p>
+<p>第二，<strong>搜索词要适合搜索引擎</strong>。搜索查询不应写成长句，也不应包含复杂解释。比如下面这种查询不太适合直接搜索：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">请告诉我杭州有哪些值得一去的地方以及每个地方为什么值得去</span><br></pre></td></tr></table></figure>
+
+<p>更合适的是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">杭州 必去景点 西湖 灵隐寺 西溪湿地</span><br></pre></td></tr></table></figure>
+
+<p>或者：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">杭州 历史文化 京杭大运河 南宋御街 博物馆</span><br></pre></td></tr></table></figure>
+
+<p>第三，<strong>输出必须可解析</strong>。搜索词生成链后面会接 <code>to_obj()</code>，如果模型输出不是合法 JSON，链会中断。为了提高稳定性，提示词中要明确要求“只输出 JSON 数组”。在更严格的工程实现中，还可以<strong>使用结构化输出解析器或加入异常重试机制</strong>。</p>
+<p>这里也有个注意点，搜索词的语言会影响搜索结果覆盖面。对于杭州这类中文目的地，中文搜索词通常更容易找到本地攻略、景区信息、城市体验和中文旅行内容。但如果希望获得国际游客视角，也可以让模型同时生成英文搜索词，例如：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">[</span></span><br><span class="line">  <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;search_query&quot;</span><span class="punctuation">:</span> <span class="string">&quot;杭州 必去景点 西湖 灵隐寺 西溪湿地&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;user_question&quot;</span><span class="punctuation">:</span> <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;search_query&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Hangzhou top attractions West Lake Lingyin Temple Xixi Wetland&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;user_question&quot;</span><span class="punctuation">:</span> <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
+
+<p>不过本文案例保持中文主线，代码和问题均以中文为主。是否加入英文搜索词，可以作为后续优化方向。</p>
+<p><strong>小结</strong></p>
+<p>本章构建了搜索词生成链。它接收角色选择链输出的 <code>user_question</code> 和 <code>assistant_instructions</code>，补充搜索词数量配置，并通过模型生成多个中文搜索查询。</p>
+<p>这条链的核心结构是，<code>用户问题 + 助手说明 -&gt; RunnableLambda 整理输入 -&gt; 搜索词生成 Prompt -&gt; LLM -&gt; StrOutputParser -&gt; JSON 转 Python 对象 -&gt; 搜索查询列表</code>。</p>
+<p><strong>搜索词生成链的关键价值，是把一个宽泛的问题拆成多个可检索的信息切面。</strong> 后续 URL 搜索链将基于这些查询获取网页来源，为网页抓取和摘要生成提供资料入口。</p>
+<h2 id="6-总结：从-Prompt-到可组合链路"><a href="#6-总结：从-Prompt-到可组合链路" class="headerlink" title="6. 总结：从 Prompt 到可组合链路"></a><strong>6. 总结：从 Prompt 到可组合链路</strong></h2><p>上篇完成的是整个 LCEL 应用的前半段：先说明为什么单次 Prompt 调用无法支撑复杂任务，再把自动化网页研究总结器拆成一组职责清晰的小链。到这里，系统已经具备了三个关键能力：理解用户问题所属的任务类型，生成适合该任务的助手说明，并把宽泛问题拆成多个可搜索的查询。</p>
+<p>这几章的重点不是追求链式语法本身，而是建立一种工程化思路：<strong>先拆任务，再定义每一步输入输出，最后用 LCEL 把 Prompt、模型、解析器和普通函数连接起来</strong>。角色选择链让后续生成有明确方向，搜索词生成链则把用户问题转换成可以进入外部世界的信息入口。</p>
+<p>但到上篇结束时，系统还没有真正拿到网页资料。搜索词只是研究计划，不能直接生成可靠报告。下篇会继续完成后半段链路：把搜索词转换成 URL，抓取网页正文，总结每个来源，批量处理多个网页，并最终把所有中间结果组装成一篇 Markdown 研究报告。也就是说，上篇解决“如何规划研究”，下篇解决“如何获取资料并生成结果”。</p>
+<h2 id="7-备注"><a href="#7-备注" class="headerlink" title="7.备注"></a><strong>7.备注</strong></h2><p>完整代码：<a target="_blank" rel="noopener" href="https://github.com/keychankc/AI_agent_code/tree/main/web-research-lcel">https://github.com/keychankc/AI_agent_code/tree/main/web-research-lcel</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://www.keychan.xyz/2026/05/26/073-build-an-ai-application-with-lcel/" title="从 Prompt 到工作流：用 LCEL 构建一个 AI 应用（上）">https://www.keychan.xyz/2026/05/26/073-build-an-ai-application-with-lcel/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/Agent/" rel="tag"># Agent</a>
+              <a href="/tags/LangChain/" rel="tag"># LangChain</a>
+              <a href="/tags/Workflow/" rel="tag"># Workflow</a>
+              <a href="/tags/AI%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91/" rel="tag"># AI应用开发</a>
+              <a href="/tags/WebResearch/" rel="tag"># WebResearch</a>
+              <a href="/tags/LCEL/" rel="tag"># LCEL</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/05/19/072-memory-and-context-system/" rel="prev" title="AI 协作工程（十）：记忆与上下文系统">
+                  <i class="fa fa-angle-left"></i> AI 协作工程（十）：记忆与上下文系统
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">661k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.min.js","integrity":"sha256-G8ouPAnw4zzMbnAenHnVz6h9XpKbNdOkrqTh7AadyHs="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.keychan.xyz/","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2026/05/26/073-build-an-ai-application-with-lcel/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>
