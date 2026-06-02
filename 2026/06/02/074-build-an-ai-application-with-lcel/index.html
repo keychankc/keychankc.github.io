@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.keychan.xyz","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":272,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="1. 上篇回顾：从问题拆解到搜索词生成上篇完成了自动化网页研究总结器的前半段。它先从一个核心问题出发：当任务从“回答一句话”变成“完成一个研究流程”时，单次 Prompt 调用已经不够用。系统需要先理解问题，再拆解搜索方向，接入外部工具，并在多个中间结果之间保持稳定的数据结构。 围绕这个目标，上篇先解释了 LCEL 的价值：它不是为了让代码写得更短，而是为了让 LLM 应用里的数据流、组件边界和执">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从 Prompt 到工作流：用 LCEL 构建一个 AI 应用（下）">
+<meta property="og:url" content="https://www.keychan.xyz/2026/06/02/074-build-an-ai-application-with-lcel/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s Notes">
+<meta property="og:description" content="1. 上篇回顾：从问题拆解到搜索词生成上篇完成了自动化网页研究总结器的前半段。它先从一个核心问题出发：当任务从“回答一句话”变成“完成一个研究流程”时，单次 Prompt 调用已经不够用。系统需要先理解问题，再拆解搜索方向，接入外部工具，并在多个中间结果之间保持稳定的数据结构。 围绕这个目标，上篇先解释了 LCEL 的价值：它不是为了让代码写得更短，而是为了让 LLM 应用里的数据流、组件边界和执">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-06-02T00:11:12.000Z">
+<meta property="article:modified_time" content="2026-06-02T00:12:06.704Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="Agent">
+<meta property="article:tag" content="LangChain">
+<meta property="article:tag" content="Workflow">
+<meta property="article:tag" content="AI应用开发">
+<meta property="article:tag" content="WebResearch">
+<meta property="article:tag" content="LCEL">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://www.keychan.xyz/2026/06/02/074-build-an-ai-application-with-lcel/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.keychan.xyz/2026/06/02/074-build-an-ai-application-with-lcel/","path":"2026/06/02/074-build-an-ai-application-with-lcel/","title":"从 Prompt 到工作流：用 LCEL 构建一个 AI 应用（下）"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>从 Prompt 到工作流：用 LCEL 构建一个 AI 应用（下） | KeyChan's Notes</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.keychan.xyz/">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's Notes" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's Notes</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一个不断生长的上下文</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E4%B8%8A%E7%AF%87%E5%9B%9E%E9%A1%BE%EF%BC%9A%E4%BB%8E%E9%97%AE%E9%A2%98%E6%8B%86%E8%A7%A3%E5%88%B0%E6%90%9C%E7%B4%A2%E8%AF%8D%E7%94%9F%E6%88%90"><span class="nav-text">1. 上篇回顾：从问题拆解到搜索词生成</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-URL-%E6%90%9C%E7%B4%A2%E9%93%BE%EF%BC%9A%E6%8A%8A%E6%90%9C%E7%B4%A2%E8%AF%8D%E8%BD%AC%E6%8D%A2%E6%88%90%E7%BD%91%E9%A1%B5%E6%9D%A5%E6%BA%90"><span class="nav-text">2. URL 搜索链：把搜索词转换成网页来源</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-URL-%E6%90%9C%E7%B4%A2%E9%93%BE%E7%9A%84%E8%BE%93%E5%85%A5%E4%B8%8E%E8%BE%93%E5%87%BA"><span class="nav-text">2.1 URL 搜索链的输入与输出</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-%E7%94%A8-RunnableLambda-%E5%B0%81%E8%A3%85%E6%90%9C%E7%B4%A2%E9%80%BB%E8%BE%91"><span class="nav-text">2.2 用 RunnableLambda 封装搜索逻辑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-%E4%B8%8E-map-%E7%9A%84%E9%85%8D%E5%90%88%E6%96%B9%E5%BC%8F"><span class="nav-text">2.3 与 .map() 的配合方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C%E7%9A%84%E6%95%B0%E9%87%8F%E6%8E%A7%E5%88%B6%E4%B8%8E%E5%8E%BB%E9%87%8D"><span class="nav-text">2.4 搜索结果的数量控制与去重</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E6%9E%84%E5%BB%BA%E7%BD%91%E9%A1%B5%E6%80%BB%E7%BB%93%E9%93%BE%EF%BC%9A%E6%8A%93%E5%8F%96%E6%AD%A3%E6%96%87%E5%B9%B6%E6%8F%90%E5%8F%96%E6%9C%89%E7%94%A8%E4%BF%A1%E6%81%AF"><span class="nav-text">3. 构建网页总结链：抓取正文并提取有用信息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E7%BD%91%E9%A1%B5%E6%80%BB%E7%BB%93%E9%93%BE%E7%9A%84%E8%BE%93%E5%85%A5%E4%B8%8E%E8%BE%93%E5%87%BA"><span class="nav-text">3.1 网页总结链的输入与输出</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E8%AE%BE%E8%AE%A1%E7%BD%91%E9%A1%B5%E6%91%98%E8%A6%81%E6%8F%90%E7%A4%BA%E8%AF%8D"><span class="nav-text">3.2 设计网页摘要提示词</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-%E7%94%A8-LCEL-%E5%AE%9E%E7%8E%B0%E5%8D%95%E7%BD%91%E9%A1%B5%E6%80%BB%E7%BB%93%E9%93%BE"><span class="nav-text">3.3 用 LCEL 实现单网页总结链</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-%E8%BF%90%E8%A1%8C%E5%8D%95%E7%BD%91%E9%A1%B5%E6%80%BB%E7%BB%93%E9%93%BE"><span class="nav-text">3.4 运行单网页总结链</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-5-%E7%BD%91%E9%A1%B5%E6%91%98%E8%A6%81%E9%93%BE%E7%9A%84%E5%85%B3%E9%94%AE%E9%97%AE%E9%A2%98"><span class="nav-text">3.5 网页摘要链的关键问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E4%BD%BF%E7%94%A8-map-%E6%89%B9%E9%87%8F%E6%80%BB%E7%BB%93%E5%A4%9A%E4%B8%AA%E7%BD%91%E9%A1%B5"><span class="nav-text">4. 使用.map()批量总结多个网页</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E4%BB%8E%E5%8D%95%E4%B8%AA-URL-%E5%88%B0%E5%A4%9A%E4%B8%AA-URL"><span class="nav-text">4.1 从单个 URL 到多个 URL</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E6%9E%84%E5%BB%BA%E6%90%9C%E7%B4%A2%E4%B8%8E%E6%80%BB%E7%BB%93%E9%93%BE"><span class="nav-text">4.2 构建搜索与总结链</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-map-%E7%9A%84%E5%AE%9E%E9%99%85%E4%BB%B7%E5%80%BC"><span class="nav-text">4.3 .map()的实际价值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-%E8%BF%90%E8%A1%8C%E6%90%9C%E7%B4%A2%E4%B8%8E%E6%80%BB%E7%BB%93%E9%93%BE"><span class="nav-text">4.4 运行搜索与总结链</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E7%BB%84%E8%A3%85%E6%9C%80%E7%BB%88%E7%A0%94%E7%A9%B6%E6%8A%A5%E5%91%8A%E9%93%BE"><span class="nav-text">5. 组装最终研究报告链</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-%E6%9C%80%E7%BB%88%E9%93%BE%E8%B7%AF%E7%9A%84%E6%95%B4%E4%BD%93%E7%BB%93%E6%9E%84"><span class="nav-text">5.1 最终链路的整体结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-%E8%AE%BE%E8%AE%A1%E6%9C%80%E7%BB%88%E6%8A%A5%E5%91%8A%E6%8F%90%E7%A4%BA%E8%AF%8D"><span class="nav-text">5.2 设计最终报告提示词</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-%E5%90%88%E5%B9%B6%E5%A4%9A%E4%B8%AA%E6%90%9C%E7%B4%A2%E8%A7%92%E5%BA%A6%E7%9A%84%E6%91%98%E8%A6%81"><span class="nav-text">5.3 合并多个搜索角度的摘要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-%E6%9E%84%E5%BB%BA%E5%AE%8C%E6%95%B4%E7%A0%94%E7%A9%B6%E6%8A%A5%E5%91%8A%E9%93%BE"><span class="nav-text">5.4 构建完整研究报告链</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-5-%E8%BF%90%E8%A1%8C%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B"><span class="nav-text">5.5 运行完整流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-6-%E5%AE%8C%E6%95%B4%E9%93%BE%E7%9A%84%E8%AE%BE%E8%AE%A1%E8%A6%81%E7%82%B9"><span class="nav-text">5.6 完整链的设计要点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E6%80%BB%E7%BB%93%EF%BC%9A%E7%94%A8-LCEL-%E6%90%AD%E5%BB%BA%E5%8F%AF%E7%BB%B4%E6%8A%A4%E7%9A%84-AI-%E5%B7%A5%E4%BD%9C%E6%B5%81"><span class="nav-text">6. 总结：用 LCEL 搭建可维护的 AI 工作流</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-%E4%BB%8E%E5%8D%95%E6%AC%A1%E8%B0%83%E7%94%A8%E5%88%B0%E9%93%BE%E5%BC%8F%E5%B7%A5%E4%BD%9C%E6%B5%81"><span class="nav-text">6.1 从单次调用到链式工作流</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-%E6%A8%A1%E5%9E%8B%E3%80%81%E5%B7%A5%E5%85%B7%E4%B8%8E%E7%BC%96%E6%8E%92%E7%9A%84%E5%88%86%E5%B7%A5"><span class="nav-text">6.2 模型、工具与编排的分工</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-%E6%98%BE%E5%BC%8F%E7%9A%84%E6%95%B0%E6%8D%AE%E6%B5%81%E6%98%AF%E5%8F%AF%E7%BB%B4%E6%8A%A4%E6%80%A7%E7%9A%84%E5%9F%BA%E7%A1%80"><span class="nav-text">6.3 显式的数据流是可维护性的基础</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-4-%E6%89%B9%E9%87%8F%E5%A4%84%E7%90%86%E4%B8%8E%E4%B8%8A%E4%B8%8B%E6%96%87%E4%BC%A0%E9%80%92"><span class="nav-text">6.4 批量处理与上下文传递</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-5-%E5%8F%AF%E6%9B%BF%E6%8D%A2%E4%B8%8E%E5%8F%AF%E6%89%A9%E5%B1%95%E7%9A%84%E5%B7%A5%E7%A8%8B%E7%BB%93%E6%9E%84"><span class="nav-text">6.5 可替换与可扩展的工程结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-6-%E5%BD%93%E5%89%8D%E5%AE%9E%E7%8E%B0%E7%9A%84%E5%B1%80%E9%99%90%E4%B8%8E%E4%BC%98%E5%8C%96%E6%96%B9%E5%90%91"><span class="nav-text">6.6 当前实现的局限与优化方向</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-7-%E4%BB%8E%E6%A1%88%E4%BE%8B%E8%B5%B0%E5%90%91%E9%80%9A%E7%94%A8%E6%A8%A1%E5%BC%8F"><span class="nav-text">6.7 从案例走向通用模式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E5%A4%87%E6%B3%A8"><span class="nav-text">7.备注</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">74</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">188</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2026/06/02/074-build-an-ai-application-with-lcel/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's Notes">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="从 Prompt 到工作流：用 LCEL 构建一个 AI 应用（下） | KeyChan's Notes">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          从 Prompt 到工作流：用 LCEL 构建一个 AI 应用（下）
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-06-02 08:11:12 / 修改时间：08:12:06" itemprop="dateCreated datePublished" datetime="2026-06-02T08:11:12+08:00">2026-06-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/AI%E5%8D%8F%E4%BD%9C%E5%B7%A5%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">AI协作工程</span></a>
+        </span>
+    </span>
+
+  
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2026/06/02/074-build-an-ai-application-with-lcel/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2026/06/02/074-build-an-ai-application-with-lcel/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>12k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>42 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="1-上篇回顾：从问题拆解到搜索词生成"><a href="#1-上篇回顾：从问题拆解到搜索词生成" class="headerlink" title="1. 上篇回顾：从问题拆解到搜索词生成"></a><strong>1. 上篇回顾：从问题拆解到搜索词生成</strong></h2><p>上篇完成了自动化网页研究总结器的前半段。它先从一个核心问题出发：当任务从“回答一句话”变成“完成一个研究流程”时，单次 Prompt 调用已经不够用。系统需要先理解问题，再拆解搜索方向，接入外部工具，并在多个中间结果之间保持稳定的数据结构。</p>
+<p>围绕这个目标，上篇先解释了 LCEL 的价值：它不是为了让代码写得更短，而是为了让 LLM 应用里的数据流、组件边界和执行顺序更加清楚。<code>Prompt -&gt; LLM -&gt; Parser</code> 是最基础的链式结构；当流程变复杂后，还可以通过 <code>RunnableLambda</code> 接入普通函数，通过 <code>RunnableParallel</code> 保留上下文和并行分支，通过 <code>.map()</code> 批量处理列表数据。</p>
+<span id="more"></span>
+<p>随后，上篇把网页研究总结器拆成几条小链：角色选择链负责判断任务类型，搜索词生成链负责把用户问题拆成多个可检索的信息切面。到上篇结束时，系统已经能够从一个中文问题生成多组搜索查询，例如围绕杭州旅行同时覆盖自然景观、历史文化、城市体验、美食茶文化和实用攻略。</p>
+<p>但这些搜索词还只是研究入口。要生成真正有依据的报告，系统还需要继续完成资料获取和信息整合：搜索 URL、抓取网页、总结来源、批量处理多个网页，并把所有摘要合并成最终 Markdown 报告。下篇就从这里开始，重点处理“搜索词之后”的链路。</p>
+<h2 id="2-URL-搜索链：把搜索词转换成网页来源"><a href="#2-URL-搜索链：把搜索词转换成网页来源" class="headerlink" title="2. URL 搜索链：把搜索词转换成网页来源"></a><strong>2. URL 搜索链：把搜索词转换成网页来源</strong></h2><p>搜索词生成链输出的是一组查询，但这些查询本身还不是可用资料。要进入资料收集阶段，需要把每个搜索词提交给搜索工具，获取对应的网页 URL。这个过程由 <strong>URL 搜索链</strong> 完成。</p>
+<p>与前两条链不同，URL 搜索链不需要调用大模型。它的核心任务是调用网页搜索函数，并把搜索结果整理成后续网页总结链需要的数据结构。</p>
+<h3 id="2-1-URL-搜索链的输入与输出"><a href="#2-1-URL-搜索链的输入与输出" class="headerlink" title="2.1 URL 搜索链的输入与输出"></a><strong>2.1 URL 搜索链的输入与输出</strong></h3><p>搜索词生成链的输出是一个数组，每个元素包含搜索词和原始问题，URL 搜索链每次处理其中一个元素。以第一个搜索词为例，输入是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&#x27;search_query&#x27;</span>: <span class="string">&#x27;杭州 必去景点 西湖 灵隐寺 西溪湿地 推荐&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;user_question&#x27;</span>: <span class="string">&#x27;杭州有哪些值得一去的地方？&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>调用搜索函数后，得到若干 URL。为了让后续链继续使用这些信息，需要把每个 URL 包装成统一结构：</p>
+<table>
+<thead>
+<tr>
+<th><strong>字段</strong></th>
+<th><strong>作用</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>result_url</code></td>
+<td>后续网页抓取使用</td>
+</tr>
+<tr>
+<td><code>search_query</code></td>
+<td>标记该网页来自哪个搜索词</td>
+</tr>
+<tr>
+<td><code>user_question</code></td>
+<td>保留原始研究目标</td>
+</tr>
+</tbody></table>
+<p>这一步对后续摘要很重要。网页总结链不仅需要 URL，还需要知道这个 URL 是围绕哪个搜索词得到的，以及最终要回答什么问题。</p>
+<h3 id="2-2-用-RunnableLambda-封装搜索逻辑"><a href="#2-2-用-RunnableLambda-封装搜索逻辑" class="headerlink" title="2.2 用 RunnableLambda 封装搜索逻辑"></a><strong>2.2 用 RunnableLambda 封装搜索逻辑</strong></h3><p>URL 搜索链主要依赖前面准备好的 <code>web_search()</code> 函数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> <span class="type">List</span></span><br><span class="line"><span class="keyword">from</span> langchain_community.utilities <span class="keyword">import</span> DuckDuckGoSearchAPIWrapper</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">web_search</span>(<span class="params">web_query: <span class="built_in">str</span>, num_results: <span class="built_in">int</span></span>) -&gt; <span class="type">List</span>[<span class="built_in">str</span>]:</span><br><span class="line">    results = DuckDuckGoSearchAPIWrapper().results(</span><br><span class="line">        web_query,</span><br><span class="line">        num_results</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> [result[<span class="string">&quot;link&quot;</span>] <span class="keyword">for</span> result <span class="keyword">in</span> results]</span><br></pre></td></tr></table></figure>
+
+<p>这个函数输入搜索词，输出 URL 列表。为了把它接入 LCEL，需要使用 <code>RunnableLambda</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> langchain_core.runnables <span class="keyword">import</span> RunnableLambda</span><br><span class="line"><span class="keyword">from</span> web_searching <span class="keyword">import</span> web_search</span><br><span class="line"></span><br><span class="line">NUM_SEARCH_RESULTS = <span class="number">3</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># URL搜索链，把一个搜索词转换成多个带上下文信息的网页 URL 对象</span></span><br><span class="line">search_result_urls_chain = (</span><br><span class="line">    RunnableLambda(<span class="keyword">lambda</span> x: [</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="string">&quot;result_url&quot;</span>: url,</span><br><span class="line">            <span class="string">&quot;search_query&quot;</span>: x[<span class="string">&quot;search_query&quot;</span>],</span><br><span class="line">            <span class="string">&quot;user_question&quot;</span>: x[<span class="string">&quot;user_question&quot;</span>],</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span> url <span class="keyword">in</span> web_search(</span><br><span class="line">            web_query=x[<span class="string">&quot;search_query&quot;</span>],</span><br><span class="line">            num_results=NUM_SEARCH_RESULTS</span><br><span class="line">        )</span><br><span class="line">    ])</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>这条链完成了两件事。</p>
+<p>第一，调用搜索工具：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">web_search(</span><br><span class="line">    web_query=x[<span class="string">&quot;search_query&quot;</span>],</span><br><span class="line">    num_results=NUM_SEARCH_RESULTS</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>第二，把返回的 URL 列表转换成统一字段结构：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;result_url&quot;</span>: url,</span><br><span class="line">    <span class="string">&quot;search_query&quot;</span>: x[<span class="string">&quot;search_query&quot;</span>],</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: x[<span class="string">&quot;user_question&quot;</span>],</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这也是 <code>RunnableLambda</code> 的典型用途：<strong>把普通 Python 函数包装成 LCEL 链中的一个可执行节点，并在同一步完成数据结构转换</strong>。</p>
+<p>执行示例：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">input_data = &#123;</span><br><span class="line">    <span class="string">&#x27;search_query&#x27;</span>: <span class="string">&#x27;杭州 必去景点 西湖 灵隐寺 西溪湿地 推荐&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;user_question&#x27;</span>: <span class="string">&#x27;杭州有哪些值得一去的地方？&#x27;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">urls = search_result_urls_chain.invoke(input_data)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(urls)</span><br></pre></td></tr></table></figure>
+
+<p>可能得到：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[  </span><br><span class="line">	&#123;<span class="string">&#x27;result_url&#x27;</span>: <span class="string">&#x27;https://www.klook.com/zh-CN/activity/155336-private-guide-1-day-tour-of-hangzhou-city-by-car/&#x27;</span>, <span class="string">&#x27;search_query&#x27;</span>: <span class="string">&#x27;杭州 必去景点 西湖 灵隐寺 西溪湿地 推荐&#x27;</span>, <span class="string">&#x27;user_question&#x27;</span>: <span class="string">&#x27;杭州有哪些值得一去的地方？&#x27;</span>&#125;,  </span><br><span class="line">	&#123;<span class="string">&#x27;result_url&#x27;</span>: <span class="string">&#x27;https://www.getyourguide.com/zh-cn/lingyin-temple-l150150/&#x27;</span>, <span class="string">&#x27;search_query&#x27;</span>: <span class="string">&#x27;杭州 必去景点 西湖 灵隐寺 西溪湿地 推荐&#x27;</span>, <span class="string">&#x27;user_question&#x27;</span>: <span class="string">&#x27;杭州有哪些值得一去的地方？&#x27;</span>&#125;,  </span><br><span class="line">	&#123;<span class="string">&#x27;result_url&#x27;</span>: <span class="string">&#x27;https://www.getyourguide.com/zh-cn/hangzhou-l1241/guided-tours-tc1144/&#x27;</span>, <span class="string">&#x27;search_query&#x27;</span>: <span class="string">&#x27;杭州 必去景点 西湖 灵隐寺 西溪湿地 推荐&#x27;</span>, <span class="string">&#x27;user_question&#x27;</span>: <span class="string">&#x27;杭州有哪些值得一去的地方？&#x27;</span>&#125;  </span><br><span class="line"> ]</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-3-与-map-的配合方式"><a href="#2-3-与-map-的配合方式" class="headerlink" title="2.3 与 .map() 的配合方式"></a><strong>2.3 与</strong> <strong><code>.map()</code></strong> <strong>的配合方式</strong></h3><p>URL 搜索链一次只处理一个搜索词。但搜索词生成链输出的是一个列表，因此需要把 URL 搜索链应用到列表中的每个搜索词。这时可以使用 <code>.map()</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">all_search_result_urls_chain = search_result_urls_chain.<span class="built_in">map</span>()</span><br></pre></td></tr></table></figure>
+
+<p>假设输入是三个搜索查询：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">&quot;search_query&quot;</span>: <span class="string">&quot;杭州 必去景点 西湖 灵隐寺 西溪湿地&quot;</span>,</span><br><span class="line">        <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">&quot;search_query&quot;</span>: <span class="string">&quot;杭州 历史文化 京杭大运河 南宋御街 博物馆&quot;</span>,</span><br><span class="line">        <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">&quot;search_query&quot;</span>: <span class="string">&quot;杭州 美食 龙井茶 城市漫步 旅行攻略&quot;</span>,</span><br><span class="line">        <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>经过 <code>.map()</code> 后，每个搜索词都会分别进入 URL 搜索链，输出结果是一个嵌套列表：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">    [</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="string">&quot;result_url&quot;</span>: <span class="string">&quot;url_1&quot;</span>,</span><br><span class="line">            <span class="string">&quot;search_query&quot;</span>: <span class="string">&quot;杭州 必去景点 西湖 灵隐寺 西溪湿地&quot;</span>,</span><br><span class="line">            <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="string">&quot;result_url&quot;</span>: <span class="string">&quot;url_2&quot;</span>,</span><br><span class="line">            <span class="string">&quot;search_query&quot;</span>: <span class="string">&quot;杭州 必去景点 西湖 灵隐寺 西溪湿地&quot;</span>,</span><br><span class="line">            <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    ],</span><br><span class="line">    [</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="string">&quot;result_url&quot;</span>: <span class="string">&quot;url_3&quot;</span>,</span><br><span class="line">            <span class="string">&quot;search_query&quot;</span>: <span class="string">&quot;杭州 历史文化 京杭大运河 南宋御街 博物馆&quot;</span>,</span><br><span class="line">            <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="string">&quot;result_url&quot;</span>: <span class="string">&quot;url_4&quot;</span>,</span><br><span class="line">            <span class="string">&quot;search_query&quot;</span>: <span class="string">&quot;杭州 历史文化 京杭大运河 南宋御街 博物馆&quot;</span>,</span><br><span class="line">            <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    ],</span><br><span class="line">    [</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="string">&quot;result_url&quot;</span>: <span class="string">&quot;url_5&quot;</span>,</span><br><span class="line">            <span class="string">&quot;search_query&quot;</span>: <span class="string">&quot;杭州 美食 龙井茶 城市漫步 旅行攻略&quot;</span>,</span><br><span class="line">            <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="string">&quot;result_url&quot;</span>: <span class="string">&quot;url_6&quot;</span>,</span><br><span class="line">            <span class="string">&quot;search_query&quot;</span>: <span class="string">&quot;杭州 美食 龙井茶 城市漫步 旅行攻略&quot;</span>,</span><br><span class="line">            <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    ]</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>这个嵌套结构的含义是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">第一个列表元素：第一个搜索词得到的一组 URL</span><br><span class="line">第二个列表元素：第二个搜索词得到的一组 URL</span><br><span class="line">第三个列表元素：第三个搜索词得到的一组 URL</span><br></pre></td></tr></table></figure>
+
+<p>如果后续链希望逐个网页处理，可以继续展开这个嵌套列表。但在本案例中，更常见的做法是：一个搜索词对应一组 URL，然后把这一组 URL 交给网页总结链批量处理。</p>
+<p>也就是说，URL 搜索链通常会和下一章的网页总结链组合成：<code>一个搜索词 -&gt; 多个 URL -&gt; 多个网页摘要 -&gt; 合并为该搜索词下的摘要</code>。</p>
+<p>这种设计的好处是结构更清晰。搜索词之间保持相对独立，每个搜索词负责一个研究角度。例如，“杭州 必去景点”负责景点概览，“杭州 历史文化”负责文化背景，“杭州 美食 龙井茶”负责体验和美食。最后再把多个角度的摘要合并成完整研究材料。</p>
+<h3 id="2-4-搜索结果的数量控制与去重"><a href="#2-4-搜索结果的数量控制与去重" class="headerlink" title="2.4 搜索结果的数量控制与去重"></a><strong>2.4 搜索结果的数量控制与去重</strong></h3><p>URL 搜索链中有个重要配置：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">NUM_SEARCH_RESULTS = <span class="number">3</span></span><br></pre></td></tr></table></figure>
+
+<p>它表示每个搜索词返回多少个网页。这个值不宜过大。假设搜索词数量是 3，每个搜索词返回 3 个网页，那么系统最多需要处理 9 个网页。每个网页后续都可能触发一次模型摘要调用，因此搜索结果数量会直接影响执行时间和模型调用成本。</p>
+<p>如果配置变成：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">NUM_SEARCH_QUERIES = <span class="number">5</span></span><br><span class="line">NUM_SEARCH_RESULTS = <span class="number">5</span></span><br></pre></td></tr></table></figure>
+
+<p>那么系统最多需要处理 25 个网页。对于正式应用，这可能是合理的；但对于案例演示，数量过大会让流程变慢，也会增加调试难度。除了数量控制，还应考虑 URL 去重。不同搜索词可能返回同一个网页，如果不去重，后续摘要链会重复处理同一网页，造成内容重复和资源浪费。</p>
+<p>可以在后续合并阶段加入简单去重逻辑：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">deduplicate_urls</span>(<span class="params">items</span>):</span><br><span class="line">    seen = <span class="built_in">set</span>()</span><br><span class="line">    deduped = []</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> item <span class="keyword">in</span> items:</span><br><span class="line">        url = item[<span class="string">&quot;result_url&quot;</span>]</span><br><span class="line">        <span class="keyword">if</span> url <span class="keyword">not</span> <span class="keyword">in</span> seen:</span><br><span class="line">            seen.add(url)</span><br><span class="line">            deduped.append(item)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> deduped</span><br></pre></td></tr></table></figure>
+
+<p>如果输入是嵌套列表，可以先展开再去重：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">flatten_and_deduplicate</span>(<span class="params">nested_items</span>):</span><br><span class="line">    seen = <span class="built_in">set</span>()</span><br><span class="line">    deduped = []</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> group <span class="keyword">in</span> nested_items:</span><br><span class="line">        <span class="keyword">for</span> item <span class="keyword">in</span> group:</span><br><span class="line">            url = item[<span class="string">&quot;result_url&quot;</span>]</span><br><span class="line">            <span class="keyword">if</span> url <span class="keyword">not</span> <span class="keyword">in</span> seen:</span><br><span class="line">                seen.add(url)</span><br><span class="line">                deduped.append(item)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> deduped</span><br></pre></td></tr></table></figure>
+
+<p>是否在此阶段去重，取决于后续链路设计。如果希望保留“每个搜索词对应一组摘要”的结构，可以暂时不展开；如果希望把所有 URL 统一交给网页总结链，就需要先展开和去重。</p>
+<p>本文案例保持链路简洁，URL 搜索链主要负责获取和包装 URL，复杂去重可以作为优化项放在后续工程改进中。</p>
+<p><strong>小结</strong></p>
+<p>本章构建了 URL 搜索链。它接收单个中文搜索查询，调用网页搜索函数获取 URL，并把每个 URL 包装成包含 <code>result_url</code>、<code>search_query</code> 和 <code>user_question</code> 的结构化对象。</p>
+<p>这条链的核心结构是 <code>搜索查询 -&gt; RunnableLambda -&gt; web_search() -&gt; URL 列表 -&gt; 结构化搜索结果</code>。</p>
+<p><strong>URL 搜索链的关键价值，是把抽象的搜索词转换成可抓取的网页来源，并保留后续摘要所需的上下文。</strong> 它本身不调用模型，但它把外部信息入口接入了 LCEL 工作流。</p>
+<p>下一章将继续构建网页总结链，根据 URL 抓取正文，截断过长文本，并调用模型生成与原始问题相关的网页摘要。</p>
+<h2 id="3-构建网页总结链：抓取正文并提取有用信息"><a href="#3-构建网页总结链：抓取正文并提取有用信息" class="headerlink" title="3. 构建网页总结链：抓取正文并提取有用信息"></a><strong>3. 构建网页总结链：抓取正文并提取有用信息</strong></h2><p>URL 搜索链解决了“资料从哪里来”的问题，但 URL 本身还不能直接用于报告生成。要把网页变成可用研究材料，还需要完成两步：<strong>抓取网页正文</strong>，以及 <strong>围绕原始问题生成摘要</strong>。</p>
+<p>本章构建网页总结链。它接收一个搜索结果对象，访问其中的 <code>result_url</code>，抓取网页文本，再调用模型生成摘要。最终输出会保留来源 URL 和原始问题，方便后续合并成完整研究报告。</p>
+<h3 id="3-1-网页总结链的输入与输出"><a href="#3-1-网页总结链的输入与输出" class="headerlink" title="3.1 网页总结链的输入与输出"></a><strong>3.1 网页总结链的输入与输出</strong></h3><p>上一章的 URL 搜索链会输出如下结构：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;result_url&quot;</span><span class="punctuation">:</span> <span class="string">&quot;https://isabellalife.tw/articles-1028455&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;search_query&quot;</span><span class="punctuation">:</span> <span class="string">&quot;杭州 必去景点 西湖 灵隐寺 西溪湿地&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;user_question&quot;</span><span class="punctuation">:</span> <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>网页总结链要基于这个输入完成三件事。</p>
+<ol>
+<li>根据 <code>result_url</code> 抓取网页正文。</li>
+<li>把网页正文、搜索词和原始问题一起交给模型，让模型只提取与问题相关的信息。</li>
+<li>把摘要和来源 URL 合并成统一输出。</li>
+</ol>
+<p>理想输出如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;summary&quot;</span>: <span class="string">&quot;来源 URL: https://isabellalife.tw/articles-1028455\n摘要: 该xxx&quot;</span>,</span><br><span class="line">    <span class="string">&quot;search_query&quot;</span>: <span class="string">&quot;杭州 必去景点 西湖 灵隐寺 西溪湿地&quot;</span>,</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里保留 <code>来源 URL</code> 是因为后续最终报告虽然不一定逐条展示所有 URL，但摘要阶段必须保留来源信息，否则难以判断内容来自哪里，也不方便排查错误原因。</p>
+<h3 id="3-2-设计网页摘要提示词"><a href="#3-2-设计网页摘要提示词" class="headerlink" title="3.2 设计网页摘要提示词"></a><strong>3.2 设计网页摘要提示词</strong></h3><p>网页抓取函数返回的文本通常比较杂乱，可能包含导航、页脚、广告、版权声明以及无关链接。摘要提示词不能只要求“总结以下网页”，而应该明确要求模型围绕原始问题筛选信息。</p>
+<p>可以在 <code>prompts.py</code> 中定义如下模板：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> langchain_core.prompts <span class="keyword">import</span> ChatPromptTemplate</span><br><span class="line"></span><br><span class="line">SUMMARY_PROMPT_TEMPLATE = ChatPromptTemplate.from_template(</span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    请根据下面的网页内容，围绕用户问题提取有价值的信息。</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    用户问题：</span></span><br><span class="line"><span class="string">    &#123;user_question&#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    搜索词：</span></span><br><span class="line"><span class="string">    &#123;search_query&#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    网页内容：</span></span><br><span class="line"><span class="string">    &#123;search_result_text&#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    输出要求：</span></span><br><span class="line"><span class="string">    1. 只总结与用户问题相关的信息。</span></span><br><span class="line"><span class="string">    2. 忽略导航栏、广告、版权声明、无关链接等噪声内容。</span></span><br><span class="line"><span class="string">    3. 不要编造网页中没有的信息。</span></span><br><span class="line"><span class="string">    4. 摘要应简洁、具体，保留地点、景点、活动、历史背景或实用建议等关键信息。</span></span><br><span class="line"><span class="string">    5. 使用中文输出。</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>这个提示词有三个关键点。</p>
+<ul>
+<li>它明确输入了 <code>user_question</code>。这能让模型知道最终目标是什么，而不是机械总结网页全文。</li>
+<li>它保留了 <code>search_query</code>。搜索词可以提供额外上下文，说明这个网页是围绕哪个角度被找到的。</li>
+<li>它要求忽略网页噪声，并且不编造网页中没有的信息。网页摘要链的目标不是创作，而是从已有文本中提取有用信息。</li>
+</ul>
+<p><strong>网页摘要阶段越克制，最终报告越可靠。</strong> 如果摘要阶段让LLM自由发挥，那后续生成的报告质量就很难保证。</p>
+<h3 id="3-3-用-LCEL-实现单网页总结链"><a href="#3-3-用-LCEL-实现单网页总结链" class="headerlink" title="3.3 用 LCEL 实现单网页总结链"></a><strong>3.3 用 LCEL 实现单网页总结链</strong></h3><p>单网页总结链可以分成三个环节：准备摘要输入、生成摘要、格式化输出。</p>
+<p>首先，需要根据 URL 抓取网页正文，并控制文本长度：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> langchain_core.runnables <span class="keyword">import</span> RunnableLambda</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> web_scraping <span class="keyword">import</span> web_scrape</span><br><span class="line"></span><br><span class="line">RESULT_TEXT_MAX_CHARACTERS = <span class="number">10000</span></span><br><span class="line"></span><br><span class="line">prepare_summary_input = RunnableLambda(<span class="keyword">lambda</span> x: &#123;</span><br><span class="line">    <span class="string">&quot;search_result_text&quot;</span>: web_scrape(x[<span class="string">&quot;result_url&quot;</span>])[:RESULT_TEXT_MAX_CHARACTERS],</span><br><span class="line">    <span class="string">&quot;result_url&quot;</span>: x[<span class="string">&quot;result_url&quot;</span>],</span><br><span class="line">    <span class="string">&quot;search_query&quot;</span>: x[<span class="string">&quot;search_query&quot;</span>],</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: x[<span class="string">&quot;user_question&quot;</span>],</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>这一步把原来的输入：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;result_url&quot;</span>: <span class="string">&quot;...&quot;</span>,</span><br><span class="line">    <span class="string">&quot;search_query&quot;</span>: <span class="string">&quot;...&quot;</span>,</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;...&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>转换成摘要 Prompt 需要的输入：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;search_result_text&quot;</span>: <span class="string">&quot;...&quot;</span>,</span><br><span class="line">    <span class="string">&quot;result_url&quot;</span>: <span class="string">&quot;...&quot;</span>,</span><br><span class="line">    <span class="string">&quot;search_query&quot;</span>: <span class="string">&quot;...&quot;</span>,</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;...&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中，<code>RESULT_TEXT_MAX_CHARACTERS</code> 用来限制传入模型的网页文本长度。网页正文可能非常长，如果不截断，模型调用可能失败，或者摘要成本过高。这里采用字符截断是一种简单方案，后续可以替换为分块摘要或正文抽取。</p>
+<p>接着，使用 <code>RunnableParallel</code> 同时完成摘要生成和上下文保留：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> langchain_core.runnables <span class="keyword">import</span> RunnableParallel</span><br><span class="line"><span class="keyword">from</span> langchain_core.output_parsers <span class="keyword">import</span> StrOutputParser</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> llm_models <span class="keyword">import</span> get_llm</span><br><span class="line"><span class="keyword">from</span> prompts <span class="keyword">import</span> SUMMARY_PROMPT_TEMPLATE</span><br><span class="line"></span><br><span class="line">summary_parallel = RunnableParallel(&#123;</span><br><span class="line">    <span class="string">&quot;text_summary&quot;</span>: SUMMARY_PROMPT_TEMPLATE | get_llm() | StrOutputParser(),</span><br><span class="line">    <span class="string">&quot;result_url&quot;</span>: <span class="keyword">lambda</span> x: x[<span class="string">&quot;result_url&quot;</span>],</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: <span class="keyword">lambda</span> x: x[<span class="string">&quot;user_question&quot;</span>],</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>这里的关键是，<code>text_summary</code> 分支会调用模型生成网页摘要，而 <code>result_url</code> 和 <code>user_question</code> 分支会原样保留。</p>
+<p>如果只写：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SUMMARY_PROMPT_TEMPLATE | get_llm() | StrOutputParser()</span><br></pre></td></tr></table></figure>
+
+<p>就只能得到摘要字符串，URL 和原始问题会丢失。后续合并报告时，系统就无法知道摘要来自哪个网页，也无法继续保留原始任务目标。</p>
+<p>最后，对输出进行格式化：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">format_summary = RunnableLambda(<span class="keyword">lambda</span> x: &#123;</span><br><span class="line">    <span class="string">&quot;summary&quot;</span>: <span class="string">f&quot;来源 URL: <span class="subst">&#123;x[<span class="string">&#x27;result_url&#x27;</span>]&#125;</span>\n摘要: <span class="subst">&#123;x[<span class="string">&#x27;text_summary&#x27;</span>]&#125;</span>&quot;</span>,</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: x[<span class="string">&quot;user_question&quot;</span>],</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>把三个环节组合起来，就得到完整的单网页总结链：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">search_result_text_and_summary_chain = (</span><br><span class="line">    prepare_summary_input</span><br><span class="line">    | summary_parallel</span><br><span class="line">    | format_summary</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>也可以写成一条完整 LCEL 链：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> langchain_core.runnables <span class="keyword">import</span> RunnableLambda, RunnableParallel</span><br><span class="line"><span class="keyword">from</span> langchain_core.output_parsers <span class="keyword">import</span> StrOutputParser</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> llm_models <span class="keyword">import</span> get_llm</span><br><span class="line"><span class="keyword">from</span> web_scraping <span class="keyword">import</span> web_scrape</span><br><span class="line"><span class="keyword">from</span> prompts <span class="keyword">import</span> SUMMARY_PROMPT_TEMPLATE</span><br><span class="line"></span><br><span class="line">RESULT_TEXT_MAX_CHARACTERS = <span class="number">10000</span></span><br><span class="line"></span><br><span class="line">search_result_text_and_summary_chain = (</span><br><span class="line">    RunnableLambda(<span class="keyword">lambda</span> x: &#123;</span><br><span class="line">        <span class="string">&quot;search_result_text&quot;</span>: web_scrape(x[<span class="string">&quot;result_url&quot;</span>])[:RESULT_TEXT_MAX_CHARACTERS],</span><br><span class="line">        <span class="string">&quot;result_url&quot;</span>: x[<span class="string">&quot;result_url&quot;</span>],</span><br><span class="line">        <span class="string">&quot;search_query&quot;</span>: x[<span class="string">&quot;search_query&quot;</span>],</span><br><span class="line">        <span class="string">&quot;user_question&quot;</span>: x[<span class="string">&quot;user_question&quot;</span>],</span><br><span class="line">    &#125;)</span><br><span class="line">    | RunnableParallel(&#123;</span><br><span class="line">        <span class="string">&quot;text_summary&quot;</span>: SUMMARY_PROMPT_TEMPLATE | get_llm() | StrOutputParser(),</span><br><span class="line">        <span class="string">&quot;result_url&quot;</span>: <span class="keyword">lambda</span> x: x[<span class="string">&quot;result_url&quot;</span>],</span><br><span class="line">        <span class="string">&quot;user_question&quot;</span>: <span class="keyword">lambda</span> x: x[<span class="string">&quot;user_question&quot;</span>],</span><br><span class="line">    &#125;)</span><br><span class="line">    | RunnableLambda(<span class="keyword">lambda</span> x: &#123;</span><br><span class="line">        <span class="string">&quot;summary&quot;</span>: <span class="string">f&quot;来源 URL: <span class="subst">&#123;x[<span class="string">&#x27;result_url&#x27;</span>]&#125;</span>\n摘要: <span class="subst">&#123;x[<span class="string">&#x27;text_summary&#x27;</span>]&#125;</span>&quot;</span>,</span><br><span class="line">        <span class="string">&quot;user_question&quot;</span>: x[<span class="string">&quot;user_question&quot;</span>],</span><br><span class="line">    &#125;)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>这条链体现了 LCEL 的一个典型模式：<strong>先用 RunnableLambda 准备数据，再用 RunnableParallel 同时生成内容和保留字段，最后再次用 RunnableLambda 整理输出</strong>。</p>
+<h3 id="3-4-运行单网页总结链"><a href="#3-4-运行单网页总结链" class="headerlink" title="3.4 运行单网页总结链"></a><strong>3.4 运行单网页总结链</strong></h3><p>可以用一个搜索结果对象测试这条链：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">input_data = &#123;</span><br><span class="line">    <span class="string">&quot;result_url&quot;</span>: <span class="string">&quot;https://example.com/astorga-travel-guide&quot;</span>,</span><br><span class="line">    <span class="string">&quot;search_query&quot;</span>: <span class="string">&quot;杭州 必去景点 西湖 灵隐寺 西溪湿地&quot;</span>,</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">result = search_result_text_and_summary_chain.invoke(input_data)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(result)</span><br></pre></td></tr></table></figure>
+
+<p>输出结构类似：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	<span class="string">&#x27;summary&#x27;</span>: <span class="string">&#x27;来源 URL: https://www.sohu.com/a/953786156_120932760\n摘要: xxxx&#x27;</span>, </span><br><span class="line">	<span class="string">&#x27;user_question&#x27;</span>: <span class="string">&#x27;杭州有哪些值得一去的地方？&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>实际运行时，如果网页无法访问，<code>web_scrape()</code> 可能返回错误文本，例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">无法获取网页内容，状态码：403</span><br></pre></td></tr></table></figure>
+
+<p>这种错误文本也会进入摘要 Prompt。为了避免模型对错误信息进行无意义总结，正式项目中可以在抓取阶段加入判断。如果抓取失败，就跳过该 URL，或将其标记为失败结果。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">prepare_summary_data</span>(<span class="params">x</span>):</span><br><span class="line">    text = web_scrape(x[<span class="string">&quot;result_url&quot;</span>])</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">        <span class="string">&quot;search_result_text&quot;</span>: text[:RESULT_TEXT_MAX_CHARACTERS],</span><br><span class="line">        <span class="string">&quot;result_url&quot;</span>: x[<span class="string">&quot;result_url&quot;</span>],</span><br><span class="line">        <span class="string">&quot;search_query&quot;</span>: x[<span class="string">&quot;search_query&quot;</span>],</span><br><span class="line">        <span class="string">&quot;user_question&quot;</span>: x[<span class="string">&quot;user_question&quot;</span>],</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>后续再根据 <code>text</code> 是否以“无法获取网页内容”开头进行过滤。不过在当前案例中，为了保持链路清晰，先采用最小实现。</p>
+<h3 id="3-5-网页摘要链的关键问题"><a href="#3-5-网页摘要链的关键问题" class="headerlink" title="3.5 网页摘要链的关键问题"></a><strong>3.5 网页摘要链的关键问题</strong></h3><p>网页总结链是整个系统中最容易影响最终质量的环节。这里需要重点关注三个问题。</p>
+<p>第一，<strong>网页正文存在噪声</strong>。<code>BeautifulSoup.get_text()</code> 会提取页面中的大量文本，但并不保证这些文本都是正文。导航栏、菜单、页脚、推荐链接和版权信息都可能被包含在内。因此，摘要 Prompt 必须要求模型忽略无关内容，只提取与用户问题相关的信息。</p>
+<p>第二，<strong>网页内容可能过长</strong>。简单截断可以防止模型输入过长，但也可能截掉有价值内容。比如网页前半部分是导航和广告，真正正文在后面，那么直接截取前面字符可能效果一般。后续优化可以使用正文提取工具，或者先按段落分块，再筛选与问题相关的片段。</p>
+<p>第三，<strong>摘要不能脱离来源</strong>。如果只输出摘要，不保留 URL，后续报告看起来完整，但信息不可追溯。网页研究类应用尤其需要保留来源字段。即便最终文章不展示全部 URL，中间数据也应保留来源，方便调试和核查。</p>
+<p>因此，这条链的设计重点不是让模型“多写一点”，而是让模型在受约束的上下文中提取有用事实，并让系统保留必要元数据。</p>
+<p><strong>小结</strong></p>
+<p>本章构建了网页总结链。它接收包含 <code>result_url</code>、<code>search_query</code> 和 <code>user_question</code> 的搜索结果对象，抓取网页正文，截断过长文本，然后调用模型生成与原始问题相关的中文摘要。</p>
+<p>这条链的核心结构是，<code>搜索结果对象 -&gt; RunnableLambda 抓取网页正文并整理字段 -&gt; RunnableParallel 生成摘要并保留 URL、用户问题 -&gt; RunnableLambda 格式化摘要 -&gt; 带来源的网页摘要</code>。</p>
+<p><strong>网页总结链是把网页 URL 转换成可用于报告生成的研究材料。</strong> 它既利用了模型的语义提取能力，又保留了来源 URL 和原始问题，使后续摘要合并与报告生成具备可靠上下文。</p>
+<p>下一章将继续构建批量处理逻辑：把多个 URL 交给同一条网页总结链，并将多个网页摘要合并为一个搜索角度下的研究摘要。</p>
+<h2 id="4-使用-map-批量总结多个网页"><a href="#4-使用-map-批量总结多个网页" class="headerlink" title="4. 使用.map()批量总结多个网页"></a><strong>4. 使用<code>.map()</code>批量总结多个网页</strong></h2><p>上一章已经完成单网页总结链，输入一个 URL 搜索结果，抓取网页正文，生成带来源摘要。但在完整流程中，系统不会只处理一个网页。一个搜索词通常会返回多个 URL，每个 URL 都需要经过同样的抓取和总结步骤。</p>
+<p>本章的目标是把“单网页总结能力”扩展为“多网页总结能力”。这一步主要依赖 LCEL 的 <code>.map()</code>。它可以把同一条链应用到列表中的每个元素，使多个网页按照统一逻辑被处理。</p>
+<h3 id="4-1-从单个-URL-到多个-URL"><a href="#4-1-从单个-URL-到多个-URL" class="headerlink" title="4.1 从单个 URL 到多个 URL"></a><strong>4.1 从单个 URL 到多个 URL</strong></h3><p>URL 搜索链针对一个搜索词会返回一组网页结果。例如，搜索词是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;杭州 必去景点 西湖 灵隐寺 西溪湿地&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>返回结果可能整理成如下结构：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[  </span><br><span class="line">    &#123;  </span><br><span class="line">	    <span class="string">&quot;result_url&quot;</span>: <span class="string">&quot;https://www.sohu.com/a/953786156_120932760&quot;</span>,  </span><br><span class="line">		<span class="string">&quot;search_query&quot;</span>: <span class="string">&quot;杭州 必去景点 西湖 灵隐寺 西溪湿地&quot;</span>,  </span><br><span class="line">        <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span>  </span><br><span class="line">     &#125;,  </span><br><span class="line">     &#123;  </span><br><span class="line">	    <span class="string">&quot;result_url&quot;</span>: <span class="string">&quot;https://news.qq.com/rain/a/20260305A04ETV00&quot;</span>,  </span><br><span class="line">        <span class="string">&quot;search_query&quot;</span>: <span class="string">&quot;杭州 必去景点 西湖 灵隐寺 西溪湿地&quot;</span>,  </span><br><span class="line">        <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span>  </span><br><span class="line">     &#125;,...  </span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>这组数据中的每个元素，都可以作为单网页总结链的输入。因此，处理逻辑非常明确：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">URL 1 → 抓取正文 → 生成摘要</span><br><span class="line">URL 2 → 抓取正文 → 生成摘要</span><br><span class="line">URL 3 → 抓取正文 → 生成摘要</span><br></pre></td></tr></table></figure>
+
+<p>如果用普通 Python 写法，大致是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">summaries = []</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> item <span class="keyword">in</span> search_results:</span><br><span class="line">    summary = search_result_text_and_summary_chain.invoke(item)</span><br><span class="line">    summaries.append(summary)</span><br></pre></td></tr></table></figure>
+
+<p>这种写法可以工作，但在 LCEL 工作流中，更自然的方式是使用 <code>.map()</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">search_result_text_and_summary_chain.<span class="built_in">map</span>()</span><br></pre></td></tr></table></figure>
+
+<p><code>.map()</code> 表示：列表中的每个元素都会进入同一条链，最终返回一个新的结果列表。</p>
+<h3 id="4-2-构建搜索与总结链"><a href="#4-2-构建搜索与总结链" class="headerlink" title="4.2 构建搜索与总结链"></a><strong>4.2 构建搜索与总结链</strong></h3><p>现在可以把 URL 搜索链和网页总结链连接起来。URL 搜索链负责把搜索词转换为多个 URL，网页总结链负责处理每个 URL。组合后得到一条新的链：<strong>搜索与总结链</strong>。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> langchain_core.runnables <span class="keyword">import</span> RunnableLambda</span><br><span class="line"></span><br><span class="line">search_and_summarization_chain = (</span><br><span class="line">    search_result_urls_chain</span><br><span class="line">    | search_result_text_and_summary_chain.<span class="built_in">map</span>()</span><br><span class="line">    | RunnableLambda(<span class="keyword">lambda</span> x: &#123;</span><br><span class="line">        <span class="string">&quot;summary&quot;</span>: <span class="string">&quot;\n&quot;</span>.join([item[<span class="string">&quot;summary&quot;</span>] <span class="keyword">for</span> item <span class="keyword">in</span> x]),</span><br><span class="line">        <span class="string">&quot;user_question&quot;</span>: x[<span class="number">0</span>][<span class="string">&quot;user_question&quot;</span>] <span class="keyword">if</span> <span class="built_in">len</span>(x) &gt; <span class="number">0</span> <span class="keyword">else</span> <span class="string">&quot;&quot;</span>,</span><br><span class="line">    &#125;)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>这条链可以拆成三步理解，<code>搜索词 -&gt; 获取多个 URL -&gt; 对每个 URL 执行网页总结链 -&gt; 合并多个网页摘要</code>。</p>
+<p>第一步，<code>search_result_urls_chain</code> 接收一个搜索查询对象，例如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	<span class="string">&quot;search_query&quot;</span>: <span class="string">&quot;杭州 历史文化 京杭大运河 南宋御街 博物馆&quot;</span>,  </span><br><span class="line">	<span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>它会输出多个搜索结果：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">    &#123;<span class="string">&quot;result_url&quot;</span>: <span class="string">&quot;url_1&quot;</span>, <span class="string">&quot;search_query&quot;</span>: <span class="string">&quot;...&quot;</span>, <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;...&quot;</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;result_url&quot;</span>: <span class="string">&quot;url_2&quot;</span>, <span class="string">&quot;search_query&quot;</span>: <span class="string">&quot;...&quot;</span>, <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;...&quot;</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;result_url&quot;</span>: <span class="string">&quot;url_3&quot;</span>, <span class="string">&quot;search_query&quot;</span>: <span class="string">&quot;...&quot;</span>, <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;...&quot;</span>&#125;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>第二步，<code>search_result_text_and_summary_chain.map()</code> 对这个列表中的每个元素执行单网页总结链，得到多个摘要对象：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">&quot;summary&#x27;: &#x27;来源 URL: https://www.sohu.com/a/953786156_120932760\n摘要: xxx&#x27;&quot;</span>,</span><br><span class="line">        <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;...&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">&quot;summary&#x27;: &#x27;来源 URL: https://news.qq.com/rain/a/20260305A04ETV00\n摘要: xxx&#x27;&quot;</span>,</span><br><span class="line">        <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;...&quot;</span></span><br><span class="line">    &#125;,...</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>第三步，最后的 <code>RunnableLambda</code> 负责把多个摘要合并成一个字符串：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">RunnableLambda(<span class="keyword">lambda</span> x: &#123;</span><br><span class="line">    <span class="string">&quot;summary&quot;</span>: <span class="string">&quot;\n&quot;</span>.join([item[<span class="string">&quot;summary&quot;</span>] <span class="keyword">for</span> item <span class="keyword">in</span> x]),</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: x[<span class="number">0</span>][<span class="string">&quot;user_question&quot;</span>] <span class="keyword">if</span> <span class="built_in">len</span>(x) &gt; <span class="number">0</span> <span class="keyword">else</span> <span class="string">&quot;&quot;</span>,</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>合并后的输出大致如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;summary&quot;</span>: <span class="string">&quot;来源 URL: url_1\n摘要: ...\n来源 URL: url_2\n摘要: ...\n来源 URL: url_3\n摘要: ...&quot;</span>,</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;...&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样，一个搜索词对应的一组网页，就被转换成了一段可用于后续报告生成的研究摘要。</p>
+<h3 id="4-3-map-的实际价值"><a href="#4-3-map-的实际价值" class="headerlink" title="4.3 .map()的实际价值"></a><strong>4.3 <code>.map()</code>的实际价值</strong></h3><p><code>.map()</code> 最直接的作用是减少手写循环，但它的价值不只在于代码更短。更重要的是，它让“单项处理链”和“批量处理链”之间形成清晰关系。</p>
+<p>在本案例中，单网页总结链只关心一个 URL：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">一个 URL → 一个摘要</span><br></pre></td></tr></table></figure>
+
+<p>通过 <code>.map()</code>，它自然扩展为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">多个 URL → 多个摘要</span><br></pre></td></tr></table></figure>
+
+<p>这符合 LCEL 的组合思想：<strong>先把最小处理单元定义清楚，再把它扩展到列表数据</strong>。</p>
+<p>如果后续需要修改网页总结逻辑，例如更换摘要 Prompt、增加失败过滤、保留网页标题，只需要修改单网页总结链。批量处理部分不需要改变，因为 <code>.map()</code> 仍然负责把这条链应用到每个元素。</p>
+<p>这比在多个地方手写循环更容易维护。</p>
+<h3 id="4-4-运行搜索与总结链"><a href="#4-4-运行搜索与总结链" class="headerlink" title="4.4 运行搜索与总结链"></a><strong>4.4 运行搜索与总结链</strong></h3><p>可以使用一个中文搜索查询测试这条链：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">input_data = &#123;  </span><br><span class="line">    <span class="string">&quot;search_query&quot;</span>: <span class="string">&quot;杭州 必去景点 西湖 灵隐寺 西溪湿地&quot;</span>,  </span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span>  </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">result = search_and_summarization_chain.invoke(input_data)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(result)</span><br></pre></td></tr></table></figure>
+
+<p>输出结构类似：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&#123;<span class="string">&#x27;summary&#x27;</span>: <span class="string">&#x27;来源 URL: https://www.klook.com/zh-CN/activity/155336-private-guide-1-day-tour-of-hangzhou-city-by-car/\n摘要: xxx\n来源 URL: https://www.getyourguide.com/zh-cn/lingyin-temple-l150150/\n摘要: xxx。\n来源 URL: https://www.facebook.com/cutitrip/posts/杭州自由行必去九大景点️来杭州游玩这九大热门景点不容错过西湖江南四大名湖之一西湖十景美不胜收雷峰塔推荐傍晚时分前往欣赏雷峰夕照的绝美景色灵隐寺千年古刹佛教圣地氛/1436398781860225/\n摘要: xxx。&#x27;</span>, <span class="string">&#x27;user_question&#x27;</span>: <span class="string">&#x27;杭州有哪些值得一去的地方？&#x27;</span>&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>从结果可以看出，搜索与总结链已经把“搜索词”转换成了“多来源摘要”。这正是最终报告生成前需要的中间材料。</p>
+<p>需要注意的是，真实运行时可能出现部分网页抓取失败。例如某些网站返回 403，或者网页需要 JavaScript 渲染。为了保持流程不中断，基础抓取函数通常会返回错误信息。正式项目中可以在合并摘要前过滤失败内容，避免无效结果进入最终报告。</p>
+<p>例如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">merge_valid_summaries</span>(<span class="params">items</span>):</span><br><span class="line">    valid_items = [</span><br><span class="line">        item <span class="keyword">for</span> item <span class="keyword">in</span> items</span><br><span class="line">        <span class="keyword">if</span> <span class="string">&quot;无法获取网页内容&quot;</span> <span class="keyword">not</span> <span class="keyword">in</span> item[<span class="string">&quot;summary&quot;</span>]</span><br><span class="line">    ]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">        <span class="string">&quot;summary&quot;</span>: <span class="string">&quot;\n&quot;</span>.join([item[<span class="string">&quot;summary&quot;</span>] <span class="keyword">for</span> item <span class="keyword">in</span> valid_items]),</span><br><span class="line">        <span class="string">&quot;user_question&quot;</span>: valid_items[<span class="number">0</span>][<span class="string">&quot;user_question&quot;</span>] <span class="keyword">if</span> <span class="built_in">len</span>(valid_items) &gt; <span class="number">0</span> <span class="keyword">else</span> <span class="string">&quot;&quot;</span>,</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后替换最后的合并逻辑：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">search_and_summarization_chain = (</span><br><span class="line">    search_result_urls_chain</span><br><span class="line">    | search_result_text_and_summary_chain.<span class="built_in">map</span>()</span><br><span class="line">    | RunnableLambda(merge_valid_summaries)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>这个优化不是必需步骤，但它能提高最终报告质量。</p>
+<p><strong>小结</strong></p>
+<p>本章将单网页总结链扩展为批量网页总结流程。通过 <code>.map()</code>，同一条网页总结链可以应用到多个 URL，系统无需手写复杂循环，也能保持 LCEL 数据流的统一表达。</p>
+<p>本章构建的搜索与总结链结构，<code>单个搜索查询 -&gt; URL 搜索链 -&gt; 多个搜索结果 URL -&gt; 网页总结链 .map() -&gt; 多个网页摘要 -&gt; 摘要合并</code>。</p>
+<p><strong><code>.map()</code></strong> <strong>的关键价值，是把“单个对象处理能力”扩展成“列表批量处理能力”。</strong> 在自动化网页研究总结器中，它让多个网页可以进入同一条处理链，并最终合并为一个搜索角度下的研究摘要。</p>
+<p>下一章将把前面的角色选择链、搜索词生成链、搜索与总结链继续组合起来，形成完整的研究报告生成流程。</p>
+<h2 id="5-组装最终研究报告链"><a href="#5-组装最终研究报告链" class="headerlink" title="5. 组装最终研究报告链"></a><strong>5. 组装最终研究报告链</strong></h2><p>前面几章已经分别完成了角色选择、搜索词生成、URL 搜索、网页摘要和批量总结。到这里，自动化网页研究总结器的关键部件已经具备，但它们还只是分散的小链。要形成完整应用，还需要把这些小链按照数据流方向组合起来，并在最后生成一篇结构化 Markdown 报告。</p>
+<p>本章的目标是构建 <strong>最终研究报告链</strong>。这条链会接收一个问题，依次完成任务理解、搜索规划、网页总结和报告生成。外部调用时，只需要执行一次 <code>invoke()</code>，内部就会完成完整流程。</p>
+<h3 id="5-1-最终链路的整体结构"><a href="#5-1-最终链路的整体结构" class="headerlink" title="5.1 最终链路的整体结构"></a><strong>5.1 最终链路的整体结构</strong></h3><p>先回顾已经构建好的几条链：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">assistant_instructions_chain</span><br><span class="line">角色选择链：根据用户问题生成助手设定</span><br><span class="line"></span><br><span class="line">web_searches_chain</span><br><span class="line">搜索词生成链：根据用户问题和助手设定生成多个搜索词</span><br><span class="line"></span><br><span class="line">search_and_summarization_chain</span><br><span class="line">搜索与总结链：根据单个搜索词获取多个 URL，并总结多个网页</span><br></pre></td></tr></table></figure>
+
+<p>现在要做的是把它们连接起来，<code>用户问题 -&gt; 角色选择链 -&gt; 搜索词生成链 -&gt; 搜索与总结链 .map() -&gt; 合并所有搜索角度下的摘要 -&gt; 报告生成 Prompt -&gt; LLM -&gt; Markdown 报告</code>。</p>
+<p>这里有一个重要变化：<code>search_and_summarization_chain</code> 一次只处理一个搜索词，而 <code>web_searches_chain</code> 会输出多个搜索词。因此需要再次使用 <code>.map()</code>，让每个搜索词都进入同一条搜索与总结链。</p>
+<p>整体思路是，<code>多个搜索词 → 多组网页摘要 → 合并为研究材料 → 生成最终报告</code>。</p>
+<h3 id="5-2-设计最终报告提示词"><a href="#5-2-设计最终报告提示词" class="headerlink" title="5.2 设计最终报告提示词"></a><strong>5.2 设计最终报告提示词</strong></h3><p>最终报告生成阶段不再直接处理网页原文，而是处理前面合并得到的摘要集合。这样做有两个好处：一是减少输入噪声，二是让模型专注于组织结构和表达，而不是从杂乱网页中重新筛选信息。</p>
+<p>可以在 <code>prompts.py</code> 中定义报告生成模板：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> langchain_core.prompts <span class="keyword">import</span> ChatPromptTemplate</span><br><span class="line"></span><br><span class="line">RESEARCH_REPORT_PROMPT_TEMPLATE = ChatPromptTemplate.from_template(</span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    请根据下面的研究摘要，围绕用户问题生成一篇结构化 Markdown 报告。</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    用户问题：</span></span><br><span class="line"><span class="string">    &#123;user_question&#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    研究摘要：</span></span><br><span class="line"><span class="string">    &#123;research_summary&#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    写作要求：</span></span><br><span class="line"><span class="string">    1. 使用中文输出。</span></span><br><span class="line"><span class="string">    2. 报告应结构清晰，包含标题、概述、分主题内容和总结。</span></span><br><span class="line"><span class="string">    3. 内容必须基于研究摘要，不要编造摘要中没有的信息。</span></span><br><span class="line"><span class="string">    4. 如果不同来源的信息有重复，请合并表达，避免重复堆砌。</span></span><br><span class="line"><span class="string">    5. 如果摘要中包含来源 URL，可以在相关内容后保留来源说明。</span></span><br><span class="line"><span class="string">    6. 语言自然、书面化，适合作为正式研究报告阅读。</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>这个提示词的重点是限制模型的发挥范围。最终报告阶段确实需要模型重新组织语言，但不能脱离摘要材料自由创作。因此，提示词中明确要求：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">内容必须基于研究摘要，不要编造摘要中没有的信息。</span><br></pre></td></tr></table></figure>
+
+<p>同时，报告要解决摘要集合的两个常见问题：信息重复和结构松散。多个网页可能都提到同一个景点，如果最终报告逐条复述摘要，会显得冗余。报告生成链需要把重复信息合并，并按照主题重新组织。</p>
+<p>这里的标题结构并不需要硬编码死。只要提示词要求“结构清晰”，模型可以根据摘要内容选择合适章节。但如果需要更稳定的输出，也可以在提示词中固定章节名称。</p>
+<h3 id="5-3-合并多个搜索角度的摘要"><a href="#5-3-合并多个搜索角度的摘要" class="headerlink" title="5.3 合并多个搜索角度的摘要"></a><strong>5.3 合并多个搜索角度的摘要</strong></h3><p>在生成报告之前，需要先把多个搜索词对应的摘要合并成一个 <code>research_summary</code> 字段。</p>
+<p>前一章的 <code>search_and_summarization_chain</code> 针对一个搜索词输出：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;summary&quot;</span>: <span class="string">&quot;来源 URL: url_1\n摘要: ...\n来源 URL: url_2\n摘要: ...&quot;</span>,</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而搜索词生成链会输出多个搜索词，因此经过 <code>.map()</code> 后会得到：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">&quot;summary&quot;</span>: <span class="string">&quot;搜索词 1 对应的多个网页摘要...&quot;</span>,</span><br><span class="line">        <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">&quot;summary&quot;</span>: <span class="string">&quot;搜索词 2 对应的多个网页摘要...&quot;</span>,</span><br><span class="line">        <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">&quot;summary&quot;</span>: <span class="string">&quot;搜索词 3 对应的多个网页摘要...&quot;</span>,</span><br><span class="line">        <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>最终报告 Prompt 需要的是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;research_summary&quot;</span>: <span class="string">&quot;...所有摘要合并后的文本...&quot;</span>,</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以用 <code>RunnableLambda</code> 完成合并：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> langchain_core.runnables <span class="keyword">import</span> RunnableLambda</span><br><span class="line"></span><br><span class="line">merge_research_summaries = RunnableLambda(<span class="keyword">lambda</span> x: &#123;</span><br><span class="line">    <span class="string">&quot;research_summary&quot;</span>: <span class="string">&quot;\n\n&quot;</span>.join([item[<span class="string">&quot;summary&quot;</span>] <span class="keyword">for</span> item <span class="keyword">in</span> x]),</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: x[<span class="number">0</span>][<span class="string">&quot;user_question&quot;</span>] <span class="keyword">if</span> <span class="built_in">len</span>(x) &gt; <span class="number">0</span> <span class="keyword">else</span> <span class="string">&quot;&quot;</span>,</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>这里的 <code>&quot;\n\n&quot;.join(...)</code> 用两个换行分隔不同搜索角度的摘要，方便模型识别不同信息块。</p>
+<p>如果担心有空摘要或失败摘要，也可以写成更稳妥的版本：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">merge_research_summaries_fn</span>(<span class="params">items</span>):</span><br><span class="line">    valid_items = [</span><br><span class="line">        item <span class="keyword">for</span> item <span class="keyword">in</span> items</span><br><span class="line">        <span class="keyword">if</span> item.get(<span class="string">&quot;summary&quot;</span>)</span><br><span class="line">    ]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">        <span class="string">&quot;research_summary&quot;</span>: <span class="string">&quot;\n\n&quot;</span>.join(</span><br><span class="line">            [item[<span class="string">&quot;summary&quot;</span>] <span class="keyword">for</span> item <span class="keyword">in</span> valid_items]</span><br><span class="line">        ),</span><br><span class="line">        <span class="string">&quot;user_question&quot;</span>: valid_items[<span class="number">0</span>][<span class="string">&quot;user_question&quot;</span>] <span class="keyword">if</span> <span class="built_in">len</span>(valid_items) &gt; <span class="number">0</span> <span class="keyword">else</span> <span class="string">&quot;&quot;</span>,</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">merge_research_summaries = RunnableLambda(merge_research_summaries_fn)</span><br></pre></td></tr></table></figure>
+
+<p>这个函数会过滤没有摘要的结果，避免空内容进入最终 Prompt。</p>
+<h3 id="5-4-构建完整研究报告链"><a href="#5-4-构建完整研究报告链" class="headerlink" title="5.4 构建完整研究报告链"></a><strong>5.4 构建完整研究报告链</strong></h3><p>现在可以把所有链组合起来：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> langchain_core.output_parsers <span class="keyword">import</span> StrOutputParser</span><br><span class="line"><span class="keyword">from</span> langchain_core.runnables <span class="keyword">import</span> RunnableLambda</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> llm_models <span class="keyword">import</span> get_llm</span><br><span class="line"><span class="keyword">from</span> prompts <span class="keyword">import</span> RESEARCH_REPORT_PROMPT_TEMPLATE</span><br><span class="line"><span class="keyword">from</span> chains.assistant_chain <span class="keyword">import</span> assistant_instructions_chain</span><br><span class="line"><span class="keyword">from</span> chains.search_query_chain <span class="keyword">import</span> web_searches_chain</span><br><span class="line"><span class="keyword">from</span> chains.summarize_url_chain <span class="keyword">import</span> search_and_summarization_chain</span><br><span class="line"></span><br><span class="line">merge_research_summaries = RunnableLambda(<span class="keyword">lambda</span> x: &#123;</span><br><span class="line">    <span class="string">&quot;research_summary&quot;</span>: <span class="string">&quot;\n\n&quot;</span>.join([item[<span class="string">&quot;summary&quot;</span>] <span class="keyword">for</span> item <span class="keyword">in</span> x]),</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: x[<span class="number">0</span>][<span class="string">&quot;user_question&quot;</span>] <span class="keyword">if</span> <span class="built_in">len</span>(x) &gt; <span class="number">0</span> <span class="keyword">else</span> <span class="string">&quot;&quot;</span>,</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">web_research_chain = (</span><br><span class="line">    assistant_instructions_chain</span><br><span class="line">    | web_searches_chain</span><br><span class="line">    | search_and_summarization_chain.<span class="built_in">map</span>()</span><br><span class="line">    | merge_research_summaries</span><br><span class="line">    | RESEARCH_REPORT_PROMPT_TEMPLATE</span><br><span class="line">    | get_llm()</span><br><span class="line">    | StrOutputParser()</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>这条链从外部看只接收一个输入，但内部会经过多个阶段。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">assistant_instructions_chain</span><br><span class="line">接收问题，输出助手设定和原始问题</span><br><span class="line"></span><br><span class="line">web_searches_chain</span><br><span class="line">接收助手设定和原始问题，输出多个搜索词</span><br><span class="line"></span><br><span class="line">search_and_summarization_chain.map()</span><br><span class="line">对每个搜索词执行搜索与网页总结</span><br><span class="line"></span><br><span class="line">merge_research_summaries</span><br><span class="line">合并多个搜索角度下的摘要</span><br><span class="line"></span><br><span class="line">RESEARCH_REPORT_PROMPT_TEMPLATE</span><br><span class="line">构造最终报告 Prompt</span><br><span class="line"></span><br><span class="line">get_llm()</span><br><span class="line">生成 Markdown 报告</span><br><span class="line"></span><br><span class="line">StrOutputParser()</span><br><span class="line">输出字符串报告</span><br></pre></td></tr></table></figure>
+
+<p>这里最值得注意的是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">search_and_summarization_chain.<span class="built_in">map</span>()</span><br></pre></td></tr></table></figure>
+
+<p>它表示搜索词生成链输出的每个搜索词，都会进入同一条搜索与总结链。这样，系统就能围绕多个角度收集网页信息，而不是只依赖一个搜索结果。</p>
+<h3 id="5-5-运行完整流程"><a href="#5-5-运行完整流程" class="headerlink" title="5.5 运行完整流程"></a><strong>5.5 运行完整流程</strong></h3><p>最终使用时，可以在 <code>main.py</code> 中写入：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> chains.research_chain <span class="keyword">import</span> web_research_chain</span><br><span class="line"></span><br><span class="line">question = &#123;</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">report = web_research_chain.invoke(question)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(report)</span><br></pre></td></tr></table></figure>
+
+<p>如果前面的角色选择链被设计为直接接收字符串，也可以写成：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">question = <span class="string">&quot;杭州有哪些值得一去的地方？&quot;</span></span><br><span class="line"></span><br><span class="line">report = web_research_chain.invoke(question)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(report)</span><br></pre></td></tr></table></figure>
+
+<p>两种方式都可以，但更推荐统一使用字典输入：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;...&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对于正式项目，统一字典输入会比直接传字符串更灵活，完整流程运行后，输出大致会是一篇 Markdown 报告：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="section"># 杭州深度旅行研究报告：值得探索的地方与规划建议</span></span><br><span class="line"></span><br><span class="line"><span class="section">## 1. 报告概述</span></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="section">## 2. 核心景区与游览主题</span></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="section">## 3. 整合行程建议</span></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="section">## 4. 实用参考信息</span></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="section">## 5. 总结</span></span><br><span class="line">...</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>实际内容取决于搜索结果和网页抓取结果。由于搜索引擎返回结果具有不确定性，不同时间运行可能得到不同网页，也可能生成略有差异的报告。这是网页研究类应用的正常现象。</p>
+<h3 id="5-6-完整链的设计要点"><a href="#5-6-完整链的设计要点" class="headerlink" title="5.6 完整链的设计要点"></a><strong>5.6 完整链的设计要点</strong></h3><p>最终研究报告链把多个小链组合成完整流程，但它并不是简单地把代码串起来。这里有几个设计要点需要特别关注。</p>
+<p>第一，<strong>每条链的输入输出必须对齐</strong>。角色选择链要输出 <code>user_question</code> 和 <code>assistant_instructions</code>，搜索词生成链要输出包含 <code>search_query</code> 的列表，搜索与总结链要输出 <code>summary</code> 和 <code>user_question</code>。只要其中一个字段丢失，后续链就会报错。</p>
+<p>第二，<strong>每个阶段只承担自己的职责</strong>。角色选择链不负责搜索，搜索词生成链不负责抓取网页，网页总结链不负责写最终报告。职责边界清楚，后续替换和调试才方便。</p>
+<p>第三，<strong>最终报告应基于摘要，而不是直接基于网页原文</strong>。网页原文噪声大、长度长，直接交给最终报告 Prompt 会增加混乱。先摘要再报告，是更稳定的方式。</p>
+<p>第四，<strong>中间结果应保留来源信息</strong>。来源 URL 至少应保留到摘要阶段。这样即使最终报告没有列出完整引用，也能在调试时追踪内容来源。</p>
+<p>第五，<strong>链式组合不等于无条件增加步骤</strong>。每个新增链都应该解决明确问题。如果只是把简单逻辑拆得过碎，反而会增加理解成本。本案例中的链拆分，基本对应了任务自然阶段：理解、搜索、抓取、摘要、报告。</p>
+<p><strong>小结</strong></p>
+<p>本章完成了最终研究报告链的组装。通过 LCEL，可以把角色选择链、搜索词生成链、搜索与总结链、摘要合并逻辑和报告生成 Prompt 连接成完整流程。</p>
+<p>最终链的核心结构如下，<code>问题 -&gt; 角色选择链 -&gt; 搜索词生成链 -&gt; 搜索与总结链 .map() -&gt; 合并研究摘要 -&gt; 报告生成 Prompt -&gt; LLM -&gt; Markdown 报告</code></p>
+<p><strong>这条链的关键价值，是把多个分散能力封装成一个可直接调用的研究工作流。</strong> 外部只需要提供中文问题，内部会自动完成搜索规划、网页资料收集、摘要提取和报告生成。</p>
+<p>下一章将进一步总结这个案例中 LCEL 的核心价值，并说明这种链式结构相比普通函数式写法在可组合性、可替换性和可扩展性上的优势。</p>
+<h2 id="6-总结：用-LCEL-搭建可维护的-AI-工作流"><a href="#6-总结：用-LCEL-搭建可维护的-AI-工作流" class="headerlink" title="6. 总结：用 LCEL 搭建可维护的 AI 工作流"></a><strong>6. 总结：用 LCEL 搭建可维护的 AI 工作流</strong></h2><p>前面围绕自动化网页研究总结器，完整实现了从用户问题到 Markdown 报告生成的流程。这个案例表面上是在构建一个网页研究工具，实际上展示的是一种更通用的大模型应用组织方式：<strong>把模型调用、普通函数、数据转换、批量处理和结果生成统一编排成稳定的数据流</strong>。</p>
+<p>LCEL 在这个过程中承担的是工作流编排层的角色。它的价值不是让代码看起来更短，而是让复杂 AI 应用从单次 Prompt 调用，升级为可以拆解、调试、替换和扩展的链式工作流。</p>
+<h3 id="6-1-从单次调用到链式工作流"><a href="#6-1-从单次调用到链式工作流" class="headerlink" title="6.1 从单次调用到链式工作流"></a><strong>6.1 从单次调用到链式工作流</strong></h3><p>最简单的大模型应用通常是，<code>输入 → Prompt → LLM → 输出</code>。这种结构适合单步任务，但很难支撑网页研究总结器这样的复杂流程。因为系统不仅要生成文本，还要完成搜索词生成、URL 搜索、网页抓取、网页摘要、摘要合并和最终报告生成。</p>
+<p>在本案例中，完整流程被拆成多条小链：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">assistant_instructions_chain</span><br><span class="line">web_searches_chain</span><br><span class="line">search_result_urls_chain</span><br><span class="line">search_result_text_and_summary_chain</span><br><span class="line">search_and_summarization_chain</span><br><span class="line">web_research_chain</span><br></pre></td></tr></table></figure>
+
+<p>每条链都有独立职责。角色选择链负责生成助手设定，搜索词生成链负责拆解查询，URL 搜索链负责获取网页来源，网页总结链负责把单个网页转成摘要，最终报告链负责整合结果并输出 Markdown 报告。</p>
+<p>这种拆分方式让系统从“一个大函数”变成了“多个可组合模块”。调试时可以单独运行某一条链，正式运行时只需要调用最终链：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">report = web_research_chain.invoke(&#123;</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: <span class="string">&quot;...&quot;</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>外部看到的是一次调用，内部完成的是完整研究流程。这正是 LCEL 链式应用的核心价值。</p>
+<h3 id="6-2-模型、工具与编排的分工"><a href="#6-2-模型、工具与编排的分工" class="headerlink" title="6.2 模型、工具与编排的分工"></a><strong>6.2 模型、工具与编排的分工</strong></h3><p>这个案例还体现了一个重要原则：大模型应用不是所有事情都交给模型完成，而是模型、普通函数和编排层各司其职。</p>
+<p>模型适合处理语义任务，例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">判断任务类型</span><br><span class="line">生成搜索词</span><br><span class="line">总结网页内容</span><br><span class="line">生成结构化报告</span><br></pre></td></tr></table></figure>
+
+<p>普通函数适合处理确定性任务，例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">调用搜索工具</span><br><span class="line">请求网页 URL</span><br><span class="line">解析 HTML</span><br><span class="line">截断文本</span><br><span class="line">合并摘要</span><br><span class="line">过滤失败结果</span><br></pre></td></tr></table></figure>
+
+<p>LCEL 则负责把这些能力连接起来：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Prompt、Model、Parser、RunnableLambda、RunnableParallel、.map()</span><br></pre></td></tr></table></figure>
+
+<p>例如，网页总结链中既有普通函数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">web_scrape(x[<span class="string">&quot;result_url&quot;</span>])</span><br></pre></td></tr></table></figure>
+
+<p>也有模型调用：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SUMMARY_PROMPT_TEMPLATE | get_llm() | StrOutputParser()</span><br></pre></td></tr></table></figure>
+
+<p>这体现了一个关键原则：<strong>模型只处理需要语义能力的部分，确定性逻辑交给普通函数完成</strong>。这样比“所有事情都问模型”更稳健，也更接近真实工程中的大模型应用形态。</p>
+<h3 id="6-3-显式的数据流是可维护性的基础"><a href="#6-3-显式的数据流是可维护性的基础" class="headerlink" title="6.3 显式的数据流是可维护性的基础"></a><strong>6.3 显式的数据流是可维护性的基础</strong></h3><p>LCEL 应用中常见的问题并不一定来自模型，而是来自数据结构不匹配。比如 Prompt 需要 <code>user_question</code>，但上一条链输出的是 <code>question</code>；某个节点需要 <code>result_url</code>，但前一步只返回了字符串；合并函数预期输入是列表，但实际传入的是字典。</p>
+<p>因此，LCEL 工作流的关键不是链式语法本身，而是清楚设计每个节点的输入和输出。</p>
+<p>在本案例中，数据从最初的问题逐步变成最终报告，<code>user_question → assistant_instructions → search_query → result_url → search_result_text → summary → research_summary → markdown_report</code>。</p>
+<p><code>RunnableLambda</code> 的作用就是把这些数据转换显式写出来。例如搜索词生成链会明确传入：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">assistant_instructions</span><br><span class="line">num_search_queries</span><br><span class="line">user_question</span><br></pre></td></tr></table></figure>
+
+<p>最终摘要合并阶段则把多个摘要对象转换成最终报告需要的字段：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">research_summary</span><br><span class="line">user_question</span><br></pre></td></tr></table></figure>
+
+<p>这种显式转换让每个阶段的数据结构都能被看见，也让错误更容易定位。<strong>稳定的数据流，才是 LCEL 应用可维护性的核心。</strong></p>
+<h3 id="6-4-批量处理与上下文传递"><a href="#6-4-批量处理与上下文传递" class="headerlink" title="6.4 批量处理与上下文传递"></a><strong>6.4 批量处理与上下文传递</strong></h3><p>网页研究总结器天然包含批量任务。一个问题会生成多个搜索词，一个搜索词会返回多个 URL，每个 URL 都要进入同一条网页总结链。LCEL 的 <code>.map()</code> 让这种批量处理变得自然：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">一个 URL → 一个摘要</span><br><span class="line">多个 URL → 多个摘要</span><br></pre></td></tr></table></figure>
+
+<p>同样，搜索与总结链可以从：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">一个搜索词 → 多个网页摘要</span><br></pre></td></tr></table></figure>
+
+<p>扩展为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">多个搜索词 → 多组网页摘要</span><br></pre></td></tr></table></figure>
+
+<p><code>.map()</code> 的意义不只是省掉循环，而是让“单项处理能力”和“批量处理能力”保持同一种链式表达。</p>
+<p>同时，多步骤应用还必须持续传递上下文。本案例中，几个字段会贯穿多个阶段：</p>
+<table>
+<thead>
+<tr>
+<th><strong>字段</strong></th>
+<th><strong>作用</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>user_question</code></td>
+<td>保留原始研究目标</td>
+</tr>
+<tr>
+<td><code>search_query</code></td>
+<td>标记网页来自哪个搜索角度</td>
+</tr>
+<tr>
+<td><code>result_url</code></td>
+<td>保留网页来源</td>
+</tr>
+<tr>
+<td><code>summary</code></td>
+<td>存储网页摘要或合并摘要</td>
+</tr>
+</tbody></table>
+<p>这说明在多步骤 AI 应用中，生成新内容和保留上下文同样重要。如果摘要阶段丢失 URL，最终报告就难以追溯来源；如果丢失原始问题，摘要就可能偏离研究目标。</p>
+<h3 id="6-5-可替换与可扩展的工程结构"><a href="#6-5-可替换与可扩展的工程结构" class="headerlink" title="6.5 可替换与可扩展的工程结构"></a><strong>6.5 可替换与可扩展的工程结构</strong></h3><p>LCEL 链式结构的另一个价值是组件可替换。搜索工具、网页抓取方式、模型、Prompt 和输出格式都可以独立调整。</p>
+<p>例如，当前搜索工具使用 DuckDuckGo，如果后续要换成其他搜索 API，只需要修改搜索函数；网页抓取当前使用 <code>requests + BeautifulSoup</code>，如果后续要换成专业正文提取工具，也只需要替换抓取模块；模型通过 <code>get_llm()</code> 初始化，后续更换模型时无需逐条修改链。</p>
+<p>这种可替换性来自清晰的职责拆分：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">llm_models.py：统一初始化模型</span><br><span class="line">web_searching.py：封装网页搜索</span><br><span class="line">web_scraping.py：封装网页抓取</span><br><span class="line">utilities.py：放置工具函数</span><br><span class="line">prompts.py：集中管理提示词</span><br><span class="line">chains/：存放各条 LCEL 链</span><br><span class="line">main.py：运行入口</span><br></pre></td></tr></table></figure>
+
+<p>后续扩展也可以按节点接入，例如：</p>
+<table>
+<thead>
+<tr>
+<th><strong>扩展能力</strong></th>
+<th><strong>接入位置</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>URL 去重</td>
+<td>URL 搜索链之后</td>
+</tr>
+<tr>
+<td>网页正文清洗</td>
+<td>网页抓取之后</td>
+</tr>
+<tr>
+<td>摘要质量过滤</td>
+<td>网页总结链之后</td>
+</tr>
+<tr>
+<td>来源可信度排序</td>
+<td>报告生成之前</td>
+</tr>
+<tr>
+<td>报告格式选择</td>
+<td>最终 Prompt 阶段</td>
+</tr>
+<tr>
+<td>流式输出</td>
+<td>最终报告生成阶段</td>
+</tr>
+</tbody></table>
+<p>因此，可维护性不是来自代码少，而是来自边界清楚。每个模块职责稳定，系统才能持续演进。</p>
+<h3 id="6-6-当前实现的局限与优化方向"><a href="#6-6-当前实现的局限与优化方向" class="headerlink" title="6.6 当前实现的局限与优化方向"></a><strong>6.6 当前实现的局限与优化方向</strong></h3><p>虽然当前版本已经能完整运行，但它仍然是一个基础版本。网页研究类应用的不确定性较高，主要问题包括：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">搜索结果可能不稳定</span><br><span class="line">网页抓取可能失败</span><br><span class="line">网页正文可能包含噪声</span><br><span class="line">模型摘要可能遗漏或偏移</span><br><span class="line">最终报告可能重复</span><br><span class="line">来源管理可能不够清晰</span><br></pre></td></tr></table></figure>
+
+<p>这些问题不是 LCEL 单独能解决的。LCEL 解决的是流程组织问题，而不是搜索质量、抓取质量和模型可靠性的全部问题。</p>
+<p>后续可以从五个方向优化：</p>
+<table>
+<thead>
+<tr>
+<th><strong>方向</strong></th>
+<th><strong>优化方式</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>搜索阶段</td>
+<td>查询多样化、URL 去重、低质量结果过滤</td>
+</tr>
+<tr>
+<td>抓取阶段</td>
+<td>失败处理、正文清洗、必要时引入浏览器渲染或抓取 API</td>
+</tr>
+<tr>
+<td>摘要阶段</td>
+<td>分块摘要、结构化摘要、强化“只基于网页内容”的约束</td>
+</tr>
+<tr>
+<td>报告阶段</td>
+<td>合并重复信息、保留来源、增加参考来源部分</td>
+</tr>
+<tr>
+<td>系统层面</td>
+<td>缓存、并行处理、日志、异常重试、质量评估</td>
+</tr>
+</tbody></table>
+<p>更现实的演进方式是先保证链路简单可运行，再根据实际失败模式逐步增强。LCEL 的优势在于，这些优化都可以作为新的 Runnable 节点接入原有链路，而不需要推翻整体结构。</p>
+<h3 id="6-7-从案例走向通用模式"><a href="#6-7-从案例走向通用模式" class="headerlink" title="6.7 从案例走向通用模式"></a><strong>6.7 从案例走向通用模式</strong></h3><p>虽然本文案例是自动化网页研究总结器，但背后的模式可以迁移到很多 AI 应用中。</p>
+<p>文档分析系统可以采用：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">用户问题 → 检索文档片段 → 总结片段 → 合并证据 → 生成答案</span><br></pre></td></tr></table></figure>
+
+<p>技术调研系统可以采用：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">技术问题 → 生成检索查询 → 抓取资料 → 摘要重点 → 对比方案 → 生成建议</span><br></pre></td></tr></table></figure>
+
+<p>舆情分析系统可以采用：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">分析主题 → 搜索相关内容 → 提取观点与情绪 → 聚类归纳 → 生成分析报告</span><br></pre></td></tr></table></figure>
+
+<p>这些应用看似不同，但结构上都包含共同环节：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">任务输入 → 信息获取 → 信息提取 → 信息合并 → 结果生成</span><br></pre></td></tr></table></figure>
+
+<p>因此，本案例的价值不只在于完成一个网页研究工具，而是提供了一种可复用的大模型工程方法：<strong>先拆任务，再定数据结构，再用 LCEL 组合链路。</strong></p>
+<p><strong>总结</strong></p>
+<p>自动化网页研究总结器展示了一个完整的大模型应用流程：输入问题，生成搜索词，搜索网页，抓取正文，总结内容，合并信息，最终输出 Markdown 报告。这个流程之所以能够保持清晰，是因为 LCEL 将不同能力组织成了可组合的数据流。</p>
+<p>全文可以归纳为三点。</p>
+<p>第一，<strong>LCEL 让复杂 AI 应用从单次调用变成可维护的链式工作流</strong>。它通过 Prompt、Model、Parser、RunnableLambda、RunnableParallel 和 <code>.map()</code> 等组件，把多个步骤连接成完整流程。</p>
+<p>第二，<strong>大模型应用需要明确区分模型能力和程序能力</strong>。语义理解、摘要和生成交给模型，搜索、抓取、解析和合并交给普通函数，LCEL 负责二者之间的编排。</p>
+<p>第三，<strong>工程质量取决于每个节点的输入输出设计</strong>。搜索词是否合理、URL 是否去重、网页正文是否干净、摘要是否保留来源、报告是否合并重复信息，都会影响最终效果。</p>
+<p>因此，LCEL 的核心价值不是替代搜索、抓取、清洗和质量评估，而是提供清晰的应用编排框架。只要每个节点职责清楚、输入输出稳定、上下文传递完整，复杂大模型应用就能具备可调试、可扩展和可复用的工程基础。</p>
+<h2 id="7-备注"><a href="#7-备注" class="headerlink" title="7.备注"></a><strong>7.备注</strong></h2><p>完整代码：<a target="_blank" rel="noopener" href="https://github.com/keychankc/AI_agent_code/tree/main/web-research-lcel">https://github.com/keychankc/AI_agent_code/tree/main/web-research-lcel</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://www.keychan.xyz/2026/06/02/074-build-an-ai-application-with-lcel/" title="从 Prompt 到工作流：用 LCEL 构建一个 AI 应用（下）">https://www.keychan.xyz/2026/06/02/074-build-an-ai-application-with-lcel/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/Agent/" rel="tag"># Agent</a>
+              <a href="/tags/LangChain/" rel="tag"># LangChain</a>
+              <a href="/tags/Workflow/" rel="tag"># Workflow</a>
+              <a href="/tags/AI%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91/" rel="tag"># AI应用开发</a>
+              <a href="/tags/WebResearch/" rel="tag"># WebResearch</a>
+              <a href="/tags/LCEL/" rel="tag"># LCEL</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/05/26/073-build-an-ai-application-with-lcel/" rel="prev" title="从 Prompt 到工作流：用 LCEL 构建一个 AI 应用（上）">
+                  <i class="fa fa-angle-left"></i> 从 Prompt 到工作流：用 LCEL 构建一个 AI 应用（上）
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">673k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.min.js","integrity":"sha256-G8ouPAnw4zzMbnAenHnVz6h9XpKbNdOkrqTh7AadyHs="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.keychan.xyz/","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2026/06/02/074-build-an-ai-application-with-lcel/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>
