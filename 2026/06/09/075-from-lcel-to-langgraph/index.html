@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.keychan.xyz","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":272,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="上一篇已经完成了一个基于 LCEL（LangChain Expression Language）的自动化网页研究总结案例。整个案例讲了如何把用户问题自动转换成结构化研究结果，流程并不复杂。 1用户问题 → 选择研究助手 → 生成搜索请求 → 执行网页搜索 → 抓取网页内容 → 总结信息 → 生成研究报告  从工程角度看，这已经是一个完整闭环。系统能够自动完成角色选择、搜索、抓取、总结和报告生成，适">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从 LCEL 到 LangGraph：实现一个可循环决策的 Agent">
+<meta property="og:url" content="https://www.keychan.xyz/2026/06/09/075-from-lcel-to-langgraph/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s Notes">
+<meta property="og:description" content="上一篇已经完成了一个基于 LCEL（LangChain Expression Language）的自动化网页研究总结案例。整个案例讲了如何把用户问题自动转换成结构化研究结果，流程并不复杂。 1用户问题 → 选择研究助手 → 生成搜索请求 → 执行网页搜索 → 抓取网页内容 → 总结信息 → 生成研究报告  从工程角度看，这已经是一个完整闭环。系统能够自动完成角色选择、搜索、抓取、总结和报告生成，适">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-06-09T14:19:12.000Z">
+<meta property="article:modified_time" content="2026-06-09T14:19:54.065Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="Agent">
+<meta property="article:tag" content="LangChain">
+<meta property="article:tag" content="Workflow">
+<meta property="article:tag" content="AI应用开发">
+<meta property="article:tag" content="LCEL">
+<meta property="article:tag" content="LangGraph">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://www.keychan.xyz/2026/06/09/075-from-lcel-to-langgraph/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.keychan.xyz/2026/06/09/075-from-lcel-to-langgraph/","path":"2026/06/09/075-from-lcel-to-langgraph/","title":"从 LCEL 到 LangGraph：实现一个可循环决策的 Agent"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>从 LCEL 到 LangGraph：实现一个可循环决策的 Agent | KeyChan's Notes</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.keychan.xyz/">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's Notes" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's Notes</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一个不断生长的上下文</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E8%87%AA%E5%8A%A8%E6%89%A7%E8%A1%8C%E4%B8%8D%E7%AD%89%E4%BA%8E%E7%9C%9F%E6%AD%A3%E5%85%B7%E5%A4%87%E7%A0%94%E7%A9%B6%E8%83%BD%E5%8A%9B"><span class="nav-text">1. 自动执行不等于真正具备研究能力</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E4%BB%8E%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B%E5%88%B0%E7%A0%94%E7%A9%B6%E8%BF%87%E7%A8%8B"><span class="nav-text">1.1 从执行流程到研究过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-Workflow-%E7%9A%84%E8%83%BD%E5%8A%9B%E8%BE%B9%E7%95%8C"><span class="nav-text">1.2 Workflow 的能力边界</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-%E7%9C%9F%E6%AD%A3%E7%BC%BA%E5%A4%B1%E7%9A%84%E6%98%AF%E5%86%B3%E7%AD%96%E8%83%BD%E5%8A%9B"><span class="nav-text">1.3 真正缺失的是决策能力</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-Agent-%E4%B8%8E-Agentic-Workflow%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E7%B3%BB%E7%BB%9F%E5%88%B0%E5%86%B3%E7%AD%96%E7%B3%BB%E7%BB%9F"><span class="nav-text">2. Agent 与 Agentic Workflow：从执行系统到决策系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-Agent-%E7%9C%9F%E6%AD%A3%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-text">2.1 Agent 真正解决的问题是什么</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-Agent-%E7%9A%84%E6%A0%B8%E5%BF%83%E4%B8%8D%E6%98%AF%E8%87%AA%E7%94%B1%EF%BC%8C%E8%80%8C%E6%98%AF%E5%8F%97%E6%8E%A7%E5%86%B3%E7%AD%96"><span class="nav-text">2.2 Agent 的核心不是自由，而是受控决策</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-%E7%8A%B6%E6%80%81%E5%BC%80%E5%A7%8B%E6%88%90%E4%B8%BA%E6%95%B4%E4%B8%AA%E7%B3%BB%E7%BB%9F%E7%9A%84%E6%96%B0%E4%B8%AD%E5%BF%83"><span class="nav-text">2.3 状态开始成为整个系统的新中心</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-%E5%88%A4%E6%96%AD%E8%83%BD%E5%8A%9B%E5%B9%B6%E4%B8%8D%E7%AD%89%E4%BA%8E%E7%9C%9F%E5%AE%9E%E6%80%A7%E4%BF%9D%E8%AF%81"><span class="nav-text">2.4 判断能力并不等于真实性保证</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-LangGraph%EF%BC%9A%E4%BB%8E%E7%BB%84%E7%BB%87%E8%B0%83%E7%94%A8%E5%8F%98%E6%88%90%E7%BB%84%E7%BB%87%E7%8A%B6%E6%80%81"><span class="nav-text">3. LangGraph：从组织调用变成组织状态</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-LangGraph-%E4%B8%8D%E6%98%AF%E6%9B%BF%E4%BB%A3-LangChain%EF%BC%8C%E8%80%8C%E6%98%AF%E6%94%B9%E5%8F%98%E6%8E%A7%E5%88%B6%E6%96%B9%E5%BC%8F"><span class="nav-text">3.1 LangGraph 不是替代 LangChain，而是改变控制方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-Node%E3%80%81Edge%E3%80%81State%EF%BC%9AGraph-%E7%9A%84%E4%B8%89%E4%B8%AA%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-text">3.2 Node、Edge、State：Graph 的三个基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-1-Node%EF%BC%9A%E5%8A%A8%E4%BD%9C"><span class="nav-text">3.2.1 Node：动作</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-2-Edge%EF%BC%9A%E8%B7%AF%E5%BE%84"><span class="nav-text">3.2.2 Edge：路径</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-3-State%EF%BC%9A%E8%BF%90%E8%A1%8C%E7%8E%B0%E5%9C%BA"><span class="nav-text">3.2.3 State：运行现场</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-%E4%BB%8E%E6%A6%82%E5%BF%B5%E8%BF%81%E7%A7%BB%E5%88%B0%E7%B3%BB%E7%BB%9F%E8%BF%81%E7%A7%BB"><span class="nav-text">3.3 从概念迁移到系统迁移</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-Graph-%E7%9A%84%E4%BB%B7%E5%80%BC%E4%B8%8D%E6%98%AF%E5%88%86%E6%94%AF%EF%BC%8C%E8%80%8C%E6%98%AF%E6%8C%81%E7%BB%AD%E6%8E%A8%E8%BF%9B%E7%9B%AE%E6%A0%87"><span class="nav-text">3.4 Graph 的价值不是分支，而是持续推进目标</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E5%B0%86%E7%BD%91%E9%A1%B5%E7%A0%94%E7%A9%B6%E6%80%BB%E7%BB%93%E5%99%A8%E6%8B%86%E6%88%90-Agent"><span class="nav-text">4. 将网页研究总结器拆成 Agent</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E4%BB%8E%E8%BF%9E%E7%BB%AD%E6%AD%A5%E9%AA%A4%E6%8B%86%E6%88%90%E7%8B%AC%E7%AB%8B%E8%8A%82%E7%82%B9"><span class="nav-text">4.1 从连续步骤拆成独立节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E4%BB%8E%E5%87%BD%E6%95%B0%E4%BC%A0%E5%8F%82%E5%8F%98%E6%88%90%E5%85%B1%E4%BA%AB%E7%8A%B6%E6%80%81"><span class="nav-text">4.2 从函数传参变成共享状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-%E5%BC%95%E5%85%A5%E8%AF%84%E4%BC%B0%E8%8A%82%E7%82%B9%EF%BC%8C%E8%AE%A9%E6%B5%81%E7%A8%8B%E5%BD%A2%E6%88%90%E9%97%AD%E7%8E%AF"><span class="nav-text">4.3 引入评估节点，让流程形成闭环</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-%E5%BE%AA%E7%8E%AF%E5%BF%85%E9%A1%BB%E6%9C%89%E9%80%80%E5%87%BA%E8%BE%B9%E7%95%8C"><span class="nav-text">4.4 循环必须有退出边界</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-5-%E4%BB%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1%E5%88%B0%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="nav-text">4.5 从架构设计到代码实现</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E5%AE%9A%E4%B9%89%E7%BB%9F%E4%B8%80%E7%8A%B6%E6%80%81%E5%AF%B9%E8%B1%A1-ResearchState"><span class="nav-text">5. 定义统一状态对象 ResearchState</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-State-%E4%B8%8D%E6%98%AF%E5%8F%82%E6%95%B0%E5%AE%B9%E5%99%A8%EF%BC%8C%E8%80%8C%E6%98%AF%E8%BF%90%E8%A1%8C%E7%8A%B6%E6%80%81"><span class="nav-text">5.1 State 不是参数容器，而是运行状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-ResearchState-%E4%B8%AD%E7%9A%84%E6%A0%B8%E5%BF%83%E5%AD%97%E6%AE%B5"><span class="nav-text">5.2 ResearchState 中的核心字段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-%E7%8A%B6%E6%80%81%E5%A6%82%E4%BD%95%E9%9A%8F%E7%9D%80%E6%B5%81%E7%A8%8B%E9%80%90%E6%AD%A5%E7%94%9F%E9%95%BF"><span class="nav-text">5.3 状态如何随着流程逐步生长</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-TypedDict-%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="nav-text">5.4 TypedDict 的作用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E5%AE%9E%E7%8E%B0%E8%8A%82%E7%82%B9"><span class="nav-text">6. 实现节点</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-select-assistant-%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84"><span class="nav-text">6.1 select_assistant 的基本结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8A%A9%E6%89%8B%E4%BF%A1%E6%81%AF%E8%A6%81%E5%86%99%E5%9B%9E%E7%8A%B6%E6%80%81"><span class="nav-text">6.2 为什么助手信息要写回状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-JSON-%E8%A7%A3%E6%9E%90%E5%A4%B1%E8%B4%A5%E6%97%B6%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%85%9C%E5%BA%95"><span class="nav-text">6.3 JSON 解析失败时为什么需要兜底</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E5%AE%9E%E7%8E%B0%E6%90%9C%E7%B4%A2"><span class="nav-text">7. 实现搜索</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#7-1-%E7%94%9F%E6%88%90%E6%90%9C%E7%B4%A2%E6%9F%A5%E8%AF%A2"><span class="nav-text">7.1 生成搜索查询</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-2-%E5%A4%9A%E8%BD%AE%E6%90%9C%E7%B4%A2%E5%A6%82%E4%BD%95%E8%B0%83%E6%95%B4%E7%AD%96%E7%95%A5"><span class="nav-text">7.2 多轮搜索如何调整策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-3-%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C%E5%A6%82%E4%BD%95%E5%86%99%E5%9B%9E%E7%8A%B6%E6%80%81"><span class="nav-text">7.3 搜索结果如何写回状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-4-%E6%89%A7%E8%A1%8C%E7%BD%91%E9%A1%B5%E6%90%9C%E7%B4%A2"><span class="nav-text">7.4 执行网页搜索</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-5-%E6%90%9C%E7%B4%A2%E5%A4%B1%E8%B4%A5%E5%90%8E%E7%9A%84%E9%99%8D%E7%BA%A7%E7%AD%96%E7%95%A5"><span class="nav-text">7.5 搜索失败后的降级策略</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E5%AE%9E%E7%8E%B0%E7%BD%91%E9%A1%B5%E6%80%BB%E7%BB%93%E4%B8%8E%E4%BF%A1%E6%81%AF%E8%81%9A%E5%90%88"><span class="nav-text">8. 实现网页总结与信息聚合</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#8-1-%E7%BD%91%E9%A1%B5%E6%8A%93%E5%8F%96%EF%BC%9A%E4%BB%8E-URL-%E5%88%B0%E5%8E%9F%E5%A7%8B%E6%96%87%E6%9C%AC"><span class="nav-text">8.1 网页抓取：从 URL 到原始文本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-2-%E9%80%90%E6%9D%A1%E6%80%BB%E7%BB%93%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C"><span class="nav-text">8.2 逐条总结搜索结果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-3-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%85%88%E6%80%BB%E7%BB%93%E5%86%8D%E7%94%9F%E6%88%90%E6%8A%A5%E5%91%8A"><span class="nav-text">8.3 为什么要先总结再生成报告</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-4-fallback-%E6%9D%A5%E6%BA%90%E9%9C%80%E8%A6%81%E5%8D%95%E7%8B%AC%E8%AF%B4%E6%98%8E"><span class="nav-text">8.4 fallback 来源需要单独说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-5-research-summary-%E6%98%AF%E6%8A%A5%E5%91%8A%E7%94%9F%E6%88%90%E7%9A%84%E6%A0%B8%E5%BF%83%E4%B8%8A%E4%B8%8B%E6%96%87"><span class="nav-text">8.5 research_summary 是报告生成的核心上下文</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-%E5%BC%95%E5%85%A5%E8%AF%84%E4%BC%B0%E8%8A%82%E7%82%B9%E5%BD%A2%E6%88%90%E5%BE%AA%E7%8E%AF"><span class="nav-text">9. 引入评估节点形成循环</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#9-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E7%9B%B8%E5%85%B3%E6%80%A7%E8%AF%84%E4%BC%B0"><span class="nav-text">9.1 为什么需要相关性评估</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-2-evaluate-search-relevance-%E7%9A%84%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B"><span class="nav-text">9.2 evaluate_search_relevance 的执行流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-3-should-regenerate-queries-%E5%A6%82%E4%BD%95%E6%8E%A7%E5%88%B6%E5%90%8E%E7%BB%AD%E8%B7%AF%E5%BE%84"><span class="nav-text">9.3 should_regenerate_queries 如何控制后续路径</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-4-%E8%AF%84%E4%BC%B0%E8%8A%82%E7%82%B9%E7%9A%84%E8%BE%B9%E7%95%8C"><span class="nav-text">9.4 评估节点的边界</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-%E7%94%A8-StateGraph-%E7%BB%84%E7%BB%87%E5%AE%8C%E6%95%B4-Agent"><span class="nav-text">10. 用 StateGraph 组织完整 Agent</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#10-1-%E5%88%9B%E5%BB%BA-Graph-%E5%B9%B6%E6%B3%A8%E5%86%8C%E8%8A%82%E7%82%B9"><span class="nav-text">10.1 创建 Graph 并注册节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-2-%E6%B7%BB%E5%8A%A0%E5%9B%BA%E5%AE%9A%E8%B7%AF%E5%BE%84"><span class="nav-text">10.2 添加固定路径</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-3-%E6%B7%BB%E5%8A%A0%E6%9D%A1%E4%BB%B6%E8%B7%AF%E7%94%B1"><span class="nav-text">10.3 添加条件路由</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-4-%E6%9D%A1%E4%BB%B6%E8%B7%AF%E7%94%B1%E5%A6%82%E4%BD%95%E6%8E%A7%E5%88%B6%E5%BE%AA%E7%8E%AF"><span class="nav-text">10.4 条件路由如何控制循环</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-5-%E6%8A%A5%E5%91%8A%E8%8A%82%E7%82%B9%E4%B8%8E%E7%BB%93%E6%9D%9F%E8%8A%82%E7%82%B9"><span class="nav-text">10.5 报告节点与结束节点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E7%BC%96%E8%AF%91%E5%B9%B6%E8%BF%90%E8%A1%8C-Graph"><span class="nav-text">11. 编译并运行 Graph</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#11-1-run-research-%E7%9A%84%E6%95%B4%E4%BD%93%E7%BB%93%E6%9E%84"><span class="nav-text">11.1 run_research 的整体结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-2-initial-state-%E5%A6%82%E4%BD%95%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-text">11.2 initial_state 如何初始化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-3-%E4%B8%80%E6%AC%A1%E5%AE%8C%E6%95%B4%E6%89%A7%E8%A1%8C%E8%BF%87%E7%A8%8B"><span class="nav-text">11.3 一次完整执行过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-4-%E8%BF%90%E8%A1%8C%E5%85%A5%E5%8F%A3%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="nav-text">11.4 运行入口的作用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-%E6%80%BB%E7%BB%93"><span class="nav-text">12. 总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#12-1-%E4%BB%8E-Chain-%E5%88%B0-Graph-%E7%9A%84%E6%A0%B8%E5%BF%83%E5%8F%98%E5%8C%96"><span class="nav-text">12.1 从 Chain 到 Graph 的核心变化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#12-2-%E8%AF%84%E4%BC%B0%E5%92%8C%E5%BE%AA%E7%8E%AF%E8%AE%A9%E7%B3%BB%E7%BB%9F%E6%9B%B4%E6%8E%A5%E8%BF%91%E7%A0%94%E7%A9%B6%E8%BF%87%E7%A8%8B"><span class="nav-text">12.2 评估和循环让系统更接近研究过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#12-3-LangGraph-%E7%9A%84%E4%BB%B7%E5%80%BC%E5%9C%A8%E4%BA%8E%E8%AE%A9%E5%A4%8D%E6%9D%82%E6%B5%81%E7%A8%8B%E5%8F%AF%E6%8E%A7"><span class="nav-text">12.3 LangGraph 的价值在于让复杂流程可控</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#12-4-%E6%9C%80%E7%BB%88%E7%9A%84%E7%B3%BB%E7%BB%9F%E7%BB%93%E6%9E%84"><span class="nav-text">12.4 最终的系统结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#12-5-%E4%B8%8B%E4%B8%80%E6%AD%A5%E5%8F%AF%E4%BB%A5%E7%BB%A7%E7%BB%AD%E4%BC%98%E5%8C%96%E7%9A%84%E6%96%B9%E5%90%91"><span class="nav-text">12.5 下一步可以继续优化的方向</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#13-%E5%A4%87%E6%B3%A8"><span class="nav-text">13.备注</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">75</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">189</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2026/06/09/075-from-lcel-to-langgraph/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's Notes">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="从 LCEL 到 LangGraph：实现一个可循环决策的 Agent | KeyChan's Notes">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          从 LCEL 到 LangGraph：实现一个可循环决策的 Agent
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-06-09 22:19:12 / 修改时间：22:19:54" itemprop="dateCreated datePublished" datetime="2026-06-09T22:19:12+08:00">2026-06-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/AI%E5%8D%8F%E4%BD%9C%E5%B7%A5%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">AI协作工程</span></a>
+        </span>
+    </span>
+
+  
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2026/06/09/075-from-lcel-to-langgraph/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2026/06/09/075-from-lcel-to-langgraph/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>14k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>52 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>上一篇已经完成了一个基于 LCEL（LangChain Expression Language）的自动化网页研究总结案例。整个案例讲了如何把用户问题自动转换成结构化研究结果，流程并不复杂。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">用户问题 → 选择研究助手 → 生成搜索请求 → 执行网页搜索 → 抓取网页内容 → 总结信息 → 生成研究报告</span><br></pre></td></tr></table></figure>
+
+<p>从工程角度看，这已经是一个完整闭环。系统能够自动完成角色选择、搜索、抓取、总结和报告生成，适合大量路径明确的信息收集任务。</p>
+<span id="more"></span>
+<p>但它缺少一个关键能力：判断中间结果是否真的有效。比如搜索结果只是背景介绍、网页抓取质量很差、内容明显偏离问题时，流程仍会继续总结并生成报告。系统完成了流程，却不一定完成了研究。</p>
+<p>问题不在模型能力，而在流程设计。LCEL 更适合表达稳定、确定、顺序执行的结构。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">输入 → 处理 → 输出</span><br></pre></td></tr></table></figure>
+
+<p>它擅长把多个步骤组织成清晰的数据流，但默认假设每一步都会产生可继续使用的结果。现实中的研究过程通常不是这样，真实的信息收集更像一种持续推进过程。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">提出问题 → 收集信息 → 判断结果质量 → 调整方向 → 继续收集 → 形成结论</span><br></pre></td></tr></table></figure>
+
+<p>过程中存在状态积累、结果评估、路径调整以及重复尝试。因此，本篇不再继续扩展搜索能力或堆叠 Prompt，而是把上一篇基于 LCEL 的网页研究总结器，升级为一个具备状态管理、条件判断和循环执行能力的 LangGraph Agent。</p>
+<p>从这一章开始，关注点将逐渐从 Prompt、Chain 和模型调用，转向状态、节点、路径以及决策流程，系统不再只是把任务执行完，而开始判断任务是否已经做得足够好。</p>
+<h2 id="1-自动执行不等于真正具备研究能力"><a href="#1-自动执行不等于真正具备研究能力" class="headerlink" title="1. 自动执行不等于真正具备研究能力"></a><strong>1. 自动执行不等于真正具备研究能力</strong></h2><p>上一篇的案例已经具备完整自动化能力：输入问题之后，系统能够拆解任务、生成搜索请求、抓取网页信息，并输出结构化报告。</p>
+<p>这种结构适合用 LCEL 表达，因为 LCEL 擅长把多个能力模块连接成稳定的数据流。问题在于，它很难表达“什么时候应该停下来重新思考”。</p>
+<h3 id="1-1-从执行流程到研究过程"><a href="#1-1-从执行流程到研究过程" class="headerlink" title="1.1 从执行流程到研究过程"></a><strong>1.1 从执行流程到研究过程</strong></h3><p>自动执行和研究过程看起来相似，但目标并不相同。自动执行强调，</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">步骤完成 → 输出结果</span><br></pre></td></tr></table></figure>
+
+<p>研究过程强调：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">获得结果 → 判断结果是否有效 → 决定下一步</span><br></pre></td></tr></table></figure>
+
+<p>举一个典型例子，问题，”当前英伟达股票还值得买入吗？”，按照上一篇系统的流程，可能生成几组搜索词，并得到类似结果，</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">GPU 发展历史</span><br><span class="line">英伟达公司介绍</span><br><span class="line">图形处理器百科</span><br></pre></td></tr></table></figure>
+
+<p>这些内容本身没有错误，系统也能继续总结并生成报告。但真正的问题是，它们可能没有回答原问题。问题关注的是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">当前风险</span><br><span class="line">AI 芯片需求</span><br><span class="line">估值水平</span><br><span class="line">投资逻辑</span><br></pre></td></tr></table></figure>
+
+<p>而不是历史背景。系统完成了执行，却没有完成判断。完成流程 <strong>Execution</strong>，不等于完成研究 <strong>Decision</strong>。研究能力真正困难的部分，不是获得信息，而是决定哪些信息值得继续使用。</p>
+<h3 id="1-2-Workflow-的能力边界"><a href="#1-2-Workflow-的能力边界" class="headerlink" title="1.2 Workflow 的能力边界"></a><strong>1.2 Workflow 的能力边界</strong></h3><p>很多早期 AI 应用，本质上都属于 Workflow，结构通常类似：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">输入 → 固定步骤 → 固定输出 </span><br></pre></td></tr></table></figure>
+
+<p>例如客服问答：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">识别问题 → 检索知识 → 生成回答</span><br></pre></td></tr></table></figure>
+
+<p>例如内容生成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">输入主题 → Prompt → 生成文章</span><br></pre></td></tr></table></figure>
+
+<p>工作流可以很复杂，甚至包含几十个步骤，但共同特点是流程结构提前确定。系统负责控制，模型负责执行。这种模式最大的优势是可预测，因此工程实现通常比较稳定。</p>
+<p>但能力边界也很明显，当系统需要面对下面这些情况时，线性流程开始吃力：</p>
+<ul>
+<li>搜索结果明显偏题</li>
+<li>中间结果质量不足</li>
+<li>信息之间出现冲突</li>
+<li>当前结论缺少依据</li>
+<li>需要重新尝试另一种路径</li>
+</ul>
+<p>传统 Workflow 很难自然表达：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">执行结果 → 判断 → 调整策略 → 重新执行</span><br></pre></td></tr></table></figure>
+
+<p>一旦强行加入这些能力，就会出现大量 <code>if</code>、<code>while</code>、状态变量和异常处理。流程控制逐渐侵入业务代码，复杂度迅速上升。</p>
+<h3 id="1-3-真正缺失的是决策能力"><a href="#1-3-真正缺失的是决策能力" class="headerlink" title="1.3 真正缺失的是决策能力"></a><strong>1.3 真正缺失的是决策能力</strong></h3><p>很多系统升级时，第一反应是增加工具、模型或搜索源。但问题往往不在能力不足，而在系统不会决策。</p>
+<p>对于研究系统来说，真正需要回答的问题通常只有几个：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">信息是否相关</span><br><span class="line">资料是否充分</span><br><span class="line">是否继续搜索</span><br><span class="line">是否已经可以输出</span><br></pre></td></tr></table></figure>
+
+<p>只有能够回答这些问题，系统才开始具备研究特征。但判断能力不等于事实能力，即使系统会评估搜索结果、重新搜索、控制流程，也不能天然保证结果真实。模型仍然可能生成：</p>
+<ul>
+<li>看起来可信的数据</li>
+<li>看起来存在的来源</li>
+<li>看起来完整的逻辑链</li>
+</ul>
+<p>因此研究型 Agent 的目标不是生成更多内容，而是降低无效内容进入最终结论的概率。这也是下面引入 Agent 与 LangGraph 的原因：系统不再只关心执行流程，而开始关注目标如何持续推进。</p>
+<h2 id="2-Agent-与-Agentic-Workflow：从执行系统到决策系统"><a href="#2-Agent-与-Agentic-Workflow：从执行系统到决策系统" class="headerlink" title="2. Agent 与 Agentic Workflow：从执行系统到决策系统"></a><strong>2. Agent 与 Agentic Workflow：从执行系统到决策系统</strong></h2><p>理解了 Workflow 的边界之后，下一步的问题是，如果系统已经具备搜索、抓取、总结和生成能力，为什么还需要 Agent？</p>
+<p>答案不在工具数量，而在流程是否允许系统根据结果调整行为。Agent 不是“会自己思考的大模型”，更接近一种围绕目标持续推进任务的执行系统。区别不在模型，而在控制方式。</p>
+<h3 id="2-1-Agent-真正解决的问题是什么"><a href="#2-1-Agent-真正解决的问题是什么" class="headerlink" title="2.1 Agent 真正解决的问题是什么"></a><strong>2.1 Agent 真正解决的问题是什么</strong></h3><p>传统 Workflow 更像流水线，流程提前确定：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">输入 → 步骤A → 步骤B → 输出</span><br></pre></td></tr></table></figure>
+
+<p>系统默认每一步都会成功，只负责执行。而 Agent 更像一个不断推进目标的循环：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">目标 → 行动 → 观察结果 → 判断 → 继续行动</span><br></pre></td></tr></table></figure>
+
+<p>这里出现了一个新的环节：观察。系统不再认为执行结束就意味着任务结束，而是会根据执行结果决定后续动作。继续用研究任务举例，问题：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">某家公司未来三年是否值得长期投资</span><br></pre></td></tr></table></figure>
+
+<p>普通 Workflow：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">搜索 → 总结 → 生成报告</span><br></pre></td></tr></table></figure>
+
+<p>Agent：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">搜索 → 发现结果不足 → 重新搜索 → 发现观点冲突 → 继续补充 → 形成结论</span><br></pre></td></tr></table></figure>
+
+<p>执行路径开始变化，研究过程开始形成闭环。</p>
+<h3 id="2-2-Agent-的核心不是自由，而是受控决策"><a href="#2-2-Agent-的核心不是自由，而是受控决策" class="headerlink" title="2.2 Agent 的核心不是自由，而是受控决策"></a><strong>2.2 Agent 的核心不是自由，而是受控决策</strong></h3><p>很多关于 Agent 的描述容易让人误以为系统拥有完全自主能力。实际上，工程里的 Agent 很少允许模型无限决策。真正可靠的结构通常是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">模型参与判断 → 系统控制边界 → 工具完成执行</span><br></pre></td></tr></table></figure>
+
+<p>模型负责判断结果是否相关、是否需要继续、下一步方向是什么；系统负责限制允许走哪些路径、最多执行多少轮、什么时候停止。例如搜索系统中，模型可以判断当前信息不足，但系统规定最多重新搜索三次，达到上限后必须结束流程。</p>
+<p>这种设计的意义不是限制模型，而是避免系统陷入无限循环或持续生成低价值内容。因此 Agent 的价值不是自由，而是<strong>有边界的动态决策</strong>。</p>
+<h3 id="2-3-状态开始成为整个系统的新中心"><a href="#2-3-状态开始成为整个系统的新中心" class="headerlink" title="2.3 状态开始成为整个系统的新中心"></a><strong>2.3 状态开始成为整个系统的新中心</strong></h3><p>一旦允许系统动态调整流程，就必须回答：当前执行到了哪里，已经获得了什么信息，下一步依据什么继续。这些内容不能散落在函数调用之间，而要沉淀为状态。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">读取状态 → 执行动作 → 更新状态 → 决定下一步</span><br></pre></td></tr></table></figure>
+
+<p>例如一个研究任务，初始状态：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">问题</span><br></pre></td></tr></table></figure>
+
+<p>搜索完成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">问题 + 搜索结果</span><br></pre></td></tr></table></figure>
+
+<p>总结之后：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">问题 + 搜索结果 + 摘要</span><br></pre></td></tr></table></figure>
+
+<p>评估之后：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">问题 + 摘要 + 相关性结果</span><br></pre></td></tr></table></figure>
+
+<p>状态不断累积，系统不再依赖某个函数返回值，而是依赖整个运行过程。这里出现了一个后面实现的核心对象：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ResearchState</span><br></pre></td></tr></table></figure>
+
+<p>它不只是参数集合，而是<strong>整个 Agent 在执行过程中持续维护的状态上下文</strong>。</p>
+<h3 id="2-4-判断能力并不等于真实性保证"><a href="#2-4-判断能力并不等于真实性保证" class="headerlink" title="2.4 判断能力并不等于真实性保证"></a><strong>2.4 判断能力并不等于真实性保证</strong></h3><p>到这里容易产生另一个误解，既然系统已经开始评估结果、重新搜索、动态调整，是不是意味着结果更可信。</p>
+<p>答案是否定的，评估能力解决的是流程问题，不是事实问题。例如搜索后得到多篇内容，系统可以判断：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">相关</span><br><span class="line">不相关</span><br><span class="line">信息充分</span><br><span class="line">信息不足</span><br></pre></td></tr></table></figure>
+
+<p>但无法判断：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">内容是否真实</span><br><span class="line">来源是否可靠</span><br><span class="line">数据是否过期</span><br><span class="line">引用是否准确</span><br></pre></td></tr></table></figure>
+
+<p>模型很擅长组织语言，也很容易生成逻辑连贯的解释。因此研究型 Agent 的目标不是保证真实性，而是提高过程质量，减少无效信息进入最终结论。即使最终生成的内容结构完整、来源丰富，也仍然需要保持一个基本原则，<strong>看起来真实，并不等于真实存在。</strong></p>
+<p>到这里，关注点开始从“先执行谁、后执行谁”，转向“当前状态是什么、下一步去哪、什么时候结束”。</p>
+<p><strong>小结</strong></p>
+<p>Workflow 和 Agent 的差别，不在模型能力，也不在工具数量，而在流程是否允许根据结果持续调整。Workflow 更关注：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">执行 → 输出</span><br></pre></td></tr></table></figure>
+
+<p>Agent 更关注：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">目标 → 行动 → 判断 → 继续推进</span><br></pre></td></tr></table></figure>
+
+<p>为了实现这种能力，系统要围绕状态组织流程。下面进入 LangGraph：它解决的是状态如何组织、节点如何连接，以及流程如何形成可控循环。</p>
+<h2 id="3-LangGraph：从组织调用变成组织状态"><a href="#3-LangGraph：从组织调用变成组织状态" class="headerlink" title="3. LangGraph：从组织调用变成组织状态"></a><strong>3. LangGraph：从组织调用变成组织状态</strong></h2><p>理解了 Agent 的目标之后，真正的问题变成：如何把搜索、抓取、总结和报告生成这些能力，组织成一个能够持续运行、允许回退、支持判断的系统。</p>
+<p>继续沿用 Chain 也能实现，但需要不断增加条件判断、循环和状态变量。逻辑增长后，系统会很快变得难以维护。</p>
+<p>LangGraph 解决的问题，不是模型能力，而是流程组织方式，它把关注点从函数调用，转移到状态流转。核心思想可以概括成一句话，<strong>让状态在节点之间流动，而不是让函数彼此调用。</strong></p>
+<h3 id="3-1-LangGraph-不是替代-LangChain，而是改变控制方式"><a href="#3-1-LangGraph-不是替代-LangChain，而是改变控制方式" class="headerlink" title="3.1 LangGraph 不是替代 LangChain，而是改变控制方式"></a><strong>3.1 LangGraph 不是替代 LangChain，而是改变控制方式</strong></h3><p>第一次接触 LangGraph 时，容易误以为原来的 Prompt、模型调用和工具能力都会消失。实际上，这些能力都会保留。例如这个网页研究系统中：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Prompt</span><br><span class="line">LLM</span><br><span class="line">网页搜索</span><br><span class="line">网页抓取</span><br><span class="line">内容总结</span><br><span class="line">报告生成</span><br></pre></td></tr></table></figure>
+
+<p>这些模块继续存在，变化的是组织方式。以前关注：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">先调用谁</span><br><span class="line">后调用谁</span><br></pre></td></tr></table></figure>
+
+<p>现在关注：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">当前状态是什么</span><br><span class="line">下一步应该去哪</span><br><span class="line">什么时候结束</span><br></pre></td></tr></table></figure>
+
+<p>控制权从代码顺序转移到状态推进，流程变成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">状态 → 节点执行 → 状态更新 → 路径判断 → 继续执行</span><br></pre></td></tr></table></figure>
+
+<p>系统不再依赖某个函数返回值，而依赖完整上下文。</p>
+<h3 id="3-2-Node、Edge、State：Graph-的三个基本概念"><a href="#3-2-Node、Edge、State：Graph-的三个基本概念" class="headerlink" title="3.2 Node、Edge、State：Graph 的三个基本概念"></a><strong>3.2 Node、Edge、State：Graph 的三个基本概念</strong></h3><p>LangGraph 的抽象并不复杂，整个系统可以拆成三个核心组成部分。</p>
+<h4 id="3-2-1-Node：动作"><a href="#3-2-1-Node：动作" class="headerlink" title="3.2.1 Node：动作"></a><strong>3.2.1 Node：动作</strong></h4><p>Node 表示执行动作，每个节点只负责完成一件事情，例如当前研究系统可以拆成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">选择研究助手</span><br><span class="line">生成搜索请求</span><br><span class="line">执行搜索</span><br><span class="line">网页总结</span><br><span class="line">评估结果</span><br><span class="line">生成报告</span><br></pre></td></tr></table></figure>
+
+<p>节点的职责通常很简单：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">读取状态 → 处理 → 返回状态更新</span><br></pre></td></tr></table></figure>
+
+<p>节点本身不决定流程，只完成动作。因此节点可以独立维护和测试。例如替换搜索引擎时，只需要修改搜索节点。</p>
+<h4 id="3-2-2-Edge：路径"><a href="#3-2-2-Edge：路径" class="headerlink" title="3.2.2 Edge：路径"></a><strong>3.2.2 Edge：路径</strong></h4><p>Edge 表示节点之间如何连接，最简单情况：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">A → B → C</span><br></pre></td></tr></table></figure>
+
+<p>这仍然属于固定流程，真正开始体现 Graph 价值的是条件路径：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">        ↗ B</span><br><span class="line">A → 判断</span><br><span class="line">        ↘ C</span><br></pre></td></tr></table></figure>
+
+<p>不同状态走向不同节点，流程不再提前完全确定。以研究任务为例，搜索完成后，如果结果足够相关，就生成报告；如果结果不够，就重新生成搜索策略并继续搜索。</p>
+<h4 id="3-2-3-State：运行现场"><a href="#3-2-3-State：运行现场" class="headerlink" title="3.2.3 State：运行现场"></a><strong>3.2.3 State：运行现场</strong></h4><p>State 是整个系统最重要的一层，它记录当前执行过程中的全部上下文，例如研究系统最终会保存：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">问题</span><br><span class="line">助手信息</span><br><span class="line">搜索请求</span><br><span class="line">搜索结果</span><br><span class="line">网页摘要</span><br><span class="line">评估结果</span><br><span class="line">最终报告</span><br></pre></td></tr></table></figure>
+
+<p>传统 Chain 更像：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">输出 → 输入</span><br></pre></td></tr></table></figure>
+
+<p>Graph 更像：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">读取状态 → 处理 → 更新状态</span><br></pre></td></tr></table></figure>
+
+<p>状态不会随着某一步结束而消失，而会持续生长。后面的代码实现里，这部分对应 <code>ResearchState</code>，也就是整个 Agent 的核心对象。</p>
+<h3 id="3-3-从概念迁移到系统迁移"><a href="#3-3-从概念迁移到系统迁移" class="headerlink" title="3.3 从概念迁移到系统迁移"></a><strong>3.3 从概念迁移到系统迁移</strong></h3><p>理解 Node、Edge 和 State 之后，就可以在上一篇能力基础上做升级。上一篇已经完成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">搜索</span><br><span class="line">抓取</span><br><span class="line">总结</span><br><span class="line">报告</span><br></pre></td></tr></table></figure>
+
+<p>这些能力不需要大的调整，真正变化的是组织方式，改成这样：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">状态 → 节点 → 状态更新 → 条件路由</span><br></pre></td></tr></table></figure>
+
+<p>这意味着原来的函数需要调整成节点。例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">select_assistant()</span><br><span class="line">	↓</span><br><span class="line">generate_search_queries()</span><br><span class="line">	↓</span><br><span class="line">perform_web_searches()</span><br><span class="line">	↓</span><br><span class="line">summarize_search_results()</span><br><span class="line">	↓</span><br><span class="line">evaluate_search_relevance()</span><br><span class="line">	↓</span><br><span class="line">write_research_report()</span><br></pre></td></tr></table></figure>
+
+<p>这些函数不再直接互相调用，只处理状态。真正决定执行顺序的是 Graph。</p>
+<h3 id="3-4-Graph-的价值不是分支，而是持续推进目标"><a href="#3-4-Graph-的价值不是分支，而是持续推进目标" class="headerlink" title="3.4 Graph 的价值不是分支，而是持续推进目标"></a><strong>3.4 Graph 的价值不是分支，而是持续推进目标</strong></h3><p>很多介绍 LangGraph 时，会强调支持：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">循环</span><br><span class="line">条件判断</span><br><span class="line">多分支</span><br></pre></td></tr></table></figure>
+
+<p>这些都成立，但更核心的是：LangGraph 让流程围绕目标持续推进。以前：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">步骤完成 → 结束</span><br></pre></td></tr></table></figure>
+
+<p>现在：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">获得结果 → 判断是否满足目标 → 决定是否继续</span><br></pre></td></tr></table></figure>
+
+<p>系统不再默认“搜索完成就可以写报告”，而是判断当前资料是否足以支持结论。如果不能，就继续收集，直到满足条件或达到退出边界。</p>
+<p>到这里，迁移思路已经讲完了。下面开始把上一篇的网页研究总结器一步一步改造成可执行的 LangGraph Agent。</p>
+<h2 id="4-将网页研究总结器拆成-Agent"><a href="#4-将网页研究总结器拆成-Agent" class="headerlink" title="4. 将网页研究总结器拆成 Agent"></a><strong>4. 将网页研究总结器拆成 Agent</strong></h2><p>完成概念迁移之后，接下来要回到原来的网页研究总结器，上一篇系统已经具备完整能力。能够选择助手、生成搜索词、执行网页搜索、抓取网页内容、总结信息并生成报告。</p>
+<p>所以升级为 LangGraph Agent，并不是把原来的代码全部推倒重写，而是重新拆分和组织，核心问题变成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">哪些能力应该变成节点</span><br><span class="line">哪些信息应该进入状态</span><br><span class="line">哪些地方需要条件判断</span><br></pre></td></tr></table></figure>
+
+<p>原来的系统更像一条流水线，现在要把它改造成一个可判断、可回退、可循环的状态图。</p>
+<h3 id="4-1-从连续步骤拆成独立节点"><a href="#4-1-从连续步骤拆成独立节点" class="headerlink" title="4.1 从连续步骤拆成独立节点"></a><strong>4.1 从连续步骤拆成独立节点</strong></h3><p>上一篇的流程可以概括为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">研究问题 → 搜索 → 总结 → 报告</span><br></pre></td></tr></table></figure>
+
+<p>这个结构足够清晰，但过于线性，每一步默认都会产生有效结果。升级后，需要把流程拆得更明确：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">选择研究助手 → 生成搜索请求 → 执行网页搜索 → 抓取并总结网页 → 评估结果相关性 → 生成研究报告</span><br></pre></td></tr></table></figure>
+
+<p>表面上步骤变多了，但其实思路反而更清楚，因为每个节点只负责一件事。</p>
+<ul>
+<li>选择助手节点只负责判断当前问题适合哪个研究角色。</li>
+<li>生成搜索请求节点只负责把问题转换成搜索方向。</li>
+<li>搜索节点只负责拿到网页链接。</li>
+<li>总结节点只负责从网页文本中提炼信息。</li>
+<li>评估节点只负责判断当前信息是否足以继续。</li>
+<li>报告节点只负责基于已有资料组织最终结果。</li>
+</ul>
+<p>节点拆开之后，复杂度不会集中在一个大函数里，后续调试、替换和扩展都会更方便。</p>
+<h3 id="4-2-从函数传参变成共享状态"><a href="#4-2-从函数传参变成共享状态" class="headerlink" title="4.2 从函数传参变成共享状态"></a><strong>4.2 从函数传参变成共享状态</strong></h3><p>节点拆开之后，马上会遇到一个问题，中间结果放在哪里。如果继续沿用普通函数调用，流程很容易变成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">函数A返回结果 → 传给函数B → 函数B再返回结果 → 传给函数C</span><br></pre></td></tr></table></figure>
+
+<p>步骤少时没有问题，一旦加入评估、重试和循环，参数传递会越来越混乱。LangGraph 的做法是维护统一状态，在这个系统中，状态大致包含：</p>
+<ul>
+<li>系统开始时，状态中只有用户问题。</li>
+<li>选择助手之后，状态增加 <code>assistant_info</code>。</li>
+<li>生成搜索词之后，状态增加 <code>search_queries</code>。</li>
+<li>搜索完成之后，状态增加 <code>search_results</code>。</li>
+<li>总结完成之后，状态增加 <code>research_summary</code>。</li>
+<li>评估完成之后，状态增加 <code>relevance_evaluation</code> 和 <code>should_regenerate_queries</code>。</li>
+<li>最终生成报告之后，状态增加 <code>final_report</code>。</li>
+</ul>
+<p>这些字段描述了 Agent 当前的运行状态，整个过程中状态在不断完善，这也是 Agent 和普通 Chain 最大的差别之一。</p>
+<h3 id="4-3-引入评估节点，让流程形成闭环"><a href="#4-3-引入评估节点，让流程形成闭环" class="headerlink" title="4.3 引入评估节点，让流程形成闭环"></a><strong>4.3 引入评估节点，让流程形成闭环</strong></h3><p>原来的系统是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">搜索 → 总结 → 报告</span><br></pre></td></tr></table></figure>
+
+<p>升级之后，中间多了一个关键节点，<strong>评估</strong>，新的结构变成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">搜索 → 总结 → 评估 → 继续或输出</span><br></pre></td></tr></table></figure>
+
+<p>这个节点决定了系统是否真正具备 Agentic Workflow 的特征。</p>
+<p>例如问题是，<strong>某项技术未来五年的发展趋势如何？</strong> 如果第一次搜索结果主要是百科介绍、历史背景和基础定义，评估节点就应该判断，当前资料不足以支撑趋势分析。随后系统可以重新生成更具体的搜索词，例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">行业报告</span><br><span class="line">市场规模</span><br><span class="line">技术路线</span><br><span class="line">企业案例</span><br><span class="line">政策变化</span><br></pre></td></tr></table></figure>
+
+<p>然后再进入下一轮搜索，这样流程就从一次性执行，变成了：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">执行 → 观察 → 判断 → 调整 → 继续执行</span><br></pre></td></tr></table></figure>
+
+<p>这就是 Agent 的基本形态。</p>
+<h3 id="4-4-循环必须有退出边界"><a href="#4-4-循环必须有退出边界" class="headerlink" title="4.4 循环必须有退出边界"></a><strong>4.4 循环必须有退出边界</strong></h3><p>只要系统允许重新搜索，就必须设置边界，否则流程可能一直停留在：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">搜索结果不理想 → 重新生成搜索词 → 继续搜索 → 仍然不理想 → 继续循环</span><br></pre></td></tr></table></figure>
+
+<p>这种循环看似智能，但它可能浪费成本，也可能不断生成看似合理但价值不高的内容，因此代码中需要设计一个最大尝试次数，例如最多三轮，达到上限之后，即使结果不够理想，也要进入报告生成阶段，但最终报告应该保留限制说明。例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">当前资料有限</span><br><span class="line">部分结论需要谨慎看待</span><br><span class="line">搜索结果未能充分覆盖问题</span><br></pre></td></tr></table></figure>
+
+<p>这才是更负责任的 Agent 设计。系统不能因为多执行了几轮，就假装已经掌握充分证据，尤其在投资、医疗、法律、政策等场景中，更需要明确边界。循环和评估只能提升过程质量，不能替代事实核验。</p>
+<h3 id="4-5-从架构设计到代码实现"><a href="#4-5-从架构设计到代码实现" class="headerlink" title="4.5 从架构设计到代码实现"></a><strong>4.5 从架构设计到代码实现</strong></h3><p>到这里，网页研究总结器的 Agent 化设计已经清楚，原来的能力不变，改变的是组织方式：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">线性链式调用 → 状态驱动图结构</span><br></pre></td></tr></table></figure>
+
+<p>接下来进入代码实现时，需要依次解决四个问题。</p>
+<ul>
+<li>定义统一状态对象。</li>
+<li>把每个能力封装成节点函数。</li>
+<li>用条件路由决定是否重新搜索。</li>
+<li>编译并运行完整 Graph。</li>
+</ul>
+<p>后面的实现会围绕这条主线展开。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ResearchState → Node → Edge → Conditional Edge → Compiled Graph</span><br></pre></td></tr></table></figure>
+
+<h2 id="5-定义统一状态对象-ResearchState"><a href="#5-定义统一状态对象-ResearchState" class="headerlink" title="5. 定义统一状态对象 ResearchState"></a><strong>5. 定义统一状态对象 ResearchState</strong></h2><p>第一步先定义状态。LangGraph 的核心是“节点读取状态、处理状态、返回状态更新”。在这个网页研究 Agent 中，所有节点都围绕同一个状态对象运行：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ResearchState</span>(<span class="title class_ inherited__">TypedDict</span>):  </span><br><span class="line">	user_question: <span class="built_in">str</span>  </span><br><span class="line">	assistant_info: <span class="type">Optional</span>[AssistantInfo]  </span><br><span class="line">	search_queries: <span class="type">Optional</span>[<span class="type">List</span>[SearchQuery]]  </span><br><span class="line">	search_results: <span class="type">Optional</span>[<span class="type">List</span>[SearchResult]]  </span><br><span class="line">	search_summaries: <span class="type">Optional</span>[<span class="type">List</span>[SearchSummary]]  </span><br><span class="line">	research_summary: <span class="type">Optional</span>[<span class="built_in">str</span>]</span><br><span class="line">	relevance_evaluation: <span class="type">Optional</span>[<span class="type">Dict</span>[<span class="built_in">str</span>, <span class="type">Any</span>]]  </span><br><span class="line">	should_regenerate_queries: <span class="type">Optional</span>[<span class="built_in">bool</span>]  </span><br><span class="line">	iteration_count: <span class="type">Optional</span>[<span class="built_in">int</span>]</span><br><span class="line">	used_fallback_search: <span class="type">Optional</span>[<span class="built_in">bool</span>]  </span><br><span class="line">	final_report: <span class="type">Optional</span>[<span class="built_in">str</span>]  </span><br></pre></td></tr></table></figure>
+
+<p>这段代码定义了 Agent 的运行状态。</p>
+<h3 id="5-1-State-不是参数容器，而是运行状态"><a href="#5-1-State-不是参数容器，而是运行状态" class="headerlink" title="5.1 State 不是参数容器，而是运行状态"></a><strong>5.1 State 不是参数容器，而是运行状态</strong></h3><p>在普通函数式流程里，中间结果通常通过参数一级一级传递，例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">搜索词 → 搜索结果 → 网页摘要 → 最终报告</span><br></pre></td></tr></table></figure>
+
+<p>这种方式适合短流程。但一旦系统需要循环、回退和条件判断，单纯依靠函数传参就会变得混乱。LangGraph 的做法是把中间结果放进统一状态，节点只关心两件事：</p>
+<ul>
+<li>从状态中读取自己需要的信息。</li>
+<li>把新结果写回状态。</li>
+</ul>
+<p>例如选择助手节点读取：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">user_question = state[<span class="string">&quot;user_question&quot;</span>]</span><br></pre></td></tr></table></figure>
+
+<p>然后返回：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> &#123;</span><br><span class="line">    <span class="string">&quot;assistant_info&quot;</span>: assistant_info</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里并没有直接调用下一个函数，只是更新状态。后续由 Graph 决定下一步去哪。</p>
+<h3 id="5-2-ResearchState-中的核心字段"><a href="#5-2-ResearchState-中的核心字段" class="headerlink" title="5.2 ResearchState 中的核心字段"></a><strong>5.2 ResearchState 中的核心字段</strong></h3><p><code>ResearchState</code> 中的字段可以分成几类。</p>
+<ul>
+<li>第一类是原始输入。</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">user_question: <span class="built_in">str</span></span><br></pre></td></tr></table></figure>
+
+<p>它保存最初的问题，后续所有搜索、总结、评估和报告生成都围绕它展开。</p>
+<ul>
+<li>第二类是研究策略。</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">assistant_info: <span class="type">Optional</span>[AssistantInfo]</span><br><span class="line">search_queries: <span class="type">Optional</span>[<span class="type">List</span>[SearchQuery]]</span><br></pre></td></tr></table></figure>
+
+<p><code>assistant_info</code> 保存选择出来的研究助手类型和研究指令，<code>search_queries</code> 保存当前轮生成的搜索请求。</p>
+<ul>
+<li>第三类是外部信息。</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">search_results: <span class="type">Optional</span>[<span class="type">List</span>[SearchResult]]</span><br><span class="line">search_summaries: <span class="type">Optional</span>[<span class="type">List</span>[SearchSummary]]</span><br><span class="line">research_summary: <span class="type">Optional</span>[<span class="built_in">str</span>]</span><br></pre></td></tr></table></figure>
+
+<p><code>search_results</code> 保存网页搜索得到的链接，<code>search_summaries</code> 保存单个网页的总结，<code>research_summary</code> 则是所有网页摘要合并后的研究上下文。</p>
+<ul>
+<li>第四类是流程控制。</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">relevance_evaluation: <span class="type">Optional</span>[<span class="type">Dict</span>[<span class="built_in">str</span>, <span class="type">Any</span>]]</span><br><span class="line">should_regenerate_queries: <span class="type">Optional</span>[<span class="built_in">bool</span>]</span><br><span class="line">iteration_count: <span class="type">Optional</span>[<span class="built_in">int</span>]</span><br><span class="line">used_fallback_search: <span class="type">Optional</span>[<span class="built_in">bool</span>]</span><br></pre></td></tr></table></figure>
+
+<p>这几个字段决定系统是否继续搜索。<code>relevance_evaluation</code> 保存相关性评估结果，<code>should_regenerate_queries</code> 表示是否需要重新生成搜索词，<code>iteration_count</code> 用来限制循环次数，<code>used_fallback_search</code> 记录是否触发备用搜索，避免后续把降级结果误认为正常研究结果。</p>
+<ul>
+<li>第五类是最终输出。</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">final_report: <span class="type">Optional</span>[<span class="built_in">str</span>]</span><br></pre></td></tr></table></figure>
+
+<p>它保存最后生成的研究报告。</p>
+<p>这些字段组合起来，构成完整的研究过程。</p>
+<h3 id="5-3-状态如何随着流程逐步生长"><a href="#5-3-状态如何随着流程逐步生长" class="headerlink" title="5.3 状态如何随着流程逐步生长"></a><strong>5.3 状态如何随着流程逐步生长</strong></h3><p>初始状态中，大部分字段都是空的。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">initial_state = &#123;</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: question,</span><br><span class="line">    <span class="string">&quot;assistant_info&quot;</span>: <span class="literal">None</span>,</span><br><span class="line">    <span class="string">&quot;search_queries&quot;</span>: <span class="literal">None</span>,</span><br><span class="line">    <span class="string">&quot;search_results&quot;</span>: <span class="literal">None</span>,</span><br><span class="line">    <span class="string">&quot;search_summaries&quot;</span>: <span class="literal">None</span>,</span><br><span class="line">    <span class="string">&quot;research_summary&quot;</span>: <span class="literal">None</span>,</span><br><span class="line">    <span class="string">&quot;used_fallback_search&quot;</span>: <span class="literal">False</span>,</span><br><span class="line">    <span class="string">&quot;relevance_evaluation&quot;</span>: <span class="literal">None</span>,</span><br><span class="line">    <span class="string">&quot;should_regenerate_queries&quot;</span>: <span class="literal">None</span>,</span><br><span class="line">    <span class="string">&quot;iteration_count&quot;</span>: <span class="number">0</span>,</span><br><span class="line">    <span class="string">&quot;final_report&quot;</span>: <span class="literal">None</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>系统开始运行时，只有问题是真正有值的。随后每个节点补充一部分状态。选择助手后：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">user_question</span><br><span class="line">assistant_info</span><br></pre></td></tr></table></figure>
+
+<p>生成搜索词后：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">user_question</span><br><span class="line">assistant_info</span><br><span class="line">search_queries</span><br></pre></td></tr></table></figure>
+
+<p>完成搜索和总结后：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">user_question</span><br><span class="line">assistant_info</span><br><span class="line">search_queries</span><br><span class="line">search_results</span><br><span class="line">search_summaries</span><br><span class="line">research_summary</span><br></pre></td></tr></table></figure>
+
+<p>完成评估后：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">relevance_evaluation</span><br><span class="line">should_regenerate_queries</span><br><span class="line">iteration_count</span><br><span class="line">used_fallback_search</span><br></pre></td></tr></table></figure>
+
+<p>最终报告生成后：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">final_report</span><br></pre></td></tr></table></figure>
+
+<p>状态不是一次性写完，而是在流程中不断补全。Agent 因此可以基于完整上下文做判断，而不是只依赖某一步的返回值。</p>
+<h3 id="5-4-TypedDict-的作用"><a href="#5-4-TypedDict-的作用" class="headerlink" title="5.4 TypedDict 的作用"></a><strong>5.4 TypedDict 的作用</strong></h3><p>这里使用 <code>TypedDict</code> 定义状态结构，可以让代码结构更清晰。例如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 每个搜索请求都包含搜索语句和原始问题。</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">SearchQuery</span>(<span class="title class_ inherited__">TypedDict</span>):</span><br><span class="line">    search_query: <span class="built_in">str</span></span><br><span class="line">    user_question: <span class="built_in">str</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 每条搜索结果不仅包含 URL，还保留它来自哪个搜索词，以及是否为降级结果。</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">SearchResult</span>(<span class="title class_ inherited__">TypedDict</span>):</span><br><span class="line">    result_url: <span class="built_in">str</span></span><br><span class="line">    search_query: <span class="built_in">str</span></span><br><span class="line">    user_question: <span class="built_in">str</span></span><br><span class="line">    is_fallback: <span class="type">Optional</span>[<span class="built_in">bool</span>]</span><br></pre></td></tr></table></figure>
+
+<p>这种设计便于调试。最终报告出问题时，可以顺着状态回看：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">哪个搜索词产生了这个链接</span><br><span class="line">哪个链接生成了这段摘要</span><br><span class="line">摘要是否进入了最终报告</span><br></pre></td></tr></table></figure>
+
+<p>状态结构越清楚，运行过程越容易追踪。</p>
+<p><strong>小结</strong></p>
+<p><code>ResearchState</code> 是整个 LangGraph Agent 的基础。它不是参数集合，而是系统执行过程中的共享上下文：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Chain 关注输入输出</span><br><span class="line">Graph 关注状态流转</span><br></pre></td></tr></table></figure>
+
+<p>后续所有节点都遵循同一种模式：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">读取 ResearchState → 完成一个动作 → 返回状态更新</span><br></pre></td></tr></table></figure>
+
+<p>有了统一状态之后，下一步就可以把原来的能力拆成节点。</p>
+<h2 id="6-实现节点"><a href="#6-实现节点" class="headerlink" title="6. 实现节点"></a><strong>6. 实现节点</strong></h2><p>有了 <code>ResearchState</code> 之后，下一步就是把原来的能力拆成节点。在 LangGraph 中，节点本质上就是普通函数，它不需要知道整个流程怎么走，也不需要直接调用下一个函数，只需要完成自己的职责，然后返回需要更新的状态字段。</p>
+<p>第一个节点是助手选择节点：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">select_assistant</span>(<span class="params">state: <span class="type">Dict</span>[<span class="built_in">str</span>, <span class="type">Any</span>]</span>) -&gt; <span class="type">Dict</span>[<span class="built_in">str</span>, <span class="type">Any</span>]:</span><br></pre></td></tr></table></figure>
+
+<p>它负责根据用户问题选择合适的研究助手，并把结果写入 <code>assistant_info</code>。</p>
+<h3 id="6-1-select-assistant-的基本结构"><a href="#6-1-select-assistant-的基本结构" class="headerlink" title="6.1 select_assistant 的基本结构"></a><strong>6.1 select_assistant 的基本结构</strong></h3><p>这个节点首先从状态中读取原始问题：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">user_question = state[<span class="string">&quot;user_question&quot;</span>]</span><br></pre></td></tr></table></figure>
+
+<p>然后把问题填充进助手选择 Prompt：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">prompt = ASSISTANT_SELECTION_PROMPT_TEMPLATE.<span class="built_in">format</span>(</span><br><span class="line">    user_question=user_question</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>接着调用模型：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">llm = get_llm()</span><br><span class="line">response = llm.invoke(prompt)</span><br><span class="line">response_text = response.content</span><br></pre></td></tr></table></figure>
+
+<p>模型返回的内容不是直接写入状态，而是先解析成 JSON，因为后续节点需要结构化使用助手信息，然后节点返回：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> &#123;</span><br><span class="line">    <span class="string">&quot;assistant_info&quot;</span>: assistant_info</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最终期望得到的结果类似：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span>  </span><br><span class="line">	&#x27;assistant_info&#x27;<span class="punctuation">:</span>  </span><br><span class="line">		<span class="punctuation">&#123;</span>  </span><br><span class="line">			&#x27;assistant_type&#x27;<span class="punctuation">:</span> &#x27;金融分析助手&#x27;<span class="punctuation">,</span>  </span><br><span class="line">	        &#x27;assistant_instructions&#x27;<span class="punctuation">:</span> &#x27;你是一名资深金融分析 AI 助手。你的核心目标是...&#x27;<span class="punctuation">,</span>  </span><br><span class="line">			&#x27;user_question&#x27;<span class="punctuation">:</span> &#x27;当前英伟达股票还值得买入吗？&#x27;  </span><br><span class="line">	    <span class="punctuation">&#125;</span>  </span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>这一步完成后，状态中就多了研究角色和研究指令，后续生成搜索词时，就可以基于这个角色决定搜索方向。</p>
+<h3 id="6-2-为什么助手信息要写回状态"><a href="#6-2-为什么助手信息要写回状态" class="headerlink" title="6.2 为什么助手信息要写回状态"></a><strong>6.2 为什么助手信息要写回状态</strong></h3><p>助手选择并不是为了让系统看起来更复杂，它的作用是给后续研究过程提供策略约束。同样是一个问题，不同领域需要关注的信息完全不同。例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">苹果未来三年值得投资吗</span><br></pre></td></tr></table></figure>
+
+<p>金融分析助手会关注：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">财报</span><br><span class="line">估值</span><br><span class="line">收入结构</span><br><span class="line">竞争格局</span><br><span class="line">风险因素</span><br></pre></td></tr></table></figure>
+
+<p>旅游向导助手显然不适合处理这个问题，再比如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">东京三日游怎么安排</span><br></pre></td></tr></table></figure>
+
+<p>旅游向导助手会关注：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">景点</span><br><span class="line">交通</span><br><span class="line">路线</span><br><span class="line">时间安排</span><br><span class="line">文化体验</span><br></pre></td></tr></table></figure>
+
+<p>金融分析助手也不合适。所以 <code>assistant_info</code> 的核心作用，是把用户问题转成更明确的研究视角。在状态中保存这个字段后，后续节点不需要重新判断任务类型，只需要读取：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">assistant_info = state[<span class="string">&quot;assistant_info&quot;</span>]</span><br><span class="line">assistant_instructions = assistant_info[<span class="string">&quot;assistant_instructions&quot;</span>]</span><br></pre></td></tr></table></figure>
+
+<p>然后继续执行，这就是状态复用的价值。</p>
+<h3 id="6-3-JSON-解析失败时为什么需要兜底"><a href="#6-3-JSON-解析失败时为什么需要兜底" class="headerlink" title="6.3 JSON 解析失败时为什么需要兜底"></a><strong>6.3 JSON 解析失败时为什么需要兜底</strong></h3><p>模型输出虽然可以通过 Prompt 约束，但不能保证每次都严格返回合法 JSON，因此代码中做了异常处理：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span>:  </span><br><span class="line">    <span class="comment"># 提取响应中的 JSON 部分  </span></span><br><span class="line">    json_start = response_text.find(<span class="string">&#x27;&#123;&#x27;</span>)  </span><br><span class="line">    json_end = response_text.rfind(<span class="string">&#x27;&#125;&#x27;</span>) + <span class="number">1</span>  </span><br><span class="line">    json_str = response_text[json_start:json_end]  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 解析 JSON    </span></span><br><span class="line">    assistant_info = json.loads(json_str)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># 返回更新后的状态对象  </span></span><br><span class="line">    <span class="keyword">return</span> &#123;  </span><br><span class="line">        <span class="string">&quot;assistant_info&quot;</span>: assistant_info  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">except</span> Exception <span class="keyword">as</span> e:  </span><br><span class="line">    <span class="comment"># 如果解析失败，默认通用研究助手  </span></span><br><span class="line">    default_assistant = &#123;  </span><br><span class="line">        <span class="string">&quot;assistant_type&quot;</span>: <span class="string">&quot;通用研究助手&quot;</span>,  </span><br><span class="line">        <span class="string">&quot;assistant_instructions&quot;</span>: (  </span><br><span class="line">            <span class="string">&quot;你是一名具备通用研究能力的 AI 助手。&quot;</span>  </span><br><span class="line">            <span class="string">&quot;你的目标是基于已有信息，围绕目标问题输出全面、深入、客观、结构清晰的研究报告。&quot;</span>  </span><br><span class="line">            <span class="string">&quot;优先关注事实依据、逻辑完整性和信息相关性，避免主观推断。&quot;</span>  </span><br><span class="line">        ),  </span><br><span class="line">        <span class="string">&quot;user_question&quot;</span>: user_question  </span><br><span class="line">    &#125;  </span><br><span class="line">    <span class="keyword">return</span> &#123;  </span><br><span class="line">        <span class="string">&quot;assistant_info&quot;</span>: default_assistant  </span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这段兜底逻辑很关键，如果没有兜底，一旦 JSON 解析失败，整个 Graph 就会中断，而有了默认助手之后，即使模型没有按格式返回，系统也能继续往下执行。这体现了 Agent 工程中很重要的一点，<strong>模型输出不稳定，流程设计必须有容错。</strong> 节点不是只处理理想情况，它还要处理模型格式错误、字段缺失、内容异常等问题。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">读取问题 → 构造 Prompt → 调用模型 → 解析助手信息 → 写回状态</span><br></pre></td></tr></table></figure>
+
+<p>这个节点只负责把 <code>assistant_info</code> 补充进 <code>ResearchState</code>。下一步，系统会根据研究角色和用户问题生成搜索查询。</p>
+<h2 id="7-实现搜索"><a href="#7-实现搜索" class="headerlink" title="7. 实现搜索"></a><strong>7. 实现搜索</strong></h2><p>助手选择完成后，状态中已经有了两个关键信息：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">user_question</span><br><span class="line">assistant_info</span><br></pre></td></tr></table></figure>
+
+<p>接下来要做的，就是把用户问题转换成可以用于网页搜索的查询语句。这一部分对应两个节点：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">generate_search_queries()</span><br><span class="line">perform_web_searches()</span><br></pre></td></tr></table></figure>
+
+<p>前者负责生成搜索词，后者负责真正执行搜索，它们共同完成从“研究问题”到“网页链接”的转换。</p>
+<h3 id="7-1-生成搜索查询"><a href="#7-1-生成搜索查询" class="headerlink" title="7.1 生成搜索查询"></a><strong>7.1 生成搜索查询</strong></h3><p><code>generate_search_queries</code> 首先从状态中读取助手信息和用户问题：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">assistant_info = state[<span class="string">&quot;assistant_info&quot;</span>]</span><br><span class="line">user_question = state[<span class="string">&quot;user_question&quot;</span>]</span><br><span class="line">assistant_instructions = assistant_info[<span class="string">&quot;assistant_instructions&quot;</span>]</span><br></pre></td></tr></table></figure>
+
+<p>第一次运行时，系统会直接使用 <code>WEB_SEARCH_PROMPT_TEMPLATE</code> 生成搜索请求：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">prompt = WEB_SEARCH_PROMPT_TEMPLATE.<span class="built_in">format</span>(</span><br><span class="line">    assistant_instructions=assistant_instructions,</span><br><span class="line">    user_question=user_question,</span><br><span class="line">    num_search_queries=NUM_SEARCH_QUERIES</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>这里的关键点不在 Prompt 本身，而在搜索词的定位。用户问题通常不能直接作为搜索词使用，直接搜索这句话，结果可能比较泛，更合理的搜索方向应该覆盖多个方面。也就是说，搜索词生成节点的职责，是把一个自然语言问题拆成多个信息入口。代码中还是默认生成 3 条搜索查询：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">NUM_SEARCH_QUERIES = <span class="number">3</span></span><br></pre></td></tr></table></figure>
+
+<p>每条查询都保留原始问题：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;search_query&quot;</span><span class="punctuation">:</span> <span class="string">&quot;英伟达 股票 业绩 数据中心 AI 芯片 增长 最新分析&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;user_question&quot;</span><span class="punctuation">:</span> <span class="string">&quot;当前英伟达股票还值得买入吗？&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>这样后续总结网页时，仍然知道这条搜索词服务于哪个问题。</p>
+<h3 id="7-2-多轮搜索如何调整策略"><a href="#7-2-多轮搜索如何调整策略" class="headerlink" title="7.2 多轮搜索如何调整策略"></a><strong>7.2 多轮搜索如何调整策略</strong></h3><p>这个节点真正体现 Agent 特征的地方，是它会根据 <code>iteration_count</code> 采用不同策略。</p>
+<p>第一次搜索：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> iteration_count == <span class="number">0</span>:</span><br></pre></td></tr></table></figure>
+
+<p>使用正常搜索 Prompt。如果采用第二次搜索：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">elif</span> iteration_count == <span class="number">1</span>:</span><br></pre></td></tr></table></figure>
+
+<p>会参考上一轮搜索词和相关性评估结果，生成更具体、更有针对性的查询。代码中会读取：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">previous_queries = state.get(<span class="string">&quot;search_queries&quot;</span>, [])</span><br><span class="line">relevance_evaluation = state.get(<span class="string">&quot;relevance_evaluation&quot;</span>, <span class="literal">None</span>)</span><br></pre></td></tr></table></figure>
+
+<p>如果上一轮结果相关性不足，系统会把这些信息放进新 Prompt，这样模型生成新搜索词时，就不是盲目重试，而是基于失败原因调整方向，第三轮或之后走 <code>else</code>逻辑，系统会要求从完全不同角度搜索。例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">拆成更小的问题</span><br><span class="line">使用专业术语</span><br><span class="line">寻找专家观点</span><br><span class="line">寻找案例</span><br><span class="line">补充历史背景</span><br></pre></td></tr></table></figure>
+
+<p>这个设计解决了一个常见问题，如果只是简单重新搜索，模型很可能生成和上一轮差不多的关键词。看起来重新尝试了，实际上信息来源没有明显变化。因此代码中特别强调：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">不要重复上一轮搜索词</span><br><span class="line">不要只是换一种说法</span><br><span class="line">换一个角度重新搜索</span><br></pre></td></tr></table></figure>
+
+<p>这就是循环系统中很重要的一点，<strong>重新执行不等于重复执行。</strong></p>
+<h3 id="7-3-搜索结果如何写回状态"><a href="#7-3-搜索结果如何写回状态" class="headerlink" title="7.3 搜索结果如何写回状态"></a><strong>7.3 搜索结果如何写回状态</strong></h3><p>模型返回搜索词后，代码会尝试解析 JSON 数组：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">json_start = response_text.find(<span class="string">&#x27;[&#x27;</span>)</span><br><span class="line">json_end = response_text.rfind(<span class="string">&#x27;]&#x27;</span>) + <span class="number">1</span></span><br><span class="line">json_str = response_text[json_start:json_end]</span><br><span class="line">search_queries = json.loads(json_str)</span><br></pre></td></tr></table></figure>
+
+<p>解析成功后写回状态：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> &#123;</span><br><span class="line">    <span class="string">&quot;search_queries&quot;</span>: search_queries,</span><br><span class="line">    <span class="string">&quot;relevance_evaluation&quot;</span>: <span class="literal">None</span>,</span><br><span class="line">    <span class="string">&quot;should_regenerate_queries&quot;</span>: <span class="literal">None</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里有一个细节，生成新搜索词时，会清空上一轮的评估结果和重新生成标记。因为从这一刻开始，系统已经进入新一轮搜索。旧的评估结果只用于生成新策略，不应该继续影响后续判断。如果解析失败，则使用默认搜索词兜底：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">default_queries = [</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">&quot;search_query&quot;</span>: <span class="string">f&quot;<span class="subst">&#123;user_question&#125;</span> iteration <span class="subst">&#123;iteration_count + <span class="number">1</span>&#125;</span>&quot;</span>,</span><br><span class="line">        <span class="string">&quot;user_question&quot;</span>: user_question</span><br><span class="line">    &#125;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>这同样是为了保证 Graph 不会因为模型格式问题直接中断。最终期望得到的结果类似：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span>  </span><br><span class="line">	&#x27;search_queries&#x27;<span class="punctuation">:</span> <span class="punctuation">[</span>  </span><br><span class="line">		<span class="punctuation">&#123;</span>&#x27;search_query&#x27;<span class="punctuation">:</span> &#x27;英伟达 股票 业绩 数据中心 AI 芯片 增长 最新分析&#x27;<span class="punctuation">,</span> &#x27;user_question&#x27;<span class="punctuation">:</span> &#x27;当前英伟达股票还值得买入吗？&#x27;<span class="punctuation">&#125;</span><span class="punctuation">,</span>  </span><br><span class="line">	    <span class="punctuation">&#123;</span>&#x27;search_query&#x27;<span class="punctuation">:</span> &#x27;英伟达 估值 市盈率 收入增速 毛利率 机构观点&#x27;<span class="punctuation">,</span>&#x27;user_question&#x27;<span class="punctuation">:</span> &#x27;当前英伟达股票还值得买入吗？&#x27;<span class="punctuation">&#125;</span><span class="punctuation">,</span>  </span><br><span class="line">	    <span class="punctuation">&#123;</span>&#x27;search_query&#x27;<span class="punctuation">:</span> &#x27;英伟达 竞争风险 AI 资本开支 半导体周期 出口管制&#x27;<span class="punctuation">,</span> &#x27;user_question&#x27;<span class="punctuation">:</span> &#x27;当前英伟达股票还值得买入吗？&#x27;<span class="punctuation">&#125;</span>  </span><br><span class="line">     <span class="punctuation">]</span><span class="punctuation">,</span>  </span><br><span class="line">     &#x27;relevance_evaluation&#x27;<span class="punctuation">:</span> None<span class="punctuation">,</span>  </span><br><span class="line">     &#x27;should_regenerate_queries&#x27;<span class="punctuation">:</span> None  </span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="7-4-执行网页搜索"><a href="#7-4-执行网页搜索" class="headerlink" title="7.4 执行网页搜索"></a><strong>7.4 执行网页搜索</strong></h3><p>有了 <code>search_queries</code> 之后，下面进入 <code>perform_web_searches</code>，这个节点读取搜索词：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">search_queries = state[<span class="string">&quot;search_queries&quot;</span>]</span><br></pre></td></tr></table></figure>
+
+<p>然后逐条调用搜索工具：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">urls = web_search(</span><br><span class="line">    web_query=search_query,</span><br><span class="line">    num_results=NUM_SEARCH_RESULTS_PER_QUERY</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>每条搜索词默认返回 3 个结果：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">NUM_SEARCH_RESULTS_PER_QUERY = <span class="number">3</span></span><br></pre></td></tr></table></figure>
+
+<p>最终每个 URL 会被整理成结构化对象：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">search_results.append(&#123;</span><br><span class="line">    <span class="string">&quot;result_url&quot;</span>: url,</span><br><span class="line">    <span class="string">&quot;search_query&quot;</span>: search_query,</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: user_question,</span><br><span class="line">    <span class="string">&quot;is_fallback&quot;</span>: is_fallback</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>这里保留了三个关键上下文。</p>
+<ul>
+<li>链接来自哪个搜索词。</li>
+<li>链接服务于哪个用户问题。</li>
+<li>这个链接是否来自降级搜索。</li>
+</ul>
+<p>这样后续如果最终报告质量不好，可以回溯到具体搜索来源，最后节点返回：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> &#123;</span><br><span class="line">    <span class="string">&quot;search_results&quot;</span>: search_results,</span><br><span class="line">    <span class="string">&quot;used_fallback_search&quot;</span>: fallback_used</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>状态中开始出现真正的外部信息来源。最终期望得到的结果类似：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">	&#x27;search_results&#x27;<span class="punctuation">:</span> <span class="punctuation">[</span>  </span><br><span class="line">		<span class="punctuation">&#123;</span>  </span><br><span class="line">			&#x27;result_url&#x27;<span class="punctuation">:</span> &#x27;https<span class="punctuation">:</span><span class="comment">//www.nvidia.com/en-us/about-nvidia/investor-relations/&#x27;,  </span></span><br><span class="line">	        &#x27;search_query&#x27;<span class="punctuation">:</span> &#x27;英伟达 股票 业绩 数据中心 AI 芯片 增长 最新分析&#x27;<span class="punctuation">,</span>  </span><br><span class="line">	        &#x27;user_question&#x27;<span class="punctuation">:</span> &#x27;当前英伟达股票还值得买入吗？&#x27;<span class="punctuation">,</span>  </span><br><span class="line">	        &#x27;is_fallback&#x27;<span class="punctuation">:</span> False  </span><br><span class="line">	    <span class="punctuation">&#125;</span><span class="punctuation">,</span>  </span><br><span class="line">	    <span class="punctuation">&#123;</span>  </span><br><span class="line">	        &#x27;result_url&#x27;<span class="punctuation">:</span> &#x27;https<span class="punctuation">:</span><span class="comment">//finance.yahoo.com/quote/NVDA/&#x27;,  </span></span><br><span class="line">	        &#x27;search_query&#x27;<span class="punctuation">:</span> &#x27;英伟达 股票 业绩 数据中心 AI 芯片 增长 最新分析&#x27;<span class="punctuation">,</span>  </span><br><span class="line">	        &#x27;user_question&#x27;<span class="punctuation">:</span> &#x27;当前英伟达股票还值得买入吗？&#x27;<span class="punctuation">,</span>  </span><br><span class="line">	        &#x27;is_fallback&#x27;<span class="punctuation">:</span> False  </span><br><span class="line">	     <span class="punctuation">&#125;</span><span class="punctuation">,</span> ...  </span><br><span class="line">   <span class="punctuation">]</span><span class="punctuation">,</span>  </span><br><span class="line">   &#x27;used_fallback_search&#x27;<span class="punctuation">:</span> True<span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="7-5-搜索失败后的降级策略"><a href="#7-5-搜索失败后的降级策略" class="headerlink" title="7.5 搜索失败后的降级策略"></a><strong>7.5 搜索失败后的降级策略</strong></h3><p>网页搜索不一定稳定，搜索引擎可能限流，请求可能失败，某些查询可能没有结果，所以 <code>web_search</code> 中设计了重试和降级机制。首先通过 <code>_min_request_interval</code> 控制请求间隔，避免频繁请求触发限制，然后通过 <code>max_retries</code> 控制重试次数，如果 DuckDuckGo 搜索失败，系统会进入：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">fallback_search()</span><br></pre></td></tr></table></figure>
+
+<p>降级搜索会返回一些通用来源，例如 Wikipedia、Britannica、JSTOR 等，这能保证流程继续运行。但也必须承认它的局限。降级结果不一定真正匹配原问题。因此代码中会记录：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;is_fallback&quot;</span>: <span class="literal">True</span></span><br></pre></td></tr></table></figure>
+
+<p>并在后续总结和报告中保留提示，这是一种重要的习惯。系统可以降级，但不能假装降级结果和正常搜索结果一样可靠。</p>
+<p>搜索系统完成了两个动作：把自然语言问题转换成搜索查询，再把搜索查询转换成网页链接。对应的状态变化是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">assistant_info → search_queries → search_results</span><br></pre></td></tr></table></figure>
+
+<p>到这里只是拿到了链接，还不能直接支撑最终报告。下一步需要抓取网页内容，并压缩成可用的研究摘要。</p>
+<h2 id="8-实现网页总结与信息聚合"><a href="#8-实现网页总结与信息聚合" class="headerlink" title="8. 实现网页总结与信息聚合"></a><strong>8. 实现网页总结与信息聚合</strong></h2><p>搜索节点完成后，状态中已经有了 <code>search_queries</code>，这些结果只是网页链接，还不能直接用于生成报告。原因很简单，网页内容通常很长，结构也不稳定，有些页面可能包含导航、广告、评论、推荐内容，直接把整页文本交给模型，很容易产生噪声。所以接下来需要做两件事，抓取网页正文和把网页正文压缩成和问题相关的摘要。这一部分对应两个函数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">web_scrape()</span><br><span class="line">summarize_search_results()</span><br></pre></td></tr></table></figure>
+
+<p>前者负责获取网页文本，后者负责逐条总结并汇总成研究上下文。</p>
+<h3 id="8-1-网页抓取：从-URL-到原始文本"><a href="#8-1-网页抓取：从-URL-到原始文本" class="headerlink" title="8.1 网页抓取：从 URL 到原始文本"></a><strong>8.1 网页抓取：从 URL 到原始文本</strong></h3><p><code>web_scrape</code> 的职责很明确。输入一个 URL，返回页面文本。代码结构如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">web_scrape</span>(<span class="params">url: <span class="built_in">str</span></span>) -&gt; <span class="built_in">str</span>:  </span><br><span class="line">    <span class="keyword">try</span>:  </span><br><span class="line">        response = requests.get(url)  </span><br><span class="line">  </span><br><span class="line">        <span class="keyword">if</span> response.status_code == <span class="number">200</span>:  </span><br><span class="line">            soup = BeautifulSoup(response.text, <span class="string">&quot;html.parser&quot;</span>)  </span><br><span class="line">            page_text = soup.get_text(strip=<span class="literal">True</span>)  </span><br><span class="line">  </span><br><span class="line">            <span class="keyword">return</span> page_text  </span><br><span class="line">        <span class="keyword">else</span>:  </span><br><span class="line">            <span class="keyword">return</span> <span class="string">f&quot;获取网页失败：状态码 <span class="subst">&#123;response.status_code&#125;</span>&quot;</span>  </span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:  </span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;获取网页失败：<span class="subst">&#123;e&#125;</span>&quot;</span>)  </span><br><span class="line">        <span class="keyword">return</span> <span class="string">f&quot;获取网页失败：<span class="subst">&#123;e&#125;</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>它使用 <code>requests</code> 请求页面，再用 <code>BeautifulSoup</code> 提取文本，这是一种比较基础的网页抓取方式。优点是简单直接，适合做最小可运行版本，但也有局限，有些页面依赖 JavaScript 渲染，有些页面有反爬限制，有些页面正文和导航混在一起，所以这里抓到的文本不一定干净，也不一定完整。</p>
+<p>因此后面总结节点还需要做一次筛选。如果抓取失败，函数不会直接抛出异常，而是返回错误信息，后续节点会根据这个结果决定是否跳过，这保证了单个网页失败不会拖垮整个 Graph。</p>
+<h3 id="8-2-逐条总结搜索结果"><a href="#8-2-逐条总结搜索结果" class="headerlink" title="8.2 逐条总结搜索结果"></a><strong>8.2 逐条总结搜索结果</strong></h3><p><code>summarize_search_results</code> 会读取状态中的搜索结果：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">search_results = state[<span class="string">&quot;search_results&quot;</span>]</span><br></pre></td></tr></table></figure>
+
+<p>然后逐个处理 URL，核心流程可以概括为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">读取搜索结果 → 抓取网页文本 → 过滤无效内容 → 调用模型总结 → 保存摘要 → 合并为 research_summary</span><br></pre></td></tr></table></figure>
+
+<p>代码中会先抓取网页内容：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">search_result_text = web_scrape(url=result_url)[:RESULT_TEXT_MAX_CHARACTERS]</span><br></pre></td></tr></table></figure>
+
+<p>这里限制最大字符数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">RESULT_TEXT_MAX_CHARACTERS = <span class="number">10000</span></span><br></pre></td></tr></table></figure>
+
+<p>这是为了避免网页文本过长，导致模型上下文压力过大。随后会跳过抓取失败或者内容太短的页面：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> search_result_text.startswith(<span class="string">&quot;Failed to&quot;</span>) <span class="keyword">or</span> <span class="built_in">len</span>(search_result_text) &lt; <span class="number">50</span>:</span><br><span class="line">    <span class="keyword">continue</span></span><br></pre></td></tr></table></figure>
+
+<p>这一步非常必要，因为不是所有链接都值得进入总结阶段，无效网页如果继续进入模型，很容易污染后面的研究摘要。</p>
+<h3 id="8-3-为什么要先总结再生成报告"><a href="#8-3-为什么要先总结再生成报告" class="headerlink" title="8.3 为什么要先总结再生成报告"></a><strong>8.3 为什么要先总结再生成报告</strong></h3><p>抓到网页正文后，并不是直接生成最终报告，而是先做单页摘要，普通页面内容通常比较杂，例如一篇财经新闻里可能同时包含：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">市场背景</span><br><span class="line">价格变化</span><br><span class="line">专家观点</span><br><span class="line">历史数据</span><br><span class="line">无关广告</span><br><span class="line">相关推荐</span><br></pre></td></tr></table></figure>
+
+<p>如果直接把所有内容拼在一起生成报告，模型很容易被噪声带偏。所以先用 <code>SUMMARY_PROMPT_TEMPLATE</code> 对每个网页单独总结：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">prompt = SUMMARY_PROMPT_TEMPLATE.<span class="built_in">format</span>(</span><br><span class="line">    search_result_text=search_result_text,</span><br><span class="line">    search_query=search_query</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>Prompt 的目标不是自由发挥，而是基于网页内容回答当前搜索问题，如果网页内容无法回答问题，就做简洁总结，这样可以把原始网页压缩成更稳定的研究材料。最终每条摘要会保存成：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">summary = &#123;</span><br><span class="line">    <span class="string">&quot;summary&quot;</span>: <span class="string">f&quot;Source Url: <span class="subst">&#123;result_url&#125;</span>\nSummary: <span class="subst">&#123;text_summary&#125;</span>&quot;</span>,</span><br><span class="line">    <span class="string">&quot;result_url&quot;</span>: result_url,</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: user_question,</span><br><span class="line">    <span class="string">&quot;is_fallback&quot;</span>: is_fallback</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里保留了来源 URL，后面生成报告时，可以把来源一起带入上下文，这比只保存摘要文本更可靠，也方便排查结果来源。</p>
+<h3 id="8-4-fallback-来源需要单独说明"><a href="#8-4-fallback-来源需要单独说明" class="headerlink" title="8.4 fallback 来源需要单独说明"></a><strong>8.4 fallback 来源需要单独说明</strong></h3><p>在搜索阶段，代码会为每条搜索结果记录一个 <code>is_fallback</code> 标记。当搜索结果前两条里出现 <code>wikipedia.org</code>、<code>baike.baidu.com</code> 或 <code>zhihu.com</code> 这类通用资料来源时，系统会认为这次搜索触发了降级路径：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;is_fallback&quot;</span>: <span class="literal">True</span></span><br></pre></td></tr></table></figure>
+
+<p>如果完全没有搜索结果，系统也会使用一个默认 fallback 来源，这类来源可以让流程继续运行，但它们不一定真正回答用户的原始问题，所以在 <code>summarize_search_results</code> 中，如果某条结果是 fallback 来源，系统会使用单独的摘要 Prompt，明确提醒模型：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">这是降级资料源，内容可能无法直接对应问题。</span><br></pre></td></tr></table></figure>
+
+<p>摘要生成后，代码还会追加说明：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[说明：这部分信息来自降级资料源，可能无法直接对应原问题。]</span><br></pre></td></tr></table></figure>
+
+<p>如果本轮搜索中使用过 fallback，最终合并出的 <code>research_summary</code> 也会追加整体说明：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[说明：由于主搜索引擎不可用，部分或全部信息来自降级资料源，相关性可能低于正常搜索结果。]</span><br></pre></td></tr></table></figure>
+
+<p>这样做的目的，是把“背景资料”和“直接证据”区分开。如果正常搜索失败，系统可能降级到 Wikipedia 的页面。这个页面可以解释相关概念，但无法形成相关判断。</p>
+<p>因此系统不会把这类内容混进正常资料里，而是保留来源不确定性和相关性风险。这是一种更负责任的 Agent 设计：流程可以继续，但证据质量必须被标记出来。</p>
+<h3 id="8-5-research-summary-是报告生成的核心上下文"><a href="#8-5-research-summary-是报告生成的核心上下文" class="headerlink" title="8.5 research_summary 是报告生成的核心上下文"></a><strong>8.5 research_summary 是报告生成的核心上下文</strong></h3><p>所有单页摘要完成后，系统会把它们合并成一个大的研究摘要：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">research_summary = <span class="string">&quot;\n\n&quot;</span>.join([s[<span class="string">&quot;summary&quot;</span>] <span class="keyword">for</span> s <span class="keyword">in</span> summaries])</span><br></pre></td></tr></table></figure>
+
+<p>并写回状态：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> &#123;</span><br><span class="line">    <span class="string">&quot;search_summaries&quot;</span>: summaries,</span><br><span class="line">    <span class="string">&quot;research_summary&quot;</span>: research_summary,</span><br><span class="line">    <span class="string">&quot;used_fallback_search&quot;</span>: used_fallback_search</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>到这里，状态中已经有了完整的研究上下文</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">search_results → search_summaries → research_summary</span><br></pre></td></tr></table></figure>
+
+<p>后续报告生成并不直接依赖网页原文，而是依赖 <code>research_summary</code>。这样做有两个好处，首选减少噪声，其次是降低上下文长度压力。</p>
+<p>最终期望得到的结果类似：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span>  </span><br><span class="line">	&#x27;search_summaries&#x27;<span class="punctuation">:</span> <span class="punctuation">[</span>  </span><br><span class="line">		<span class="punctuation">&#123;</span>  </span><br><span class="line">		    &#x27;summary&#x27;<span class="punctuation">:</span> &#x27;来源 URL：...\n摘要：...&#x27;<span class="punctuation">,</span>  </span><br><span class="line">	        &#x27;result_url&#x27;<span class="punctuation">:</span> &#x27;https<span class="punctuation">:</span><span class="comment">//www.nvidia.com/en-us/about-nvidia/investor-relations/&#x27;,  </span></span><br><span class="line">	        &#x27;user_question&#x27;<span class="punctuation">:</span> &#x27;当前英伟达股票还值得买入吗？&#x27;<span class="punctuation">,</span>  </span><br><span class="line">	        &#x27;is_fallback&#x27;<span class="punctuation">:</span> False  </span><br><span class="line">         <span class="punctuation">&#125;</span><span class="punctuation">,</span>  </span><br><span class="line">         <span class="punctuation">&#123;</span>  </span><br><span class="line">             &#x27;summary&#x27;<span class="punctuation">:</span> &#x27;来源 URL：...\n摘要：...\n<span class="punctuation">[</span>说明：这部分信息来自降级资料源，可能无法直接对应原问题。<span class="punctuation">]</span>&#x27;<span class="punctuation">,</span>  </span><br><span class="line">             &#x27;result_url&#x27;<span class="punctuation">:</span> &#x27;https<span class="punctuation">:</span><span class="comment">//en.wikipedia.org/wiki/Nvidia&#x27;,  </span></span><br><span class="line">             &#x27;user_question&#x27;<span class="punctuation">:</span> &#x27;当前英伟达股票还值得买入吗？&#x27;<span class="punctuation">,</span>  </span><br><span class="line">             &#x27;is_fallback&#x27;<span class="punctuation">:</span> True  </span><br><span class="line">         <span class="punctuation">&#125;</span>  </span><br><span class="line">     <span class="punctuation">]</span><span class="punctuation">,</span>  </span><br><span class="line">     &#x27;research_summary&#x27;<span class="punctuation">:</span> &#x27;...&#x27;<span class="punctuation">,</span>  </span><br><span class="line">     &#x27;used_fallback_search&#x27;<span class="punctuation">:</span> True  </span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>但这里也要注意，摘要本身仍然是模型生成内容，可能遗漏信息，也可能错误概括网页内容。摘要不是事实本身，而是对原始资料的一次压缩。</p>
+<p>网页总结节点完成了从外部链接到研究材料的转换。它把分散的网页内容整理成统一的 <code>research_summary</code>，为后续评估和报告生成提供基础，这一阶段的核心变化是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">URL → 网页文本 → 单页摘要 → 研究上下文</span><br></pre></td></tr></table></figure>
+
+<p>到这里，系统已经有了可用于写报告的材料。但材料是否相关、是否足够，仍然需要评估。</p>
+<h2 id="9-引入评估节点形成循环"><a href="#9-引入评估节点形成循环" class="headerlink" title="9. 引入评估节点形成循环"></a><strong>9. 引入评估节点形成循环</strong></h2><p>完成网页总结后，状态中已经有了 <code>research_summary</code>，按照普通 Workflow 的做法，这一步之后就可以直接开始报告生成。但 Agent 化改造的关键，恰恰是不是写报告，而是先判断当前材料是否值得继续使用，这一部分对应函数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">evaluate_search_relevance()</span><br></pre></td></tr></table></figure>
+
+<p>它负责评估搜索摘要与原始问题的相关性，并决定是否重新生成搜索查询。</p>
+<h3 id="9-1-为什么需要相关性评估"><a href="#9-1-为什么需要相关性评估" class="headerlink" title="9.1 为什么需要相关性评估"></a><strong>9.1 为什么需要相关性评估</strong></h3><p>搜索和总结只能说明系统已经拿到一些内容，但这些内容是否能回答问题，还需要单独判断。例如问题是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">当前英伟达股票还值得买入吗？</span><br></pre></td></tr></table></figure>
+
+<p>如果摘要主要来自百科页面，内容集中在：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">英伟达公司历史</span><br><span class="line">GPU 技术发展</span><br><span class="line">图形渲染应用</span><br></pre></td></tr></table></figure>
+
+<p>这些信息并非完全无用，但不足以回答“是否值得买入”。真正相关的信息更可能是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">数据中心收入增速</span><br><span class="line">AI 芯片需求持续性</span><br><span class="line">毛利率和业绩指引</span><br><span class="line">估值水平</span><br><span class="line">竞争格局</span><br><span class="line">出口管制和供应链风险</span><br></pre></td></tr></table></figure>
+
+<p>所以评估节点要判断的不是内容有没有信息量，而是内容是否服务于原始问题。这一步让系统从“拿到资料”升级为“判断资料是否可用”。</p>
+<h3 id="9-2-evaluate-search-relevance-的执行流程"><a href="#9-2-evaluate-search-relevance-的执行流程" class="headerlink" title="9.2 evaluate_search_relevance 的执行流程"></a><strong>9.2 evaluate_search_relevance 的执行流程</strong></h3><p>函数首先读取当前状态：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">search_summaries = state.get(<span class="string">&quot;search_summaries&quot;</span>, [])</span><br><span class="line">user_question = state[<span class="string">&quot;user_question&quot;</span>]</span><br><span class="line">research_summary = state.get(<span class="string">&quot;research_summary&quot;</span>, <span class="string">&quot;&quot;</span>)</span><br><span class="line">used_fallback_search = state.get(<span class="string">&quot;used_fallback_search&quot;</span>, <span class="literal">False</span>)</span><br></pre></td></tr></table></figure>
+
+<p>如果没有摘要，说明搜索或抓取阶段没有得到可用结果，此时不应该继续写报告，而应该重新生成搜索词：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> <span class="keyword">not</span> search_summaries <span class="keyword">or</span> <span class="keyword">not</span> research_summary:</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;should_regenerate_queries&quot;</span>: <span class="literal">True</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果有摘要，就交给模型做相关性评估，Prompt 会要求模型围绕原始问题判断每条摘要是否相关，并返回结构化结果：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;relevance_percentage&quot;</span><span class="punctuation">:</span> <span class="number">70</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;explanation&quot;</span><span class="punctuation">:</span> <span class="string">&quot;大部分摘要与原始问题相关，但缺少最新市场数据。&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;relevant_count&quot;</span><span class="punctuation">:</span> <span class="number">7</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;total_count&quot;</span><span class="punctuation">:</span> <span class="number">10</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>代码随后解析 JSON：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">evaluation = json.loads(json_str)</span><br><span class="line">relevance_percentage = evaluation.get(<span class="string">&quot;relevance_percentage&quot;</span>, <span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+
+<p>并用一个简单阈值判断是否需要重新搜索：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">should_regenerate = relevance_percentage &lt; <span class="number">50</span></span><br></pre></td></tr></table></figure>
+
+<p>如果相关性低于 50%，系统会认为当前材料不足，需要回到搜索查询生成节点。如果相关性达到要求，就进入报告生成节点。</p>
+<h3 id="9-3-should-regenerate-queries-如何控制后续路径"><a href="#9-3-should-regenerate-queries-如何控制后续路径" class="headerlink" title="9.3 should_regenerate_queries 如何控制后续路径"></a><strong>9.3 should_regenerate_queries 如何控制后续路径</strong></h3><p>评估节点最终返回两个字段：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> &#123;</span><br><span class="line">    <span class="string">&quot;relevance_evaluation&quot;</span>: evaluation,</span><br><span class="line">    <span class="string">&quot;should_regenerate_queries&quot;</span>: should_regenerate</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>relevance_evaluation</code> 保存评估详情，方便后续生成新搜索词时参考，<code>should_regenerate_queries</code> 是流程控制标记，它不会直接调用搜索节点，它只是写入状态。</p>
+<p>真正根据这个字段决定下一步去哪的，是后面的条件路由，这正是 LangGraph 的核心设计，节点只负责更新状态。Graph 负责根据状态决定路径。流程可以概括为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">总结完成 → 评估相关性 → 写入 should_regenerate_queries → 条件路由读取状态 → 决定重新搜索或生成报告</span><br></pre></td></tr></table></figure>
+
+<h3 id="9-4-评估节点的边界"><a href="#9-4-评估节点的边界" class="headerlink" title="9.4 评估节点的边界"></a><strong>9.4 评估节点的边界</strong></h3><p>相关性评估很重要，但不能过度理解。它判断的是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">当前摘要是否有助于回答问题</span><br></pre></td></tr></table></figure>
+
+<p>它不能完全判断：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">网页内容是否真实</span><br><span class="line">数据是否最新</span><br><span class="line">来源是否权威</span><br><span class="line">结论是否可靠</span><br></pre></td></tr></table></figure>
+
+<p>尤其是模型参与评估时，本身也可能误判，如果摘要写得很顺，模型可能认为它相关。如果来源本身过时，模型未必能自动发现。</p>
+<p>因此评估节点的价值在于提升流程质量，而不是保证事实真实性。它能减少明显偏题内容进入报告，但不能替代来源核验和事实验证。</p>
+<p>对于严肃场景，尤其是投资、医疗、法律、政策等方向，最终报告中仍然需要明确资料范围和不确定性。</p>
+<p>评估节点是 Agent 化改造的关键节点。它让系统从自动执行，升级为能够判断和回退。状态变化是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">research_summary → relevance_evaluation → should_regenerate_queries</span><br></pre></td></tr></table></figure>
+
+<p>接下来需要把这个评估接入 <code>StateGraph</code>，通过条件路由控制系统是重新搜索，还是进入最终报告生成。</p>
+<h2 id="10-用-StateGraph-组织完整-Agent"><a href="#10-用-StateGraph-组织完整-Agent" class="headerlink" title="10. 用 StateGraph 组织完整 Agent"></a><strong>10. 用 StateGraph 组织完整 Agent</strong></h2><p>前面已经完成了状态设计和各个节点的拆分，现在还差最后一步，把这些节点真正组织成一张可运行的图，这一部分对应函数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">create_research_graph</span>() -&gt; StateGraph:</span><br></pre></td></tr></table></figure>
+
+<p>它负责创建完整的 LangGraph 研究流程。</p>
+<h3 id="10-1-创建-Graph-并注册节点"><a href="#10-1-创建-Graph-并注册节点" class="headerlink" title="10.1 创建 Graph 并注册节点"></a><strong>10.1 创建 Graph 并注册节点</strong></h3><p>首先创建一个 <code>StateGraph</code>，这里传入的 <code>ResearchState</code>，就是前面定义的统一状态对象。接着把各个函数注册成节点：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">graph = StateGraph(ResearchState)</span><br><span class="line"></span><br><span class="line">graph.add_node(<span class="string">&quot;select_assistant&quot;</span>, select_assistant)</span><br><span class="line">graph.add_node(<span class="string">&quot;generate_search_queries&quot;</span>, generate_search_queries)</span><br><span class="line">graph.add_node(<span class="string">&quot;perform_web_searches&quot;</span>, perform_web_searches)</span><br><span class="line">graph.add_node(<span class="string">&quot;summarize_search_results&quot;</span>, summarize_search_results)</span><br><span class="line">graph.add_node(<span class="string">&quot;evaluate_search_relevance&quot;</span>, evaluate_search_relevance)</span><br><span class="line">graph.add_node(<span class="string">&quot;write_research_report&quot;</span>, write_research_report)</span><br></pre></td></tr></table></figure>
+
+<p>每个节点都有一个名字，Graph 后续通过这些名字组织执行路径。这里可以看到，节点本身并不复杂，都是前面已经写好的普通函数。LangGraph 是把这些函数连接成一个有状态、有路径、有判断能力的执行流程。</p>
+<h3 id="10-2-添加固定路径"><a href="#10-2-添加固定路径" class="headerlink" title="10.2 添加固定路径"></a><strong>10.2 添加固定路径</strong></h3><p>注册节点之后，需要先添加基础执行路径：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">graph.add_edge(<span class="string">&quot;select_assistant&quot;</span>, <span class="string">&quot;generate_search_queries&quot;</span>)</span><br><span class="line">graph.add_edge(<span class="string">&quot;generate_search_queries&quot;</span>, <span class="string">&quot;perform_web_searches&quot;</span>)</span><br><span class="line">graph.add_edge(<span class="string">&quot;perform_web_searches&quot;</span>, <span class="string">&quot;summarize_search_results&quot;</span>)</span><br><span class="line">graph.add_edge(<span class="string">&quot;summarize_search_results&quot;</span>, <span class="string">&quot;evaluate_search_relevance&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>这条路径和之前的 LCEL 流程很像：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">选择助手 → 生成搜索词 → 执行搜索 → 网页总结 → 相关性评估</span><br></pre></td></tr></table></figure>
+
+<p>这部分是稳定路径，无论后续是否循环，第一次执行都要走完这几个节点。固定路径的价值在于保证系统不会一开始就乱跳。Agent 并不是完全自由运行，而是在明确边界内执行。</p>
+<h3 id="10-3-添加条件路由"><a href="#10-3-添加条件路由" class="headerlink" title="10.3 添加条件路由"></a><strong>10.3 添加条件路由</strong></h3><p>真正让系统具备 Agent 特征的是条件路由，代码中通过 <code>add_conditional_edges</code> 添加：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">graph.add_conditional_edges(</span><br><span class="line">    <span class="string">&quot;evaluate_search_relevance&quot;</span>,</span><br><span class="line">    route_based_on_relevance,</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">&quot;generate_search_queries&quot;</span>: <span class="string">&quot;generate_search_queries&quot;</span>,</span><br><span class="line">        <span class="string">&quot;write_research_report&quot;</span>: <span class="string">&quot;write_research_report&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>意思是，当 <code>evaluate_search_relevance</code> 执行完之后，不直接进入固定下一个节点，而是先调用：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">route_based_on_relevance()</span><br></pre></td></tr></table></figure>
+
+<p>这个路由函数会读取当前状态，并返回下一步节点名称。如果返回<code>generate_search_queries</code>，流程就回到搜索词生成节点，开始新一轮搜索。如果返回<code>write_research_report</code>，流程就进入报告生成节点。这样一来，流程从线性结构变成了条件结构：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">    评估结果</span><br><span class="line">   ↙        ↘</span><br><span class="line">重新搜索   生成报告</span><br></pre></td></tr></table></figure>
+
+<p>这就是 Agentic Workflow 的核心。</p>
+<h3 id="10-4-条件路由如何控制循环"><a href="#10-4-条件路由如何控制循环" class="headerlink" title="10.4 条件路由如何控制循环"></a><strong>10.4 条件路由如何控制循环</strong></h3><p>路由函数的核心逻辑是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">iteration_count = state.get(<span class="string">&quot;iteration_count&quot;</span>, <span class="number">0</span>)</span><br><span class="line">new_iteration_count = iteration_count + <span class="number">1</span></span><br><span class="line">state[<span class="string">&quot;iteration_count&quot;</span>] = new_iteration_count</span><br></pre></td></tr></table></figure>
+
+<p>每完成一次评估，就增加一次迭代次数，然后先判断是否达到最大轮数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> new_iteration_count &gt;= <span class="number">3</span>:</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;write_research_report&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>如果达到 3 次，就不再继续搜索，直接进入报告生成。如果还没达到上限，再判断是否需要重新生成搜索词：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> state.get(<span class="string">&quot;should_regenerate_queries&quot;</span>, <span class="literal">False</span>):</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;generate_search_queries&quot;</span></span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;write_research_report&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>完整逻辑可以概括为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">评估完成 → 迭代次数 + 1 → 是否达到最大次数 → 是：生成报告 → 否：检查是否需要重新搜索 → 需要：回到搜索词生成 → 不需要：生成报告</span><br></pre></td></tr></table></figure>
+
+<p>这里有一个要点，最大循环次数优先级高于相关性判断。也就是说，即使系统认为结果仍不够好，只要已经达到上限，也必须结束。这可以避免无限循环。</p>
+<h3 id="10-5-报告节点与结束节点"><a href="#10-5-报告节点与结束节点" class="headerlink" title="10.5 报告节点与结束节点"></a><strong>10.5 报告节点与结束节点</strong></h3><p>当流程进入报告生成节点后，会执行：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">write_research_report()</span><br></pre></td></tr></table></figure>
+
+<p>它读取状态中的：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">research_summary = state[<span class="string">&quot;research_summary&quot;</span>]</span><br><span class="line">user_question = state[<span class="string">&quot;user_question&quot;</span>]</span><br></pre></td></tr></table></figure>
+
+<p>然后使用报告 Prompt 生成最终结果：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">prompt = RESEARCH_REPORT_PROMPT_TEMPLATE.<span class="built_in">format</span>(</span><br><span class="line">    research_summary=research_summary,</span><br><span class="line">    user_question=user_question</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>最后写回状态：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> &#123;<span class="string">&quot;final_report&quot;</span>: report&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Graph 中通过下面这行把报告节点连接到结束节点：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">graph.add_edge(<span class="string">&quot;write_research_report&quot;</span>, END)</span><br></pre></td></tr></table></figure>
+
+<p>这表示报告生成完成后，整个流程结束，最后设置入口节点：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">graph.set_entry_point(<span class="string">&quot;select_assistant&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>这样整个 Agent 的执行路径就完整了。</p>
+<p><code>StateGraph</code> 把前面所有节点组织成完整流程，包含两类路径。</p>
+<p>第一类是固定路径：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">选择助手 → 生成搜索词 → 执行搜索 → 网页总结 → 评估结果</span><br></pre></td></tr></table></figure>
+
+<p>第二类是条件路径：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">     评估结果</span><br><span class="line">   ↙        ↘</span><br><span class="line">重新搜索   生成报告</span><br></pre></td></tr></table></figure>
+
+<p>这一步完成了从 Chain 到 Graph 的落地。下一步只剩下编译 Graph、初始化状态，并真正运行研究流程。</p>
+<h2 id="11-编译并运行-Graph"><a href="#11-编译并运行-Graph" class="headerlink" title="11. 编译并运行 Graph"></a><strong>11. 编译并运行 Graph</strong></h2><p>完整 Graph 定义完成后，最后一步是运行。这一部分对应函数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">run_research</span>(<span class="params">question: <span class="built_in">str</span></span>) -&gt; <span class="built_in">str</span>:</span><br></pre></td></tr></table></figure>
+
+<p>它负责接收用户问题，创建 Graph，初始化状态，并返回最终研究报告。</p>
+<h3 id="11-1-run-research-的整体结构"><a href="#11-1-run-research-的整体结构" class="headerlink" title="11.1 run_research 的整体结构"></a><strong>11.1 run_research 的整体结构</strong></h3><p><code>run_research</code> 的流程很清晰：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">创建 Graph → 编译 Graph → 初始化状态 → 执行 Graph → 返回最终报告</span><br></pre></td></tr></table></figure>
+
+<p>对应代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">research_graph = create_research_graph()</span><br><span class="line">app = research_graph.<span class="built_in">compile</span>()</span><br><span class="line">result = app.invoke(initial_state)</span><br><span class="line"><span class="keyword">return</span> result[<span class="string">&quot;final_report&quot;</span>]</span><br></pre></td></tr></table></figure>
+
+<p>这里的 <code>compile()</code> 可以理解为把前面定义好的节点、边和条件路由整理成一个可执行对象。真正启动流程的是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">app.invoke(initial_state)</span><br></pre></td></tr></table></figure>
+
+<p>从这一刻开始，Graph 会按照入口节点运行，并在每个节点执行后更新状态。</p>
+<h3 id="11-2-initial-state-如何初始化"><a href="#11-2-initial-state-如何初始化" class="headerlink" title="11.2 initial_state 如何初始化"></a><strong>11.2 initial_state 如何初始化</strong></h3><p>运行 Graph 前，需要先准备初始状态：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">initial_state = &#123;</span><br><span class="line">    <span class="string">&quot;user_question&quot;</span>: question,</span><br><span class="line">    <span class="string">&quot;assistant_info&quot;</span>: <span class="literal">None</span>,</span><br><span class="line">    <span class="string">&quot;search_queries&quot;</span>: <span class="literal">None</span>,</span><br><span class="line">    <span class="string">&quot;search_results&quot;</span>: <span class="literal">None</span>,</span><br><span class="line">    <span class="string">&quot;search_summaries&quot;</span>: <span class="literal">None</span>,</span><br><span class="line">    <span class="string">&quot;research_summary&quot;</span>: <span class="literal">None</span>,</span><br><span class="line">    <span class="string">&quot;final_report&quot;</span>: <span class="literal">None</span>,</span><br><span class="line">    <span class="string">&quot;used_fallback_search&quot;</span>: <span class="literal">False</span>,</span><br><span class="line">    <span class="string">&quot;relevance_evaluation&quot;</span>: <span class="literal">None</span>,</span><br><span class="line">    <span class="string">&quot;should_regenerate_queries&quot;</span>: <span class="literal">None</span>,</span><br><span class="line">    <span class="string">&quot;iteration_count&quot;</span>: <span class="number">0</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里除了 <code>user_question</code> 和 <code>iteration_count</code>，大部分字段一开始都是空。这就是状态驱动的设计，系统不是一次性准备好所有数据，而是在运行过程中逐步补全。初始状态只需要说明：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">问题是什么</span><br><span class="line">当前是第几轮</span><br></pre></td></tr></table></figure>
+
+<p>其余内容交给节点逐步生成。</p>
+<h3 id="11-3-一次完整执行过程"><a href="#11-3-一次完整执行过程" class="headerlink" title="11.3 一次完整执行过程"></a><strong>11.3 一次完整执行过程</strong></h3><p>假设输入问题是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">question = <span class="string">&quot;当前英伟达股票还值得买入吗？&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>完整运行过程大致如下：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">select_assistant → generate_search_queries → perform_web_searches → summarize_search_results → </span><br><span class="line">                                    ↗ 重新搜索  → END</span><br><span class="line">evaluate_search_relevance → 条件判断</span><br><span class="line">                                    ↘ write_research_report</span><br></pre></td></tr></table></figure>
+
+<p>如果第一次搜索结果相关性足够，流程会直接进入报告生成，如果相关性不足，系统会回到 <code>generate_search_queries</code>，带着上一轮搜索词和评估结果重新生成搜索方向。</p>
+<p>如果连续多轮仍然不理想，达到最大迭代次数后，也会进入报告生成。这时最终报告应该基于已有资料输出，并在内容中保留信息不足的限制说明。</p>
+<h3 id="11-4-运行入口的作用"><a href="#11-4-运行入口的作用" class="headerlink" title="11.4 运行入口的作用"></a><strong>11.4 运行入口的作用</strong></h3><p>代码最后提供了一个测试入口：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    question = <span class="string">&quot;当前英伟达股票还值得买入吗？&quot;</span></span><br><span class="line">    report = run_research(question)</span><br><span class="line">    <span class="built_in">print</span>(report)</span><br></pre></td></tr></table></figure>
+
+<p>这让整个 Agent 可以直接作为脚本运行。从外部看，只需要传入一个问题：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">run_research(question)</span><br></pre></td></tr></table></figure>
+
+<p>内部会自动完成，选择角色、生成搜索词、搜索网页、抓取总结、相关性评估、必要时重试、生成报告一系列环节，调用方式保持简单，但内部流程已经从线性 Chain 变成了可循环的 Graph。</p>
+<p><code>run_research</code> 是整个系统的入口。它隐藏 Graph 的内部复杂度，对外只暴露一个简单接口。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">输入问题 → 输出报告</span><br></pre></td></tr></table></figure>
+
+<p>这也是架构升级的意义：外部调用不一定变复杂，内部流程变得更可控、更可追踪。</p>
+<h2 id="12-总结"><a href="#12-总结" class="headerlink" title="12. 总结"></a><strong>12. 总结</strong></h2><p>到这里，基于 LangGraph 的网页研究 Agent 已经完成。从外部看，系统仍然是接收一个问题，然后输出一份研究报告；但内部结构已经从线性流水线：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">输入问题 → 选择助手 → 生成搜索词 → 搜索网页 → 总结内容 → 生成报告</span><br></pre></td></tr></table></figure>
+
+<p>升级成了状态驱动流程：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">状态 → 节点 → 状态更新 → 条件判断 → 继续执行或结束</span><br></pre></td></tr></table></figure>
+
+<h3 id="12-1-从-Chain-到-Graph-的核心变化"><a href="#12-1-从-Chain-到-Graph-的核心变化" class="headerlink" title="12.1 从 Chain 到 Graph 的核心变化"></a><strong>12.1 从 Chain 到 Graph 的核心变化</strong></h3><p>这次升级不是为了多调用几次模型，而是为了改变流程控制方式。核心变化有三点：</p>
+<ul>
+<li><strong>统一状态</strong>：所有中间结果都沉淀在 <code>ResearchState</code> 中。</li>
+<li><strong>独立节点</strong>：每个节点只做一件事。</li>
+<li><strong>条件路由</strong>：评估后根据 <code>should_regenerate_queries</code> 决定重新搜索还是输出报告。</li>
+</ul>
+<p>于是系统不再只是跑流程，而是先判断当前结果是否足够，再决定是否继续。</p>
+<h3 id="12-2-评估和循环让系统更接近研究过程"><a href="#12-2-评估和循环让系统更接近研究过程" class="headerlink" title="12.2 评估和循环让系统更接近研究过程"></a><strong>12.2 评估和循环让系统更接近研究过程</strong></h3><p>真实研究很少一次完成，通常是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">收集资料 → 判断质量 → 发现不足 → 调整方向 → 继续收集 → 形成结论</span><br></pre></td></tr></table></figure>
+
+<p>本章通过 <code>evaluate_search_relevance</code> 和 <code>route_based_on_relevance</code> 表达这个过程：结果不足就重新生成搜索词，结果够用就生成报告，多轮尝试仍不理想则在达到最大次数后结束。</p>
+<p>这种设计让系统具备基本的自我调整能力，但相关性评估不是事实验证。它只能判断材料是否贴近问题，不能保证网页内容真实、数据最新、来源可靠。</p>
+<h3 id="12-3-LangGraph-的价值在于让复杂流程可控"><a href="#12-3-LangGraph-的价值在于让复杂流程可控" class="headerlink" title="12.3 LangGraph 的价值在于让复杂流程可控"></a><strong>12.3 LangGraph 的价值在于让复杂流程可控</strong></h3><p>Agent 不是让模型随意决定一切，更合理的工程结构是：</p>
+<ul>
+<li>模型参与判断</li>
+<li>系统控制边界</li>
+<li>工具负责执行</li>
+<li>状态记录过程</li>
+</ul>
+<p>LangGraph 的价值就是把这些边界显式写出来：哪些节点可以运行，哪些路径可以跳转，什么时候重新搜索，什么时候生成报告，最多循环几次。</p>
+<h3 id="12-4-最终的系统结构"><a href="#12-4-最终的系统结构" class="headerlink" title="12.4 最终的系统结构"></a><strong>12.4 最终的系统结构</strong></h3><p>最终系统可以概括为：</p>
+<pre class="mermaid">---
+title: LangGraph 网页研究 Agent 执行流程
+---
+flowchart LR
+    A["ResearchState<br/>统一状态对象"] --> B["select_assistant<br/>选择研究助手"]
+    B --> C["generate_search_queries<br/>生成搜索请求"]
+    C --> D["perform_web_searches<br/>执行网页搜索"]
+    D --> E["summarize_search_results<br/>抓取并总结网页"]
+    E --> F["evaluate_search_relevance<br/>评估搜索相关性"]
+
+    F -->|结果不足<br/>继续搜索| C
+    F -->|结果可用<br/>生成报告| G["write_research_report<br/>生成研究报告"]
+    G --> H["END<br/>流程结束"]</pre>
+
+<h3 id="12-5-下一步可以继续优化的方向"><a href="#12-5-下一步可以继续优化的方向" class="headerlink" title="12.5 下一步可以继续优化的方向"></a><strong>12.5 下一步可以继续优化的方向</strong></h3><p>当前实现已经完成最小闭环，但仍然可以继续优化：搜索结果去重、来源质量评分、更稳定的正文提取、逐条相关性评分、引用校验，以及在最终报告中区分确定信息、推测信息和资料不足部分。</p>
+<p>从 LCEL 到 LangGraph 的迁移，真正改变的不是某一段代码，而是组织方式：从线性调用到状态驱动，从固定流程到条件路由，从一次执行到可循环决策。</p>
+<h2 id="13-备注"><a href="#13-备注" class="headerlink" title="13.备注"></a><strong>13.备注</strong></h2><p>完整代码：<a target="_blank" rel="noopener" href="https://github.com/keychankc/AI_agent_code/tree/main/web-research-lg">https://github.com/keychankc/AI_agent_code/tree/main/web-research-lg</a></p>
+<script type="module"> import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';	mermaid.initialize({startOnLoad: true, flowchart: {curve: 'linear'}}); </script>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://www.keychan.xyz/2026/06/09/075-from-lcel-to-langgraph/" title="从 LCEL 到 LangGraph：实现一个可循环决策的 Agent">https://www.keychan.xyz/2026/06/09/075-from-lcel-to-langgraph/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/Agent/" rel="tag"># Agent</a>
+              <a href="/tags/LangChain/" rel="tag"># LangChain</a>
+              <a href="/tags/Workflow/" rel="tag"># Workflow</a>
+              <a href="/tags/AI%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91/" rel="tag"># AI应用开发</a>
+              <a href="/tags/LCEL/" rel="tag"># LCEL</a>
+              <a href="/tags/LangGraph/" rel="tag"># LangGraph</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/06/02/074-build-an-ai-application-with-lcel/" rel="prev" title="从 Prompt 到工作流：用 LCEL 构建一个 AI 应用（下）">
+                  <i class="fa fa-angle-left"></i> 从 Prompt 到工作流：用 LCEL 构建一个 AI 应用（下）
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">687k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.min.js","integrity":"sha256-G8ouPAnw4zzMbnAenHnVz6h9XpKbNdOkrqTh7AadyHs="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.keychan.xyz/","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2026/06/09/075-from-lcel-to-langgraph/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>
