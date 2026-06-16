@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.keychan.xyz","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":272,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="1. 大模型的知识边界与问答局限很多 AI 应用在面对简单问题时往往表现不错。通过 Prompt 输入问题，大模型能够生成流畅且看似合理的回答，看起来已经具备知识助手的能力了。但如果进入真实业务场景后，这种能力边界就会逐渐显现。例如询问昨天刚更新的公司制度，或者追问内部文档中的具体细节，模型依然可能给出完整且自然的回答，但其中的信息并不一定准确。 原因是模型会说，不代表模型真的知道。 很多人第一次">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RAG 入门：从零实现检索增强生成">
+<meta property="og:url" content="https://www.keychan.xyz/2026/06/16/076-rag-introduction/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s Notes">
+<meta property="og:description" content="1. 大模型的知识边界与问答局限很多 AI 应用在面对简单问题时往往表现不错。通过 Prompt 输入问题，大模型能够生成流畅且看似合理的回答，看起来已经具备知识助手的能力了。但如果进入真实业务场景后，这种能力边界就会逐渐显现。例如询问昨天刚更新的公司制度，或者追问内部文档中的具体细节，模型依然可能给出完整且自然的回答，但其中的信息并不一定准确。 原因是模型会说，不代表模型真的知道。 很多人第一次">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/202605261437.png">
+<meta property="og:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/202605251554.png">
+<meta property="article:published_time" content="2026-06-16T15:28:32.000Z">
+<meta property="article:modified_time" content="2026-06-16T15:29:33.796Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="RAG">
+<meta property="article:tag" content="LangChain">
+<meta property="article:tag" content="向量数据库">
+<meta property="article:tag" content="Embedding">
+<meta property="article:tag" content="知识库">
+<meta property="article:tag" content="AI应用开发">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/202605261437.png">
+
+
+<link rel="canonical" href="https://www.keychan.xyz/2026/06/16/076-rag-introduction/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.keychan.xyz/2026/06/16/076-rag-introduction/","path":"2026/06/16/076-rag-introduction/","title":"RAG 入门：从零实现检索增强生成"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>RAG 入门：从零实现检索增强生成 | KeyChan's Notes</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.keychan.xyz/">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's Notes" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's Notes</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一个不断生长的上下文</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%9A%84%E7%9F%A5%E8%AF%86%E8%BE%B9%E7%95%8C%E4%B8%8E%E9%97%AE%E7%AD%94%E5%B1%80%E9%99%90"><span class="nav-text">1. 大模型的知识边界与问答局限</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%B9%B6%E4%B8%8D%E7%9C%9F%E6%AD%A3%E6%8B%A5%E6%9C%89%E5%AE%9E%E6%97%B6%E7%9F%A5%E8%AF%86"><span class="nav-text">1.1 大模型并不真正拥有实时知识</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-%E4%BB%8E%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E9%97%AE%E7%AD%94%E4%BE%8B%E5%AD%90%E5%BC%80%E5%A7%8B"><span class="nav-text">1.2 从一个简单问答例子开始</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-%E5%B9%BB%E8%A7%89%E6%98%AF%E7%94%9F%E6%88%90%E6%9C%BA%E5%88%B6%E7%9A%84%E7%BB%93%E6%9E%9C"><span class="nav-text">1.3 幻觉是生成机制的结果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-RAG-%E5%88%B0%E5%BA%95%E8%A7%A3%E5%86%B3%E4%BA%86%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98"><span class="nav-text">2. RAG 到底解决了什么问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E4%BB%80%E4%B9%88%E6%98%AF%E6%A3%80%E7%B4%A2%E5%A2%9E%E5%BC%BA%E7%94%9F%E6%88%90%EF%BC%88RAG%EF%BC%89"><span class="nav-text">2.1 什么是检索增强生成（RAG）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-%E4%BB%8E%E5%85%A8%E6%96%87%E8%BE%93%E5%85%A5%E5%88%B0%E6%8C%89%E9%9C%80%E6%A3%80%E7%B4%A2"><span class="nav-text">2.2 从全文输入到按需检索</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-%E4%BB%8E%E6%A8%A1%E5%9E%8B%E7%9F%A5%E8%AF%86%E5%88%B0%E5%A4%96%E9%83%A8%E7%9F%A5%E8%AF%86"><span class="nav-text">2.3 从模型知识到外部知识</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E5%90%91%E9%87%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%B8%BA%E4%BB%80%E4%B9%88%E6%88%90%E4%B8%BA-RAG-%E7%9A%84%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD"><span class="nav-text">3. 向量数据库为什么成为 RAG 的基础设施</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%85%B3%E9%94%AE%E8%AF%8D%E6%90%9C%E7%B4%A2%E4%B8%8D%E5%A4%9F"><span class="nav-text">3.1 为什么关键词搜索不够</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-Embedding%EF%BC%9A%E6%8A%8A%E8%AF%AD%E4%B9%89%E5%8F%98%E6%88%90%E6%95%B0%E5%AD%97"><span class="nav-text">3.2 Embedding：把语义变成数字</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-Indexing%EF%BC%9A%E7%9F%A5%E8%AF%86%E5%A6%82%E4%BD%95%E8%BD%AC%E5%8C%96%E4%B8%BA%E5%8F%AF%E6%A3%80%E7%B4%A2%E6%95%B0%E6%8D%AE"><span class="nav-text">3.3 Indexing：知识如何转化为可检索数据</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-3-1-%E6%96%87%E6%A1%A3%E5%88%87%E5%9D%97%EF%BC%88Chunk%EF%BC%89"><span class="nav-text">3.3.1 文档切块（Chunk）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-3-2-%E5%85%83%E6%95%B0%E6%8D%AE%EF%BC%88Metadata%EF%BC%89"><span class="nav-text">3.3.2 元数据（Metadata）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-3-3-%E5%90%91%E9%87%8F%E7%94%9F%E6%88%90%EF%BC%88Embedding%EF%BC%89"><span class="nav-text">3.3.3 向量生成（Embedding）</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E7%94%A8-Chroma-%E6%9E%84%E5%BB%BA%E5%90%91%E9%87%8F%E7%9F%A5%E8%AF%86%E5%BA%93"><span class="nav-text">4. 用 Chroma 构建向量知识库</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E5%88%9D%E5%A7%8B%E5%8C%96-Chroma"><span class="nav-text">4.1 初始化 Chroma</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E5%AF%BC%E5%85%A5%E6%96%87%E6%A1%A3%E5%B9%B6%E8%87%AA%E5%8A%A8%E7%94%9F%E6%88%90%E5%90%91%E9%87%8F"><span class="nav-text">4.2 导入文档并自动生成向量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%BC%80%E5%A7%8B%E8%AF%AD%E4%B9%89%E6%90%9C%E7%B4%A2"><span class="nav-text">4. 开始语义搜索</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-%E7%9B%B8%E4%BC%BC%E5%BA%A6%E6%90%9C%E7%B4%A2%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="nav-text">4.4 相似度搜索的工作原理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E5%B0%86%E6%A3%80%E7%B4%A2%E7%BB%93%E6%9E%9C%E5%BC%95%E5%85%A5%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%94%9F%E6%88%90"><span class="nav-text">5. 将检索结果引入大模型生成</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-%E5%B0%81%E8%A3%85%E6%A3%80%E7%B4%A2%E5%87%BD%E6%95%B0"><span class="nav-text">5.1 封装检索函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-%E6%9E%84%E9%80%A0-Prompt%EF%BC%8C%E8%AE%A9%E6%A8%A1%E5%9E%8B%E5%9F%BA%E4%BA%8E%E8%B5%84%E6%96%99%E5%9B%9E%E7%AD%94"><span class="nav-text">5.2 构造 Prompt，让模型基于资料回答</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-%E7%AE%80%E5%8D%95%E4%BD%86%E5%AE%8C%E6%95%B4-RAG-%E5%B7%A5%E4%BD%9C%E6%B5%81"><span class="nav-text">5.3 简单但完整 RAG 工作流</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-%E5%9B%B0%E9%9A%BE%E9%97%AE%E9%A2%98%E7%9A%84%E9%AA%8C%E8%AF%81"><span class="nav-text">5.4 困难问题的验证</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-5-%E5%BD%93%E5%89%8D%E5%AE%9E%E7%8E%B0%E7%9A%84-RAG"><span class="nav-text">**5.5 当前实现的 RAG **</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E9%87%8D%E6%96%B0%E7%90%86%E8%A7%A3-RAG-%E7%9A%84%E4%BB%B7%E5%80%BC"><span class="nav-text">6. 重新理解 RAG 的价值</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-%E6%A3%80%E7%B4%A2%E4%B8%8E%E7%94%9F%E6%88%90%E5%BD%BB%E5%BA%95%E8%A7%A3%E8%80%A6"><span class="nav-text">6.1 检索与生成彻底解耦</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-%E4%B8%BA%E4%BB%80%E4%B9%88-RAG-%E8%83%BD%E9%99%8D%E4%BD%8E%E5%B9%BB%E8%A7%89"><span class="nav-text">6.2 为什么 RAG 能降低幻觉</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-%E7%AC%AC%E4%B8%80%E7%89%88-RAG-%E7%9A%84%E5%B1%80%E9%99%90"><span class="nav-text">6.3 第一版 RAG 的局限</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-4-%E4%BB%8E-Prompt-Engineering-%E5%88%B0%E7%B3%BB%E7%BB%9F%E5%B7%A5%E7%A8%8B"><span class="nav-text">6.4 从 Prompt Engineering 到系统工程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E6%80%BB%E7%BB%93%EF%BC%9A%E8%AE%A9%E6%A8%A1%E5%9E%8B%E4%BB%8E%E2%80%9C%E4%BC%9A%E8%AF%B4%E2%80%9D%E8%B5%B0%E5%90%91%E2%80%9C%E4%BC%9A%E6%9F%A5%E2%80%9D"><span class="nav-text">7. 总结：让模型从“会说”走向“会查”</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E5%A4%87%E6%B3%A8"><span class="nav-text">8.备注</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">76</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">192</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2026/06/16/076-rag-introduction/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's Notes">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="RAG 入门：从零实现检索增强生成 | KeyChan's Notes">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          RAG 入门：从零实现检索增强生成
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-06-16 23:28:32 / 修改时间：23:29:33" itemprop="dateCreated datePublished" datetime="2026-06-16T23:28:32+08:00">2026-06-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/AI%E5%8D%8F%E4%BD%9C%E5%B7%A5%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">AI协作工程</span></a>
+        </span>
+    </span>
+
+  
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2026/06/16/076-rag-introduction/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2026/06/16/076-rag-introduction/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>7.5k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>27 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="1-大模型的知识边界与问答局限"><a href="#1-大模型的知识边界与问答局限" class="headerlink" title="1. 大模型的知识边界与问答局限"></a><strong>1. 大模型的知识边界与问答局限</strong></h2><p>很多 AI 应用在面对简单问题时往往表现不错。通过 Prompt 输入问题，大模型能够生成流畅且看似合理的回答，看起来已经具备知识助手的能力了。但如果进入真实业务场景后，这种能力边界就会逐渐显现。例如询问昨天刚更新的公司制度，或者追问内部文档中的具体细节，模型依然可能给出完整且自然的回答，但其中的信息并不一定准确。</p>
+<p>原因是<strong>模型会说，不代表模型真的知道。</strong> 很多人第一次使用大模型时会产生一种错觉。模型回答流畅、表达自然、知识丰富，于是容易认为模型像数据库一样存储了大量事实，并且能够随时准确调用。</p>
+<span id="more"></span>
+<p>事实并非如此。大模型擅长的是<strong>基于当前输入生成最可能的下一段文本</strong>，不是实时查数据库，也不会自动验证资料。当问题依赖具体文件、内部数据或数据在最近更新时，只靠模型参数就不够了。</p>
+<p>本文要解决的是这样一个问题，<strong>如何让模型不只是生成答案，而是先找到资料，再基于资料回答。</strong></p>
+<h3 id="1-1-大模型并不真正拥有实时知识"><a href="#1-1-大模型并不真正拥有实时知识" class="headerlink" title="1.1 大模型并不真正拥有实时知识"></a><strong>1.1 大模型并不真正拥有实时知识</strong></h3><p>大模型知道的东西，主要来自训练阶段。训练时，它读过大量文本，把语言模式和事实关联压缩进参数里。训练结束后，这些参数不会因为外部世界变化而自动更新。这会带来两个直接问题。</p>
+<ol>
+<li><p><strong>知识天然存在时间边界</strong><br> 模型完成训练之后，参数通常不会实时更新。因此训练之后发生的新事件、最新版本信息或企业内部变化，并不会自动进入模型能力范围。例如询问，某个产品昨天发布了什么功能？如果训练数据里没有相关内容，模型无法直接获取。</p>
+</li>
+<li><p><strong>模型无法主动访问外部系统</strong><br> 企业中的真实知识往往分散在多个地方：内部 Wiki、PDF 文档、知识库、制度文件、项目文档、数据库、历史记录</p>
+</li>
+</ol>
+<p>这些内容默认并不存在于模型参数里。即使允许上传文档，也只能解决一次性的上下文问题，不适合作为长期知识库。更现实的是，上下文窗口再大也不是无限的。假设有个几百页的项目文档，每次提问都把全文塞进 Prompt，可能就会出现几个问题：</p>
+<ul>
+<li>Token 成本迅速增长</li>
+<li>响应时间明显变慢</li>
+<li>模型容易受到无关内容干扰</li>
+<li>上下文长度终究存在上限</li>
+</ul>
+<p>所以，问题不只是“模型够不够强”，而是资料应该怎样加载到模型中。</p>
+<h3 id="1-2-从一个简单问答例子开始"><a href="#1-2-从一个简单问答例子开始" class="headerlink" title="1.2 从一个简单问答例子开始"></a><strong>1.2 从一个简单问答例子开始</strong></h3><p>为了说明问题，可以先看一个最简单的场景。假设存在一段关于古城遗址的介绍文本：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">良渚古城遗址拥有三重城址结构，外围水利系统由良渚先民修建。...</span><br></pre></td></tr></table></figure>
+
+<p>直接把问题和文本一起发送给模型：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">阅读以下内容并回答：</span><br><span class="line"></span><br><span class="line">良渚古城有几重城址结构？外围水利系统是谁修建的？</span><br></pre></td></tr></table></figure>
+
+<p>模型通常能够回答：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">有三重城址结构；外围水利系统由良渚先民修建。</span><br></pre></td></tr></table></figure>
+
+<p>这个过程看起来像搜索，实际上并不是。模型真正做的是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">读取上下文 → 理解问题 → 组织语言 → 输出答案</span><br></pre></td></tr></table></figure>
+
+<p><strong>上下文（Context）</strong> 不是知识库，而是模型当前一次推理过程中能够看到的信息。只要问题答案存在于上下文里，模型通常能够完成提取和组织，这也是很多聊天机器人的工作方式。</p>
+<p>把信息塞给模型，让模型回答，这种方式在小规模场景非常有效。但如果继续追问：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">这些城墙一共有多长？</span><br></pre></td></tr></table></figure>
+
+<p>如果原文没有写，模型可能依然给出一个看起来合理的数字，甚至会解释原因。但这些内容并不存在于资料里。为什么会这样。</p>
+<h3 id="1-3-幻觉是生成机制的结果"><a href="#1-3-幻觉是生成机制的结果" class="headerlink" title="1.3 幻觉是生成机制的结果"></a><strong>1.3 幻觉是生成机制的结果</strong></h3><p>这种现象通常被称为<strong>幻觉（Hallucination）。</strong> 幻觉是生成机制的自然结果。模型的默认目标不是判断资料够不够，而是在当前上下文下继续生成合理文本。于是当上下文不足时，它往往不会停下来，而是继续补全。例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">问题：</span><br><span class="line">这些城墙一共有多长？</span><br></pre></td></tr></table></figure>
+
+<p>上下文没有答案，模型内部可能发生：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">古城 → 考古知识 → 估算城墙长度 → 生成回答</span><br></pre></td></tr></table></figure>
+
+<p>结果就是语言合理，事实却可能是错的。模型越强大，这种错误反而越难发现，因为它看起来很像真的。因此评价一个知识问答系统，不能只看它能不能回答，还要看它在资料不足时会不会停下来。</p>
+<p>为了降低幻觉，最直接的方法不是更换模型，而是约束信息来源，例如在 Prompt 中明确说明：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">仅允许依据提供内容回答。若上下文没有答案，请明确说明无法确定。</span><br></pre></td></tr></table></figure>
+
+<p>这样模型会更倾向输出：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">当前资料未提供相关信息。</span><br></pre></td></tr></table></figure>
+
+<p>虽然没有答案，但至少没有编。接下来要做的就是把这件事系统化：先找到资料，再让模型基于资料回答。这就是 RAG 要解决的问题。</p>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/202605261437.png" alt="202605261437"></p>
+<h2 id="2-RAG-到底解决了什么问题"><a href="#2-RAG-到底解决了什么问题" class="headerlink" title="2. RAG 到底解决了什么问题"></a><strong>2. RAG 到底解决了什么问题</strong></h2><p>前面说了一件事，资料少的时候，把内容直接塞进 Prompt 就够了。但资料一多，或者答案依赖外部文件，只靠模型自己回答就会不稳定。</p>
+<p>这里要拆开的是两个分工职责。模型负责理解和表达，知识库负责保存资料，检索系统负责把相关资料找出来。也就是<strong>先找资料，再生成答案。</strong></p>
+<h3 id="2-1-什么是检索增强生成（RAG）"><a href="#2-1-什么是检索增强生成（RAG）" class="headerlink" title="2.1 什么是检索增强生成（RAG）"></a><strong>2.1 什么是检索增强生成（RAG）</strong></h3><p>RAG，全称 Retrieval-Augmented Generation，通常翻译为检索增强生成，名字本身已经说了整个过程。</p>
+<ul>
+<li>Retrieval 表示<strong>检索</strong>。</li>
+<li>Augmented 表示<strong>增强</strong>。</li>
+<li>Generation 表示<strong>生成</strong>。</li>
+</ul>
+<p>把三个阶段连起来，就是先找到相关资料，再把资料作为上下文交给模型，最后由模型生成回答。整体过程如下：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Question → Retrieve → Context → LLM → Answer</span><br></pre></td></tr></table></figure>
+
+<p>这看起来只是多了一步搜索，但数据流已经变了。相比传统问答方式，知识完全来自模型训练，而 RAG 的流程变成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">用户问题 → 知识检索 → 上下文增强 → 模型生成</span><br></pre></td></tr></table></figure>
+
+<p>知识开始来自外部系统，模型不再承担“记住一切”的任务。它更像人在工作时查资料，先翻到相关页，再组织答案。</p>
+<h3 id="2-2-从全文输入到按需检索"><a href="#2-2-从全文输入到按需检索" class="headerlink" title="2.2 从全文输入到按需检索"></a><strong>2.2 从全文输入到按需检索</strong></h3><p>理解 RAG 最直观的方法，就是对比两种知识输入方式。</p>
+<p>先看传统方案，假设存在一份两百页的企业制度文档，为了回答问题，把全部内容直接交给模型：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Question + Whole Document → LLM</span><br></pre></td></tr></table></figure>
+
+<p>上下文窗口有限，长文档会占满输入；成本也会变高，因为每次提问都要重复发送整份文档。更严重的是信息噪声，模型看到太多无关内容后，回答质量反而下降。例如问题：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">报销金额超过多少需要审批？</span><br></pre></td></tr></table></figure>
+
+<p>相关内容可能只有几十行，模型却要读完整份文档。更合理的做法是先把相关片段找出来，只把这些片段交给模型，流程变成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Question → Search → Relevant Context → LLM</span><br></pre></td></tr></table></figure>
+
+<p>这就是按需检索。模型不用每次从头读完整份资料，只处理当前问题需要的部分。</p>
+<h3 id="2-3-从模型知识到外部知识"><a href="#2-3-从模型知识到外部知识" class="headerlink" title="2.3 从模型知识到外部知识"></a><strong>2.3 从模型知识到外部知识</strong></h3><p>第一次接触 RAG 时，很容易误以为它是一种新的模型能力。其实 RAG 没有改变模型本身，改变的是模型拿到信息的方式。</p>
+<p>可以把传统模型理解成闭卷考试。训练结束后，参数固定，回答完全依赖记忆。而 RAG 更像开卷考试，允许在回答前先查资料，模型依然负责理解和表达。但知识来源发生变化，整个系统：</p>
+<table>
+<thead>
+<tr>
+<th><strong>组件</strong></th>
+<th><strong>职责</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>知识源</td>
+<td>存储真实数据</td>
+</tr>
+<tr>
+<td>检索系统</td>
+<td>找到相关内容</td>
+</tr>
+<tr>
+<td>上下文构造</td>
+<td>组织输入</td>
+</tr>
+<tr>
+<td>LLM</td>
+<td>理解并生成</td>
+</tr>
+</tbody></table>
+<p>这种分工带来了几个关键变化。</p>
+<ol>
+<li>知识更新不再依赖重新训练，新增一份文档，更新知识库即可。</li>
+<li>知识边界开始突破模型参数。内部资料、业务系统、实时数据都能接入。</li>
+<li>回答过程变得可解释。可以知道模型参考了哪些内容。</li>
+</ol>
+<p>所以，后面调 RAG 效果时，重点不会只是换模型，还要看资料怎么存、怎么搜、怎么放回 Prompt。接下来的问题是，既然知识不放在模型里，那这些知识应该放在哪里？系统又如何找到相关内容？这就需要向量数据库了。</p>
+<h2 id="3-向量数据库为什么成为-RAG-的基础设施"><a href="#3-向量数据库为什么成为-RAG-的基础设施" class="headerlink" title="3. 向量数据库为什么成为 RAG 的基础设施"></a><strong>3. 向量数据库为什么成为 RAG 的基础设施</strong></h2><p>现在知识不再放进模型参数里，而是放在外部系统里。那用户问一句话时，系统怎么从一堆资料里找到相关内容？最直接的想法通常是搜索。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">问题：</span><br><span class="line">公司报销金额超过多少需要审批？</span><br></pre></td></tr></table></figure>
+
+<p>去文档里搜索：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">报销、审批、金额</span><br></pre></td></tr></table></figure>
+
+<p>看起来合理，但实际效果往往并不好。因为现实里的知识并不会永远按照提问方式出现。问题和答案之间，经常存在表达差异。</p>
+<p>这时，单纯关键词搜索就不够用了。需要解决的是，<strong>如何让机器找相近含义，而不是只找相同单词。</strong></p>
+<h3 id="3-1-为什么关键词搜索不够"><a href="#3-1-为什么关键词搜索不够" class="headerlink" title="3.1 为什么关键词搜索不够"></a><strong>3.1 为什么关键词搜索不够</strong></h3><p>传统搜索建立在匹配机制上，输入什么词，搜索什么词。例如存在这样一段文本：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">良渚古城外围水利系统由良渚先民修建。</span><br></pre></td></tr></table></figure>
+
+<p>现在提出问题：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">谁修建了这些水坝？</span><br></pre></td></tr></table></figure>
+
+<p>如果搜索系统只做关键词匹配，可能出现：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">水坝 ≠ 水利系统</span><br></pre></td></tr></table></figure>
+
+<p>最终无法命中，因为文本里没有出现完全相同的词语。这种问题在真实场景中更明显。例如，</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">文档写：</span><br><span class="line">年度带薪休假</span><br><span class="line">提问：</span><br><span class="line">年假怎么申请？</span><br><span class="line"></span><br><span class="line">文档写：</span><br><span class="line">员工离职补偿</span><br><span class="line">提问：</span><br><span class="line">赔偿怎么算？</span><br></pre></td></tr></table></figure>
+
+<p>人能够理解这些表达对应同一个意思，关键词搜索通常做不到。因此问题需要从找相同文字，变成找相同含义。这就是语义搜索。它不关心是否出现同样单词，而关注<strong>表达的内容是否相近。</strong> 为了做到这一点，就需要先解决另一个问题，<strong>机器如何计算语义</strong>。</p>
+<h3 id="3-2-Embedding：把语义变成数字"><a href="#3-2-Embedding：把语义变成数字" class="headerlink" title="3.2 Embedding：把语义变成数字"></a><strong>3.2 Embedding：把语义变成数字</strong></h3><p>机器无法直接理解文字，它只能计算数字。因此语义搜索第一步，是把文本转换成数字表示。这个过程叫：<strong>Embedding（向量化表示）。</strong> 过程如下：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">文本 → Embedding → 向量</span><br></pre></td></tr></table></figure>
+
+<p>例如一句简单文本：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">猫</span><br></pre></td></tr></table></figure>
+
+<p>经过 Embedding 后：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[0.17,-0.63,0.81,...]</span><br></pre></td></tr></table></figure>
+
+<p>这里得到的并不是编码结果，而是语义空间中的坐标。单个数字没有什么可解释的意义，重要的是整组数字所在的位置。例如猫、狮子、老虎，这些词虽然完全不同，但可能聚集在相近区域。而与汽车、数据库、咖啡的距离则明显更远。</p>
+<p>于是有了一种新的搜索方式，不再搜索单词，而是比较位置，整体逻辑变成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">问题 → Embedding → 向量 → 计算距离 → 返回最近内容</span><br></pre></td></tr></table></figure>
+
+<p>距离越近，说明语义越接近。这也是向量搜索成立的基础。</p>
+<h3 id="3-3-Indexing：知识如何转化为可检索数据"><a href="#3-3-Indexing：知识如何转化为可检索数据" class="headerlink" title="3.3 Indexing：知识如何转化为可检索数据"></a><strong>3.3 Indexing：知识如何转化为可检索数据</strong></h3><p>有了向量之后，还不能直接开搜。现实里的知识通常不是一句话，而是一份份文档。可能包含：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">PDF</span><br><span class="line">Word</span><br><span class="line">网页</span><br><span class="line">知识库</span><br><span class="line">数据库记录</span><br></pre></td></tr></table></figure>
+
+<p>这些内容无法直接拿去搜索，需要先完成知识加工。这个过程通常称为<strong>Indexing（索引构建）</strong> 或者<strong>Content Ingestion（内容摄取）</strong>。整个过程通常如下：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Document → Chunk → Embedding → Vector Store</span><br></pre></td></tr></table></figure>
+
+<p>这四步就是把原始资料变成可检索数据的过程。我们先看第一步。</p>
+<h4 id="3-3-1-文档切块（Chunk）"><a href="#3-3-1-文档切块（Chunk）" class="headerlink" title="3.3.1 文档切块（Chunk）"></a><strong>3.3.1 文档切块（Chunk）</strong></h4><p>长文本通常不会整体进入向量库。Embedding 模型存在输入长度限制，整篇检索精度太低。例如一份制度文件有100页，不会直接得到一个向量，而会拆成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Chunk1</span><br><span class="line">Chunk2</span><br><span class="line">Chunk3</span><br><span class="line">……</span><br><span class="line">Chunk300</span><br></pre></td></tr></table></figure>
+
+<p>每一段单独生成向量。以后搜索时，只返回和问题接近的片段。切块策略会直接影响检索效果，如果切得太长，相关内容容易被噪声覆盖；切得太短，上下文容易丢失。因此 Chunk 大小通常是 RAG 系统的重要调优参数。</p>
+<h4 id="3-3-2-元数据（Metadata）"><a href="#3-3-2-元数据（Metadata）" class="headerlink" title="3.3.2 元数据（Metadata）"></a><strong>3.3.2 元数据（Metadata）</strong></h4><p>除了正文，通常还会保存额外信息，例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">source</span><br><span class="line">title</span><br><span class="line">page</span><br><span class="line">category</span><br></pre></td></tr></table></figure>
+
+<p>这些信息不参与语义计算，但方便后续过滤和追踪。例如，只搜索：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">技术文档</span><br><span class="line">最近三个月内容</span><br></pre></td></tr></table></figure>
+
+<p>元数据开始承担结构化检索能力。</p>
+<h4 id="3-3-3-向量生成（Embedding）"><a href="#3-3-3-向量生成（Embedding）" class="headerlink" title="3.3.3 向量生成（Embedding）"></a><strong>3.3.3 向量生成（Embedding）</strong></h4><p>切块完成后，每个 Chunk 被转换成向量，形成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Chunk + Embedding + Metadata</span><br></pre></td></tr></table></figure>
+
+<p>最后写入向量数据库。这里要注意一点：数据库里通常不会只保存向量，还会保留原始文本。因为检索命中之后，最终要交给模型的仍然是内容本身。</p>
+<p>现在资料已经变成了向量。下一步就是把这些向量存起来，并支持按语义距离搜索。</p>
+<p><img src="https://mark-down-dc.oss-cn-hangzhou.aliyuncs.com/uPic/202605251554.png" alt="202605251554"></p>
+<h2 id="4-用-Chroma-构建向量知识库"><a href="#4-用-Chroma-构建向量知识库" class="headerlink" title="4. 用 Chroma 构建向量知识库"></a><strong>4. 用 Chroma 构建向量知识库</strong></h2><p>前面大致讲了下流程，现在开始代码。目标是把几段文本存进向量数据库，再用一句问题把相关文本搜出来。</p>
+<p>这一部分使用 Chroma。它足够轻量，不需要先搭一套复杂服务，很适合用来理解<strong>一段文本是怎么被写入、向量化、再被检索出来的。</strong></p>
+<h3 id="4-1-初始化-Chroma"><a href="#4-1-初始化-Chroma" class="headerlink" title="4.1 初始化 Chroma"></a><strong>4.1 初始化 Chroma</strong></h3><p>开始之前，需要先准备 Python 环境。下面的命令可以直接在终端执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install chromadb openai langchain-openai notebook</span><br></pre></td></tr></table></figure>
+
+<p>这篇文章里会用到两类模型：</p>
+<ul>
+<li>Embedding 模型：负责把文本转成向量。</li>
+<li>Chat 模型：负责基于检索结果生成回答。</li>
+</ul>
+<p>不要把密钥直接写进代码里，可以加到环境变量中</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> CHAT_COMPLETIONS_API_KEY=<span class="string">&quot;API Key&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>这里不再单独准备 OpenAI 的 Key。Embedding 和 Chat 都走 OpenAI 兼容接口，只是使用的模型不同。</p>
+<p>随后创建 Chroma client、embedding function 和 LLM。这里的重点是，Chroma 负责存储和检索，embedding 模型负责把文本变成向量，Chat 模型负责最后生成答案。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> chromadb</span><br><span class="line"><span class="keyword">from</span> chromadb.utils.embedding_functions <span class="keyword">import</span> OpenAIEmbeddingFunction</span><br><span class="line"></span><br><span class="line">CHAT_COMPLETIONS_API_KEY = os.getenv(<span class="string">&quot;CHAT_COMPLETIONS_API_KEY&quot;</span>)</span><br><span class="line">DASHSCOPE_BASE_URL = <span class="string">&quot;https://dashscope.aliyuncs.com/compatible-mode/v1&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建一个内存模式的 Chroma 客户端</span></span><br><span class="line">chroma_client = chromadb.Client()</span><br><span class="line"></span><br><span class="line"><span class="comment"># Chroma 在 add/query 时会自动调用这个函数生成向量</span></span><br><span class="line">embedding_function = OpenAIEmbeddingFunction(</span><br><span class="line">    api_key=CHAT_COMPLETIONS_API_KEY,</span><br><span class="line">    api_base=DASHSCOPE_BASE_URL,</span><br><span class="line">    model_name=<span class="string">&quot;text-embedding-v4&quot;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>这里的 <code>text-embedding-v4</code> 是文本向量模型。它的作用不是生成回答，而是把文本转换成一组向量数字。后面 Chroma 做相似度搜索时，比较的就是这些向量之间的距离。也就是说：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">原始文本 → text-embedding-v4 → 向量 → Chroma 保存和检索</span><br></pre></td></tr></table></figure>
+
+<p>这段代码会创建一个本地 Chroma 实例，当前是<strong>内存模式（In-memory）。</strong> 程序结束后数据会消失，实际项目通常会使用持久化存储。接着创建一个 Collection，并把 embedding function 绑定进去：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">tourism_collection = chroma_client.create_collection(</span><br><span class="line">    name=<span class="string">&quot;tourism_collection&quot;</span>,</span><br><span class="line">    embedding_function=embedding_function</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>Collection 可以理解成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Database</span><br><span class="line">└── Collection</span><br><span class="line">      └── Documents</span><br></pre></td></tr></table></figure>
+
+<p>就像关系型数据库的对应关系</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">MySQL → Database → Table</span><br><span class="line">Chroma → Collection → Vectors</span><br></pre></td></tr></table></figure>
+
+<p>Collection 本质上就是一组向量数据的逻辑集合，例如tourism_collection、employee_rules、project_notes、support_faq。不同知识域通常对应不同 Collection。容器准备好后，就可以开始写入知识了。</p>
+<h3 id="4-2-导入文档并自动生成向量"><a href="#4-2-导入文档并自动生成向量" class="headerlink" title="4.2 导入文档并自动生成向量"></a><strong>4.2 导入文档并自动生成向量</strong></h3><p>假设已经准备好几段文本。每一段文本就是一个最小知识片段，也就是前文提到的 Chunk：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">documents = [</span><br><span class="line">    <span class="string">&quot;良渚古城遗址拥有三重城址结构&quot;</span>,</span><br><span class="line">    <span class="string">&quot;外围水利系统由良渚先民修建&quot;</span>,</span><br><span class="line">    <span class="string">&quot;遗址中的水坝至今保存较好&quot;</span>,</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>再准备每个 Chunk 的来源信息。<code>metadatas</code> 不参与向量相似度计算，但后面可以用来告诉用户答案来自哪里：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">metadatas = [</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">&quot;title&quot;</span>: <span class="string">&quot;良渚古城遗址&quot;</span>,</span><br><span class="line">        <span class="string">&quot;page&quot;</span>: <span class="number">12</span>,</span><br><span class="line">        <span class="string">&quot;source&quot;</span>: <span class="string">&quot;考古资料&quot;</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">&quot;title&quot;</span>: <span class="string">&quot;良渚古城遗址&quot;</span>,</span><br><span class="line">        <span class="string">&quot;page&quot;</span>: <span class="number">13</span>,</span><br><span class="line">        <span class="string">&quot;source&quot;</span>: <span class="string">&quot;考古资料&quot;</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">&quot;title&quot;</span>: <span class="string">&quot;良渚古城遗址&quot;</span>,</span><br><span class="line">        <span class="string">&quot;page&quot;</span>: <span class="number">14</span>,</span><br><span class="line">        <span class="string">&quot;source&quot;</span>: <span class="string">&quot;考古资料&quot;</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>开始写入数据库：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">tourism_collection.add(</span><br><span class="line">    documents=documents,</span><br><span class="line">    metadatas=metadatas,</span><br><span class="line">    ids=[<span class="string">&quot;doc_1&quot;</span>, <span class="string">&quot;doc_2&quot;</span>, <span class="string">&quot;doc_3&quot;</span>],</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>这里会看到三个字段：</p>
+<ul>
+<li><code>documents</code> 表示原始文本。</li>
+<li><code>metadatas</code> 表示来源、页码、标题等附加信息。</li>
+<li><code>ids</code> 表示唯一标识。</li>
+</ul>
+<p>代码跑起来后，Chroma 内部发生的是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">文本 → Embedding → 向量 → 保存</span><br></pre></td></tr></table></figure>
+
+<p>最终进入数据库的数据包含 Document、Embedding、Metadata、ID。也就是说，数据库既保存原始内容，也保存语义表示。文本现在已经可以被语义搜索命中。</p>
+<h3 id="4-开始语义搜索"><a href="#4-开始语义搜索" class="headerlink" title="4. 开始语义搜索"></a><strong>4. 开始语义搜索</strong></h3><p>知识写入完成，开始进行第一次检索：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">results = tourism_collection.query(</span><br><span class="line">    query_texts=[<span class="string">&quot;良渚古城有几重城址结构？&quot;</span>],</span><br><span class="line">    n_results=<span class="number">1</span>,</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(results)</span><br></pre></td></tr></table></figure>
+
+<p>这几行代码背后做了三件事：把问题转成向量，和库里的文本向量比较距离，返回最近的文本。结果可能类似：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	<span class="string">&#x27;ids&#x27;</span>: [[<span class="string">&#x27;doc_1&#x27;</span>]], </span><br><span class="line">	<span class="string">&#x27;embeddings&#x27;</span>: <span class="literal">None</span>, </span><br><span class="line">	<span class="string">&#x27;documents&#x27;</span>: [[<span class="string">&#x27;良渚古城遗址拥有三重城址结构&#x27;</span>]], </span><br><span class="line">	<span class="string">&#x27;uris&#x27;</span>: <span class="literal">None</span>, </span><br><span class="line">	<span class="string">&#x27;included&#x27;</span>: [<span class="string">&#x27;metadatas&#x27;</span>, <span class="string">&#x27;documents&#x27;</span>, <span class="string">&#x27;distances&#x27;</span>], </span><br><span class="line">	<span class="string">&#x27;data&#x27;</span>: <span class="literal">None</span>, </span><br><span class="line">	<span class="string">&#x27;metadatas&#x27;</span>: [[&#123;<span class="string">&#x27;title&#x27;</span>: <span class="string">&#x27;良渚古城遗址&#x27;</span>, <span class="string">&#x27;page&#x27;</span>: <span class="number">12</span>, <span class="string">&#x27;source&#x27;</span>: <span class="string">&#x27;考古资料&#x27;</span>&#125;]], </span><br><span class="line">	<span class="string">&#x27;distances&#x27;</span>: [[<span class="number">0.15132708847522736</span>]]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意，数据库并不是在搜索<code>三重</code> 这个词。它比较的是问题向量和文档向量之间的距离。因此如果这样问:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">良渚古城有几层结构？</span><br></pre></td></tr></table></figure>
+
+<p>也可能得到同样结果，因为表达方式不同，语义仍然接近。</p>
+<h3 id="4-4-相似度搜索的工作原理"><a href="#4-4-相似度搜索的工作原理" class="headerlink" title="4.4 相似度搜索的工作原理"></a><strong>4.4 相似度搜索的工作原理</strong></h3><p>为了更清楚理解过程，可以返回多个结果，代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">results = tourism_collection.query(</span><br><span class="line">    query_texts=[<span class="string">&quot;水坝&quot;</span>],</span><br><span class="line">    n_results=<span class="number">3</span>,</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> document, metadata, distance <span class="keyword">in</span> <span class="built_in">zip</span>(</span><br><span class="line">    results[<span class="string">&quot;documents&quot;</span>][<span class="number">0</span>],</span><br><span class="line">    results[<span class="string">&quot;metadatas&quot;</span>][<span class="number">0</span>],</span><br><span class="line">    results[<span class="string">&quot;distances&quot;</span>][<span class="number">0</span>],</span><br><span class="line">):</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;文本：&quot;</span>, document)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;来源：&quot;</span>, metadata)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;距离：&quot;</span>, distance)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;---&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>返回结果可能类似：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">文本： 遗址中的水坝至今保存较好</span><br><span class="line">来源： &#123;<span class="string">&#x27;source&#x27;</span>: <span class="string">&#x27;考古资料&#x27;</span>, <span class="string">&#x27;page&#x27;</span>: <span class="number">14</span>, <span class="string">&#x27;title&#x27;</span>: <span class="string">&#x27;良渚古城遗址&#x27;</span>&#125;</span><br><span class="line">距离： <span class="number">0.6275254487991333</span></span><br><span class="line">---</span><br><span class="line">文本： 外围水利系统由良渚先民修建</span><br><span class="line">来源： &#123;<span class="string">&#x27;source&#x27;</span>: <span class="string">&#x27;考古资料&#x27;</span>, <span class="string">&#x27;page&#x27;</span>: <span class="number">13</span>, <span class="string">&#x27;title&#x27;</span>: <span class="string">&#x27;良渚古城遗址&#x27;</span>&#125;</span><br><span class="line">距离： <span class="number">1.060497760772705</span></span><br><span class="line">---</span><br><span class="line">文本： 良渚古城遗址拥有三重城址结构</span><br><span class="line">来源： &#123;<span class="string">&#x27;title&#x27;</span>: <span class="string">&#x27;良渚古城遗址&#x27;</span>, <span class="string">&#x27;source&#x27;</span>: <span class="string">&#x27;考古资料&#x27;</span>, <span class="string">&#x27;page&#x27;</span>: <span class="number">12</span>&#125;</span><br><span class="line">距离： <span class="number">1.374880313873291</span></span><br><span class="line">---</span><br></pre></td></tr></table></figure>
+
+<p>这里的距离代表<strong>语义相似度</strong>。 距离越小，说明越相关。整体过程如下：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Question → Embedding → Vector → Distance → Ranking → Top K</span><br></pre></td></tr></table></figure>
+
+<p>这就是向量数据库和传统关键词检索的差别。关键词检索更像是在问“有没有这个词”，向量检索更像是在问“意思像不像”。不过现在它还只是把资料找出来，并不会回答问题。</p>
+<p>下一步，还要把检索结果交给模型，让模型基于资料组织答案。</p>
+<h2 id="5-将检索结果引入大模型生成"><a href="#5-将检索结果引入大模型生成" class="headerlink" title="5. 将检索结果引入大模型生成"></a><strong>5. 将检索结果引入大模型生成</strong></h2><p>现在系统已经能搜到相关内容，但返回的仍然只是 <code>Chunk</code>。这些只是原始文本。还需要把它们交给大模型，让模型读完资料后组织成自然语言答案。</p>
+<h3 id="5-1-封装检索函数"><a href="#5-1-封装检索函数" class="headerlink" title="5.1 封装检索函数"></a><strong>5.1 封装检索函数</strong></h3><p>前面的查询代码能够返回结果，但仍然比较底层。为了方便后续调用，先把检索逻辑抽象成函数。示例代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">query_vector_database</span>(<span class="params">question, n_results=<span class="number">1</span></span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;从向量数据库中找出和问题最相关的文本片段。&quot;&quot;&quot;</span></span><br><span class="line">    results = tourism_collection.query(</span><br><span class="line">        query_texts=[question],</span><br><span class="line">        n_results=n_results,</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Chroma 的返回结构是二维列表：第一个问题对应的 Top K 文档</span></span><br><span class="line">    <span class="keyword">return</span> results[<span class="string">&quot;documents&quot;</span>][<span class="number">0</span>]</span><br></pre></td></tr></table></figure>
+
+<p>整个函数负责输入问题，返回最相关内容，例如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">context = query_vector_database(</span><br><span class="line">    <span class="string">&quot;良渚古城有几重城址结构？&quot;</span></span><br><span class="line">)</span><br><span class="line"><span class="built_in">print</span>(context)</span><br></pre></td></tr></table></figure>
+
+<p>得到：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[&quot;良渚古城遗址拥有三重城址结构&quot;]</span><br></pre></td></tr></table></figure>
+
+<p>这里的职责需要做一下拆分，之前是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Question → LLM</span><br></pre></td></tr></table></figure>
+
+<p>现在：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Question → Retriever → Context</span><br></pre></td></tr></table></figure>
+
+<p>模型不再凭空回答，而是先消费检索器给它的上下文。</p>
+<h3 id="5-2-构造-Prompt，让模型基于资料回答"><a href="#5-2-构造-Prompt，让模型基于资料回答" class="headerlink" title="5.2 构造 Prompt，让模型基于资料回答"></a><strong>5.2 构造 Prompt，让模型基于资料回答</strong></h3><p>检索结果已经拿到，下一步是把结果塞进 Prompt。最简单的方法是字符串拼接：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">build_prompt</span>(<span class="params">question, context</span>):</span><br><span class="line">    <span class="comment"># 多个检索结果先合并成一段上下文，这样模型看到的是资料内容，而不是一个列表</span></span><br><span class="line">    context_text = <span class="string">&quot;\n&quot;</span>.join(context)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="string">f&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">		请只根据提供的上下文回答问题。</span></span><br><span class="line"><span class="string">		问题：</span></span><br><span class="line"><span class="string">		<span class="subst">&#123;question&#125;</span></span></span><br><span class="line"><span class="string">		上下文：</span></span><br><span class="line"><span class="string">		<span class="subst">&#123;context_text&#125;</span></span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">		如果上下文中没有答案，请回答“无法根据提供资料确定”。</span></span><br><span class="line"><span class="string">	&quot;&quot;&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>这段 Prompt 里最关键的是这一句：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">只根据提供的上下文回答</span><br></pre></td></tr></table></figure>
+
+<p>这句话用来限制模型，只能依据资料回答，不要自行补全。随后调用模型：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">question = <span class="string">&quot;良渚古城有几重城址结构？&quot;</span></span><br><span class="line">context = query_vector_database(question)</span><br><span class="line">prompt = build_prompt(question, context)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_llm</span>():  </span><br><span class="line">    <span class="keyword">return</span> ChatOpenAI(  </span><br><span class="line">        api_key=CHAT_COMPLETIONS_API_KEY,  </span><br><span class="line">        base_url=DASHSCOPE_BASE_URL,  </span><br><span class="line">        model=<span class="string">&quot;deepseek-v4-pro&quot;</span>,  </span><br><span class="line">        temperature=<span class="number">0</span>,  </span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">llm = get_llm()</span><br><span class="line">response = llm.invoke(prompt)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(response.content)</span><br></pre></td></tr></table></figure>
+
+<p>这样，检索和生成就接上了。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Question → Retrieve → Context → Prompt → LLM</span><br></pre></td></tr></table></figure>
+
+<p>此时模型回答问题时，已经开始依赖外部资料。</p>
+<h3 id="5-3-简单但完整-RAG-工作流"><a href="#5-3-简单但完整-RAG-工作流" class="headerlink" title="5.3 简单但完整 RAG 工作流"></a><strong>5.3 简单但完整 RAG 工作流</strong></h3><p>把前面的片段合在一起，就是下面这份完整可运行的版本：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> chromadb</span><br><span class="line"><span class="keyword">from</span> chromadb.utils.embedding_functions <span class="keyword">import</span> OpenAIEmbeddingFunction</span><br><span class="line"><span class="keyword">from</span> langchain_openai <span class="keyword">import</span> ChatOpenAI</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">CHAT_COMPLETIONS_API_KEY = os.getenv(<span class="string">&quot;CHAT_COMPLETIONS_API_KEY&quot;</span>)</span><br><span class="line">DASHSCOPE_BASE_URL = <span class="string">&quot;https://dashscope.aliyuncs.com/compatible-mode/v1&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_llm</span>():</span><br><span class="line">    <span class="keyword">return</span> ChatOpenAI(</span><br><span class="line">        api_key=CHAT_COMPLETIONS_API_KEY,</span><br><span class="line">        base_url=DASHSCOPE_BASE_URL,</span><br><span class="line">        model=<span class="string">&quot;deepseek-v4-pro&quot;</span>,</span><br><span class="line">        temperature=<span class="number">0</span>,</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">build_collection</span>():</span><br><span class="line">    <span class="string">&quot;&quot;&quot;创建 Chroma Collection，并写入示例知识。&quot;&quot;&quot;</span></span><br><span class="line">    chroma_client = chromadb.Client()</span><br><span class="line"></span><br><span class="line">    embedding_function = OpenAIEmbeddingFunction(</span><br><span class="line">        api_key=CHAT_COMPLETIONS_API_KEY,</span><br><span class="line">        api_base=DASHSCOPE_BASE_URL,</span><br><span class="line">        model_name=<span class="string">&quot;text-embedding-v4&quot;</span></span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    collection = chroma_client.create_collection(</span><br><span class="line">        name=<span class="string">&quot;tourism_collection&quot;</span>,</span><br><span class="line">        embedding_function=embedding_function,</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    documents = [</span><br><span class="line">        <span class="string">&quot;良渚古城遗址拥有三重城址结构&quot;</span>,</span><br><span class="line">        <span class="string">&quot;外围水利系统由良渚先民修建&quot;</span>,</span><br><span class="line">        <span class="string">&quot;遗址中的水坝至今保存较好&quot;</span>,</span><br><span class="line">    ]</span><br><span class="line"></span><br><span class="line">    metadatas = [</span><br><span class="line">        &#123;<span class="string">&quot;title&quot;</span>: <span class="string">&quot;良渚古城遗址&quot;</span>, <span class="string">&quot;page&quot;</span>: <span class="number">12</span>, <span class="string">&quot;source&quot;</span>: <span class="string">&quot;考古资料&quot;</span>&#125;,</span><br><span class="line">        &#123;<span class="string">&quot;title&quot;</span>: <span class="string">&quot;良渚古城遗址&quot;</span>, <span class="string">&quot;page&quot;</span>: <span class="number">13</span>, <span class="string">&quot;source&quot;</span>: <span class="string">&quot;考古资料&quot;</span>&#125;,</span><br><span class="line">        &#123;<span class="string">&quot;title&quot;</span>: <span class="string">&quot;良渚古城遗址&quot;</span>, <span class="string">&quot;page&quot;</span>: <span class="number">14</span>, <span class="string">&quot;source&quot;</span>: <span class="string">&quot;考古资料&quot;</span>&#125;,</span><br><span class="line">    ]</span><br><span class="line"></span><br><span class="line">    collection.add(</span><br><span class="line">        documents=documents,</span><br><span class="line">        metadatas=metadatas,</span><br><span class="line">        ids=[<span class="string">&quot;doc_1&quot;</span>, <span class="string">&quot;doc_2&quot;</span>, <span class="string">&quot;doc_3&quot;</span>],</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> collection</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">query_vector_database</span>(<span class="params">collection, question, n_results=<span class="number">1</span></span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;先检索资料，不直接让模型回答。&quot;&quot;&quot;</span></span><br><span class="line">    results = collection.query(</span><br><span class="line">        query_texts=[question],</span><br><span class="line">        n_results=n_results,</span><br><span class="line">    )</span><br><span class="line">    <span class="keyword">return</span> results[<span class="string">&quot;documents&quot;</span>][<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">build_prompt</span>(<span class="params">question, context</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;把检索到的资料变成模型可读的 Prompt。&quot;&quot;&quot;</span></span><br><span class="line">    context_text = <span class="string">&quot;\n&quot;</span>.join(context)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="string">f&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">		请只根据提供的上下文回答问题。</span></span><br><span class="line"><span class="string">		问题：</span></span><br><span class="line"><span class="string">		<span class="subst">&#123;question&#125;</span></span></span><br><span class="line"><span class="string">		上下文：</span></span><br><span class="line"><span class="string">		<span class="subst">&#123;context_text&#125;</span></span></span><br><span class="line"><span class="string">		如果上下文中没有答案，请回答“无法根据提供资料确定”。</span></span><br><span class="line"><span class="string">	&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">answer_question</span>(<span class="params">collection, question</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;完整 RAG 流程：检索资料 → 构造 Prompt → 调用模型 &quot;&quot;&quot;</span></span><br><span class="line">    context = query_vector_database(collection, question)</span><br><span class="line">    prompt = build_prompt(question, context)</span><br><span class="line"></span><br><span class="line">    llm = get_llm()</span><br><span class="line">    response = llm.invoke(prompt)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> response.content</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    collection = build_collection()</span><br><span class="line"></span><br><span class="line">    question = <span class="string">&quot;良渚古城有几重结构？&quot;</span></span><br><span class="line">    answer = answer_question(collection, question)</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;问题：&quot;</span>, question)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;回答：&quot;</span>, answer)</span><br></pre></td></tr></table></figure>
+
+<p>这份代码的完整执行过程如下。</p>
+<ol>
+<li>用户提出问题，<code>良渚古城有几重结构？</code></li>
+<li>问题进入检索层，<code>Question → Embedding → Similarity Search</code></li>
+<li>返回相关文本，<code>良渚古城遗址拥有三重城址结构</code></li>
+<li>构造 Prompt，<code>Question + Retrieved Context</code></li>
+<li>模型生成最终答案</li>
+</ol>
+<p>链路可以写成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">User Question → Embedding → Vector Search → Top K Context → Prompt → LLM → Answer</span><br></pre></td></tr></table></figure>
+
+<p>这就是最小版 RAG：先搜，再答。</p>
+<h3 id="5-4-困难问题的验证"><a href="#5-4-困难问题的验证" class="headerlink" title="5.4 困难问题的验证"></a><strong>5.4 困难问题的验证</strong></h3><p>为了验证系统是否真的依赖知识，而不是继续猜答案，可以重新使用前面的例子。提问：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">这些城墙一共有多长？</span><br></pre></td></tr></table></figure>
+
+<p>注意，知识库里并没有记录城墙总长度。系统执行：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Question → Retrieve → Context → Generate</span><br></pre></td></tr></table></figure>
+
+<p>最终得到：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">无法根据提供资料确定。</span><br></pre></td></tr></table></figure>
+
+<p>这个结果因为模型没有编，它选择停下来。这里最核心的点是输入方式变了。以前模型只看到问题，现在模型看到：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Question + Evidence</span><br></pre></td></tr></table></figure>
+
+<p>生成范围被资料限制住了。</p>
+<h3 id="5-5-当前实现的-RAG"><a href="#5-5-当前实现的-RAG" class="headerlink" title="**5.5 当前实现的 RAG **"></a>**5.5 当前实现的 RAG **</h3><p>回头看知识流是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Document → Chunk → Embedding → Vector Store → Retrieve → Context → Prompt → LLM → Answer</span><br></pre></td></tr></table></figure>
+
+<p>每一层负责一件事。</p>
+<table>
+<thead>
+<tr>
+<th><strong>组件</strong></th>
+<th><strong>职责</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Embedding</td>
+<td>理解语义</td>
+</tr>
+<tr>
+<td>Vector DB</td>
+<td>搜索资料</td>
+</tr>
+<tr>
+<td>Retriever</td>
+<td>召回内容</td>
+</tr>
+<tr>
+<td>Prompt</td>
+<td>组织上下文</td>
+</tr>
+<tr>
+<td>LLM</td>
+<td>生成答案</td>
+</tr>
+</tbody></table>
+<p>这样后面继续优化时，就不只是改 Prompt 了，还要改切块、检索、上下文组织和模型回答策略。</p>
+<h2 id="6-重新理解-RAG-的价值"><a href="#6-重新理解-RAG-的价值" class="headerlink" title="6. 重新理解 RAG 的价值"></a><strong>6. 重新理解 RAG 的价值</strong></h2><p>前面已经跑通了第一版 RAG，文本先进入向量库，问题再去检索，最后由模型基于检索结果回答，最后再回顾一下。</p>
+<h3 id="6-1-检索与生成彻底解耦"><a href="#6-1-检索与生成彻底解耦" class="headerlink" title="6.1 检索与生成彻底解耦"></a><strong>6.1 检索与生成彻底解耦</strong></h3><p>在传统大模型应用里，知识和能力高度耦合。训练结束之后：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">模型 = 知识 + 能力</span><br></pre></td></tr></table></figure>
+
+<p>想获得新知识，通常意味着重新训练、继续微调、重新部署。但业务资料更新得太快，不可能每改一份制度就动一次模型，很多东西会变，项目文档会变，产品信息会变，但模型参数不会自动变化。RAG 的做法是把知识从模型里拿出来，形成新的结构：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">知识 → 检索层 → 模型</span><br></pre></td></tr></table></figure>
+
+<p>各个分工职责也更清楚。</p>
+<table>
+<thead>
+<tr>
+<th><strong>组件</strong></th>
+<th><strong>职责</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>知识库</td>
+<td>保存真实信息</td>
+</tr>
+<tr>
+<td>向量数据库</td>
+<td>完成召回</td>
+</tr>
+<tr>
+<td>Retriever</td>
+<td>组织检索</td>
+</tr>
+<tr>
+<td>Prompt</td>
+<td>构造上下文</td>
+</tr>
+<tr>
+<td>LLM</td>
+<td>理解与生成</td>
+</tr>
+</tbody></table>
+<p>这样一来，模型不再承担存储职责，主要负责理解和表达。应用要维护的重点，也从“让模型记住什么”变成了“资料怎么更新、怎么检索、怎么放进上下文”。</p>
+<h3 id="6-2-为什么-RAG-能降低幻觉"><a href="#6-2-为什么-RAG-能降低幻觉" class="headerlink" title="6.2 为什么 RAG 能降低幻觉"></a><strong>6.2 为什么 RAG 能降低幻觉</strong></h3><p>幻觉的一个来源是，模型在证据不足时仍然会继续生成。传统模式下，回答可能语言自然，但事实错误。RAG 在模型前面加了一层检索，让模型先拿到证据，再组织答案，回答范围就会被收窄。</p>
+<p>以前模型只看到问题。现在模型看到的是问题加上下文。如果上下文里没有答案，它更容易输出“无法确定”，而不是继续推测，这里有一个容易忽略的变化：过去我们容易期待系统永远有答案；做知识问答时，更应该关注答案有没有证据。</p>
+<p>所以，RAG 里的一个基本原则是：<strong>没有证据，不输出结论。</strong></p>
+<h3 id="6-3-第一版-RAG-的局限"><a href="#6-3-第一版-RAG-的局限" class="headerlink" title="6.3 第一版 RAG 的局限"></a><strong>6.3 第一版 RAG 的局限</strong></h3><p>虽然第一版系统已经能跑，但它还只是<strong>Minimal RAG。</strong> 真正做项目时，还会遇到很多细节问题，比如说，</p>
+<ul>
+<li>知识切块大小如何确定。</li>
+<li>返回几个结果最合适。</li>
+<li>如何避免上下文重复。</li>
+<li>如何提升召回准确率。</li>
+<li>如何处理长文档。</li>
+<li>如何支持实时更新。</li>
+</ul>
+<p>这些问题都会影响回答质量。</p>
+<p>例如同一个问题，切块过大，相关内容可能被无关文字淹没；切块过小，上下文又容易断；返回太多，模型容易偏离重点；返回太少，信息不够。因此实际工程中，RAG 往往会继续扩展：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Hybrid Search: 同时用关键词搜索 + 向量搜索，既能搜语义，也能搜精确词。</span><br><span class="line">Rerank: 先粗搜一批结果，再重新排序，把最相关的放前面。</span><br><span class="line">Metadata Filter: 检索前先限定范围，只搜指定数据。例如只搜某个项目、某个模块、某个时间。</span><br><span class="line">Context Compression: 找到内容太多时，先去重、摘要、裁剪，避免塞爆上下文。</span><br><span class="line">Prompt Optimization: 优化模型指令，让模型更会使用检索结果回答，减少跑偏和幻觉。</span><br></pre></td></tr></table></figure>
+
+<p>这些不是这篇要展开的内容。先知道一件事就够了，RAG 能跑起来只是第一步，后面还需要在检索质量和上下文质量上继续调整。</p>
+<h3 id="6-4-从-Prompt-Engineering-到系统工程"><a href="#6-4-从-Prompt-Engineering-到系统工程" class="headerlink" title="6.4 从 Prompt Engineering 到系统工程"></a><strong>6.4 从 Prompt Engineering 到系统工程</strong></h3><p>很多 AI 应用一开始都在调 Prompt。知识规模变大之后，只调 Prompt 就不够了，系统里会多出几层东西：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Data</span><br><span class="line">Storage</span><br><span class="line">Retrieval</span><br><span class="line">Reasoning</span><br><span class="line">Generation</span><br></pre></td></tr></table></figure>
+
+<p>模型只是其中一环。很多工作会发生在模型之外。例如：</p>
+<ul>
+<li>知识管理。</li>
+<li>检索优化。</li>
+<li>上下文管理。</li>
+<li>工作流编排。</li>
+</ul>
+<p>所以，RAG 的重点不是把 Prompt 写得更长，而是把资料处理好，<strong>数据如何进入系统、知识如何被召回，以及上下文如何被组织。</strong></p>
+<h2 id="7-总结：让模型从“会说”走向“会查”"><a href="#7-总结：让模型从“会说”走向“会查”" class="headerlink" title="7. 总结：让模型从“会说”走向“会查”"></a><strong>7. 总结：让模型从“会说”走向“会查”</strong></h2><p>回到最开始的问题，普通 AI 聊天为什么不够用？因为模型擅长生成，却不适合保存和获取业务资料。RAG 做的事，就是让模型先查资料，再回答。整个过程中有几次关键转换。</p>
+<ol>
+<li>文本被切块。</li>
+<li>内容被向量化。</li>
+<li>知识进入向量数据库。</li>
+<li>问题触发检索。</li>
+<li>模型基于上下文回答。</li>
+</ol>
+<p>链路可以写成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Data → Chunk → Embedding → Vector DB → Retrieve → Prompt → LLM → Answer</span><br></pre></td></tr></table></figure>
+
+<p>这就是第一版 RAG 的完整链路。后面无论做知识助手、企业问答，还是更复杂的 Agent 系统，基本都绕不开这条线。</p>
+<h2 id="8-备注"><a href="#8-备注" class="headerlink" title="8.备注"></a><strong>8.备注</strong></h2><p>完整代码：<a target="_blank" rel="noopener" href="https://github.com/keychankc/AI_agent_code/tree/main/lang-chain-rag">https://github.com/keychankc/AI_agent_code/tree/main/lang-chain-rag</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://www.keychan.xyz/2026/06/16/076-rag-introduction/" title="RAG 入门：从零实现检索增强生成">https://www.keychan.xyz/2026/06/16/076-rag-introduction/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/RAG/" rel="tag"># RAG</a>
+              <a href="/tags/LangChain/" rel="tag"># LangChain</a>
+              <a href="/tags/%E5%90%91%E9%87%8F%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag"># 向量数据库</a>
+              <a href="/tags/Embedding/" rel="tag"># Embedding</a>
+              <a href="/tags/%E7%9F%A5%E8%AF%86%E5%BA%93/" rel="tag"># 知识库</a>
+              <a href="/tags/AI%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91/" rel="tag"># AI应用开发</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/06/09/075-from-lcel-to-langgraph/" rel="prev" title="从 LCEL 到 LangGraph：实现一个可循环决策的 Agent">
+                  <i class="fa fa-angle-left"></i> 从 LCEL 到 LangGraph：实现一个可循环决策的 Agent
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">694k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.min.js","integrity":"sha256-G8ouPAnw4zzMbnAenHnVz6h9XpKbNdOkrqTh7AadyHs="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.keychan.xyz/","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2026/06/16/076-rag-introduction/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>
