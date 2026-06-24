@@ -6,7 +6,7 @@
   <link href="https://www.keychan.xyz/atom.xml" rel="self"/>
   
   <link href="https://www.keychan.xyz/"/>
-  <updated>2026-06-16T15:29:33.796Z</updated>
+  <updated>2026-06-24T03:28:13.399Z</updated>
   <id>https://www.keychan.xyz/</id>
   
   <author>
@@ -15,6 +15,36 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>构建 RAG 应用：LangChain 检索、记忆与调试</title>
+    <link href="https://www.keychan.xyz/2026/06/24/077-building-rag-applications/"/>
+    <id>https://www.keychan.xyz/2026/06/24/077-building-rag-applications/</id>
+    <published>2026-06-24T03:15:32.000Z</published>
+    <updated>2026-06-24T03:28:13.399Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;1-从最小-RAG-到可用应用&quot;&gt;&lt;a href=&quot;#1-从最小-RAG-到可用应用&quot; class=&quot;headerlink&quot; title=&quot;1. 从最小 RAG 到可用应用&quot;&gt;&lt;/a&gt;&lt;strong&gt;1. 从最小 RAG 到可用应用&lt;/strong&gt;&lt;/h2&gt;&lt;p&gt;上一篇已经完成了一个最小版 RAG。它可以把检索结果交给 LLM，让模型基于资料整合答案。完整链路大致是：&lt;/p&gt;
+&lt;figure class=&quot;highlight text&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;Document → Chunk → Embedding → Vector Store → Retrieve → Context → Prompt → LLM → Answer&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;</summary>
+    
+    
+    
+    <category term="AI协作工程" scheme="https://www.keychan.xyz/categories/AI%E5%8D%8F%E4%BD%9C%E5%B7%A5%E7%A8%8B/"/>
+    
+    
+    <category term="RAG" scheme="https://www.keychan.xyz/tags/RAG/"/>
+    
+    <category term="LangChain" scheme="https://www.keychan.xyz/tags/LangChain/"/>
+    
+    <category term="AI应用开发" scheme="https://www.keychan.xyz/tags/AI%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91/"/>
+    
+    <category term="向量检索" scheme="https://www.keychan.xyz/tags/%E5%90%91%E9%87%8F%E6%A3%80%E7%B4%A2/"/>
+    
+    <category term="Chroma" scheme="https://www.keychan.xyz/tags/Chroma/"/>
+    
+    <category term="记忆" scheme="https://www.keychan.xyz/tags/%E8%AE%B0%E5%BF%86/"/>
+    
+  </entry>
   
   <entry>
     <title>RAG 入门：从零实现检索增强生成</title>
@@ -70,11 +100,11 @@
     
     <category term="AI应用开发" scheme="https://www.keychan.xyz/tags/AI%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91/"/>
     
-    <category term="Workflow" scheme="https://www.keychan.xyz/tags/Workflow/"/>
+    <category term="LangGraph" scheme="https://www.keychan.xyz/tags/LangGraph/"/>
     
     <category term="LCEL" scheme="https://www.keychan.xyz/tags/LCEL/"/>
     
-    <category term="LangGraph" scheme="https://www.keychan.xyz/tags/LangGraph/"/>
+    <category term="Workflow" scheme="https://www.keychan.xyz/tags/Workflow/"/>
     
   </entry>
   
@@ -100,11 +130,11 @@
     
     <category term="AI应用开发" scheme="https://www.keychan.xyz/tags/AI%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91/"/>
     
+    <category term="LCEL" scheme="https://www.keychan.xyz/tags/LCEL/"/>
+    
     <category term="Workflow" scheme="https://www.keychan.xyz/tags/Workflow/"/>
     
     <category term="WebResearch" scheme="https://www.keychan.xyz/tags/WebResearch/"/>
-    
-    <category term="LCEL" scheme="https://www.keychan.xyz/tags/LCEL/"/>
     
   </entry>
   
@@ -130,11 +160,11 @@
     
     <category term="AI应用开发" scheme="https://www.keychan.xyz/tags/AI%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91/"/>
     
+    <category term="LCEL" scheme="https://www.keychan.xyz/tags/LCEL/"/>
+    
     <category term="Workflow" scheme="https://www.keychan.xyz/tags/Workflow/"/>
     
     <category term="WebResearch" scheme="https://www.keychan.xyz/tags/WebResearch/"/>
-    
-    <category term="LCEL" scheme="https://www.keychan.xyz/tags/LCEL/"/>
     
   </entry>
   
@@ -362,11 +392,11 @@
     
     <category term="Agent" scheme="https://www.keychan.xyz/tags/Agent/"/>
     
-    <category term="提示工程" scheme="https://www.keychan.xyz/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/"/>
-    
     <category term="CodingLLM" scheme="https://www.keychan.xyz/tags/CodingLLM/"/>
     
     <category term="MCP" scheme="https://www.keychan.xyz/tags/MCP/"/>
+    
+    <category term="提示工程" scheme="https://www.keychan.xyz/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/"/>
     
     <category term="工作流设计" scheme="https://www.keychan.xyz/tags/%E5%B7%A5%E4%BD%9C%E6%B5%81%E8%AE%BE%E8%AE%A1/"/>
     
@@ -395,11 +425,11 @@
     
     <category term="Agent" scheme="https://www.keychan.xyz/tags/Agent/"/>
     
-    <category term="提示工程" scheme="https://www.keychan.xyz/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/"/>
-    
     <category term="CodingLLM" scheme="https://www.keychan.xyz/tags/CodingLLM/"/>
     
     <category term="MCP" scheme="https://www.keychan.xyz/tags/MCP/"/>
+    
+    <category term="提示工程" scheme="https://www.keychan.xyz/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/"/>
     
   </entry>
   
@@ -420,13 +450,13 @@
     
     <category term="Agent" scheme="https://www.keychan.xyz/tags/Agent/"/>
     
-    <category term="提示工程" scheme="https://www.keychan.xyz/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/"/>
-    
-    <category term="思维链" scheme="https://www.keychan.xyz/tags/%E6%80%9D%E7%BB%B4%E9%93%BE/"/>
-    
     <category term="CodingLLM" scheme="https://www.keychan.xyz/tags/CodingLLM/"/>
     
+    <category term="提示工程" scheme="https://www.keychan.xyz/tags/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B/"/>
+    
     <category term="Ollama" scheme="https://www.keychan.xyz/tags/Ollama/"/>
+    
+    <category term="思维链" scheme="https://www.keychan.xyz/tags/%E6%80%9D%E7%BB%B4%E9%93%BE/"/>
     
     <category term="Few-shot" scheme="https://www.keychan.xyz/tags/Few-shot/"/>
     
@@ -564,49 +594,19 @@
     <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
     
     
+    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
+    
     <category term="大语言模型" scheme="https://www.keychan.xyz/tags/%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/"/>
     
     <category term="ScalingLaws" scheme="https://www.keychan.xyz/tags/ScalingLaws/"/>
     
     <category term="上下文窗口" scheme="https://www.keychan.xyz/tags/%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AA%97%E5%8F%A3/"/>
     
-    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
-    
     <category term="世界模型" scheme="https://www.keychan.xyz/tags/%E4%B8%96%E7%95%8C%E6%A8%A1%E5%9E%8B/"/>
     
     <category term="自回归建模" scheme="https://www.keychan.xyz/tags/%E8%87%AA%E5%9B%9E%E5%BD%92%E5%BB%BA%E6%A8%A1/"/>
     
     <category term="采样策略" scheme="https://www.keychan.xyz/tags/%E9%87%87%E6%A0%B7%E7%AD%96%E7%95%A5/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>视觉多模态：CLIP、ALIGN 与视觉语言对齐</title>
-    <link href="https://www.keychan.xyz/2026/02/10/056-visual-multimodal/"/>
-    <id>https://www.keychan.xyz/2026/02/10/056-visual-multimodal/</id>
-    <published>2026-02-10T13:20:12.000Z</published>
-    <updated>2026-02-10T13:48:36.145Z</updated>
-    
-    
-    <summary type="html">&lt;h2 id=&quot;1-从早期跨模态学习到-CLIP：视觉和语言对齐是如何发展的&quot;&gt;&lt;a href=&quot;#1-从早期跨模态学习到-CLIP：视觉和语言对齐是如何发展的&quot; class=&quot;headerlink&quot; title=&quot;1. 从早期跨模态学习到 CLIP：视觉和语言对齐是如何发展的&quot;&gt;&lt;/a&gt;1. 从早期跨模态学习到 CLIP：视觉和语言对齐是如何发展的&lt;/h2&gt;&lt;p&gt;在 CLIP 出现之前，让计算机同时“看懂图像、理解文字”，其实已经是一个被研究了很多年的问题。只要稍微想一想就能明白：如果模型既能处理图像，又能处理语言，那它就有可能完成图文搜索、图片描述、视觉问答等各种任务，这听起来非常有吸引力。&lt;/p&gt;
-&lt;p&gt;也正因为如此，计算机视觉和自然语言处理领域的研究者，早早就开始尝试“跨模态学习”，也就是把图像和文本放在同一个模型里一起建模。然而，有些尴尬的是：这些方法虽然在论文里能跑出不错的结果，但很难真正变成一种&lt;strong&gt;稳定、通用、可以长期复用的基础能力&lt;/strong&gt;。模型往往是“为某个任务量身定做的”，而不是“可以反复拿来用的工具”。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="深度学习" scheme="https://www.keychan.xyz/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
-    
-    
-    <category term="对比学习" scheme="https://www.keychan.xyz/tags/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0/"/>
-    
-    <category term="多模态" scheme="https://www.keychan.xyz/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/"/>
-    
-    <category term="CLIP" scheme="https://www.keychan.xyz/tags/CLIP/"/>
-    
-    <category term="ALIGN" scheme="https://www.keychan.xyz/tags/ALIGN/"/>
-    
-    <category term="RAG-Vision" scheme="https://www.keychan.xyz/tags/RAG-Vision/"/>
-    
-    <category term="系统级接口" scheme="https://www.keychan.xyz/tags/%E7%B3%BB%E7%BB%9F%E7%BA%A7%E6%8E%A5%E5%8F%A3/"/>
     
   </entry>
   
