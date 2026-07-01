@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo-512x512.png" color="#222">
+  <meta name="google-site-verification" content="jZ7dJJlouQrswxytAryX3LanLNrTthfFdMUkDJzRqIU">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.keychan.xyz","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":272,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="1. 从 Workflow 到 Agent：为什么需要新的架构过去很长一段时间里，大模型的使用主要是围绕 Prompt 工程展开。随着 LangChain、LangGraph 等框架的发展，越来越多的应用开始采用工作流（Workflow）模式，将复杂任务拆解为多个步骤，再按照固定顺序执行。这种模式能够有效提升系统的稳定性和可维护性，但当任务复杂度进一步提高时，仅靠预定义流程可能无法满足需求。Age">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从 Workflow 到 Agent：理解 ReAct 和 Tool Calling">
+<meta property="og:url" content="https://www.keychan.xyz/2026/07/01/078-from-workflow-to-agent/index.html">
+<meta property="og:site_name" content="KeyChan&#39;s Notes">
+<meta property="og:description" content="1. 从 Workflow 到 Agent：为什么需要新的架构过去很长一段时间里，大模型的使用主要是围绕 Prompt 工程展开。随着 LangChain、LangGraph 等框架的发展，越来越多的应用开始采用工作流（Workflow）模式，将复杂任务拆解为多个步骤，再按照固定顺序执行。这种模式能够有效提升系统的稳定性和可维护性，但当任务复杂度进一步提高时，仅靠预定义流程可能无法满足需求。Age">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-07-01T13:13:32.000Z">
+<meta property="article:modified_time" content="2026-07-01T13:26:12.127Z">
+<meta property="article:author" content="KeyChan">
+<meta property="article:tag" content="Agent">
+<meta property="article:tag" content="LangChain">
+<meta property="article:tag" content="Workflow">
+<meta property="article:tag" content="LangGraph">
+<meta property="article:tag" content="ReAct">
+<meta property="article:tag" content="ToolCalling">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://www.keychan.xyz/2026/07/01/078-from-workflow-to-agent/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.keychan.xyz/2026/07/01/078-from-workflow-to-agent/","path":"2026/07/01/078-from-workflow-to-agent/","title":"从 Workflow 到 Agent：理解 ReAct 和 Tool Calling"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>从 Workflow 到 Agent：理解 ReAct 和 Tool Calling | KeyChan's Notes</title>
+  
+
+
+
+
+
+
+
+<link rel="dns-prefetch" href="https://comment.keychan.xyz/">
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="KeyChan's Notes" type="application/atom+xml">
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">KeyChan's Notes</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一个不断生长的上下文</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-随想"><a href="/think/" rel="section"><i class="fa fa-lightbulb fa-fw"></i>随想</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E4%BB%8E-Workflow-%E5%88%B0-Agent%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E6%96%B0%E7%9A%84%E6%9E%B6%E6%9E%84"><span class="nav-text">1. 从 Workflow 到 Agent：为什么需要新的架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-Workflow-%E7%9A%84%E6%9C%AC%E8%B4%A8%E6%98%AF%E9%A2%84%E5%AE%9A%E4%B9%89%E6%B5%81%E7%A8%8B"><span class="nav-text">1.1 Workflow 的本质是预定义流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-Workflow-%E7%9A%84%E8%BE%B9%E7%95%8C"><span class="nav-text">1.2 Workflow 的边界</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-Agent-%E4%B8%8E-Workflow-%E7%9A%84%E6%9C%AC%E8%B4%A8%E5%8C%BA%E5%88%AB"><span class="nav-text">1.3 Agent 与 Workflow 的本质区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-Agent-%E4%B8%8D%E7%AD%89%E4%BA%8E%E6%9B%B4%E6%99%BA%E8%83%BD"><span class="nav-text">1.4 Agent 不等于更智能</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-5-%E4%BB%8E%E5%B7%A5%E4%BD%9C%E6%B5%81%E5%88%B0%E6%99%BA%E8%83%BD%E4%BD%93"><span class="nav-text">1.5 从工作流到智能体</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-Tool-Calling%EF%BC%9A%E8%AE%A9%E5%A4%A7%E6%A8%A1%E5%9E%8B%E8%8E%B7%E5%BE%97%E5%A4%96%E9%83%A8%E8%83%BD%E5%8A%9B"><span class="nav-text">2. Tool Calling：让大模型获得外部能力</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%B7%A5%E5%85%B7"><span class="nav-text">2.1 大模型为什么需要工具</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-Tool-%E7%9A%84%E6%9C%AC%E8%B4%A8%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-text">2.2 Tool 的本质是什么</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-%E4%BB%8E-Function-Calling-%E5%88%B0-Tool-Calling"><span class="nav-text">2.3 从 Function Calling 到 Tool Calling</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-LangChain-%E5%A6%82%E4%BD%95%E5%AE%9A%E4%B9%89-Tool"><span class="nav-text">2.4 LangChain 如何定义 Tool</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-bind-tools-%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%9C%BA%E5%88%B6"><span class="nav-text">2.5 bind_tools 的实现机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-6-Tool-Calling-%E4%B8%8D%E6%98%AF%E6%89%A7%E8%A1%8C%E5%B7%A5%E5%85%B7"><span class="nav-text">2.6 Tool Calling 不是执行工具</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-7-Tool-Calling%EF%BC%9A%E4%BB%8E%E5%AF%B9%E8%AF%9D%E6%A8%A1%E5%9E%8B%E8%B5%B0%E5%90%91%E6%99%BA%E8%83%BD%E4%BD%93"><span class="nav-text">2.7 Tool Calling：从对话模型走向智能体</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-ReAct%EF%BC%9A%E7%8E%B0%E4%BB%A3-Agent-%E7%9A%84%E8%BF%90%E8%A1%8C%E5%9F%BA%E7%A1%80"><span class="nav-text">3. ReAct：现代 Agent 的运行基础</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-ReAct-%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text">3.1 ReAct 解决的问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-Reason-%E4%B8%8E-Act"><span class="nav-text">3.2 Reason 与 Act</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-%E4%B8%80%E4%B8%AA%E5%AE%8C%E6%95%B4%E4%BE%8B%E5%AD%90"><span class="nav-text">3.3 一个完整例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-ReAct-%E4%B8%BA%E4%BB%80%E4%B9%88%E6%AF%94-Workflow-%E6%9B%B4%E7%81%B5%E6%B4%BB"><span class="nav-text">3.4 ReAct 为什么比 Workflow 更灵活</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-5-ReAct-%E5%B9%B6%E4%B8%8D%E6%98%AF%E6%97%A0%E9%99%90%E5%BE%AA%E7%8E%AF"><span class="nav-text">3.5 ReAct 并不是无限循环</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-6-Query-Rewrite%EF%BC%9AAgent-%E7%9A%84%E9%9A%90%E8%97%8F%E8%83%BD%E5%8A%9B"><span class="nav-text">3.6 Query Rewrite：Agent 的隐藏能力</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-7-ReAct-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E6%98%AF-Agent-%E7%9A%84%E6%A0%87%E5%87%86%E6%A8%A1%E5%BC%8F"><span class="nav-text">3.7 ReAct 为什么会是 Agent 的标准模式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E7%94%A8-Python-%E6%89%8B%E5%86%99%E4%B8%80%E4%B8%AA-ReAct-Agent"><span class="nav-text">4. 用 Python 手写一个 ReAct Agent</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E4%BB%8E%E6%97%85%E6%B8%B8%E7%9F%A5%E8%AF%86%E5%BA%93%E5%BC%80%E5%A7%8B"><span class="nav-text">4.1 从旅游知识库开始</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E6%8A%8A%E6%9F%A5%E8%AF%A2%E5%87%BD%E6%95%B0%E5%B0%81%E8%A3%85%E6%88%90-Tool"><span class="nav-text">4.2 把查询函数封装成 Tool</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-Tool-Schema-%E8%83%8C%E5%90%8E%E7%9A%84%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6"><span class="nav-text">4.3 Tool Schema 背后的工作机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-Messages-%E5%A6%82%E4%BD%95%E6%89%BF%E8%BD%BD-Agent-%E7%9A%84%E8%BF%90%E8%A1%8C%E7%8A%B6%E6%80%81"><span class="nav-text">4.4 Messages 如何承载 Agent 的运行状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-5-ToolNode%EF%BC%9AAgent-%E6%89%A7%E8%A1%8C%E5%8A%A8%E4%BD%9C%E7%9A%84%E6%A0%B8%E5%BF%83%E8%8A%82%E7%82%B9"><span class="nav-text">4.5 ToolNode：Agent 执行动作的核心节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-6-LLM-Node-%E6%98%AF-Agent-%E7%9A%84%E5%86%B3%E7%AD%96%E4%B8%AD%E5%BF%83"><span class="nav-text">4.6 LLM Node 是 Agent 的决策中心</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-7-tools-condition%EF%BC%9A%E9%A9%B1%E5%8A%A8-Agent-%E5%86%B3%E7%AD%96%E6%B5%81%E8%BD%AC%E7%9A%84%E5%85%B3%E9%94%AE%E6%9C%BA%E5%88%B6"><span class="nav-text">4.7 tools_condition：驱动 Agent 决策流转的关键机制</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E8%B0%83%E8%AF%95-Agent%EF%BC%9A%E7%9C%8B%E6%87%82%E4%B8%80%E6%AC%A1%E5%AE%8C%E6%95%B4%E6%89%A7%E8%A1%8C%E8%BF%87%E7%A8%8B"><span class="nav-text">5. 调试 Agent：看懂一次完整执行过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-Chat-Loop-%E5%8F%AA%E6%98%AF%E5%A4%96%E5%B1%82%E5%85%A5%E5%8F%A3"><span class="nav-text">5.1 Chat Loop 只是外层入口</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-2-Agent-%E7%9A%84%E9%A6%96%E6%AC%A1%E5%86%B3%E7%AD%96%E6%98%AF%E5%A6%82%E4%BD%95%E4%BA%A7%E7%94%9F"><span class="nav-text">5.2 Agent 的首次决策是如何产生</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-LLM-%E5%A6%82%E4%BD%95%E5%86%B3%E5%AE%9A%E8%B0%83%E7%94%A8%E5%B7%A5%E5%85%B7"><span class="nav-text">5.3 LLM 如何决定调用工具</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-ToolNode-%E8%B0%83%E7%94%A8%E5%B7%A5%E5%85%B7%E5%B9%B6%E7%94%9F%E6%88%90-ToolMessage"><span class="nav-text">5.4 ToolNode 调用工具并生成 ToolMessage</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-5-Agent-%E5%A6%82%E4%BD%95%E5%88%A9%E7%94%A8%E8%A7%82%E5%AF%9F%E7%BB%93%E6%9E%9C%E7%BB%A7%E7%BB%AD%E6%8E%A8%E7%90%86"><span class="nav-text">5.5 Agent 如何利用观察结果继续推理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-6-Agent-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E8%87%AA%E5%8A%A8%E5%81%9C%E6%AD%A2"><span class="nav-text">5.6 Agent 为什么会自动停止</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-7-Agent-%E7%9A%84%E8%BF%90%E8%A1%8C%E6%9C%AC%E8%B4%A8%E6%98%AF-Message-%E6%B5%81%E8%BD%AC"><span class="nav-text">5.7 Agent 的运行本质是 Message 流转</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-8-%E8%B0%83%E8%AF%95-Agent"><span class="nav-text">5.8 调试 Agent</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E4%BB%8E%E5%8D%95%E5%B7%A5%E5%85%B7-Agent-%E5%88%B0%E5%A4%9A%E5%B7%A5%E5%85%B7-Agent"><span class="nav-text">6. 从单工具 Agent 到多工具 Agent</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-%E5%8D%95%E5%B7%A5%E5%85%B7-Agent-%E7%9A%84%E5%B1%80%E9%99%90%E6%80%A7"><span class="nav-text">6.1 单工具 Agent 的局限性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-%E5%A2%9E%E5%8A%A0%E7%AC%AC%E4%BA%8C%E4%B8%AA-Tool"><span class="nav-text">6.2 增加第二个 Tool</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-Tool-Routing-%E6%98%AF%E5%A6%82%E4%BD%95%E5%8F%91%E7%94%9F%E7%9A%84"><span class="nav-text">6.3 Tool Routing 是如何发生的</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-4-%E4%B8%80%E4%B8%AA%E9%97%AE%E9%A2%98%E8%B0%83%E7%94%A8%E5%A4%9A%E4%B8%AA-Tool"><span class="nav-text">6.4 一个问题调用多个 Tool</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-5-%E4%BB%8E%E5%8D%95%E4%B8%80%E8%83%BD%E5%8A%9B%E5%88%B0%E8%83%BD%E5%8A%9B%E7%BC%96%E6%8E%92"><span class="nav-text">6.5 从单一能力到能力编排</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-6-Tool-%E4%B8%8D%E5%86%B3%E5%AE%9A%E7%AD%94%E6%A1%88%EF%BC%8C%E5%86%B3%E5%AE%9A%E4%BF%A1%E6%81%AF%E6%9D%A5%E6%BA%90"><span class="nav-text">6.6 Tool 不决定答案，决定信息来源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-7-%E4%BB%8E-Tool-Agent-%E5%88%B0-Multi-Agent"><span class="nav-text">6.7 从 Tool Agent 到 Multi-Agent</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-create-react-agent%EF%BC%9A%E4%BB%8E%E5%8E%9F%E7%90%86%E9%AA%8C%E8%AF%81%E8%B5%B0%E5%90%91%E5%AE%9E%E8%B7%B5"><span class="nav-text">7. create_react_agent：从原理验证走向实践</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#7-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%AE%9E%E9%99%85%E9%A1%B9%E7%9B%AE%E5%BE%88%E5%B0%91%E6%89%8B%E5%86%99-ReAct-%E5%BE%AA%E7%8E%AF"><span class="nav-text">7.1 为什么实际项目很少手写 ReAct 循环</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-2-create-react-agent-%E5%B0%81%E8%A3%85%E4%BA%86%E5%93%AA%E4%BA%9B%E8%83%BD%E5%8A%9B"><span class="nav-text">7.2 create_react_agent 封装了哪些能力</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-3-create-react-agent-%E8%83%8C%E5%90%8E%E7%9A%84%E8%BF%90%E8%A1%8C%E7%BB%93%E6%9E%84"><span class="nav-text">7.3 create_react_agent 背后的运行结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-4-Prompt-%E5%A6%82%E4%BD%95%E5%BD%B1%E5%93%8D-Agent-%E7%9A%84%E8%A1%8C%E4%B8%BA%E5%86%B3%E7%AD%96"><span class="nav-text">7.4 Prompt 如何影响 Agent 的行为决策</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-5-Tool-Selection-%E6%9C%AC%E8%B4%A8%E4%B8%8A%E6%98%AF%E8%AF%AD%E4%B9%89%E8%B7%AF%E7%94%B1"><span class="nav-text">7.5 Tool Selection 本质上是语义路由</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-6-create-react-agent-%E7%9A%84%E9%80%82%E7%94%A8%E8%BE%B9%E7%95%8C"><span class="nav-text">7.6 create_react_agent 的适用边界</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-7-%E4%BB%8E-Agent-%E5%88%B0-Agent-System"><span class="nav-text">7.7 从 Agent 到 Agent System</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E6%80%BB%E7%BB%93%EF%BC%9AAgent-%E6%9C%AC%E8%B4%A8%E4%B8%8A%E6%98%AF%E4%B8%80%E7%A7%8D%E5%8A%A8%E6%80%81%E5%B7%A5%E4%BD%9C%E6%B5%81"><span class="nav-text">8. 总结：Agent 本质上是一种动态工作流</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-%E5%A4%87%E6%B3%A8"><span class="nav-text">9.备注</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KeyChan"
+      src="/images/key_avatar.png">
+  <p class="site-author-name" itemprop="name">KeyChan</p>
+  <div class="site-description" itemprop="description">全干工程师</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">78</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">197</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="mailto:kckeychan@gmail.com" title="E-Mail → mailto:kckeychan@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://x.com/keychankc" title="Twitter → https:&#x2F;&#x2F;x.com&#x2F;keychankc" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://www.keychan.xyz/2026/07/01/078-from-workflow-to-agent/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/key_avatar.png">
+      <meta itemprop="name" content="KeyChan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="KeyChan's Notes">
+      <meta itemprop="description" content="全干工程师">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="从 Workflow 到 Agent：理解 ReAct 和 Tool Calling | KeyChan's Notes">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          从 Workflow 到 Agent：理解 ReAct 和 Tool Calling
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-07-01 21:13:32 / 修改时间：21:26:12" itemprop="dateCreated datePublished" datetime="2026-07-01T21:13:32+08:00">2026-07-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/AI%E5%8D%8F%E4%BD%9C%E5%B7%A5%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">AI协作工程</span></a>
+        </span>
+    </span>
+
+  
+  
+  <span class="post-meta-item">
+    
+    <span class="post-meta-item-icon">
+      <i class="far fa-comment"></i>
+    </span>
+    <span class="post-meta-item-text">Waline：</span>
+  
+    <a title="waline" href="/2026/07/01/078-from-workflow-to-agent/#waline" itemprop="discussionUrl">
+      <span class="post-comments-count waline-comment-count" data-path="/2026/07/01/078-from-workflow-to-agent/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>13k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>47 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="1-从-Workflow-到-Agent：为什么需要新的架构"><a href="#1-从-Workflow-到-Agent：为什么需要新的架构" class="headerlink" title="1. 从 Workflow 到 Agent：为什么需要新的架构"></a><strong>1. 从 Workflow 到 Agent：为什么需要新的架构</strong></h2><p>过去很长一段时间里，大模型的使用主要是围绕 Prompt 工程展开。随着 LangChain、LangGraph 等框架的发展，越来越多的应用开始采用工作流（Workflow）模式，将复杂任务拆解为多个步骤，再按照固定顺序执行。这种模式能够有效提升系统的稳定性和可维护性，但当任务复杂度进一步提高时，仅靠预定义流程可能无法满足需求。Agent 正是在这种背景下出现的一种新架构。</p>
+<span id="more"></span>
+<p>本文相关代码放在 <code>reAct_tool_calling/</code> 目录下。依赖 LangGraph、Chroma、数据库或外部检索服务，沿用之前的 <code>get_llm()</code> 写法，通过 DashScope 的 OpenAI compatible 接口调用 <code>deepseek-v4-pro</code>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">common.py</span><br><span class="line">    ↓</span><br><span class="line">get_llm() 创建 ChatOpenAI</span><br><span class="line">    ↓</span><br><span class="line">定义 Message、Tool、ToolCall</span><br><span class="line">    ↓</span><br><span class="line">定义旅游、天气、住宿三个工具</span><br><span class="line">    ↓</span><br><span class="line">LangChainTravelModel 通过 bind_tools() 把工具注册给模型</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-1-Workflow-的本质是预定义流程"><a href="#1-1-Workflow-的本质是预定义流程" class="headerlink" title="1.1 Workflow 的本质是预定义流程"></a><strong>1.1 Workflow 的本质是预定义流程</strong></h3><p>在前面的 Web Research Chain 中，整个研究报告生成流程是一个典型的工作流。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">用户问题 → 搜索词生成 → 网页搜索 → 网页抓取 → 内容总结 → 报告生成</span><br></pre></td></tr></table></figure>
+
+<p>虽然中间可能存在条件判断或分支选择，但这些路径在系统设计阶段就已经确定。例如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> question_type == <span class="string">&quot;weather&quot;</span>:</span><br><span class="line">    weather_node()</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    search_node()</span><br></pre></td></tr></table></figure>
+
+<p>无论用户输入什么内容，系统最终都只能在预先设计好的路径中运行。这种方式有两个明显特点：</p>
+<ul>
+<li>执行步骤固定</li>
+<li>路由规则固定</li>
+</ul>
+<p>因此 Workflow 更像是一条流水线。对于结构明确的问题，这种方式效果很好。例如网页研究、文档分析、RAG 问答等场景，本质上都属于确定性较强的任务，只要按照既定流程执行即可获得结果。</p>
+<h3 id="1-2-Workflow-的边界"><a href="#1-2-Workflow-的边界" class="headerlink" title="1.2 Workflow 的边界"></a><strong>1.2 Workflow 的边界</strong></h3><p>但现实中的任务并不总是能够提前规划完整流程。例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">苏州有哪些值得游玩的地方？</span><br></pre></td></tr></table></figure>
+
+<p>这种问题可以直接走知识库检索流程。但如果问题变成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">苏州最近天气怎么样？</span><br></pre></td></tr></table></figure>
+
+<p>系统需要调用天气服务。再进一步：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">苏州哪里值得玩？</span><br><span class="line">最近天气如何？</span><br></pre></td></tr></table></figure>
+
+<p>此时既需要旅游知识库，又需要天气工具。如果继续采用传统工作流，代码很快会变成：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> contains_weather:</span><br><span class="line">    weather_tool()</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> contains_travel:</span><br><span class="line">    travel_tool()</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> contains_map:</span><br><span class="line">    map_tool()</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> contains_hotel:</span><br><span class="line">    hotel_tool()</span><br></pre></td></tr></table></figure>
+
+<p>工具越多，条件分支越多。随着系统能力扩展，维护成本会呈指数级增长。更重要的是，很多复杂问题根本无法提前预测所有组合情况。例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">上海到苏州怎么去？</span><br><span class="line">天气适合什么时候出发？</span><br><span class="line">附近有哪些值得停留的景点？</span><br></pre></td></tr></table></figure>
+
+<p>这类问题可能同时涉及：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">地图工具</span><br><span class="line">天气工具</span><br><span class="line">旅游知识库</span><br><span class="line">交通服务</span><br></pre></td></tr></table></figure>
+
+<p>在设计阶段很难穷举所有路径，这也是 Workflow 的边界。</p>
+<h3 id="1-3-Agent-与-Workflow-的本质区别"><a href="#1-3-Agent-与-Workflow-的本质区别" class="headerlink" title="1.3 Agent 与 Workflow 的本质区别"></a><strong>1.3 Agent 与 Workflow 的本质区别</strong></h3><p>Agent 的出现，本质上是改变了决策方式：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># Workflow</span><br><span class="line">程序决定下一步做什么</span><br><span class="line"></span><br><span class="line"># Agent</span><br><span class="line">模型决定下一步做什么</span><br></pre></td></tr></table></figure>
+
+<p>这是两种完全不同的思路。Workflow 的控制权掌握在代码。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># Workflow 的控制权掌握在代码</span><br><span class="line">程序 → 决定执行路径</span><br><span class="line"></span><br><span class="line"># Agent 的控制权则部分转移给了模型</span><br><span class="line">问题 → LLM 分析 → 决定调用什么工具 → 决定是否继续执行</span><br></pre></td></tr></table></figure>
+
+<p>例如面对：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">我想看江南园林，应该去哪里？</span><br></pre></td></tr></table></figure>
+
+<p>Agent 可能先调用旅游知识库。而面对：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">苏州明天适合逛园林吗？</span><br></pre></td></tr></table></figure>
+
+<p>Agent 可能先查询天气，再查询景点信息。面对：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">推荐一个周末江南旅行行程</span><br></pre></td></tr></table></figure>
+
+<p>Agent 又可能连续调用多个工具，最后汇总生成结果。这些执行路径并不是开发阶段写死的，而是在运行过程中由模型动态决定。这也是 Agent 与 Workflow 最核心的区别。</p>
+<h3 id="1-4-Agent-不等于更智能"><a href="#1-4-Agent-不等于更智能" class="headerlink" title="1.4 Agent 不等于更智能"></a><strong>1.4 Agent 不等于更智能</strong></h3><p>Agent 的能力来源于：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">大模型 + 工具 + 动态决策机制</span><br></pre></td></tr></table></figure>
+
+<p>其中大模型负责推理和规划。工具负责获取真实世界信息。动态决策机制负责决定何时使用工具。因此 Agent 的优势不在于模型参数更多，而在于能够访问模型本身无法获得的信息。例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">天气数据</span><br><span class="line">数据库记录</span><br><span class="line">企业知识库</span><br><span class="line">搜索结果</span><br><span class="line">代码执行结果</span><br></pre></td></tr></table></figure>
+
+<p>这些内容原本并不在模型训练数据中。如果没有工具支持，大模型只能根据已有知识进行推测。生成的内容可能看起来合理，但<strong>看起来真实并不等于真实存在</strong>。而当 Agent 调用了外部工具之后，回答便建立在真实数据基础之上，这样可以获得更高的准确性和可验证性。</p>
+<h3 id="1-5-从工作流到智能体"><a href="#1-5-从工作流到智能体" class="headerlink" title="1.5 从工作流到智能体"></a><strong>1.5 从工作流到智能体</strong></h3><p>回顾整个过程，可以看到一条路线：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Prompt → Workflow → Tool Calling → ReAct → Tool Agent</span><br></pre></td></tr></table></figure>
+
+<p>Prompt 解决的是模型表达问题，Workflow 解决的是流程组织问题。Tool Calling 解决的是外部能力接入问题。ReAct 解决的是动态决策问题。而 Agent，则是在这些能力基础上形成的一种新应用架构。接下来将进一步讨论 Tool Calling 的工作机制，以及大模型如何借助工具完成自主决策，从而构建真正意义上的 Agent。</p>
+<h2 id="2-Tool-Calling：让大模型获得外部能力"><a href="#2-Tool-Calling：让大模型获得外部能力" class="headerlink" title="2. Tool Calling：让大模型获得外部能力"></a><strong>2. Tool Calling：让大模型获得外部能力</strong></h2><p>前一章已经提到，Agent 与 Workflow 的最大区别在于流程控制权发生了变化。Workflow 由程序决定下一步做什么，而 Agent 则由大模型决定下一步应该执行什么操作。但这里会产生一个新的问题。大模型即使能够决定下一步要做什么，也不意味着它真的具备执行这些操作的能力。例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">查询天气</span><br><span class="line">搜索网页</span><br><span class="line">访问数据库</span><br><span class="line">执行代码</span><br><span class="line">读取知识库</span><br></pre></td></tr></table></figure>
+
+<p>这些都属于模型训练过程之外的能力。如果没有额外机制，大模型仍然只能生成文本。Tool Calling 的出现，就是为了让模型能够借助外部系统完成这些工作。</p>
+<h3 id="2-1-大模型为什么需要工具"><a href="#2-1-大模型为什么需要工具" class="headerlink" title="2.1 大模型为什么需要工具"></a><strong>2.1 大模型为什么需要工具</strong></h3><p>假设直接向模型提问：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">杭州明天的天气怎么样？</span><br></pre></td></tr></table></figure>
+
+<p>模型可能会生成一段看起来合理的回答：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">杭州明天多云，最高气温28℃。</span><br></pre></td></tr></table></figure>
+
+<p>问题是这个结果未必来自真实天气数据。模型只是根据训练过程中见过的大量天气描述，推测出一个概率最高的答案。从语言表达上看没有问题，但无法保证真实性。这也是大模型应用中最常见的问题之一。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">看起来真实 ≠ 真实存在</span><br></pre></td></tr></table></figure>
+
+<p>模型擅长生成语言，却无法主动访问外部世界。因此很多实际业务系统都需要接入：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">数据库</span><br><span class="line">搜索引擎</span><br><span class="line">企业知识库</span><br><span class="line">第三方 API</span><br><span class="line">代码执行环境</span><br></pre></td></tr></table></figure>
+
+<p>通过这些工具获取真实数据，再由模型负责理解和组织结果。此时系统结构就需要调整。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">用户问题 → LLM → 工具 → 真实数据 → LLM → 最终答案</span><br></pre></td></tr></table></figure>
+
+<p>这就是 Tool Calling 的基础思路。</p>
+<h3 id="2-2-Tool-的本质是什么"><a href="#2-2-Tool-的本质是什么" class="headerlink" title="2.2 Tool 的本质是什么"></a><strong>2.2 Tool 的本质是什么</strong></h3><p>对于程序来说，一个 Tool 就是一个普通函数。例如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">get_weather</span>(<span class="params">city: <span class="built_in">str</span></span>):</span><br><span class="line">    ...</span><br><span class="line">    </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">search_documents</span>(<span class="params">query: <span class="built_in">str</span></span>):</span><br><span class="line">    ...</span><br></pre></td></tr></table></figure>
+
+<p>这些函数原本只能由程序主动调用。而 Tool Calling 做的事情，是把这些函数描述给大模型，让模型知道系统里存在哪些能力可以使用。因此 Tool 更准确的定义应该是，可以被大模型主动调用的外部能力。能力的来源并不重要。可能来自：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Python 函数</span><br><span class="line">REST API</span><br><span class="line">数据库查询</span><br><span class="line">搜索服务</span><br><span class="line">向量检索</span><br><span class="line">代码执行器</span><br></pre></td></tr></table></figure>
+
+<p>只要能够接收参数并返回结果，都可以被包装成 Tool。</p>
+<h3 id="2-3-从-Function-Calling-到-Tool-Calling"><a href="#2-3-从-Function-Calling-到-Tool-Calling" class="headerlink" title="2.3 从 Function Calling 到 Tool Calling"></a><strong>2.3 从 Function Calling 到 Tool Calling</strong></h3><p>早先 OpenAI 提供的是 Function Calling。模型并不会直接执行函数，而是返回一个函数调用请求。例如：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;get_weather&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;arguments&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;city&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Hangzhou&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>程序收到这段结构化数据后：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">找到函数</span><br><span class="line">执行函数</span><br><span class="line">获得结果</span><br><span class="line">返回模型</span><br></pre></td></tr></table></figure>
+
+<p>完成一次调用。后来随着能力扩展，调用对象已经不再局限于函数。可能是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">数据库</span><br><span class="line">浏览器</span><br><span class="line">搜索引擎</span><br><span class="line">代码执行器</span><br><span class="line">知识库</span><br></pre></td></tr></table></figure>
+
+<p>因此 OpenAI 将概念统一升级为 Tool Calling。对于模型来说，它并不关心底层实现。只需要知道：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">工具名称</span><br><span class="line">工具用途</span><br><span class="line">参数定义</span><br></pre></td></tr></table></figure>
+
+<p>即可。</p>
+<h3 id="2-4-LangChain-如何定义-Tool"><a href="#2-4-LangChain-如何定义-Tool" class="headerlink" title="2.4 LangChain 如何定义 Tool"></a><strong>2.4 LangChain 如何定义 Tool</strong></h3><p>在 LangChain 中，最常见的写法是使用 <code>@tool</code> 装饰器。例如旅游知识库工具：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@tool</span></span><br><span class="line"><span class="comment"># search_travel_info 工具名称</span></span><br><span class="line"><span class="comment"># query: str 调用时需要提供的数据</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">search_travel_info</span>(<span class="params">query: <span class="built_in">str</span></span>) -&gt; <span class="built_in">str</span>:</span><br><span class="line">	<span class="comment"># 告诉模型这个工具是做什么的</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Search travel information.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>这里有一个容易忽略的细节。模型实际上看不到函数实现。模型能够看到的只有：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">工具名称</span><br><span class="line">工具说明</span><br><span class="line">参数定义</span><br></pre></td></tr></table></figure>
+
+<p>因此 Tool 的描述质量会直接影响工具调用效果。很多 Tool 调用失败，并不是工具本身有问题，而是说明文档没有准确表达工具用途。</p>
+<h3 id="2-5-bind-tools-的实现机制"><a href="#2-5-bind-tools-的实现机制" class="headerlink" title="2.5 bind_tools 的实现机制"></a><strong>2.5 bind_tools 的实现机制</strong></h3><p>工具定义完成后，还需要注册给模型。例如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">llm_with_tools = llm.bind_tools(</span><br><span class="line">    TOOLS</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>内部发生了一次转换。LangChain 会自动读取：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">函数名称</span><br><span class="line">参数类型</span><br><span class="line">Docstring</span><br></pre></td></tr></table></figure>
+
+<p>并生成对应的 Tool Schema。最终发送给模型的信息更接近：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;search_travel_info&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;description&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Search travel information&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;parameters&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="string">&quot;string&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>从这一刻开始，模型便知道系统中存在这样一个能力。当用户提出问题时，模型会自行判断：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">是否需要调用工具</span><br><span class="line">调用哪个工具</span><br><span class="line">如何构造参数</span><br></pre></td></tr></table></figure>
+
+<p>因此：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@tool + bind_tools()</span></span><br></pre></td></tr></table></figure>
+
+<p>完成了一次能力注册过程。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Python 函数 → Tool Schema → 注册给模型</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-6-Tool-Calling-不是执行工具"><a href="#2-6-Tool-Calling-不是执行工具" class="headerlink" title="2.6 Tool Calling 不是执行工具"></a><strong>2.6 Tool Calling 不是执行工具</strong></h3><p>这里还有一个重要概念容易混淆。模型发起 Tool Call，并不意味着工具已经执行。例如模型返回：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;search_travel_info&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;args&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="string">&quot;江南园林 苏州 杭州&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>这只是一个调用请求，真正执行工具的仍然是程序，执行流程实际上是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LLM → 生成 Tool Call → 程序执行 Tool → 获得结果 → 返回 LLM</span><br></pre></td></tr></table></figure>
+
+<p>模型负责决策，程序负责执行，这是 Tool Calling 的核心工作机制。</p>
+<h3 id="2-7-Tool-Calling：从对话模型走向智能体"><a href="#2-7-Tool-Calling：从对话模型走向智能体" class="headerlink" title="2.7 Tool Calling：从对话模型走向智能体"></a><strong>2.7 Tool Calling：从对话模型走向智能体</strong></h3><p>当系统只有一个工具时，Tool Calling 看起来只是一次普通函数调用。但随着工具数量增加，情况开始发生变化。例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">旅游知识库</span><br><span class="line">天气服务</span><br><span class="line">地图服务</span><br><span class="line">酒店查询</span><br><span class="line">机票查询</span><br></pre></td></tr></table></figure>
+
+<p>面对同一个问题：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">苏州哪里值得玩？</span><br><span class="line">最近天气如何？</span><br></pre></td></tr></table></figure>
+
+<p>模型可能需要：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">先调用旅游知识库</span><br><span class="line">再调用天气服务</span><br><span class="line">最后综合结果</span><br></pre></td></tr></table></figure>
+
+<p>此时 Tool Calling 已经不再是单纯的函数执行机制，而开始承担任务规划和能力调度的职责。这也是 Agent 架构能够成立的基础。下一章将进一步讨论 ReAct 模式，以及大模型如何通过“思考—行动—观察”的循环机制，将多个 Tool 串联起来完成复杂任务。</p>
+<h2 id="3-ReAct：现代-Agent-的运行基础"><a href="#3-ReAct：现代-Agent-的运行基础" class="headerlink" title="3. ReAct：现代 Agent 的运行基础"></a><strong>3. ReAct：现代 Agent 的运行基础</strong></h2><p>Tool Calling 解决了一个关键问题，让大模型拥有调用外部能力的入口。但仅有工具还不够。如果系统中同时存在天气查询、知识库检索、地图搜索等多个工具，大模型还需要知道：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">什么时候调用工具</span><br><span class="line">调用哪个工具</span><br><span class="line">调用几次</span><br><span class="line">什么时候结束</span><br></pre></td></tr></table></figure>
+
+<p>如果这些决策仍然提前编写规则，那么系统本质上还是 Workflow。真正让 Agent 具备自主决策能力的，是 ReAct（Reason + Act）模式。</p>
+<h3 id="3-1-ReAct-解决的问题"><a href="#3-1-ReAct-解决的问题" class="headerlink" title="3.1 ReAct 解决的问题"></a><strong>3.1 ReAct 解决的问题</strong></h3><p>传统聊天模式非常简单。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">用户问题 → LLM → 最终答案</span><br></pre></td></tr></table></figure>
+
+<p>整个过程只有一次模型调用。例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">法国首都是哪里？</span><br></pre></td></tr></table></figure>
+
+<p>模型直接回答：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">巴黎</span><br></pre></td></tr></table></figure>
+
+<p>这种模式适合模型已经掌握答案的问题。但对于需要外部信息的问题，就会出现问题。例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">杭州明天会下雨吗？</span><br></pre></td></tr></table></figure>
+
+<p>模型无法直接知道真实天气。此时最合理的流程应该是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">分析问题 → 查询天气 → 获得结果 → 组织答案</span><br></pre></td></tr></table></figure>
+
+<p>也就是说，在回答之前需要先执行动作。ReAct 正是为了解决这种场景提出的。</p>
+<h3 id="3-2-Reason-与-Act"><a href="#3-2-Reason-与-Act" class="headerlink" title="3.2 Reason 与 Act"></a><strong>3.2 Reason 与 Act</strong></h3><p>ReAct 这个名字来自两个单词，Reason（推理）、Act（行动），核心思想是先思考，再行动。获得结果后继续思考，再决定是否继续行动。整个过程形成循环。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Question → Reason（负责规划） → Act（负责调用工具） → Observation（负责接收工具结果） → Reason（负责规划） → Act（负责调用工具） → Observation（负责接收工具结果） → Final Answer</span><br></pre></td></tr></table></figure>
+
+<p>这很像人解决问题时的思考过程。</p>
+<h3 id="3-3-一个完整例子"><a href="#3-3-一个完整例子" class="headerlink" title="3.3 一个完整例子"></a><strong>3.3 一个完整例子</strong></h3><p>假设问题是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">我想看江南园林，应该去哪里？</span><br></pre></td></tr></table></figure>
+
+<p>第一次进入模型。此时模型没有任何资料。它可能产生如下推理：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">需要查询江南园林相关的旅游信息</span><br></pre></td></tr></table></figure>
+
+<p>随后生成 Tool Call。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">search_travel_info(</span><br><span class="line">    <span class="string">&quot;江南园林 苏州 杭州&quot;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>工具执行完成后返回结果。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">苏州是江南园林最典型的目的地之一</span><br></pre></td></tr></table></figure>
+
+<p>模型再次收到信息。这时候会重新分析：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">已经获得地点信息、可以生成答案</span><br></pre></td></tr></table></figure>
+
+<p>最终返回：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">如果想看江南园林，首推苏州；如果还想结合湖景和茶文化，可以把杭州一起放进行程……</span><br></pre></td></tr></table></figure>
+
+<p>整个过程中发生了两次推理。第一次决定调用工具。第二次决定结束任务。这就是一个标准的 ReAct 循环。</p>
+<h3 id="3-4-ReAct-为什么比-Workflow-更灵活"><a href="#3-4-ReAct-为什么比-Workflow-更灵活" class="headerlink" title="3.4 ReAct 为什么比 Workflow 更灵活"></a><strong>3.4 ReAct 为什么比 Workflow 更灵活</strong></h3><p>Workflow 的特点是路径固定。例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">搜索 → 总结 → 回答</span><br></pre></td></tr></table></figure>
+
+<p>所有问题都会经过同样流程。而 ReAct 的特点是动态决策。面对不同问题，可以产生完全不同的执行路径。例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">杭州有哪些景点？</span><br></pre></td></tr></table></figure>
+
+<p>可能只调用知识库。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">知识库 → 回答</span><br></pre></td></tr></table></figure>
+
+<p>而：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">苏州最近天气如何？</span><br></pre></td></tr></table></figure>
+
+<p>则可能变成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">天气工具 → 回答</span><br></pre></td></tr></table></figure>
+
+<p>如果问题是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">苏州哪里值得玩？</span><br><span class="line">最近天气如何？</span><br></pre></td></tr></table></figure>
+
+<p>执行过程又会变成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">知识库 → 天气工具 → 汇总结果 → 回答</span><br></pre></td></tr></table></figure>
+
+<p>执行路径由模型实时决定。这也是 ReAct 相比传统 Workflow 最大的优势。</p>
+<h3 id="3-5-ReAct-并不是无限循环"><a href="#3-5-ReAct-并不是无限循环" class="headerlink" title="3.5 ReAct 并不是无限循环"></a><strong>3.5 ReAct 并不是无限循环</strong></h3><p>Agent 并不会一直循环下去，每次进入模型时，都需要做出一个判断：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">是否还需要工具</span><br></pre></td></tr></table></figure>
+
+<p>如果需要：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">继续调用 Tool</span><br></pre></td></tr></table></figure>
+
+<p>如果不需要：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">生成最终答案</span><br></pre></td></tr></table></figure>
+
+<p>因此 Agent 的结束条件其实非常简单。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">存在 Tool Call → 继续执行 → 不存在 Tool Call → 结束任务</span><br></pre></td></tr></table></figure>
+
+<p>后面 LangGraph 中的 <code>tools_condition</code> 节点，本质上就是在完成这个判断。</p>
+<h3 id="3-6-Query-Rewrite：Agent-的隐藏能力"><a href="#3-6-Query-Rewrite：Agent-的隐藏能力" class="headerlink" title="3.6 Query Rewrite：Agent 的隐藏能力"></a><strong>3.6 Query Rewrite：Agent 的隐藏能力</strong></h3><p>在实际运行过程中，可能出现这样一个现象。用户输入：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">推荐适合看江南园林的城市</span><br></pre></td></tr></table></figure>
+
+<p>模型生成的检索请求往往不是原始问题，而是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">江南园林城市推荐</span><br><span class="line">苏州古典园林路线</span><br><span class="line">杭州苏州江南旅行攻略</span><br></pre></td></tr></table></figure>
+
+<p>也就是说，模型会主动改写查询。这种能力本质上与 RAG 中的 Query Rewrite 十分相似。不同的是，以前需要额外设计查询改写模块。而在 Agent 中，这项工作往往由模型自行完成。这也是为什么很多 Agent 在检索场景下比简单 RAG 效果更好的原因之一。</p>
+<h3 id="3-7-ReAct-为什么会是-Agent-的标准模式"><a href="#3-7-ReAct-为什么会是-Agent-的标准模式" class="headerlink" title="3.7 ReAct 为什么会是 Agent 的标准模式"></a><strong>3.7 ReAct 为什么会是 Agent 的标准模式</strong></h3><p>今天几乎所有主流 Agent 框架都建立在 ReAct 思想之上。包括：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">LangGraph</span><br><span class="line">LangChain Agent</span><br><span class="line">OpenAI Agent</span><br><span class="line">AutoGen</span><br><span class="line">CrewAI</span><br></pre></td></tr></table></figure>
+
+<p>虽然具体实现不同，但底层逻辑几乎一致。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Reason → Act → Observation → Reason</span><br></pre></td></tr></table></figure>
+
+<p>因为 ReAct 解决了 Agent 最核心的问题：<strong>让模型能够基于当前状态动态决定下一步行动，而不是按照预先写好的流程执行。</strong> 从某种意义上说，Tool Calling 提供了能力入口，而 ReAct 则提供了能力调度机制。有了这两部分之后，一个真正意义上的 Tool Agent 才开始形成。接下来将结合 <code>reAct_tool_calling</code> 里的可运行代码，拆解一个完整 ReAct Agent 的内部结构，看看 Tool 执行节点、Message History 和停止条件是如何协同工作的。</p>
+<h2 id="4-用-Python-手写一个-ReAct-Agent"><a href="#4-用-Python-手写一个-ReAct-Agent" class="headerlink" title="4. 用 Python 手写一个 ReAct Agent"></a><strong>4. 用 Python 手写一个 ReAct Agent</strong></h2><p>理解了 ReAct 的运行逻辑之后，接下来看看这套循环到底如何落地成代码？<code>02_manual_react_single_tool.py</code> 并没有直接使用现成 Agent，而是先手动实现一个最小可运行的 ReAct Agent。这样做的目的是为了彻底理解 Agent 内部到底发生了什么。</p>
+<p>本章对应的代码主要分布在两个文件中：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">common.py</span><br><span class="line">02_manual_react_single_tool.py</span><br></pre></td></tr></table></figure>
+
+<p><code>common.py</code> 负责准备 Agent 运行所需的基础对象，包括 <code>Message</code>、<code>ToolCall</code>、<code>Tool</code>、旅游知识库、模型封装和工具执行函数。<code>02_manual_react_single_tool.py</code> 则负责把这些对象组合成一个最小 ReAct 循环。</p>
+<p>这一章先按代码依赖顺序拆开看</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">本地知识库 → 普通查询函数 → Tool → 带工具的模型 → Message History → ReAct 循环</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-1-从旅游知识库开始"><a href="#4-1-从旅游知识库开始" class="headerlink" title="4.1 从旅游知识库开始"></a><strong>4.1 从旅游知识库开始</strong></h3><p>首先在 <code>common.py</code> 中准备了一个很小的中国城市旅行知识库。真实项目里，这里可以来自网页、企业文档、数据库或向量库。这个 demo 为了聚焦 Agent 机制，工具数据直接放在本地列表中；需要联网的是模型调用，而不是旅游资料查询。</p>
+<p>代码结构类似这样：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">TRAVEL_KNOWLEDGE = [</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">&quot;title&quot;</span>: <span class="string">&quot;杭州&quot;</span>,</span><br><span class="line">        <span class="string">&quot;text&quot;</span>: (</span><br><span class="line">            <span class="string">&quot;杭州适合第一次江南旅行。西湖、灵隐寺、京杭大运河和龙井村可以组成两到三天的轻松路线。&quot;</span></span><br><span class="line">            <span class="string">&quot;城市节奏相对舒缓，适合看湖景、喝茶、散步和短途文化游。&quot;</span></span><br><span class="line">        ),</span><br><span class="line">        <span class="string">&quot;keywords&quot;</span>: &#123;<span class="string">&quot;杭州&quot;</span>, <span class="string">&quot;hangzhou&quot;</span>, <span class="string">&quot;西湖&quot;</span>, <span class="string">&quot;灵隐寺&quot;</span>, <span class="string">&quot;龙井&quot;</span>, <span class="string">&quot;运河&quot;</span>, <span class="string">&quot;江南&quot;</span>, <span class="string">&quot;湖景&quot;</span>, <span class="string">&quot;茶&quot;</span>&#125;,</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">&quot;title&quot;</span>: <span class="string">&quot;苏州&quot;</span>,</span><br><span class="line">        <span class="string">&quot;text&quot;</span>: (</span><br><span class="line">            <span class="string">&quot;苏州以古典园林、平江路、山塘街和博物馆见长。&quot;</span></span><br><span class="line">            <span class="string">&quot;如果想看园林、老城街巷和江南水乡气质，苏州比大城市更适合慢慢走。&quot;</span></span><br><span class="line">        ),</span><br><span class="line">        <span class="string">&quot;keywords&quot;</span>: &#123;<span class="string">&quot;苏州&quot;</span>, <span class="string">&quot;suzhou&quot;</span>, <span class="string">&quot;园林&quot;</span>, <span class="string">&quot;平江路&quot;</span>, <span class="string">&quot;山塘街&quot;</span>, <span class="string">&quot;博物馆&quot;</span>, <span class="string">&quot;水乡&quot;</span>, <span class="string">&quot;江南&quot;</span>&#125;,</span><br><span class="line">    &#125;,</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>这里每条资料都包含三个字段：</p>
+<table>
+<thead>
+<tr>
+<th><strong>字段</strong></th>
+<th><strong>含义</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>title</code></td>
+<td>城市名称</td>
+</tr>
+<tr>
+<td><code>text</code></td>
+<td>可返回给模型的事实资料</td>
+</tr>
+<tr>
+<td><code>keywords</code></td>
+<td>用于本地匹配的关键词集合</td>
+</tr>
+</tbody></table>
+<p>这一步的核心是准备一个可被工具查询的数据源。后面 Agent 并不会直接读取 <code>TRAVEL_KNOWLEDGE</code>，而是通过查询函数访问它。查询函数是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">search_travel_info</span>(<span class="params">query: <span class="built_in">str</span></span>) -&gt; <span class="built_in">str</span>:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;Search local China travel notes.&quot;&quot;&quot;</span></span><br><span class="line">    query_terms = normalize(query)</span><br><span class="line">    query_lower = query.lower()</span><br><span class="line">    ranked = []</span><br><span class="line">    <span class="keyword">for</span> item <span class="keyword">in</span> TRAVEL_KNOWLEDGE:</span><br><span class="line">        score = <span class="built_in">sum</span>(</span><br><span class="line">            <span class="number">1</span></span><br><span class="line">            <span class="keyword">for</span> keyword <span class="keyword">in</span> item[<span class="string">&quot;keywords&quot;</span>]</span><br><span class="line">            <span class="keyword">if</span> keyword.lower() <span class="keyword">in</span> query_terms <span class="keyword">or</span> keyword.lower() <span class="keyword">in</span> query_lower</span><br><span class="line">        )</span><br><span class="line">        <span class="keyword">if</span> score:</span><br><span class="line">            ranked.append((score, item))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> ranked:</span><br><span class="line">        ranked = [(<span class="number">1</span>, item) <span class="keyword">for</span> item <span class="keyword">in</span> TRAVEL_KNOWLEDGE[:<span class="number">2</span>]]</span><br><span class="line"></span><br><span class="line">    ranked.sort(key=<span class="keyword">lambda</span> pair: pair[<span class="number">0</span>], reverse=<span class="literal">True</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;\n&quot;</span>.join(<span class="string">f&quot;- <span class="subst">&#123;item[<span class="string">&#x27;title&#x27;</span>]&#125;</span>: <span class="subst">&#123;item[<span class="string">&#x27;text&#x27;</span>]&#125;</span>&quot;</span> <span class="keyword">for</span> _, item <span class="keyword">in</span> ranked[:<span class="number">3</span>])</span><br></pre></td></tr></table></figure>
+
+<p>这个函数的输入是模型生成的查询词：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;江南 园林 水乡 苏州 杭州&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>输出是一段可直接放回上下文的文本：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">- 苏州: 苏州以古典园林、平江路、山塘街和博物馆见长。如果想看园林、老城街巷和江南水乡气质，苏州比大城市更适合慢慢走。</span><br><span class="line">- 杭州: 杭州适合第一次江南旅行。西湖、灵隐寺、京杭大运河和龙井村可以组成两到三天的轻松路线。城市节奏相对舒缓，适合看湖景、喝茶、散步和短途文化游。</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TRAVEL_KNOWLEDGE → normalize(query) → 关键词匹配 → 返回相关中国城市旅行资料</span><br></pre></td></tr></table></figure>
+
+<p>其中最重要的不是存储方式，而是统一查询接口。真实项目中，这个接口可能是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Chroma</span><br><span class="line">FAISS</span><br><span class="line">Milvus</span><br><span class="line">Pinecone</span><br></pre></td></tr></table></figure>
+
+<p>Agent 真正需要的只是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">search_travel_info(query)</span><br></pre></td></tr></table></figure>
+
+<p>这样的可调用能力。因此在 Agent 体系中，经常会看到这样一层抽象：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">数据源 → 查询函数 → Tool → Agent</span><br></pre></td></tr></table></figure>
+
+<p>知识库负责提供事实。查询函数负责检索。Tool 负责向 Agent 暴露能力。</p>
+<h3 id="4-2-把查询函数封装成-Tool"><a href="#4-2-把查询函数封装成-Tool" class="headerlink" title="4.2 把查询函数封装成 Tool"></a><strong>4.2 把查询函数封装成 Tool</strong></h3><p>知识库准备完成后，需要把检索能力暴露给模型。最简单的方式就是封装成 Tool。例如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">TOOLS = &#123;</span><br><span class="line">    <span class="string">&quot;search_travel_info&quot;</span>: Tool(</span><br><span class="line">        name=<span class="string">&quot;search_travel_info&quot;</span>,</span><br><span class="line">        description=<span class="string">&quot;Search local travel information about Chinese cities, sights, routes, food, and culture.&quot;</span>,</span><br><span class="line">        parameters=&#123;<span class="string">&quot;query&quot;</span>: <span class="string">&quot;string&quot;</span>&#125;,</span><br><span class="line">        fn=search_travel_info,</span><br><span class="line">    )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这段代码在 <code>common.py</code>。它做的事情不是执行查询，而是声明一个工具。可以把它拆成四个字段看：</p>
+<table>
+<thead>
+<tr>
+<th><strong>字段</strong></th>
+<th><strong>作用</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>name</code></td>
+<td>模型调用工具时使用的名字</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>告诉模型这个工具适合解决什么问题</td>
+</tr>
+<tr>
+<td><code>parameters</code></td>
+<td>告诉模型调用时需要传哪些参数</td>
+</tr>
+<tr>
+<td><code>fn</code></td>
+<td>真正被程序执行的 Python 函数</td>
+</tr>
+</tbody></table>
+<p>底层函数仍然很普通：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">search_travel_info</span>(<span class="params">query: <span class="built_in">str</span></span>) -&gt; <span class="built_in">str</span>:</span><br><span class="line">    ...</span><br></pre></td></tr></table></figure>
+
+<p>但被 <code>Tool(...)</code> 包装之后，它就拥有了新的身份。此时模型能够通过工具名称、说明和参数定义感知到这个能力的存在。</p>
+<p>这里有一个容易忽略的细节：对于模型来说，真正重要的并不是函数实现，而是工具描述。在 <code>common.py</code> 中，工具描述写在这里：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Tool(</span><br><span class="line">    name=<span class="string">&quot;search_travel_info&quot;</span>,</span><br><span class="line">    description=<span class="string">&quot;Search local travel information about Chinese cities, sights, routes, food, and culture.&quot;</span>,</span><br><span class="line">    parameters=&#123;<span class="string">&quot;query&quot;</span>: <span class="string">&quot;string&quot;</span>&#125;,</span><br><span class="line">    fn=search_travel_info,</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>模型无法读取函数内部代码。能够看到的只有：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">工具名称</span><br><span class="line">工具说明</span><br><span class="line">参数定义</span><br></pre></td></tr></table></figure>
+
+<p>封装成 Tool 后，工具的调用方式也统一了。外部不再直接写：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">search_travel_info(<span class="string">&quot;江南 园林&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>而是写：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">TOOLS[<span class="string">&quot;search_travel_info&quot;</span>].invoke(&#123;</span><br><span class="line">    <span class="string">&quot;query&quot;</span>: <span class="string">&quot;江南 园林&quot;</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>这一步看起来只是多包了一层，但它让所有工具都变成同一种形状：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">工具名 + 参数dict → 执行结果</span><br></pre></td></tr></table></figure>
+
+<p>后面的 <code>execute_tool_calls()</code> 正是依靠这个统一接口执行工具。</p>
+<h3 id="4-3-Tool-Schema-背后的工作机制"><a href="#4-3-Tool-Schema-背后的工作机制" class="headerlink" title="4.3 Tool Schema 背后的工作机制"></a><strong>4.3 Tool Schema 背后的工作机制</strong></h3><p>Tool 定义完成后，还需要注册给模型。在 LangChain 中，常见写法是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">llm_with_tools = llm.bind_tools(</span><br><span class="line">    TOOLS</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>在代码里，工具同时提供了两层表示。第一层是 <code>Tool.schema()</code>，用于在 <code>01_tool_calling_schema.py</code> 中直接打印工具描述，帮助观察模型能看到什么：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">schema</span>(<span class="params">self</span>) -&gt; <span class="built_in">dict</span>[<span class="built_in">str</span>, <span class="type">Any</span>]:</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">        <span class="string">&quot;name&quot;</span>: <span class="variable language_">self</span>.name,</span><br><span class="line">        <span class="string">&quot;description&quot;</span>: <span class="variable language_">self</span>.description,</span><br><span class="line">        <span class="string">&quot;parameters&quot;</span>: &#123;</span><br><span class="line">            <span class="string">&quot;type&quot;</span>: <span class="string">&quot;object&quot;</span>,</span><br><span class="line">            <span class="string">&quot;properties&quot;</span>: &#123;</span><br><span class="line">                name: &#123;<span class="string">&quot;type&quot;</span>: type_name&#125;</span><br><span class="line">                <span class="keyword">for</span> name, type_name <span class="keyword">in</span> <span class="variable language_">self</span>.parameters.items()</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="string">&quot;required&quot;</span>: <span class="built_in">list</span>(<span class="variable language_">self</span>.parameters),</span><br><span class="line">        &#125;,</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>01_tool_calling_schema.py</code> 会直接打印这个结构：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">tool = TOOLS[<span class="string">&quot;search_travel_info&quot;</span>]</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Tool schema sent to the model:&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(tool.schema())</span><br></pre></td></tr></table></figure>
+
+<p>输出结构大致是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;name&quot;</span>: <span class="string">&quot;search_travel_info&quot;</span>,</span><br><span class="line">    <span class="string">&quot;description&quot;</span>: <span class="string">&quot;Search local travel information about Chinese cities, sights, routes, food, and culture.&quot;</span>,</span><br><span class="line">    <span class="string">&quot;parameters&quot;</span>: &#123;</span><br><span class="line">        <span class="string">&quot;type&quot;</span>: <span class="string">&quot;object&quot;</span>,</span><br><span class="line">        <span class="string">&quot;properties&quot;</span>: &#123;</span><br><span class="line">            <span class="string">&quot;query&quot;</span>: &#123;<span class="string">&quot;type&quot;</span>: <span class="string">&quot;string&quot;</span>&#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="string">&quot;required&quot;</span>: [<span class="string">&quot;query&quot;</span>]</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这就是模型能够看到的工具说明。注意，这里没有函数体，也没有 <code>TRAVEL_KNOWLEDGE</code>。模型只知道自己可以调用一个叫 <code>search_travel_info</code> 的工具，并且调用时要传入 <code>query</code>。</p>
+<p>第二层是 <code>Tool.to_langchain_tool()</code>，用于把本地工具转换成 LangChain 可以注册的 <code>StructuredTool</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">to_langchain_tool</span>(<span class="params">self</span>):</span><br><span class="line">    <span class="keyword">from</span> langchain_core.tools <span class="keyword">import</span> StructuredTool</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> StructuredTool.from_function(</span><br><span class="line">        func=<span class="variable language_">self</span>.fn,</span><br><span class="line">        name=<span class="variable language_">self</span>.name,</span><br><span class="line">        description=<span class="variable language_">self</span>.description,</span><br><span class="line">    )</span><br></pre></td></tr></table></figure>
+
+<p>然后 <code>LangChainTravelModel</code> 使用 <code>get_llm()</code> 创建模型，并通过 <code>bind_tools()</code> 注册工具：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">LangChainTravelModel</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, enabled_tools: <span class="built_in">list</span>[<span class="built_in">str</span>]</span>) -&gt; <span class="literal">None</span>:</span><br><span class="line">        require_api_key()</span><br><span class="line">        <span class="variable language_">self</span>.tool_map = &#123;name: TOOLS[name] <span class="keyword">for</span> name <span class="keyword">in</span> enabled_tools&#125;</span><br><span class="line">        <span class="variable language_">self</span>.llm = get_llm().bind_tools(</span><br><span class="line">            [tool.to_langchain_tool() <span class="keyword">for</span> tool <span class="keyword">in</span> <span class="variable language_">self</span>.tool_map.values()]</span><br><span class="line">        )</span><br></pre></td></tr></table></figure>
+
+<p>这里的输入是工具名列表：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">enabled_tools=[<span class="string">&quot;search_travel_info&quot;</span>]</span><br></pre></td></tr></table></figure>
+
+<p>构造函数先从全局 <code>TOOLS</code> 中取出对应工具：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable language_">self</span>.tool_map = &#123;name: TOOLS[name] <span class="keyword">for</span> name <span class="keyword">in</span> enabled_tools&#125;</span><br></pre></td></tr></table></figure>
+
+<p>再把这些工具转换成 LangChain 工具：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[tool.to_langchain_tool() <span class="keyword">for</span> tool <span class="keyword">in</span> <span class="variable language_">self</span>.tool_map.values()]</span><br></pre></td></tr></table></figure>
+
+<p>最后绑定到模型上：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable language_">self</span>.llm = get_llm().bind_tools(...)</span><br></pre></td></tr></table></figure>
+
+<p>所以 <code>bind_tools()</code>是一次 Tool Schema 转换和注册，LangChain 会自动读取函数名称、参数类型、Docstring，然后生成标准 Tool Schema。最终发送给模型的内容更接近：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;search_travel_info&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;description&quot;</span><span class="punctuation">:</span> <span class="string">&quot;...&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;parameters&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="string">&quot;string&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>然后模型便知道系统中存在一个可以查询旅游信息的能力。之后用户提问时，模型会自行判断：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">是否需要调用</span><br><span class="line">何时调用</span><br><span class="line">如何构造参数</span><br></pre></td></tr></table></figure>
+
+<p>因此，真实框架里的：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@tool + bind_tools()</span></span><br></pre></td></tr></table></figure>
+
+<p>和当前 demo 里的：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Tool(...) + tool.to_langchain_tool() + get_llm().bind_tools(...)</span><br></pre></td></tr></table></figure>
+
+<p>本质上都是在完成一次能力注册过程。</p>
+<h3 id="4-4-Messages-如何承载-Agent-的运行状态"><a href="#4-4-Messages-如何承载-Agent-的运行状态" class="headerlink" title="4.4 Messages 如何承载 Agent 的运行状态"></a><strong>4.4 Messages 如何承载 Agent 的运行状态</strong></h3><p>接下来需要定义 Agent 状态。在 LangGraph 里，常见写法是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">AgentState</span>(<span class="title class_ inherited__">TypedDict</span>):</span><br><span class="line">    messages: ...</span><br></pre></td></tr></table></figure>
+
+<p>在 <code>common.py</code> 中，为了减少框架概念，直接用 <code>Message</code> 数据类表示消息：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@dataclass</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Message</span>:</span><br><span class="line">    role: <span class="built_in">str</span></span><br><span class="line">    content: <span class="built_in">str</span></span><br><span class="line">    tool_calls: <span class="built_in">list</span>[ToolCall] = field(default_factory=<span class="built_in">list</span>)</span><br><span class="line">    tool_call_id: <span class="built_in">str</span> | <span class="literal">None</span> = <span class="literal">None</span></span><br><span class="line">    tool_name: <span class="built_in">str</span> | <span class="literal">None</span> = <span class="literal">None</span></span><br></pre></td></tr></table></figure>
+
+<p>这个类同时表示三种消息：</p>
+<table>
+<thead>
+<tr>
+<th><strong>role</strong></th>
+<th><strong>表示什么</strong></th>
+<th><strong>关键字段</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>user</code></td>
+<td>用户输入</td>
+<td><code>content</code></td>
+</tr>
+<tr>
+<td><code>assistant</code></td>
+<td>模型输出</td>
+<td><code>content</code> 或 <code>tool_calls</code></td>
+</tr>
+<tr>
+<td><code>tool</code></td>
+<td>工具返回结果</td>
+<td><code>content</code>、<code>tool_call_id</code>、<code>tool_name</code></td>
+</tr>
+</tbody></table>
+<p>第一次看到时容易产生疑问。为什么状态里只有一个字段？事实上，对于 ReAct Agent 来说，消息历史已经包含了全部上下文。例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Human → AI → Tool → AI</span><br></pre></td></tr></table></figure>
+
+<p>一次完整执行过程中产生的所有信息都会进入消息列表。例如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">    Message(role=<span class="string">&quot;user&quot;</span>, content=<span class="string">&quot;我想看江南园林，应该去哪里？&quot;</span>),</span><br><span class="line">    Message(role=<span class="string">&quot;assistant&quot;</span>, content=<span class="string">&quot;&quot;</span>, tool_calls=[...]),</span><br><span class="line">    Message(role=<span class="string">&quot;tool&quot;</span>, content=<span class="string">&quot;检索结果...&quot;</span>, tool_name=<span class="string">&quot;search_travel_info&quot;</span>),</span><br><span class="line">    Message(role=<span class="string">&quot;assistant&quot;</span>, content=<span class="string">&quot;最终回答...&quot;</span>)</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">用户问题</span><br><span class="line">工具调用请求</span><br><span class="line">工具返回结果</span><br><span class="line">最终回答</span><br></pre></td></tr></table></figure>
+
+<p>全部都会保留。因此 Agent 的记忆并不是单独维护的变量，而是整条 Message History。这也是现代 Agent 框架普遍采用的设计方式。这也解释了为什么 <code>02_manual_react_single_tool.py</code> 里只需要初始化一条消息：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">messages = [Message(role=<span class="string">&quot;user&quot;</span>, content=question)]</span><br></pre></td></tr></table></figure>
+
+<p>后续所有中间结果都会追加到这个列表中，而不是分散保存在多个变量里。</p>
+<h3 id="4-5-ToolNode：Agent-执行动作的核心节点"><a href="#4-5-ToolNode：Agent-执行动作的核心节点" class="headerlink" title="4.5 ToolNode：Agent 执行动作的核心节点"></a><strong>4.5 ToolNode：Agent 执行动作的核心节点</strong></h3><p>很多人在学习 Tool Calling 时，会误以为模型负责执行工具。实际上并不是。模型只能生成调用请求。真正执行工具的是程序里的工具执行节点。在 LangGraph 中，这个角色通常叫 <code>ToolNode</code>。在 <code>common.py</code> 中，对应的是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">execute_tool_calls</span>(<span class="params">ai_message: Message, tools: <span class="built_in">dict</span>[<span class="built_in">str</span>, Tool]</span>) -&gt; <span class="built_in">list</span>[Message]:</span><br><span class="line">    tool_messages: <span class="built_in">list</span>[Message] = []</span><br><span class="line">    <span class="keyword">for</span> call <span class="keyword">in</span> ai_message.tool_calls:</span><br><span class="line">        result = tools[call.name].invoke(call.args)</span><br><span class="line">        tool_messages.append(</span><br><span class="line">            Message(</span><br><span class="line">                role=<span class="string">&quot;tool&quot;</span>,</span><br><span class="line">                content=<span class="built_in">str</span>(result),</span><br><span class="line">                tool_call_id=call.<span class="built_in">id</span>,</span><br><span class="line">                tool_name=call.name,</span><br><span class="line">            )</span><br><span class="line">        )</span><br><span class="line">    <span class="keyword">return</span> tool_messages</span><br></pre></td></tr></table></figure>
+
+<p>这个函数的输入是上一轮模型输出的 assistant message：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Message(</span><br><span class="line">    role=<span class="string">&quot;assistant&quot;</span>,</span><br><span class="line">    content=<span class="string">&quot;&quot;</span>,</span><br><span class="line">    tool_calls=[</span><br><span class="line">        ToolCall(</span><br><span class="line">            name=<span class="string">&quot;search_travel_info&quot;</span>,</span><br><span class="line">            args=&#123;<span class="string">&quot;query&quot;</span>: <span class="string">&quot;江南 园林 水乡 苏州 杭州&quot;</span>&#125;,</span><br><span class="line">            <span class="built_in">id</span>=<span class="string">&quot;call_travel_1&quot;</span>,</span><br><span class="line">        )</span><br><span class="line">    ],</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>以及当前 Agent 允许使用的工具表：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">tools = &#123;</span><br><span class="line">    <span class="string">&quot;search_travel_info&quot;</span>: TOOLS[<span class="string">&quot;search_travel_info&quot;</span>]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>函数会遍历 <code>tool_calls</code>，根据 <code>call.name</code> 找到对应工具，再把 <code>call.args</code> 传进去：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">result = tools[call.name].invoke(call.args)</span><br></pre></td></tr></table></figure>
+
+<p>执行完成后，输出不是普通字符串，而是一组 <code>tool</code> 消息：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">    Message(</span><br><span class="line">        role=<span class="string">&quot;tool&quot;</span>,</span><br><span class="line">        content=<span class="string">&quot;- 苏州: ...&quot;</span>,</span><br><span class="line">        tool_call_id=<span class="string">&quot;call_travel_1&quot;</span>,</span><br><span class="line">        tool_name=<span class="string">&quot;search_travel_info&quot;</span>,</span><br><span class="line">    )</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>例如模型返回：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">AIMessage(</span><br><span class="line">    tool_calls=[...]</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>这个函数会读取：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tool_calls</span><br></pre></td></tr></table></figure>
+
+<p>找到对应工具。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tool.invoke(args)</span><br></pre></td></tr></table></figure>
+
+<p>执行函数。获得结果后再封装成：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ToolMessage(...)</span><br></pre></td></tr></table></figure>
+
+<p>重新放回消息列表。整个过程如下：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AIMessage → Tool Call → 工具执行节点 → 执行 Tool → ToolMessage</span><br></pre></td></tr></table></figure>
+
+<p>因此 Agent 的运行过程实际上是一系列消息不断累积的过程。</p>
+<h3 id="4-6-LLM-Node-是-Agent-的决策中心"><a href="#4-6-LLM-Node-是-Agent-的决策中心" class="headerlink" title="4.6 LLM Node 是 Agent 的决策中心"></a><strong>4.6 LLM Node 是 Agent 的决策中心</strong></h3><p>与 ToolNode 相对应的是 LLM Node。它的职责只有一个，<strong>思考下一步做什么</strong>。每次进入 LLM Node 时，模型都会读取当前 Message History。然后做出判断。第一种情况，<strong>信息不足</strong>，生成 Tool Call。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">AIMessage(</span><br><span class="line">    tool_calls=[...]</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>第二种情况是<strong>信息已经足够</strong>，直接生成答案。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">AIMessage(</span><br><span class="line">    content=<span class="string">&quot;...&quot;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>因此在 ReAct 体系中：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">LLM Node = Reason</span><br><span class="line"></span><br><span class="line">Tool 执行节点 = Act</span><br></pre></td></tr></table></figure>
+
+<p>这正好对应 ReAct 中最核心的两个环节。在代码中，LLM Node 对应的是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ai_message = model.invoke(messages)</span><br></pre></td></tr></table></figure>
+
+<p><code>LangChainTravelModel.invoke()</code> 内部还做了一次消息格式转换。因为当前代码中使用自己的 <code>Message</code> 数据类，而 LangChain 模型需要的是 <code>HumanMessage</code>、<code>AIMessage</code> 和 <code>ToolMessage</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lc_messages = <span class="variable language_">self</span>._to_langchain_messages(messages)</span><br><span class="line">response = <span class="variable language_">self</span>.llm.invoke(lc_messages)</span><br></pre></td></tr></table></figure>
+
+<p>如果模型返回了工具调用，代码会把 LangChain 的 <code>tool_calls</code> 转回本地 <code>ToolCall</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">tool_calls = [</span><br><span class="line">    ToolCall(</span><br><span class="line">        name=call[<span class="string">&quot;name&quot;</span>],</span><br><span class="line">        args=call.get(<span class="string">&quot;args&quot;</span>, &#123;&#125;),</span><br><span class="line">        <span class="built_in">id</span>=call.get(<span class="string">&quot;id&quot;</span>, <span class="string">f&quot;call_<span class="subst">&#123;index&#125;</span>&quot;</span>),</span><br><span class="line">    )</span><br><span class="line">    <span class="keyword">for</span> index, call <span class="keyword">in</span> <span class="built_in">enumerate</span>(<span class="built_in">getattr</span>(response, <span class="string">&quot;tool_calls&quot;</span>, []) <span class="keyword">or</span> [], start=<span class="number">1</span>)</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>因此 <code>model.invoke(messages)</code> 的输出始终是本地 <code>Message</code>。这样外层 ReAct 循环不需要关心 LangChain 的具体消息类型，只需要判断：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> ai_message.tool_calls:</span><br><span class="line">    ...</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-7-tools-condition：驱动-Agent-决策流转的关键机制"><a href="#4-7-tools-condition：驱动-Agent-决策流转的关键机制" class="headerlink" title="4.7 tools_condition：驱动 Agent 决策流转的关键机制"></a><strong>4.7 tools_condition：驱动 Agent 决策流转的关键机制</strong></h3><p>到这里还缺少最后一个问题。Agent 如何知道什么时候结束？答案就在一个简单条件判断里：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> ai_message.tool_calls:</span><br><span class="line">    ...</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    <span class="keyword">return</span> messages</span><br></pre></td></tr></table></figure>
+
+<p>在 <code>02_manual_react_single_tool.py</code> 中，这个条件判断写在循环内部：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    ai_message = model.invoke(messages)</span><br><span class="line">    messages.append(ai_message)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> ai_message.tool_calls:</span><br><span class="line">        <span class="keyword">return</span> messages</span><br><span class="line"></span><br><span class="line">    messages.extend(execute_tool_calls(ai_message, tools))</span><br></pre></td></tr></table></figure>
+
+<p>这段代码可以按输入输出拆成三步。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 拿当前消息历史调用模型</span></span><br><span class="line">ai_message = model.invoke(messages)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 把模型输出追加到历史中</span></span><br><span class="line">messages.append(ai_message)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 检查模型是否还要求调用工具</span></span><br><span class="line"><span class="keyword">if</span> <span class="keyword">not</span> ai_message.tool_calls:</span><br><span class="line">    <span class="keyword">return</span> messages</span><br></pre></td></tr></table></figure>
+
+<p>如果没有工具调用，说明模型已经给出最终答案，Agent 结束。如果还有工具调用，就执行工具，并把工具结果继续追加回 <code>messages</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">messages.extend(execute_tool_calls(ai_message, tools))</span><br></pre></td></tr></table></figure>
+
+<p>真实 LangGraph 中，这个判断通常封装为 <code>tools_condition()</code>。它的逻辑非常简单。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> tool_calls:</span><br><span class="line">    goto ToolNode</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    goto END</span><br></pre></td></tr></table></figure>
+
+<p>如果模型生成了 Tool Call。继续执行工具。如果没有生成 Tool Call。说明模型已经获得足够信息。流程结束。因此整个 Agent 图最终变成：</p>
+<pre class="mermaid">flowchart LR
+    LLM1["LLM<br/>Reason"]
+    TC{"是否存在<br/>Tool Call"}
+    TOOL["ToolNode<br/>Act"]
+    LLM2["LLM<br/>Reason"]
+    END["END<br/>Final Answer"]
+    LLM1 --> TC
+    TC -- 是 --> TOOL
+    TOOL --> LLM2
+    LLM2 --> TC
+    TC -- 否 --> END</pre>
+
+<p>这张图已经具备了完整 ReAct Agent 的全部能力。到这里一个真正意义上的 Tool Agent 已经构建完成。下一章将结合实际运行过程，逐步跟踪一次完整 Agent 调用，观察 Message、Tool Call、Tool Result 在系统内部是如何流转的。</p>
+<h2 id="5-调试-Agent：看懂一次完整执行过程"><a href="#5-调试-Agent：看懂一次完整执行过程" class="headerlink" title="5. 调试 Agent：看懂一次完整执行过程"></a><strong>5. 调试 Agent：看懂一次完整执行过程</strong></h2><p>前面已经完成了一个最小可运行的 ReAct Agent，它的结构并不复杂：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LLM Node → ToolNode → LLM Node</span><br></pre></td></tr></table></figure>
+
+<p>Agent 需要理解的核心是运行时消息是如何流转的，以及模型为什么有时调用工具、有时直接回答。<code>02_manual_react_single_tool.py</code> 接下来通过打印消息列表展示了一次完整执行过程。这一段很关键，因为它把抽象的 ReAct 循环变成了可以观察的实际状态变化。</p>
+<h3 id="5-1-Chat-Loop-只是外层入口"><a href="#5-1-Chat-Loop-只是外层入口" class="headerlink" title="5.1 Chat Loop 只是外层入口"></a><strong>5.1 Chat Loop 只是外层入口</strong></h3><p>为了运行 Agent，代码中实现了一个最小循环。完整函数在 <code>02_manual_react_single_tool.py</code> 中：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">run_manual_react</span>(<span class="params">question: <span class="built_in">str</span></span>) -&gt; <span class="built_in">list</span>[Message]:</span><br><span class="line">    tools = &#123;<span class="string">&quot;search_travel_info&quot;</span>: TOOLS[<span class="string">&quot;search_travel_info&quot;</span>]&#125;</span><br><span class="line">    model = LangChainTravelModel(enabled_tools=<span class="built_in">list</span>(tools))</span><br><span class="line">    messages = [Message(role=<span class="string">&quot;user&quot;</span>, content=question)]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        ai_message = model.invoke(messages)</span><br><span class="line">        messages.append(ai_message)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> ai_message.tool_calls:</span><br><span class="line">            <span class="keyword">return</span> messages</span><br><span class="line"></span><br><span class="line">        messages.extend(execute_tool_calls(ai_message, tools))</span><br></pre></td></tr></table></figure>
+
+<p>输入调用：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">messages = run_manual_react(<span class="string">&quot;我想看江南园林，应该去哪里？&quot;</span>)  </span><br><span class="line">print_messages(messages)</span><br></pre></td></tr></table></figure>
+
+<p>输出是完整消息历史：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#123;message.role&#125;: &#123;message.content&#125;</span><br><span class="line">assistant tool_calls: &#123;calls&#125;</span><br><span class="line">tool &#123;message.tool_name&#125;: &#123;message.content&#125;</span><br><span class="line">assistant tool_calls: &#123;calls&#125;</span><br><span class="line">tool &#123;message.tool_name&#125;: &#123;message.content&#125;</span><br><span class="line">assistant tool_calls: &#123;calls&#125;</span><br><span class="line">tool &#123;message.tool_name&#125;: &#123;message.content&#125;</span><br><span class="line">&#123;message.role&#125;: &#123;message.content&#125;</span><br></pre></td></tr></table></figure>
+
+<p>也就是说，它不会只返回最终回答，而是把中间的模型决策、工具调用和工具结果全部保留下来。而不是只打印最后一条消息。这个循环本身不是 Agent 的核心。它只是完成三件事：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">调用模型</span><br><span class="line">执行工具</span><br><span class="line">把工具结果追加回消息列表</span><br></pre></td></tr></table></figure>
+
+<p>真正的 Agent 逻辑就藏在这个循环里。也就是说，外层看起来只是一次普通问答：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">输入问题 → 输出答案</span><br></pre></td></tr></table></figure>
+
+<p>但内部已经经历了多轮模型调用和工具调用。</p>
+<h2 id="5-2-Agent-的首次决策是如何产生"><a href="#5-2-Agent-的首次决策是如何产生" class="headerlink" title="5.2 Agent 的首次决策是如何产生"></a><strong>5.2 Agent 的首次决策是如何产生</strong></h2><p>按照上面的输入问题：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">我想看江南园林，应该去哪里？</span><br></pre></td></tr></table></figure>
+
+<p>也就是让 Agent 推荐适合看江南园林的城市。第一次进入模型节点时，状态中只有一条消息。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">    Message(</span><br><span class="line">        role=<span class="string">&quot;user&quot;</span>,</span><br><span class="line">        content=<span class="string">&quot;我想看江南园林，应该去哪里？&quot;</span></span><br><span class="line">    )</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>此时模型还没有外部资料。如果是普通 ChatBot，它可能会直接生成答案。但在 Tool Agent 中，模型会先判断是否需要调用工具。因为问题涉及具体旅游信息，模型很可能不会直接回答，而是生成 Tool Call。</p>
+<h3 id="5-3-LLM-如何决定调用工具"><a href="#5-3-LLM-如何决定调用工具" class="headerlink" title="5.3 LLM 如何决定调用工具"></a><strong>5.3 LLM 如何决定调用工具</strong></h3><p>第一次模型输出通常不是最终答案，而是类似这样的结构：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Message(</span><br><span class="line">    role=<span class="string">&quot;assistant&quot;</span>,</span><br><span class="line">    tool_calls=[</span><br><span class="line">        ToolCall(</span><br><span class="line">            name=<span class="string">&quot;search_travel_info&quot;</span>,</span><br><span class="line">            args=&#123;<span class="string">&quot;query&quot;</span>: <span class="string">&quot;江南园林推荐 苏州扬州 著名园林景点&quot;</span>&#125;,</span><br><span class="line">            <span class="built_in">id</span>=<span class="string">&quot;call_...&quot;</span>,</span><br><span class="line">        )</span><br><span class="line">    ]</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>这说明模型判断当前信息不足，需要查询旅游知识库。模型生成的查询不一定等于用户原始问题。在真实大模型里，它可能一次生成多个 Tool Call。例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">江南园林推荐 苏州扬州 著名园林景点</span><br><span class="line">苏州古典园林 拙政园 留园 狮子林 网师园</span><br><span class="line">江南园林旅游攻略 最佳路线 最佳季节</span><br></pre></td></tr></table></figure>
+
+<p>在代码，这个查询改写由真实模型产生。<code>LangChainTravelModel.invoke()</code> 会把本地 <code>Message</code> 转成 LangChain 的 <code>HumanMessage</code>、<code>AIMessage</code>、<code>ToolMessage</code>，再调用：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">response = <span class="variable language_">self</span>.llm.invoke(lc_messages)</span><br></pre></td></tr></table></figure>
+
+<p>如果模型返回 <code>tool_calls</code>，再把它们转换回本地 <code>ToolCall</code>。这体现出 Agent 的一个隐含能力：<strong>模型会主动改写查询，提高检索召回率</strong>。用户的问题是自然语言，检索工具需要的是更适合搜索的关键词。模型在两者之间做了一次转换。这和 RAG 中常见的 Query Rewrite、Multi Query Retrieval 思路非常接近，只是在 Agent 中，这件事由模型自动完成。</p>
+<h3 id="5-4-ToolNode-调用工具并生成-ToolMessage"><a href="#5-4-ToolNode-调用工具并生成-ToolMessage" class="headerlink" title="5.4 ToolNode 调用工具并生成 ToolMessage"></a><strong>5.4 ToolNode 调用工具并生成 ToolMessage</strong></h3><p>当模型节点返回 Tool Call 后，循环会检查到：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">存在 tool_calls</span><br></pre></td></tr></table></figure>
+
+<p>于是流程进入工具执行节点。<code>execute_tool_calls()</code> 会读取上一条 assistant message 中的调用请求。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tool_calls = last_message.tool_calls</span><br></pre></td></tr></table></figure>
+
+<p>然后逐个执行对应工具。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">search_travel_info(</span><br><span class="line">    query=<span class="string">&quot;江南园林推荐 苏州扬州 著名园林景点&quot;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>工具内部会调用本地检索函数。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">query → normalize(query) → 匹配 TRAVEL_KNOWLEDGE → 返回相关资料</span><br></pre></td></tr></table></figure>
+
+<p>检索结果返回后，并不会直接跳到最终答案。它会被封装成 ToolMessage，继续加入消息历史。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">    Message(role=<span class="string">&quot;user&quot;</span>),</span><br><span class="line">    Message(role=<span class="string">&quot;assistant&quot;</span>, tool_calls=[...]),</span><br><span class="line">    Message(role=<span class="string">&quot;tool&quot;</span>),</span><br><span class="line">    Message(role=<span class="string">&quot;assistant&quot;</span>)</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>这里是理解 Agent 的关键点。<strong>工具结果也是消息。</strong> 它不是临时变量，也不是隐藏状态，而是作为上下文的一部分交回给模型。</p>
+<h3 id="5-5-Agent-如何利用观察结果继续推理"><a href="#5-5-Agent-如何利用观察结果继续推理" class="headerlink" title="5.5 Agent 如何利用观察结果继续推理"></a><strong>5.5 Agent 如何利用观察结果继续推理</strong></h3><p>工具执行完成后，流程会再次回到模型节点。此时模型看到的上下文已经变成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">用户问题</span><br><span class="line">模型的工具调用请求</span><br><span class="line">工具返回的检索结果</span><br></pre></td></tr></table></figure>
+
+<p>模型终于拥有了回答问题所需的资料。于是这一次，它通常不会再生成 Tool Call，而是直接生成最终答案。例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">看江南园林，首推苏州。苏州以古典园林、平江路、山塘街和博物馆见长，如果想看园林、老城街巷和江南水乡气质，苏州比大城市更适合慢慢走。</span><br></pre></td></tr></table></figure>
+
+<p>这时返回的是普通 assistant message。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Message(</span><br><span class="line">    role=<span class="string">&quot;assistant&quot;</span>,</span><br><span class="line">    content=<span class="string">&quot;...&quot;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>没有 <code>tool_calls</code>。</p>
+<h3 id="5-6-Agent-为什么会自动停止"><a href="#5-6-Agent-为什么会自动停止" class="headerlink" title="5.6 Agent 为什么会自动停止"></a><strong>5.6 Agent 为什么会自动停止</strong></h3><p>第二次模型节点执行完成后，循环再次检查 <code>tool_calls</code>。这一次判断结果不同。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">没有 tool_calls</span><br></pre></td></tr></table></figure>
+
+<p>于是图进入 END。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LLM Node → 无 Tool Call → END</span><br></pre></td></tr></table></figure>
+
+<p>这就是 ReAct Agent 的停止机制。并不需要额外写复杂逻辑。只需要判断模型这次输出中是否还有工具调用请求即可。</p>
+<h3 id="5-7-Agent-的运行本质是-Message-流转"><a href="#5-7-Agent-的运行本质是-Message-流转" class="headerlink" title="5.7 Agent 的运行本质是 Message 流转"></a><strong>5.7 Agent 的运行本质是 Message 流转</strong></h3><p>通过这次调试，可以得到一个非常重要的结论：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Agent 的运行过程 = Message 不断累积的过程</span><br></pre></td></tr></table></figure>
+
+<p>从外部看，只是一次问答。从内部看，实际经历了：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">HumanMessage → AIMessage(tool_calls) → ToolMessage → AIMessage(final answer)</span><br></pre></td></tr></table></figure>
+
+<p>不同类型的消息共同组成上下文。模型每次决策，都不是凭空发生的，而是基于当前完整 Message History。这也是 Agent 状态通常只需要维护 <code>messages</code> 的原因。LangGraph 把这件事封装成状态类型。</p>
+<h3 id="5-8-调试-Agent"><a href="#5-8-调试-Agent" class="headerlink" title="5.8 调试 Agent"></a><strong>5.8 调试 Agent</strong></h3><p>调试这类 Agent 时，重点在于观察三个点。第一个是模型节点。它决定是否调用工具。第二个是工具执行节点。它负责执行工具并返回结果。第三个是 Message History。它记录了整个决策链路。只要这三部分清晰，Agent 的运行过程就清晰。从工程角度看，这也能帮助定位问题。如果模型没有调用工具，通常要检查：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Prompt 是否明确</span><br><span class="line">Tool 描述是否清楚</span><br><span class="line">用户问题是否触发工具需求</span><br></pre></td></tr></table></figure>
+
+<p>如果工具调用了但结果不好，通常要检查：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">参数是否合理</span><br><span class="line">检索质量是否稳定</span><br><span class="line">工具返回内容是否足够</span><br></pre></td></tr></table></figure>
+
+<p>如果最终答案不准确，则需要检查：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ToolMessage 是否包含真实有效信息</span><br><span class="line">模型是否正确引用工具结果</span><br><span class="line">是否混入了模型自己的猜测</span><br></pre></td></tr></table></figure>
+
+<p>这也说明，在 Agent 系统中，最终答案不能只看语言是否流畅，更要看它是否真正来自工具结果。<strong>看起来真实不等于真实存在</strong>，只有可追踪到工具或数据源的信息，才更适合作为可靠答案。</p>
+<h2 id="6-从单工具-Agent-到多工具-Agent"><a href="#6-从单工具-Agent-到多工具-Agent" class="headerlink" title="6. 从单工具 Agent 到多工具 Agent"></a><strong>6. 从单工具 Agent 到多工具 Agent</strong></h2><p>前面构建的 Agent 已经具备完整的 ReAct 循环能力。但它实际上只有一个工具。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">search_travel_info()</span><br></pre></td></tr></table></figure>
+
+<p>因此无论用户提出什么问题，模型最终都只能调用旅游知识库。这种架构能够验证 ReAct 原理，却无法体现 Agent 真正的价值。因为 Agent 最重要的能力并不是调用工具，而是：<strong>在多个工具之间进行选择和协调。</strong></p>
+<p>本章对应的代码<code>03_multi_tool_agent.py</code>，它和 <code>02_manual_react_single_tool.py</code> 的结构几乎一样，变化的是工具集合：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">tools = &#123;</span><br><span class="line">    <span class="string">&quot;search_travel_info&quot;</span>: TOOLS[<span class="string">&quot;search_travel_info&quot;</span>],</span><br><span class="line">    <span class="string">&quot;weather_forecast&quot;</span>: TOOLS[<span class="string">&quot;weather_forecast&quot;</span>],</span><br><span class="line">    <span class="string">&quot;check_bnb_availability&quot;</span>: TOOLS[<span class="string">&quot;check_bnb_availability&quot;</span>],</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>也就是说，多工具 Agent 并没有改 ReAct 循环，而是把可选能力从一个扩展到了三个。</p>
+<h3 id="6-1-单工具-Agent-的局限性"><a href="#6-1-单工具-Agent-的局限性" class="headerlink" title="6.1 单工具 Agent 的局限性"></a><strong>6.1 单工具 Agent 的局限性</strong></h3><p>假设系统中只有旅游知识库。下面的问题都可以处理：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">杭州有哪些景点？</span><br><span class="line">推荐苏州周末路线</span><br><span class="line">哪里适合看江南园林？</span><br></pre></td></tr></table></figure>
+
+<p>因为这些问题都属于知识库覆盖范围。但如果问题变成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">苏州明天天气怎么样？</span><br></pre></td></tr></table></figure>
+
+<p>知识库无法回答。即使模型调用了工具，也只能获得旅游信息。这意味着：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Agent ≠ 万能</span><br></pre></td></tr></table></figure>
+
+<p>Agent 的能力边界仍然取决于工具集合。模型再聪明，也无法凭空获取不存在的数据。</p>
+<h3 id="6-2-增加第二个-Tool"><a href="#6-2-增加第二个-Tool" class="headerlink" title="6.2 增加第二个 Tool"></a><strong>6.2 增加第二个 Tool</strong></h3><p>为了展示多工具协作，<code>03_multi_tool_agent.py</code> 增加了天气和住宿两个工具。示例代码类似：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Tool(</span><br><span class="line">    name=<span class="string">&quot;weather_forecast&quot;</span>,</span><br><span class="line">    description=<span class="string">&quot;Get a mock weather forecast, given a Chinese city name.&quot;</span>,</span><br><span class="line">    parameters=&#123;<span class="string">&quot;town&quot;</span>: <span class="string">&quot;string&quot;</span>&#125;,</span><br><span class="line">    fn=weather_forecast,</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>这个工具负责根据地点返回天气信息。为了避免依赖真实天气接口，代码中还是使用 <code>common.py</code> 里的本地模拟数据。返回内容大致如下：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;town&quot;</span><span class="punctuation">:</span> <span class="string">&quot;苏州&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;weather&quot;</span><span class="punctuation">:</span> <span class="string">&quot;小雨&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;temperature&quot;</span><span class="punctuation">:</span> <span class="number">22</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>重点在于 Agent 开始拥有多种能力。此时工具集合变成：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">tools = &#123;</span><br><span class="line">    <span class="string">&quot;search_travel_info&quot;</span>: TOOLS[<span class="string">&quot;search_travel_info&quot;</span>],</span><br><span class="line">    <span class="string">&quot;weather_forecast&quot;</span>: TOOLS[<span class="string">&quot;weather_forecast&quot;</span>],</span><br><span class="line">    <span class="string">&quot;check_bnb_availability&quot;</span>: TOOLS[<span class="string">&quot;check_bnb_availability&quot;</span>],</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>系统结构也发生变化。</p>
+<pre class="mermaid">flowchart TB
+
+    LLM["LLM"]
+    Tool1["旅游知识库"]
+    Tool2["天气服务"]
+    Tool3["住宿查询"]
+
+    LLM --> Tool1
+    LLM --> Tool2
+    LLM --> Tool3</pre>
+
+<p>从这一刻开始，模型需要做选择。完整函数如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">run_multi_tool_agent</span>(<span class="params">question: <span class="built_in">str</span></span>) -&gt; <span class="built_in">list</span>[Message]:</span><br><span class="line">    tools = &#123;</span><br><span class="line">        <span class="string">&quot;search_travel_info&quot;</span>: TOOLS[<span class="string">&quot;search_travel_info&quot;</span>],</span><br><span class="line">        <span class="string">&quot;weather_forecast&quot;</span>: TOOLS[<span class="string">&quot;weather_forecast&quot;</span>],</span><br><span class="line">        <span class="string">&quot;check_bnb_availability&quot;</span>: TOOLS[<span class="string">&quot;check_bnb_availability&quot;</span>],</span><br><span class="line">    &#125;</span><br><span class="line">    model = LangChainTravelModel(enabled_tools=<span class="built_in">list</span>(tools))</span><br><span class="line">    messages = [Message(role=<span class="string">&quot;user&quot;</span>, content=question)]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        ai_message = model.invoke(messages)</span><br><span class="line">        messages.append(ai_message)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> ai_message.tool_calls:</span><br><span class="line">            <span class="keyword">return</span> messages</span><br><span class="line"></span><br><span class="line">        messages.extend(execute_tool_calls(ai_message, tools))</span><br></pre></td></tr></table></figure>
+
+<p>和单工具版本相比，循环部分完全没有变化：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    ai_message = model.invoke(messages)</span><br><span class="line">    ...</span><br></pre></td></tr></table></figure>
+
+<p>变化只发生在初始化阶段：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">model = LangChainTravelModel(enabled_tools=<span class="built_in">list</span>(tools))</span><br></pre></td></tr></table></figure>
+
+<p>这里 <code>enabled_tools</code> 会把三个工具都注册给模型。模型看到的就不再只有 <code>search_travel_info</code>，还包括 <code>weather_forecast</code> 和 <code>check_bnb_availability</code>。</p>
+<h3 id="6-3-Tool-Routing-是如何发生的"><a href="#6-3-Tool-Routing-是如何发生的" class="headerlink" title="6.3 Tool Routing 是如何发生的"></a><strong>6.3 Tool Routing 是如何发生的</strong></h3><p>很多传统系统会使用条件判断实现工具路由。例如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> <span class="string">&quot;weather&quot;</span> <span class="keyword">in</span> query:</span><br><span class="line">    weather_tool()</span><br><span class="line"></span><br><span class="line"><span class="keyword">elif</span> <span class="string">&quot;travel&quot;</span> <span class="keyword">in</span> query:</span><br><span class="line">    travel_tool()</span><br></pre></td></tr></table></figure>
+
+<p>这种方式的问题非常明显。随着工具增加，例如地图、酒店、机票等，判断逻辑会越来越复杂。最终变成大量：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>...</span><br><span class="line"><span class="keyword">elif</span>...</span><br><span class="line"><span class="keyword">elif</span>...</span><br><span class="line"><span class="keyword">elif</span>...</span><br></pre></td></tr></table></figure>
+
+<p>而 Agent 的思路完全不同。程序不再决定工具路由。模型负责决定。例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">杭州有哪些景点？</span><br></pre></td></tr></table></figure>
+
+<p>模型可能选择：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">search_travel_info()</span><br></pre></td></tr></table></figure>
+
+<p>而：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">苏州天气怎么样？</span><br></pre></td></tr></table></figure>
+
+<p>模型则会选择：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">weather_forecast()</span><br></pre></td></tr></table></figure>
+
+<p>开发时不需要提前编写这些规则。模型会根据工具描述和用户问题自行判断。这也是 Tool Calling 的核心价值之一。</p>
+<h3 id="6-4-一个问题调用多个-Tool"><a href="#6-4-一个问题调用多个-Tool" class="headerlink" title="6.4 一个问题调用多个 Tool"></a><strong>6.4 一个问题调用多个 Tool</strong></h3><p>真正体现 Agent 能力的场景，是一个问题同时涉及多个领域。例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">推荐一个适合看江南园林的城市</span><br><span class="line">查一下苏州天气</span><br><span class="line">帮我找一个民宿房间</span><br></pre></td></tr></table></figure>
+
+<p>此时模型可能先执行：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">search_travel_info()</span><br></pre></td></tr></table></figure>
+
+<p>获得旅游信息。然后继续执行：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">weather_forecast()</span><br></pre></td></tr></table></figure>
+
+<p>获得天气数据。然后还可以继续执行：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">check_bnb_availability()</span><br></pre></td></tr></table></figure>
+
+<p>获得住宿数据。最后将这些内容综合。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">景点推荐 + 天气情况 + 住宿选项 + 出行建议</span><br></pre></td></tr></table></figure>
+
+<p>生成最终回答。此时执行路径已经不再固定，这也是 ReAct 真正发挥作用的地方。在 <code>03_multi_tool_agent.py</code> 中，示例问题：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">question = <span class="string">&quot;推荐一个适合看江南园林的城市，查一下苏州天气，并找一个民宿房间。&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>这句话同时包含三个需求：</p>
+<table>
+<thead>
+<tr>
+<th><strong>需求</strong></th>
+<th><strong>适合的工具</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>推荐江南园林城市</td>
+<td><code>search_travel_info</code></td>
+</tr>
+<tr>
+<td>查询苏州天气</td>
+<td><code>weather_forecast</code></td>
+</tr>
+<tr>
+<td>找民宿房间</td>
+<td><code>check_bnb_availability</code></td>
+</tr>
+</tbody></table>
+<p>因此模型可能一次返回多个 Tool Call：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Message(</span><br><span class="line">    role=<span class="string">&quot;assistant&quot;</span>,</span><br><span class="line">    tool_calls=[</span><br><span class="line">        ToolCall(name=<span class="string">&quot;search_travel_info&quot;</span>, args=&#123;<span class="string">&quot;query&quot;</span>: <span class="string">&quot;江南 园林 水乡 苏州 杭州&quot;</span>&#125;, <span class="built_in">id</span>=<span class="string">&quot;call_1&quot;</span>),</span><br><span class="line">        ToolCall(name=<span class="string">&quot;weather_forecast&quot;</span>, args=&#123;<span class="string">&quot;town&quot;</span>: <span class="string">&quot;苏州&quot;</span>&#125;, <span class="built_in">id</span>=<span class="string">&quot;call_2&quot;</span>),</span><br><span class="line">        ToolCall(name=<span class="string">&quot;check_bnb_availability&quot;</span>, args=&#123;<span class="string">&quot;town&quot;</span>: <span class="string">&quot;苏州&quot;</span>, <span class="string">&quot;rooms&quot;</span>: <span class="number">1</span>&#125;, <span class="built_in">id</span>=<span class="string">&quot;call_3&quot;</span>),</span><br><span class="line">    ],</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>随后 <code>execute_tool_calls()</code> 会逐个执行这些调用，并生成三条 <code>tool</code> 消息：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">    Message(role=<span class="string">&quot;tool&quot;</span>, tool_name=<span class="string">&quot;search_travel_info&quot;</span>, content=<span class="string">&quot;...&quot;</span>),</span><br><span class="line">    Message(role=<span class="string">&quot;tool&quot;</span>, tool_name=<span class="string">&quot;weather_forecast&quot;</span>, content=<span class="string">&quot;...&quot;</span>),</span><br><span class="line">    Message(role=<span class="string">&quot;tool&quot;</span>, tool_name=<span class="string">&quot;check_bnb_availability&quot;</span>, content=<span class="string">&quot;...&quot;</span>),</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>第二次进入模型节点时，模型看到的是用户问题加上三份工具观察结果，于是可以综合生成最终答案。</p>
+<h3 id="6-5-从单一能力到能力编排"><a href="#6-5-从单一能力到能力编排" class="headerlink" title="6.5 从单一能力到能力编排"></a><strong>6.5 从单一能力到能力编排</strong></h3><p>只有一个 Tool 时，其实很难感受到 Agent 的优势。因为模型根本不存在选择空间。调用即可。但当工具数量不断增加时，情况开始发生变化。如果继续采用传统 Workflow。每增加一个能力，都要修改流程图和分支逻辑。而 Agent 架构下：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">新增 Tool  → 注册 Tool → 更新 Prompt</span><br></pre></td></tr></table></figure>
+
+<p>即可。系统整体结构几乎不需要变化。因此 Agent 最大的优势并不是单个工具能力，而是：<strong>随着工具数量增长，复杂度增长速度远低于传统流程系统。</strong></p>
+<h3 id="6-6-Tool-不决定答案，决定信息来源"><a href="#6-6-Tool-不决定答案，决定信息来源" class="headerlink" title="6.6 Tool 不决定答案，决定信息来源"></a><strong>6.6 Tool 不决定答案，决定信息来源</strong></h3><p>很多人刚接触 Agent 时容易产生一种误解。认为 Tool 越多，模型就越聪明。实际上 Tool 并不会增强推理能力。Tool 只是提供信息来源。真正负责理解和组织这些内容的仍然是模型。因此可以把两者理解为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Tool</span><br><span class="line">负责获取事实</span><br><span class="line"></span><br><span class="line">LLM</span><br><span class="line">负责解释事实</span><br></pre></td></tr></table></figure>
+
+<p>如果 Tool 返回的数据有问题，模型很难纠正。如果 Tool 返回的是虚构数据，那么最终答案也会建立在错误基础上。因此在 Agent 系统中，工具质量往往比 Prompt 更重要。</p>
+<h3 id="6-7-从-Tool-Agent-到-Multi-Agent"><a href="#6-7-从-Tool-Agent-到-Multi-Agent" class="headerlink" title="6.7 从 Tool Agent 到 Multi-Agent"></a><strong>6.7 从 Tool Agent 到 Multi-Agent</strong></h3><p>当工具数量继续增加时，又会出现新的问题。假设系统拥有：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">20 个 Tool</span><br><span class="line">30 个 Tool</span><br><span class="line">50 个 Tool</span><br></pre></td></tr></table></figure>
+
+<p>此时单个 Agent 的 Prompt 会越来越长。工具选择也会越来越困难。这时开始出现新的架构方向：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Supervisor Agent + Specialized Agents</span><br></pre></td></tr></table></figure>
+
+<p>即：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">总控 Agent → 多个专业 Agent → 各自管理工具</span><br></pre></td></tr></table></figure>
+
+<p>例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">旅游 Agent</span><br><span class="line">天气 Agent</span><br><span class="line">地图 Agent</span><br><span class="line">酒店 Agent</span><br></pre></td></tr></table></figure>
+
+<p>每个 Agent 只负责自己的领域。而总控 Agent 负责协调。这也是后续 Multi-Agent 架构产生的原因。从这里开始，讨论重点将不再是如何调用 Tool，而是如何组织越来越复杂的 Agent 系统。下一章将回到工程实践层面，看看为什么在实际开发中很少反复手写 ReAct 循环，而更多使用 <code>create_react_agent()</code> 这类封装快速构建标准 Agent。</p>
+<h2 id="7-create-react-agent：从原理验证走向实践"><a href="#7-create-react-agent：从原理验证走向实践" class="headerlink" title="7. create_react_agent：从原理验证走向实践"></a><strong>7. create_react_agent：从原理验证走向实践</strong></h2><p>前面用了大量篇幅手动搭建 ReAct Agent。从 Tool 定义开始，到模型节点、工具执行节点、条件判断，再到完整循环，最终实现了一个能够自主调用工具的 Agent。这个过程对于理解原理非常重要。但如果把这些代码直接带到实际项目中，会发现有大量重复代码，因为绝大部分 ReAct Agent 的底层结构几乎完全一样。</p>
+<p>本章对应的代码是<code>04_create_react_agent_style.py</code>，用来说明真实封装到底隐藏了什么。</p>
+<h3 id="7-1-为什么实际项目很少手写-ReAct-循环"><a href="#7-1-为什么实际项目很少手写-ReAct-循环" class="headerlink" title="7.1 为什么实际项目很少手写 ReAct 循环"></a><strong>7.1 为什么实际项目很少手写 ReAct 循环</strong></h3><p>回顾前面的实现过程。需要定义：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Message</span><br><span class="line"></span><br><span class="line">model.invoke(messages)</span><br><span class="line"></span><br><span class="line">execute_tool_calls()</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> ai_message.tool_calls:</span><br><span class="line">    ...</span><br></pre></td></tr></table></figure>
+
+<p>整个流程加起来已经接近几十行代码。而且无论做什么 Agent，底层结构都高度相似。其核心运行逻辑都是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LLM → Tool → LLM → END</span><br></pre></td></tr></table></figure>
+
+<p>区别仅仅在于：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">使用什么工具</span><br><span class="line">Prompt 怎么写</span><br></pre></td></tr></table></figure>
+
+<p>因此真实框架通常会把这种固定模式封装起来。</p>
+<h3 id="7-2-create-react-agent-封装了哪些能力"><a href="#7-2-create-react-agent-封装了哪些能力" class="headerlink" title="7.2 create_react_agent 封装了哪些能力"></a><strong>7.2 create_react_agent 封装了哪些能力</strong></h3><p>LangGraph 提供了一个预构建 Agent。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> langgraph.prebuilt <span class="keyword">import</span> (</span><br><span class="line">    create_react_agent</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>创建方式非常简单。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">agent = create_react_agent(</span><br><span class="line">    llm,</span><br><span class="line">    tools=TOOLS</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>看起来只有一行代码。但内部已经自动完成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">StateGraph</span><br><span class="line">ToolNode</span><br><span class="line">Message State</span><br><span class="line">Conditional Edge</span><br><span class="line">ReAct Loop</span><br></pre></td></tr></table></figure>
+
+<p>全部构建过程。在 <code>04_create_react_agent_style.py</code> 中，也实现了一个简单封装：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">create_react_agent</span>(<span class="params">model: LangChainTravelModel, tools: <span class="built_in">list</span>[Tool]</span>) -&gt; <span class="type">Callable</span>[[<span class="built_in">str</span>], <span class="built_in">list</span>[Message]]:</span><br><span class="line">    tool_map = &#123;tool.name: tool <span class="keyword">for</span> tool <span class="keyword">in</span> tools&#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">agent</span>(<span class="params">question: <span class="built_in">str</span></span>) -&gt; <span class="built_in">list</span>[Message]:</span><br><span class="line">        messages = [Message(role=<span class="string">&quot;user&quot;</span>, content=question)]</span><br><span class="line">        <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">            ai_message = model.invoke(messages)</span><br><span class="line">            messages.append(ai_message)</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> <span class="keyword">not</span> ai_message.tool_calls:</span><br><span class="line">                <span class="keyword">return</span> messages</span><br><span class="line"></span><br><span class="line">            messages.extend(execute_tool_calls(ai_message, tool_map))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> agent</span><br></pre></td></tr></table></figure>
+
+<p>这段代码没有实现完整 LangGraph，只是把前面手写的固定 ReAct 循环包成函数。它的输入是两个对象：</p>
+<table>
+<thead>
+<tr>
+<th><strong>输入</strong></th>
+<th><strong>含义</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>model</code></td>
+<td>已经绑定好工具的模型</td>
+</tr>
+<tr>
+<td><code>tools</code></td>
+<td>当前 Agent 允许调用的工具列表</td>
+</tr>
+</tbody></table>
+<p>输出不是一次执行结果，而是一个可复用的 <code>agent</code> 函数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">agent = create_react_agent(model, tools)</span><br></pre></td></tr></table></figure>
+
+<p>之后调用时只需要传问题：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">messages = agent(<span class="string">&quot;我想去一个有历史感的中国城市旅行，再查一下西安天气。&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>这样，使用者不需要每次都写：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">messages = [Message(role=<span class="string">&quot;user&quot;</span>, content=question)]</span><br><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    ...</span><br></pre></td></tr></table></figure>
+
+<p>换句话说，前面亲手搭建的 Agent 最终可以浓缩成：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">create_react_agent(...)</span><br></pre></td></tr></table></figure>
+
+<p>这里有一个关键点：<code>create_react_agent()</code> 封装的是“标准循环”，不是“业务逻辑”。业务差异仍然来自：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">传入什么模型</span><br><span class="line">传入什么工具</span><br><span class="line">写什么 Prompt</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-3-create-react-agent-背后的运行结构"><a href="#7-3-create-react-agent-背后的运行结构" class="headerlink" title="7.3 create_react_agent 背后的运行结构"></a><strong>7.3 create_react_agent 背后的运行结构</strong></h3><p>如果把内部结构展开，本质上仍然是：</p>
+<pre class="mermaid">flowchart LR
+
+    LLM["LLM"]
+
+    DECISION{"是否存在<br/>Tool Call"}
+
+    TOOL["Tool 执行节点<br/>ToolNode"]
+
+    END_NODE(["END"])
+
+    LLM_NEXT["LLM"]
+
+    LLM --> DECISION
+
+    DECISION -- 是 --> TOOL
+    DECISION -- 否 --> END_NODE
+
+    TOOL --> LLM_NEXT</pre>
+
+<p>也就是说：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">create_react_agent()</span><br></pre></td></tr></table></figure>
+
+<p>并没有发明新的 Agent。只是把标准 ReAct Agent 预先封装好了。因此：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">create_react_agent = 标准 ReAct Agent 模板</span><br></pre></td></tr></table></figure>
+
+<p>理解这一点就可以知道，这只是把前面已经实现过的结构隐藏起来。这样就不用每次都创建工具表、模型和消息列表，运行时只剩下用户问题：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">messages = agent(<span class="string">&quot;我想去一个有历史感的中国城市旅行，再查一下西安天气。&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>这就是工程封装的意义：不是改变 Agent 原理，而是减少重复样板代码，让开发者把注意力放回工具设计和 Prompt 设计。</p>
+<h3 id="7-4-Prompt-如何影响-Agent-的行为决策"><a href="#7-4-Prompt-如何影响-Agent-的行为决策" class="headerlink" title="7.4 Prompt 如何影响 Agent 的行为决策"></a><strong>7.4 Prompt 如何影响 Agent 的行为决策</strong></h3><p>前面几章讨论的是 Graph 如何搭建、节点如何连接、状态如何传递，而在实际项目里，真正影响 Agent 效果的往往不再是 Graph，而是 Prompt。例如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">SYSTEM_PROMPT = <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">You are a travel assistant...</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>对于 Agent 来说。Prompt 决定：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">职责范围</span><br><span class="line">回答风格</span><br><span class="line">工具使用原则</span><br><span class="line">任务边界</span><br></pre></td></tr></table></figure>
+
+<p>甚至会影响：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">是否调用工具</span><br><span class="line">调用哪个工具</span><br><span class="line">调用次数</span><br></pre></td></tr></table></figure>
+
+<p>随着 Agent 架构逐渐成熟，关注重点开始从 Graph 转向 Prompt。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Tool 决定能力边界</span><br><span class="line"></span><br><span class="line">Prompt 决定能力发挥</span><br></pre></td></tr></table></figure>
+
+<p>工具负责提供外部能力。Prompt 负责引导模型如何使用这些能力。</p>
+<h3 id="7-5-Tool-Selection-本质上是语义路由"><a href="#7-5-Tool-Selection-本质上是语义路由" class="headerlink" title="7.5 Tool Selection 本质上是语义路由"></a><strong>7.5 Tool Selection 本质上是语义路由</strong></h3><p>拥有多个 Tool 后。Agent 的核心工作逐渐变成Tool Selection，即选择哪个工具，例如：</p>
+<ul>
+<li><code>杭州有哪些景点？</code> 模型会倾向于调用：search_travel_info()</li>
+<li><code>苏州明天气温多少？</code>  则会调用：weather_forecast()</li>
+</ul>
+<p>这里并不存在硬编码规则。模型依靠：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">用户问题</span><br><span class="line">Tool 描述</span><br><span class="line">Prompt</span><br></pre></td></tr></table></figure>
+
+<p>三部分信息完成判断。从本质上看，Agent 实际上是在进行语义路由。</p>
+<h3 id="7-6-create-react-agent-的适用边界"><a href="#7-6-create-react-agent-的适用边界" class="headerlink" title="7.6 create_react_agent 的适用边界"></a><strong>7.6 create_react_agent 的适用边界</strong></h3><p>虽然 <code>create_react_agent()</code> 十分方便。但它并不适合所有场景。标准 ReAct Agent 最适合：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">单 Agent</span><br><span class="line">少量 Tool</span><br><span class="line">标准 ReAct 循环</span><br></pre></td></tr></table></figure>
+
+<p>例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">客服助手</span><br><span class="line">知识库助手</span><br><span class="line">代码助手</span><br></pre></td></tr></table></figure>
+
+<p>这些应用通常直接使用即可。但当系统开始出现复杂状态、复杂路由、长流程任务、多 Agent 协作时，就需要重新回到 LangGraph。自己构建图结构。因为这些场景已经超出了标准 ReAct Agent 的能力范围。</p>
+<h3 id="7-7-从-Agent-到-Agent-System"><a href="#7-7-从-Agent-到-Agent-System" class="headerlink" title="7.7 从 Agent 到 Agent System"></a><strong>7.7 从 Agent 到 Agent System</strong></h3><p>到了这里，本文其实已经完成了从 Workflow 到 Tool Agent 的演进，整个过程可以总结为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Workflow → Tool Calling → ReAct → Tool Agent → create_react_agent</span><br></pre></td></tr></table></figure>
+
+<p>其中最大的变化不是增加了多少工具，而是流程控制权发生了转移。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Workflow = 程序控制流程</span><br><span class="line"></span><br><span class="line">Agent = 模型控制流程</span><br></pre></td></tr></table></figure>
+
+<p>当系统规模继续扩大时，新的问题来了：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">一个 Agent 能管理多少工具？</span><br><span class="line"></span><br><span class="line">一个 Agent 能处理多复杂的任务？</span><br><span class="line"></span><br><span class="line">多个 Agent 如何协作？</span><br></pre></td></tr></table></figure>
+
+<p>这些问题已经超出了单 Agent 范畴，也正是后续 Multi-Agent、Supervisor Agent 等架构要解决的问题。</p>
+<h2 id="8-总结：Agent-本质上是一种动态工作流"><a href="#8-总结：Agent-本质上是一种动态工作流" class="headerlink" title="8. 总结：Agent 本质上是一种动态工作流"></a><strong>8. 总结：Agent 本质上是一种动态工作流</strong></h2><p>从表面上看，Agent 像是在 Workflow 上增加了工具调用能力。但从架构角度看，两者最大的区别并不在工具，而在于决策机制。Workflow 中，开发者决定流程，而 Agent 中，模型决定流程。</p>
+<p>Tool Calling 让模型能够访问外部能力。ReAct 让模型能够动态规划执行路径。LangGraph 则提供了组织这些能力的运行框架。最终形成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Reason → Act → Observation → Reason</span><br></pre></td></tr></table></figure>
+
+<p>这一套标准循环，也是现代 Agent 系统几乎共同遵循的基础模式。无论是 LangGraph、OpenAI Agents、CrewAI 还是 AutoGen，其核心思想都没有脱离这一框架。理解了这一点，后续无论面对单 Agent、Multi-Agent 还是复杂 Agent Team，本质上都只是这套机制在不同规模下的扩展与组合。</p>
+<h2 id="9-备注"><a href="#9-备注" class="headerlink" title="9.备注"></a><strong>9.备注</strong></h2><p>完整代码：<a target="_blank" rel="noopener" href="https://github.com/keychankc/AI_agent_code/tree/main/reAct_tool_calling">https://github.com/keychankc/AI_agent_code/tree/main/reAct_tool_calling</a></p>
+<script type="module"> import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';	mermaid.initialize({startOnLoad: true, flowchart: {curve: 'linear'}}); </script>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KeyChan
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://www.keychan.xyz/2026/07/01/078-from-workflow-to-agent/" title="从 Workflow 到 Agent：理解 ReAct 和 Tool Calling">https://www.keychan.xyz/2026/07/01/078-from-workflow-to-agent/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+          <a target="_blank" class="social-link" href="https://x.com/keychankc">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/Agent/" rel="tag"># Agent</a>
+              <a href="/tags/LangChain/" rel="tag"># LangChain</a>
+              <a href="/tags/Workflow/" rel="tag"># Workflow</a>
+              <a href="/tags/LangGraph/" rel="tag"># LangGraph</a>
+              <a href="/tags/ReAct/" rel="tag"># ReAct</a>
+              <a href="/tags/ToolCalling/" rel="tag"># ToolCalling</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/06/24/077-building-rag-applications/" rel="prev" title="构建 RAG 应用：LangChain 检索、记忆与调试">
+                  <i class="fa fa-angle-left"></i> 构建 RAG 应用：LangChain 检索、记忆与调试
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments" id="waline"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">KeyChan</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">714k</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/keychankc" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/js/ribbon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/ribbon.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.min.js","integrity":"sha256-G8ouPAnw4zzMbnAenHnVz6h9XpKbNdOkrqTh7AadyHs="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+<script class="next-config" data-name="waline" type="application/json">{"lang":"zh-CN","enable":true,"serverURL":"https://comment.keychan.xyz/","cssUrl":"https://unpkg.com/@waline/client@v2/dist/waline.css","commentCount":false,"pageview":false,"placeholder":"欢迎评论~","emoji":["https://unpkg.com/@waline/emojis@1.1.0/qq"],"requiredMeta":["nick","mail"],"el":"#waline","comment":true,"libUrl":"//unpkg.com/@waline/client@v2/dist/waline.js","path":"/2026/07/01/078-from-workflow-to-agent/"}</script>
+<link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css">
+<script>
+document.addEventListener('page:loaded', () => {
+  NexT.utils.loadComments(CONFIG.waline.el).then(() =>
+    NexT.utils.getScript(CONFIG.waline.libUrl, { condition: window.Waline })
+  ).then(() => 
+    Waline.init(Object.assign({}, CONFIG.waline,{ el: document.querySelector(CONFIG.waline.el) }))
+  );
+});
+</script>
+
+</body>
+</html>
